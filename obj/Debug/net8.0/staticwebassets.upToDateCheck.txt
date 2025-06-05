@@ -1,6 +1,7 @@
 wwwroot\css\admin-panel.css
 wwwroot\css\materialize-admin.css
 wwwroot\css\materialize-exact.css
+wwwroot\css\materialize-exact-improved.css
 wwwroot\css\site.css
 wwwroot\favicon.ico
 wwwroot\js\admin-panel.js

@@ -13,6 +13,10 @@
       "PackagePath": "staticwebassets\\css\\materialize-admin.css"
     },
     {
+      "Id": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\css\\materialize-exact-improved.css",
+      "PackagePath": "staticwebassets\\css\\materialize-exact-improved.css"
+    },
+    {
       "Id": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\css\\materialize-exact.css",
       "PackagePath": "staticwebassets\\css\\materialize-exact.css"
     },

@@ -29,7 +29,7 @@
         },
         {
           "Name": "Last-Modified",
-          "Value": "Thu, 05 Jun 2025 16:09:34 GMT"
+          "Value": "Thu, 05 Jun 2025 20:15:02 GMT"
         }
       ],
       "EndpointProperties": [
@@ -74,7 +74,7 @@
         },
         {
           "Name": "Last-Modified",
-          "Value": "Thu, 05 Jun 2025 16:09:34 GMT"
+          "Value": "Thu, 05 Jun 2025 20:15:02 GMT"
         }
       ],
       "EndpointProperties": [
@@ -249,8 +249,8 @@
       ]
     },
     {
-      "Route": "css/materialize-exact.1lp6ieqpl7.css",
-      "AssetFile": "css/materialize-exact.css",
+      "Route": "css/materialize-exact-improved.c2sk9ihv6x.css",
+      "AssetFile": "css/materialize-exact-improved.css",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -263,7 +263,7 @@
         },
         {
           "Name": "Content-Length",
-          "Value": "21342"
+          "Value": "6528"
         },
         {
           "Name": "Content-Type",
@@ -271,25 +271,62 @@
         },
         {
           "Name": "ETag",
-          "Value": "\"+w7clZL/0XeVVjXy77usQ3HSGV4ZhfnmwmW5cRWprmM=\""
+          "Value": "\"7DOXdNR7lBvOoVQqHKGsKr5ulnu01VMn62ujxuGlibs=\""
         },
         {
           "Name": "Last-Modified",
-          "Value": "Thu, 05 Jun 2025 17:20:33 GMT"
+          "Value": "Thu, 05 Jun 2025 19:15:13 GMT"
         }
       ],
       "EndpointProperties": [
         {
           "Name": "fingerprint",
-          "Value": "1lp6ieqpl7"
+          "Value": "c2sk9ihv6x"
         },
         {
           "Name": "integrity",
-          "Value": "sha256-+w7clZL/0XeVVjXy77usQ3HSGV4ZhfnmwmW5cRWprmM="
+          "Value": "sha256-7DOXdNR7lBvOoVQqHKGsKr5ulnu01VMn62ujxuGlibs="
         },
         {
           "Name": "label",
-          "Value": "css/materialize-exact.css"
+          "Value": "css/materialize-exact-improved.css"
+        }
+      ]
+    },
+    {
+      "Route": "css/materialize-exact-improved.css",
+      "AssetFile": "css/materialize-exact-improved.css",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "no-cache"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "6528"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "text/css"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"7DOXdNR7lBvOoVQqHKGsKr5ulnu01VMn62ujxuGlibs=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Thu, 05 Jun 2025 19:15:13 GMT"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "integrity",
+          "Value": "sha256-7DOXdNR7lBvOoVQqHKGsKr5ulnu01VMn62ujxuGlibs="
         }
       ]
     },
@@ -308,7 +345,7 @@
         },
         {
           "Name": "Content-Length",
-          "Value": "21342"
+          "Value": "43308"
         },
         {
           "Name": "Content-Type",
@@ -316,17 +353,62 @@
         },
         {
           "Name": "ETag",
-          "Value": "\"+w7clZL/0XeVVjXy77usQ3HSGV4ZhfnmwmW5cRWprmM=\""
+          "Value": "\"bSsmFiBbcWBGaNjYx4jrFeF9nEgNkldhy399+gDkh3E=\""
         },
         {
           "Name": "Last-Modified",
-          "Value": "Thu, 05 Jun 2025 17:20:33 GMT"
+          "Value": "Thu, 05 Jun 2025 20:40:59 GMT"
         }
       ],
       "EndpointProperties": [
         {
           "Name": "integrity",
-          "Value": "sha256-+w7clZL/0XeVVjXy77usQ3HSGV4ZhfnmwmW5cRWprmM="
+          "Value": "sha256-bSsmFiBbcWBGaNjYx4jrFeF9nEgNkldhy399+gDkh3E="
+        }
+      ]
+    },
+    {
+      "Route": "css/materialize-exact.hn6370khx0.css",
+      "AssetFile": "css/materialize-exact.css",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=31536000, immutable"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "43308"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "text/css"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"bSsmFiBbcWBGaNjYx4jrFeF9nEgNkldhy399+gDkh3E=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Thu, 05 Jun 2025 20:40:59 GMT"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "fingerprint",
+          "Value": "hn6370khx0"
+        },
+        {
+          "Name": "integrity",
+          "Value": "sha256-bSsmFiBbcWBGaNjYx4jrFeF9nEgNkldhy399+gDkh3E="
+        },
+        {
+          "Name": "label",
+          "Value": "css/materialize-exact.css"
         }
       ]
     },

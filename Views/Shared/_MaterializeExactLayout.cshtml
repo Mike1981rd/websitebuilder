@@ -15,14 +15,20 @@
             <div class="app-brand">
                 <a href="@Url.Action("Index", "Admin")" class="app-brand-link">
                     <span class="app-brand-logo">
-                        <svg viewBox="0 0 32 32" width="32" height="32">
+                        <svg viewBox="0 0 32 32" width="32" height="32" class="logo-full">
                             <path d="M0 12 L16 0 L32 12 L28 12 L16 4 L4 12 Z" fill="#e91e63"/>
                             <path d="M0 20 L16 8 L32 20 L28 20 L16 12 L4 20 Z" fill="#e91e63"/>
                             <path d="M0 28 L16 16 L32 28 L28 28 L16 20 L4 28 Z" fill="#e91e63"/>
                         </svg>
+                        <span class="logo-collapsed">M</span>
                     </span>
                     <span class="app-brand-text">Materialize</span>
                 </a>
+                <button id="menu-toggle-btn" class="btn-toggle">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="15 18 9 12 15 6"></polyline>
+                    </svg>
+                </button>
             </div>
 
             <div class="menu-inner">
@@ -31,6 +37,7 @@
                         <a href="@Url.Action("ExactIndex", "Admin")" class="menu-link active">
                             <i class="menu-icon fas fa-building"></i>
                             <span class="menu-text" data-i18n="menu.empresa">Empresa</span>
+                            <span class="menu-tooltip" data-i18n="menu.empresa">Empresa</span>
                         </a>
                     </li>
 
@@ -38,6 +45,7 @@
                         <a href="#" class="menu-link">
                             <i class="menu-icon fas fa-user-shield"></i>
                             <span class="menu-text" data-i18n="menu.roles">Roles</span>
+                            <span class="menu-tooltip" data-i18n="menu.roles">Roles</span>
                         </a>
                     </li>
 
@@ -45,6 +53,7 @@
                         <a href="#" class="menu-link">
                             <i class="menu-icon fas fa-users"></i>
                             <span class="menu-text" data-i18n="menu.usuarios">Usuarios</span>
+                            <span class="menu-tooltip" data-i18n="menu.usuarios">Usuarios</span>
                         </a>
                     </li>
 
@@ -52,6 +61,7 @@
                         <a href="#" class="menu-link">
                             <i class="menu-icon fas fa-user-friends"></i>
                             <span class="menu-text" data-i18n="menu.clientes">Clientes</span>
+                            <span class="menu-tooltip" data-i18n="menu.clientes">Clientes</span>
                         </a>
                     </li>
 
@@ -59,6 +69,7 @@
                         <a href="#" class="menu-link">
                             <i class="menu-icon fas fa-globe"></i>
                             <span class="menu-text" data-i18n="menu.sitioWeb">Sitio Web</span>
+                            <span class="menu-tooltip" data-i18n="menu.sitioWeb">Sitio Web</span>
                         </a>
                     </li>
                 </ul>
@@ -88,7 +99,7 @@
                                 </a>
                             </div>
                         </div>
-                        <button class="navbar-btn">
+                        <button class="navbar-btn" id="theme-toggle">
                             <i class="fas fa-moon"></i>
                         </button>
                         <button class="navbar-btn">
@@ -218,19 +229,7 @@
             <div class="customizer-section">
                 <p class="customizer-section-title" data-i18n="customizer.layout">Diseño</p>
                 
-                <p style="margin-bottom: 0.75rem; font-weight: 500; color: #444564;" data-i18n="customizer.skins">Apariencias</p>
-                <div class="layout-options">
-                    <div class="layout-option active" data-layout="default">
-                        <div class="layout-preview default"></div>
-                        <div class="layout-name" data-i18n="customizer.default">Por defecto</div>
-                    </div>
-                    <div class="layout-option" data-layout="bordered">
-                        <div class="layout-preview bordered"></div>
-                        <div class="layout-name" data-i18n="customizer.bordered">Con bordes</div>
-                    </div>
-                </div>
-
-                <div style="margin-top: 1rem;">
+                <div style="margin-bottom: 1rem;">
                     <div class="switch-option">
                         <span class="switch-label" data-i18n="customizer.semiDark">Semi Oscuro</span>
                         <label class="switch">
@@ -245,6 +244,51 @@
             <div class="customizer-section">
                 <p class="customizer-section-title" data-i18n="customizer.menu">Menú (Navegación)</p>
                 
+                <!-- Menu Layout Options -->
+                <div class="menu-layout-options" style="margin-bottom: 1.5rem;">
+                    <div class="layout-options">
+                        <div class="layout-option menu-layout active" data-menu-layout="expanded">
+                            <div class="layout-preview" style="background: #e0e0e0; position: relative;">
+                                <div style="position: absolute; left: 0; top: 0; bottom: 0; width: 30%; background: #666;"></div>
+                                <div style="position: absolute; right: 10px; top: 10px; bottom: 10px; left: 35%; background: #f0f0f0; border-radius: 4px;"></div>
+                            </div>
+                            <div class="layout-name" data-i18n="customizer.expanded">Expandido</div>
+                        </div>
+                        <div class="layout-option menu-layout" data-menu-layout="collapsed">
+                            <div class="layout-preview" style="background: #e0e0e0; position: relative;">
+                                <div style="position: absolute; left: 0; top: 0; bottom: 0; width: 15%; background: #666;"></div>
+                                <div style="position: absolute; right: 10px; top: 10px; bottom: 10px; left: 20%; background: #f0f0f0; border-radius: 4px;"></div>
+                            </div>
+                            <div class="layout-name" data-i18n="customizer.collapsed">Colapsado</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Navbar Type Options -->
+                <p style="margin-bottom: 0.75rem; font-weight: 500; color: #444564;" data-i18n="customizer.navbarType">Tipo de Barra de Navegación</p>
+                <div class="navbar-type-options" style="margin-bottom: 1.5rem;">
+                    <div class="layout-options" style="grid-template-columns: repeat(3, 1fr);">
+                        <div class="layout-option navbar-type active" data-navbar-type="sticky">
+                            <div class="layout-preview" style="background: #e0e0e0; position: relative; height: 50px;">
+                                <div style="position: absolute; top: 0; left: 0; right: 0; height: 15px; background: #666; border-bottom: 2px solid #e91e63;"></div>
+                            </div>
+                            <div class="layout-name" data-i18n="customizer.sticky">Sticky</div>
+                        </div>
+                        <div class="layout-option navbar-type" data-navbar-type="static">
+                            <div class="layout-preview" style="background: #e0e0e0; position: relative; height: 50px;">
+                                <div style="position: absolute; top: 0; left: 0; right: 0; height: 15px; background: #666;"></div>
+                            </div>
+                            <div class="layout-name" data-i18n="customizer.static">Static</div>
+                        </div>
+                        <div class="layout-option navbar-type" data-navbar-type="hidden">
+                            <div class="layout-preview" style="background: #e0e0e0; position: relative; height: 50px;">
+                                <div style="position: absolute; top: 10px; left: 10px; right: 10px; bottom: 10px; background: #f0f0f0; border-radius: 4px;"></div>
+                            </div>
+                            <div class="layout-name" data-i18n="customizer.hidden">Hidden</div>
+                        </div>
+                    </div>
+                </div>
+                
                 <p style="margin-bottom: 0.75rem; font-weight: 500; color: #444564;" data-i18n="customizer.menuBackground">Fondo del Menú</p>
                 <div class="color-options">
                     <div class="color-option menu-bg" data-menu-bg="#2b2c40" style="background: #2b2c40;" title="Default Dark"></div>
@@ -255,22 +299,6 @@
                     <div class="color-option menu-bg custom" id="custom-menu-bg">
                         <i class="fas fa-palette"></i>
                     </div>
-                </div>
-                
-                <div class="switch-option" style="margin-top: 1rem;">
-                    <span class="switch-label" data-i18n="customizer.menuCollapsed">Menú Colapsado</span>
-                    <label class="switch">
-                        <input type="checkbox" id="menu-collapsed-toggle">
-                        <span class="slider"></span>
-                    </label>
-                </div>
-                
-                <div class="switch-option">
-                    <span class="switch-label" data-i18n="customizer.menuHidden">Menú Oculto</span>
-                    <label class="switch">
-                        <input type="checkbox" id="menu-hidden-toggle">
-                        <span class="slider"></span>
-                    </label>
                 </div>
             </div>
         </div>
@@ -541,6 +569,12 @@
                 'customizer.menuBackground': 'Fondo del Menú',
                 'customizer.menuCollapsed': 'Menú Colapsado',
                 'customizer.menuHidden': 'Menú Oculto',
+                'customizer.expanded': 'Expandido',
+                'customizer.collapsed': 'Colapsado',
+                'customizer.navbarType': 'Tipo de Barra de Navegación',
+                'customizer.sticky': 'Pegajosa',
+                'customizer.static': 'Estática',
+                'customizer.hidden': 'Oculta',
                 // Color picker
                 'colorPicker.title': 'Seleccionar Color',
                 'colorPicker.menuTitle': 'Seleccionar Color de Fondo del Menú',
@@ -573,6 +607,12 @@
                 'customizer.menuBackground': 'Menu Background',
                 'customizer.menuCollapsed': 'Menu Collapsed',
                 'customizer.menuHidden': 'Menu Hidden',
+                'customizer.expanded': 'Expanded',
+                'customizer.collapsed': 'Collapsed',
+                'customizer.navbarType': 'Navbar Type',
+                'customizer.sticky': 'Sticky',
+                'customizer.static': 'Static',
+                'customizer.hidden': 'Hidden',
                 // Color picker
                 'colorPicker.title': 'Pick a Color',
                 'colorPicker.menuTitle': 'Pick Menu Background Color',
@@ -622,6 +662,136 @@
         const savedLang = localStorage.getItem('preferredLanguage') || 'es';
         if (savedLang !== 'es') {
             document.querySelector(`.language-option[data-lang="${savedLang}"]`).click();
+        }
+
+        // Menu collapse toggle
+        const menuToggleBtn = document.getElementById('menu-toggle-btn');
+        const layoutContainer = document.querySelector('.layout-container');
+        
+        if (menuToggleBtn) {
+            menuToggleBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                console.log('Toggle button clicked');
+                layoutContainer.classList.toggle('menu-collapsed');
+                const isCollapsed = layoutContainer.classList.contains('menu-collapsed');
+                localStorage.setItem('menuCollapsed', isCollapsed);
+                updateMenuLayoutOption();
+            });
+        }
+        
+        // Load saved menu state
+        const savedMenuState = localStorage.getItem('menuCollapsed') === 'true';
+        if (savedMenuState) {
+            layoutContainer.classList.add('menu-collapsed');
+        }
+
+        // Dark mode toggle
+        const themeToggle = document.getElementById('theme-toggle');
+        const body = document.body;
+        
+        themeToggle.addEventListener('click', () => {
+            body.classList.toggle('dark-mode');
+            const isDark = body.classList.contains('dark-mode');
+            localStorage.setItem('darkMode', isDark);
+            
+            // Update icon
+            const icon = themeToggle.querySelector('i');
+            icon.classList.toggle('fa-moon');
+            icon.classList.toggle('fa-sun');
+        });
+        
+        // Load saved theme
+        const savedTheme = localStorage.getItem('darkMode') === 'true';
+        if (savedTheme) {
+            body.classList.add('dark-mode');
+            themeToggle.querySelector('i').classList.remove('fa-moon');
+            themeToggle.querySelector('i').classList.add('fa-sun');
+        }
+
+        // Update theme option in customizer based on dark mode
+        function updateThemeOption() {
+            const isDark = body.classList.contains('dark-mode');
+            document.querySelectorAll('.theme-option').forEach(opt => opt.classList.remove('active'));
+            if (isDark) {
+                document.querySelector('.theme-option[data-theme="dark"]').classList.add('active');
+            } else {
+                document.querySelector('.theme-option[data-theme="light"]').classList.add('active');
+            }
+        }
+
+        // Connect theme options to dark mode
+        document.querySelectorAll('.theme-option').forEach(option => {
+            option.addEventListener('click', () => {
+                const theme = option.getAttribute('data-theme');
+                if (theme === 'dark') {
+                    body.classList.add('dark-mode');
+                    themeToggle.querySelector('i').classList.remove('fa-moon');
+                    themeToggle.querySelector('i').classList.add('fa-sun');
+                    localStorage.setItem('darkMode', 'true');
+                } else if (theme === 'light') {
+                    body.classList.remove('dark-mode');
+                    themeToggle.querySelector('i').classList.remove('fa-sun');
+                    themeToggle.querySelector('i').classList.add('fa-moon');
+                    localStorage.setItem('darkMode', 'false');
+                }
+            });
+        });
+
+        updateThemeOption();
+
+        // Menu layout options
+        document.querySelectorAll('.menu-layout').forEach(option => {
+            option.addEventListener('click', () => {
+                document.querySelectorAll('.menu-layout').forEach(opt => opt.classList.remove('active'));
+                option.classList.add('active');
+                const layout = option.getAttribute('data-menu-layout');
+                
+                if (layout === 'collapsed') {
+                    layoutContainer.classList.add('menu-collapsed');
+                    localStorage.setItem('menuCollapsed', 'true');
+                } else {
+                    layoutContainer.classList.remove('menu-collapsed');
+                    localStorage.setItem('menuCollapsed', 'false');
+                }
+            });
+        });
+
+        // Update menu layout option based on current state
+        function updateMenuLayoutOption() {
+            const isCollapsed = layoutContainer.classList.contains('menu-collapsed');
+            document.querySelectorAll('.menu-layout').forEach(opt => opt.classList.remove('active'));
+            if (isCollapsed) {
+                document.querySelector('.menu-layout[data-menu-layout="collapsed"]').classList.add('active');
+            } else {
+                document.querySelector('.menu-layout[data-menu-layout="expanded"]').classList.add('active');
+            }
+        }
+        updateMenuLayoutOption();
+
+        // Navbar type options
+        document.querySelectorAll('.navbar-type').forEach(option => {
+            option.addEventListener('click', () => {
+                document.querySelectorAll('.navbar-type').forEach(opt => opt.classList.remove('active'));
+                option.classList.add('active');
+                const type = option.getAttribute('data-navbar-type');
+                
+                const navbar = document.querySelector('.layout-navbar');
+                navbar.classList.remove('navbar-static', 'navbar-hidden');
+                
+                if (type === 'static') {
+                    navbar.classList.add('navbar-static');
+                } else if (type === 'hidden') {
+                    navbar.classList.add('navbar-hidden');
+                }
+                
+                localStorage.setItem('navbarType', type);
+            });
+        });
+
+        // Load saved navbar type
+        const savedNavbarType = localStorage.getItem('navbarType') || 'sticky';
+        if (savedNavbarType !== 'sticky') {
+            document.querySelector(`.navbar-type[data-navbar-type="${savedNavbarType}"]`).click();
         }
     </script>
     @await RenderSectionAsync("Scripts", required: false)

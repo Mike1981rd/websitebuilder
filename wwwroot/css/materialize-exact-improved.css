@@ -1,0 +1,232 @@
+/* ========================================
+   Improved Collapsed Menu Styles
+   ======================================== */
+
+/* Logo improvements for collapsed state */
+.layout-container.menu-collapsed .app-brand {
+    padding: 0.75rem 0; /* Add vertical padding for better spacing */
+    justify-content: center;
+    height: 80px; /* Slightly increase height for better proportion */
+}
+
+.layout-container.menu-collapsed .logo-collapsed {
+    display: flex;
+    font-size: 1.5rem; /* Reduce from 1.75rem for better balance */
+    font-weight: 700;
+    color: #e91e63;
+    background: rgba(233, 30, 99, 0.08); /* Lighter background */
+    width: 48px; /* Increase from 40px */
+    height: 48px; /* Increase from 40px */
+    border-radius: 0.75rem; /* Slightly larger radius */
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.layout-container.menu-collapsed .logo-collapsed:hover {
+    background: rgba(233, 30, 99, 0.12);
+    transform: scale(1.05);
+}
+
+/* Menu container adjustments */
+.layout-container.menu-collapsed .menu-inner {
+    padding: 0.5rem 0.625rem; /* More balanced padding */
+}
+
+/* Menu item improvements */
+.layout-container.menu-collapsed .menu-item {
+    margin-bottom: 0.5rem; /* Consistent spacing between items */
+    position: relative;
+}
+
+.layout-container.menu-collapsed .menu-item:first-child {
+    margin-top: 0; /* Remove special margin for first item */
+}
+
+.layout-container.menu-collapsed .menu-item:last-child {
+    margin-bottom: 1rem; /* Add bottom spacing for last item */
+}
+
+/* Menu link improvements */
+.layout-container.menu-collapsed .menu-link {
+    padding: 0.875rem; /* Increase padding for better click area */
+    margin: 0; /* Remove horizontal margins */
+    justify-content: center;
+    border-radius: 0.75rem; /* Larger radius for modern look */
+    width: 100%;
+    min-height: 56px; /* Ensure consistent height */
+    display: flex;
+    align-items: center;
+    transition: all 0.2s ease;
+}
+
+.layout-container.menu-collapsed .menu-link:hover {
+    background: rgba(255, 255, 255, 0.08);
+    transform: translateX(2px);
+}
+
+.layout-container.menu-collapsed .menu-link.active {
+    background: linear-gradient(118deg, #f857a6, #ff5858);
+    transform: scale(0.95);
+}
+
+/* Icon improvements */
+.layout-container.menu-collapsed .menu-icon {
+    margin-right: 0;
+    font-size: 1.375rem; /* Consistent icon size */
+    width: 1.5rem;
+    height: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.layout-container.menu-collapsed .menu-link:hover .menu-icon {
+    transform: scale(1.1);
+}
+
+/* Visual separator for menu sections */
+.layout-container.menu-collapsed .menu-item::after {
+    content: '';
+    position: absolute;
+    bottom: -0.25rem;
+    left: 20%;
+    right: 20%;
+    height: 1px;
+    background: rgba(255, 255, 255, 0.06);
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.layout-container.menu-collapsed .menu-item:hover::after {
+    opacity: 1;
+}
+
+/* Improved tooltip positioning and styling */
+.layout-container.menu-collapsed .menu-tooltip {
+    position: absolute;
+    left: calc(100% + 1rem); /* More spacing from menu */
+    top: 50%;
+    transform: translateY(-50%);
+    background: #2b2c40;
+    color: rgba(255, 255, 255, 0.95);
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.2s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    z-index: 1050;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+    pointer-events: none;
+}
+
+.layout-container.menu-collapsed .menu-tooltip::before {
+    content: '';
+    position: absolute;
+    right: 100%;
+    top: 50%;
+    transform: translateY(-50%);
+    border: 6px solid transparent;
+    border-right-color: #2b2c40;
+}
+
+body.dark-mode .layout-container.menu-collapsed .menu-tooltip {
+    background: #1a1d29;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+}
+
+body.dark-mode .layout-container.menu-collapsed .menu-tooltip::before {
+    border-right-color: #1a1d29;
+}
+
+.layout-container.menu-collapsed .menu-link:hover .menu-tooltip {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(-50%) translateX(4px);
+}
+
+/* Ensure smooth sidebar width transition */
+.layout-container.menu-collapsed .layout-menu {
+    width: 88px; /* Slightly wider than 80px for better proportion */
+}
+
+.layout-container.menu-collapsed .layout-page {
+    padding-left: 88px;
+}
+
+/* Menu toggle button improvements */
+.layout-container.menu-collapsed #menu-toggle-btn,
+.layout-container.menu-collapsed .btn-toggle {
+    right: -16px !important; /* Better positioning */
+    width: 28px !important; /* Slightly larger */
+    height: 28px !important;
+    font-size: 12px !important;
+}
+
+/* Add subtle animation to menu items on collapse/expand */
+.menu-item {
+    animation: fadeIn 0.3s ease forwards;
+    opacity: 0;
+}
+
+.menu-item:nth-child(1) { animation-delay: 0.05s; }
+.menu-item:nth-child(2) { animation-delay: 0.1s; }
+.menu-item:nth-child(3) { animation-delay: 0.15s; }
+.menu-item:nth-child(4) { animation-delay: 0.2s; }
+.menu-item:nth-child(5) { animation-delay: 0.25s; }
+.menu-item:nth-child(6) { animation-delay: 0.3s; }
+.menu-item:nth-child(7) { animation-delay: 0.35s; }
+.menu-item:nth-child(8) { animation-delay: 0.4s; }
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateX(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* Ensure proper scrollbar styling in collapsed state */
+.layout-container.menu-collapsed .menu-inner::-webkit-scrollbar {
+    width: 2px;
+}
+
+.layout-container.menu-collapsed .menu-inner::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+/* Add visual feedback for active section */
+.layout-container.menu-collapsed .menu-link.active::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 3px;
+    height: 70%;
+    background: #fff;
+    border-radius: 0 3px 3px 0;
+    opacity: 0.8;
+}
+
+/* Improve focus states for accessibility */
+.layout-container.menu-collapsed .menu-link:focus {
+    outline: 2px solid rgba(233, 30, 99, 0.5);
+    outline-offset: 2px;
+}
+
+/* Add subtle shadow to collapsed menu for depth */
+.layout-container.menu-collapsed .layout-menu {
+    box-shadow: 2px 0 12px 0 rgba(0,0,0,0.08);
+}
+
+body.dark-mode .layout-container.menu-collapsed .layout-menu {
+    box-shadow: 2px 0 12px 0 rgba(0,0,0,0.3);
+}

@@ -1,6 +1,6 @@
 {
   "Version": 1,
-  "Hash": "qatbZdArYM99KY1yY+u+DUd3OR8dRfAC7CEAAM/c5mw=",
+  "Hash": "SuDmP+64ds4nJUlMNZJijqq4kU25DnZYkv0iE9qctYw=",
   "Source": "Hotel",
   "BasePath": "_content/Hotel",
   "Mode": "Default",
@@ -115,11 +115,32 @@
       "RelatedAsset": "",
       "AssetTraitName": "",
       "AssetTraitValue": "",
-      "Fingerprint": "1lp6ieqpl7",
-      "Integrity": "+w7clZL/0XeVVjXy77usQ3HSGV4ZhfnmwmW5cRWprmM=",
+      "Fingerprint": "hn6370khx0",
+      "Integrity": "bSsmFiBbcWBGaNjYx4jrFeF9nEgNkldhy399+gDkh3E=",
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
       "OriginalItemSpec": "wwwroot\\css\\materialize-exact.css"
+    },
+    {
+      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\css\\materialize-exact-improved.css",
+      "SourceId": "Hotel",
+      "SourceType": "Discovered",
+      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\",
+      "BasePath": "_content/Hotel",
+      "RelativePath": "css/materialize-exact-improved#[.{fingerprint}]?.css",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "Fingerprint": "c2sk9ihv6x",
+      "Integrity": "7DOXdNR7lBvOoVQqHKGsKr5ulnu01VMn62ujxuGlibs=",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot\\css\\materialize-exact-improved.css"
     },
     {
       "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\css\\site.css",
@@ -1590,51 +1611,6 @@
       ]
     },
     {
-      "Route": "css/materialize-exact.1lp6ieqpl7.css",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\css\\materialize-exact.css",
-      "Selectors": [],
-      "ResponseHeaders": [
-        {
-          "Name": "Accept-Ranges",
-          "Value": "bytes"
-        },
-        {
-          "Name": "Content-Length",
-          "Value": "21342"
-        },
-        {
-          "Name": "Content-Type",
-          "Value": "text/css"
-        },
-        {
-          "Name": "ETag",
-          "Value": "\"+w7clZL/0XeVVjXy77usQ3HSGV4ZhfnmwmW5cRWprmM=\""
-        },
-        {
-          "Name": "Last-Modified",
-          "Value": "Thu, 05 Jun 2025 17:20:33 GMT"
-        },
-        {
-          "Name": "Cache-Control",
-          "Value": "max-age=31536000, immutable"
-        }
-      ],
-      "EndpointProperties": [
-        {
-          "Name": "fingerprint",
-          "Value": "1lp6ieqpl7"
-        },
-        {
-          "Name": "label",
-          "Value": "css/materialize-exact.css"
-        },
-        {
-          "Name": "integrity",
-          "Value": "sha256-+w7clZL/0XeVVjXy77usQ3HSGV4ZhfnmwmW5cRWprmM="
-        }
-      ]
-    },
-    {
       "Route": "css/materialize-exact.css",
       "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\css\\materialize-exact.css",
       "Selectors": [],
@@ -1645,7 +1621,7 @@
         },
         {
           "Name": "Content-Length",
-          "Value": "21342"
+          "Value": "43308"
         },
         {
           "Name": "Content-Type",
@@ -1653,11 +1629,11 @@
         },
         {
           "Name": "ETag",
-          "Value": "\"+w7clZL/0XeVVjXy77usQ3HSGV4ZhfnmwmW5cRWprmM=\""
+          "Value": "\"bSsmFiBbcWBGaNjYx4jrFeF9nEgNkldhy399+gDkh3E=\""
         },
         {
           "Name": "Last-Modified",
-          "Value": "Thu, 05 Jun 2025 17:20:33 GMT"
+          "Value": "Thu, 05 Jun 2025 20:40:59 GMT"
         },
         {
           "Name": "Cache-Control",
@@ -1667,7 +1643,134 @@
       "EndpointProperties": [
         {
           "Name": "integrity",
-          "Value": "sha256-+w7clZL/0XeVVjXy77usQ3HSGV4ZhfnmwmW5cRWprmM="
+          "Value": "sha256-bSsmFiBbcWBGaNjYx4jrFeF9nEgNkldhy399+gDkh3E="
+        }
+      ]
+    },
+    {
+      "Route": "css/materialize-exact.hn6370khx0.css",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\css\\materialize-exact.css",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "43308"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "text/css"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"bSsmFiBbcWBGaNjYx4jrFeF9nEgNkldhy399+gDkh3E=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Thu, 05 Jun 2025 20:40:59 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=31536000, immutable"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "fingerprint",
+          "Value": "hn6370khx0"
+        },
+        {
+          "Name": "label",
+          "Value": "css/materialize-exact.css"
+        },
+        {
+          "Name": "integrity",
+          "Value": "sha256-bSsmFiBbcWBGaNjYx4jrFeF9nEgNkldhy399+gDkh3E="
+        }
+      ]
+    },
+    {
+      "Route": "css/materialize-exact-improved.c2sk9ihv6x.css",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\css\\materialize-exact-improved.css",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "6528"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "text/css"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"7DOXdNR7lBvOoVQqHKGsKr5ulnu01VMn62ujxuGlibs=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Thu, 05 Jun 2025 19:15:13 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=31536000, immutable"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "fingerprint",
+          "Value": "c2sk9ihv6x"
+        },
+        {
+          "Name": "label",
+          "Value": "css/materialize-exact-improved.css"
+        },
+        {
+          "Name": "integrity",
+          "Value": "sha256-7DOXdNR7lBvOoVQqHKGsKr5ulnu01VMn62ujxuGlibs="
+        }
+      ]
+    },
+    {
+      "Route": "css/materialize-exact-improved.css",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\css\\materialize-exact-improved.css",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "6528"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "text/css"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"7DOXdNR7lBvOoVQqHKGsKr5ulnu01VMn62ujxuGlibs=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Thu, 05 Jun 2025 19:15:13 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "no-cache"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "integrity",
+          "Value": "sha256-7DOXdNR7lBvOoVQqHKGsKr5ulnu01VMn62ujxuGlibs="
         }
       ]
     },
@@ -1858,7 +1961,7 @@
         },
         {
           "Name": "Last-Modified",
-          "Value": "Thu, 05 Jun 2025 16:09:34 GMT"
+          "Value": "Thu, 05 Jun 2025 20:15:02 GMT"
         },
         {
           "Name": "Cache-Control",
@@ -1895,7 +1998,7 @@
         },
         {
           "Name": "Last-Modified",
-          "Value": "Thu, 05 Jun 2025 16:09:34 GMT"
+          "Value": "Thu, 05 Jun 2025 20:15:02 GMT"
         },
         {
           "Name": "Cache-Control",
@@ -1940,7 +2043,7 @@
         },
         {
           "Name": "Last-Modified",
-          "Value": "Thu, 05 Jun 2025 16:09:34 GMT"
+          "Value": "Thu, 05 Jun 2025 20:15:02 GMT"
         },
         {
           "Name": "Cache-Control",
@@ -1985,7 +2088,7 @@
         },
         {
           "Name": "Last-Modified",
-          "Value": "Thu, 05 Jun 2025 16:09:34 GMT"
+          "Value": "Thu, 05 Jun 2025 20:15:02 GMT"
         },
         {
           "Name": "Cache-Control",
