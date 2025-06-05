@@ -1,0 +1,357 @@
+@{
+    ViewData["Title"] = "Dashboard";
+    Layout = "~/Views/Shared/_MaterializeLayout.cshtml";
+}
+
+<div class="content-header">
+    <h1>Education, talents, and career opportunities. <span class="highlight">All in one place.</span></h1>
+    <p>Grow your skill with the most reliable online courses and certifications in marketing, information technology, programming, and data science.</p>
+</div>
+
+<!-- Hero Section -->
+<div class="hero-section">
+    <div class="hero-content">
+        <form class="search-form">
+            <input type="text" class="form-control" placeholder="Find your course" />
+            <button type="submit" class="btn btn-primary">🔍</button>
+        </form>
+    </div>
+    <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300'%3E%3Crect fill='%23f5f5f9' width='400' height='300'/%3E%3Cpath fill='%23696cff' d='M200 100c-55.2 0-100 44.8-100 100s44.8 100 100 100 100-44.8 100-100-44.8-100-100-100zm0 150c-27.6 0-50-22.4-50-50s22.4-50 50-50 50 22.4 50 50-22.4 50-50 50z'/%3E%3C/svg%3E" alt="Hero" class="hero-image" />
+</div>
+
+<!-- My Courses Section -->
+<div class="section-header">
+    <h2>My Courses</h2>
+    <a href="#" class="btn btn-outline-primary btn-sm">All Courses</a>
+</div>
+
+<div class="row">
+    <!-- Course Card 1 -->
+    <div class="col-6 col-lg-3">
+        <div class="card course-card">
+            <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 200'%3E%3Crect fill='%23e8e8f2' width='300' height='200'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' dy='.3em' fill='%23696cff' font-size='20'%3EUser Research%3C/text%3E%3C/svg%3E" class="card-img-top" alt="User Research">
+            <div class="card-body">
+                <div class="course-info">
+                    <div class="course-rating">
+                        <span>⭐</span>
+                        <span>4.5</span>
+                        <span>(1.23k)</span>
+                    </div>
+                    <div class="course-time">6h 30m</div>
+                </div>
+                <h5 class="course-title">User Research for User Experience Design</h5>
+                <p class="course-description">Learn how to conduct user research and integrate findings into design.</p>
+                <div class="course-footer">
+                    <span class="course-price">$24.99</span>
+                    <a href="#" class="btn btn-primary btn-sm">Enroll</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Course Card 2 -->
+    <div class="col-6 col-lg-3">
+        <div class="card course-card">
+            <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 200'%3E%3Crect fill='%23fce8e8' width='300' height='200'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' dy='.3em' fill='%23ff3e1d' font-size='20'%3EFigma UI Design%3C/text%3E%3C/svg%3E" class="card-img-top" alt="Figma UI Design">
+            <div class="card-body">
+                <div class="course-info">
+                    <div class="course-rating">
+                        <span>⭐</span>
+                        <span>4.8</span>
+                        <span>(2.31k)</span>
+                    </div>
+                    <div class="course-time">8h 15m</div>
+                </div>
+                <h5 class="course-title">Complete UI/UX Designer Course</h5>
+                <p class="course-description">Master UI/UX design with Figma from basics to advanced techniques.</p>
+                <div class="course-footer">
+                    <span class="course-price">$32.99</span>
+                    <a href="#" class="btn btn-primary btn-sm">Enroll</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Course Card 3 -->
+    <div class="col-6 col-lg-3">
+        <div class="card course-card">
+            <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 200'%3E%3Crect fill='%23e8f5e9' width='300' height='200'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' dy='.3em' fill='%2371dd37' font-size='20'%3EAdobe XD%3C/text%3E%3C/svg%3E" class="card-img-top" alt="Adobe XD">
+            <div class="card-body">
+                <div class="course-info">
+                    <div class="course-rating">
+                        <span>⭐</span>
+                        <span>4.6</span>
+                        <span>(891)</span>
+                    </div>
+                    <div class="course-time">5h 45m</div>
+                </div>
+                <h5 class="course-title">Adobe XD: Design Systems</h5>
+                <p class="course-description">Create and manage design systems efficiently using Adobe XD.</p>
+                <div class="course-footer">
+                    <span class="course-price">$28.99</span>
+                    <a href="#" class="btn btn-primary btn-sm">Enroll</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Course Card 4 -->
+    <div class="col-6 col-lg-3">
+        <div class="card course-card">
+            <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 200'%3E%3Crect fill='%23fff4e5' width='300' height='200'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' dy='.3em' fill='%23ffab00' font-size='20'%3ESketch Design%3C/text%3E%3C/svg%3E" class="card-img-top" alt="Sketch Design">
+            <div class="card-body">
+                <div class="course-info">
+                    <div class="course-rating">
+                        <span>⭐</span>
+                        <span>4.7</span>
+                        <span>(1.54k)</span>
+                    </div>
+                    <div class="course-time">7h 20m</div>
+                </div>
+                <h5 class="course-title">Sketch from A to Z: Mobile App</h5>
+                <p class="course-description">Design beautiful mobile apps from scratch using Sketch.</p>
+                <div class="course-footer">
+                    <span class="course-price">$34.99</span>
+                    <a href="#" class="btn btn-primary btn-sm">Enroll</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin: 2rem 0 1.5rem;
+    }
+
+    .section-header h2 {
+        font-size: 1.5rem;
+        font-weight: 500;
+        color: var(--gray-700);
+        margin: 0;
+    }
+
+    .search-form {
+        display: flex;
+        gap: 1rem;
+        max-width: 500px;
+    }
+
+    .search-form .form-control {
+        flex: 1;
+        padding: 0.75rem 1.25rem;
+        font-size: 1rem;
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-md);
+    }
+
+    .search-form .btn {
+        padding: 0.75rem 1.5rem;
+    }
+
+    .menu-header {
+        padding: 1rem 1.5rem 0.5rem;
+        font-size: 0.75rem;
+        color: var(--gray-500);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .menu-sub {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .menu-sub .menu-item {
+        margin: 0;
+    }
+
+    .menu-sub .menu-link {
+        padding-left: 3.5rem;
+        font-size: 0.875rem;
+    }
+
+    .customizer-toggle-btn {
+        position: fixed;
+        right: 2rem;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 48px;
+        height: 48px;
+        background: var(--primary-color);
+        color: white;
+        border: none;
+        border-radius: 50%;
+        font-size: 1.5rem;
+        cursor: pointer;
+        box-shadow: 0 4px 12px rgba(105, 108, 255, 0.4);
+        transition: all 0.3s ease;
+        z-index: 1045;
+    }
+
+    .customizer-toggle-btn:hover {
+        transform: translateY(-50%) scale(1.1);
+    }
+
+    .template-customizer {
+        position: fixed;
+        top: 0;
+        right: -400px;
+        width: 400px;
+        height: 100vh;
+        background: white;
+        box-shadow: -4px 0 8px rgba(0, 0, 0, 0.1);
+        transition: right 0.4s ease;
+        z-index: 1050;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .template-customizer.open {
+        right: 0;
+    }
+
+    .customizer-header {
+        padding: 1.5rem;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .customizer-header h3 {
+        font-size: 1.25rem;
+        margin-bottom: 0.25rem;
+        color: var(--gray-700);
+    }
+
+    .customizer-header p {
+        font-size: 0.875rem;
+        color: var(--gray-500);
+        margin: 0;
+    }
+
+    .customizer-close {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        background: none;
+        border: none;
+        font-size: 1.5rem;
+        cursor: pointer;
+        color: var(--gray-500);
+    }
+
+    .customizer-body {
+        flex: 1;
+        overflow-y: auto;
+        padding: 1.5rem;
+    }
+
+    .customizer-section h4 {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        color: var(--gray-500);
+        margin-bottom: 1rem;
+        letter-spacing: 0.5px;
+    }
+
+    .customizer-item {
+        margin-bottom: 1.5rem;
+    }
+
+    .customizer-item label {
+        display: block;
+        font-size: 0.875rem;
+        color: var(--gray-600);
+        margin-bottom: 0.75rem;
+    }
+
+    .color-options {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .color-option {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        cursor: pointer;
+        border: 2px solid transparent;
+        transition: all 0.2s;
+    }
+
+    .color-option.active {
+        border-color: var(--gray-700);
+        box-shadow: 0 0 0 2px white, 0 0 0 4px var(--gray-700);
+    }
+
+    .theme-options,
+    .skin-options,
+    .layout-options {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .theme-option,
+    .skin-option,
+    .layout-option {
+        flex: 1;
+        padding: 0.5rem;
+        border: 1px solid var(--border-color);
+        background: white;
+        border-radius: var(--radius-md);
+        font-size: 0.875rem;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .theme-option.active,
+    .skin-option.active,
+    .layout-option.active {
+        background: var(--primary-color);
+        color: white;
+        border-color: var(--primary-color);
+    }
+
+    .switch-label {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        cursor: pointer;
+    }
+
+    .switch-input {
+        width: 40px;
+        height: 24px;
+        -webkit-appearance: none;
+        appearance: none;
+        background-color: var(--gray-300);
+        border-radius: 12px;
+        position: relative;
+        cursor: pointer;
+        transition: background-color 0.3s;
+    }
+
+    .switch-input:checked {
+        background-color: var(--primary-color);
+    }
+
+    .switch-input::before {
+        content: '';
+        position: absolute;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background-color: white;
+        top: 3px;
+        left: 3px;
+        transition: transform 0.3s;
+    }
+
+    .switch-input:checked::before {
+        transform: translateX(16px);
+    }
+</style>

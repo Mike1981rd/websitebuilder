@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Panel de Administración Hotel</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/css/admin-panel.css" asp-append-version="true" />
+</head>
+<body class="layout-vertical">
+    <div class="admin-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-brand">
+                    <span class="brand-logo">🏨</span>
+                    <span class="brand-text">Hotel Admin</span>
+                </div>
+                <button class="sidebar-toggle" aria-label="Toggle sidebar">
+                    ☰
+                </button>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <ul class="nav-menu">
+                    <li class="nav-item">
+                        <a asp-controller="Admin" asp-action="Dashboard" class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Dashboard" ? "active" : "")">
+                            <span class="nav-icon">📊</span>
+                            <span class="nav-text">Dashboard</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a asp-controller="Admin" asp-action="Rooms" class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Rooms" ? "active" : "")">
+                            <span class="nav-icon">🚪</span>
+                            <span class="nav-text">Habitaciones</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a asp-controller="Admin" asp-action="Guests" class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Guests" ? "active" : "")">
+                            <span class="nav-icon">👥</span>
+                            <span class="nav-text">Huéspedes</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a asp-controller="Admin" asp-action="Reservations" class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Reservations" ? "active" : "")">
+                            <span class="nav-icon">📅</span>
+                            <span class="nav-text">Reservaciones</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+            
+            <div class="sidebar-footer">
+                <div class="user-info">
+                    <span class="user-avatar">👤</span>
+                    <span class="user-name">Admin</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Contenedor Principal -->
+        <div class="main-panel">
+            <!-- Navbar -->
+            <nav class="navbar" id="navbar">
+                <div class="navbar-container">
+                    <div class="navbar-left">
+                        <button class="navbar-toggle mobile-only sidebar-toggle-btn" aria-label="Toggle mobile menu">
+                            ☰
+                        </button>
+                        <div class="search-wrapper">
+                            <input type="search" class="navbar-search" placeholder="Buscar...">
+                        </div>
+                    </div>
+                    
+                    <div class="navbar-center">
+                        <h1 class="page-title">@ViewData["Title"]</h1>
+                    </div>
+                    
+                    <div class="navbar-right">
+                        <div class="navbar-actions">
+                            <!-- Selector de idioma -->
+                            <div class="language-selector" id="language-selector">
+                                <button class="current-lang-btn" id="current-lang-btn" aria-haspopup="true" aria-expanded="false">
+                                    <span class="lang-flag" aria-hidden="true">🇪🇸</span>
+                                    <span class="lang-code">ES</span>
+                                    <span class="dropdown-arrow">▼</span>
+                                </button>
+                                <ul class="language-dropdown" id="language-dropdown" hidden>
+                                    <li>
+                                        <button class="lang-option" data-lang="es" data-flag="🇪🇸" data-name="Español">
+                                            <span class="lang-flag" aria-hidden="true">🇪🇸</span>
+                                            <span class="lang-name">Español</span>
+                                        </button>
+                                    </li>
+                                    <li>
+                                        <button class="lang-option" data-lang="en" data-flag="🇬🇧" data-name="English">
+                                            <span class="lang-flag" aria-hidden="true">🇬🇧</span>
+                                            <span class="lang-name">English</span>
+                                        </button>
+                                    </li>
+                                    <li>
+                                        <button class="lang-option" data-lang="fr" data-flag="🇫🇷" data-name="Français">
+                                            <span class="lang-flag" aria-hidden="true">🇫🇷</span>
+                                            <span class="lang-name">Français</span>
+                                        </button>
+                                    </li>
+                                    <li>
+                                        <button class="lang-option" data-lang="de" data-flag="🇩🇪" data-name="Deutsch">
+                                            <span class="lang-flag" aria-hidden="true">🇩🇪</span>
+                                            <span class="lang-name">Deutsch</span>
+                                        </button>
+                                    </li>
+                                    <li>
+                                        <button class="lang-option" data-lang="pt" data-flag="🇵🇹" data-name="Português">
+                                            <span class="lang-flag" aria-hidden="true">🇵🇹</span>
+                                            <span class="lang-name">Português</span>
+                                        </button>
+                                    </li>
+                                </ul>
+                            </div>
+                            
+                            <div class="notifications">
+                                <button class="notification-btn" aria-label="Notifications">
+                                    🔔
+                                </button>
+                            </div>
+                            
+                            <div class="user-menu">
+                                <button class="user-menu-toggle">
+                                    <span class="user-avatar">👤</span>
+                                    <span class="user-name">Admin</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+
+            <!-- Área de Contenido Principal -->
+            <main class="main-content" id="main-content">
+                <div class="content-wrapper">
+                    @RenderBody()
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Template Customizer -->
+    <div class="template-customizer" id="template-customizer">
+        <div class="customizer-header">
+            <h3>Personalizador de Plantilla</h3>
+            <button class="customizer-close" aria-label="Cerrar personalizador">✕</button>
+        </div>
+        
+        <div class="customizer-body">
+            <!-- Sección de Tema -->
+            <div class="customizer-section">
+                <h4>Tema</h4>
+                <div class="theme-switcher-wrapper">
+                    <label class="theme-switch">
+                        <input type="checkbox" id="theme-switch-input" aria-label="Cambiar tema">
+                        <span class="theme-switch-label">
+                            <span class="theme-icon light">☀️</span>
+                            <span class="theme-icon dark">🌙</span>
+                        </span>
+                        <span class="theme-text">Modo Oscuro</span>
+                    </label>
+                </div>
+            </div>
+            
+            <!-- Sección de Color Primario -->
+            <div class="customizer-section">
+                <h4>Color Primario</h4>
+                <div class="color-switcher customizer-colors">
+                    <span class="color-option active" style="background-color: #7c3aed;" data-color="#7c3aed" title="Púrpura" aria-label="Color púrpura"></span>
+                    <span class="color-option" style="background-color: #14b8a6;" data-color="#14b8a6" title="Turquesa" aria-label="Color turquesa"></span>
+                    <span class="color-option" style="background-color: #ff9800;" data-color="#ff9800" title="Naranja" aria-label="Color naranja"></span>
+                    <span class="color-option" style="background-color: #f43f5e;" data-color="#f43f5e" title="Rosa" aria-label="Color rosa"></span>
+                    <span class="color-option" style="background-color: #3b82f6;" data-color="#3b82f6" title="Azul" aria-label="Color azul"></span>
+                    <span class="color-option" style="background-color: #10b981;" data-color="#10b981" title="Verde" aria-label="Color verde"></span>
+                    <span class="color-option" style="background-color: #6366f1;" data-color="#6366f1" title="Índigo" aria-label="Color índigo"></span>
+                    <span class="color-option" style="background-color: #ef4444;" data-color="#ef4444" title="Rojo" aria-label="Color rojo"></span>
+                </div>
+            </div>
+            
+            <!-- Sección de Layout del Menú -->
+            <div class="customizer-section">
+                <h4>Layout del Menú</h4>
+                <div class="layout-options">
+                    <button class="layout-option active" data-layout="vertical">
+                        <span class="layout-icon">☰</span>
+                        <span>Vertical</span>
+                    </button>
+                    <button class="layout-option" data-layout="horizontal">
+                        <span class="layout-icon">⚊</span>
+                        <span>Horizontal</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Overlay del Customizer -->
+    <div class="customizer-overlay" id="customizer-overlay"></div>
+
+    <!-- Botón flotante para abrir el customizer -->
+    <button class="customizer-toggle-btn" id="customizer-toggle" aria-label="Abrir personalizador">
+        ⚙️
+    </button>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/js/admin-panel.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Hotel Admin</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/css/materialize-admin.css" asp-append-version="true" />
+</head>
+<body>
+    <div class="layout-wrapper">
+        <!-- Menu / Sidebar -->
+        <aside class="layout-menu">
+            <div class="menu-inner">
+                <!-- Logo -->
+                <div class="app-brand">
+                    <a href="@Url.Action("Index", "Admin")" class="app-brand-link">
+                        <span class="app-brand-logo">
+                            <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <rect width="32" height="32" rx="6" fill="#696CFF"/>
+                                <path d="M16 7L8 13V19C8 19.5304 8.21071 20.0391 8.58579 20.4142C8.96086 20.7893 9.46957 21 10 21H14V17C14 16.4696 14.2107 15.9609 14.5858 15.5858C14.9609 15.2107 15.4696 15 16 15C16.5304 15 17.0391 15.2107 17.4142 15.5858C17.7893 15.9609 18 16.4696 18 17V21H22C22.5304 21 23.0391 20.7893 23.4142 20.4142C23.7893 20.0391 24 19.5304 24 19V13L16 7Z" fill="white"/>
+                            </svg>
+                        </span>
+                        <span class="app-brand-text">Hotel</span>
+                    </a>
+                </div>
+
+                <!-- Menu -->
+                <ul class="menu">
+                    <li class="menu-header">
+                        <small class="text-uppercase">Apps & Pages</small>
+                    </li>
+                    
+                    <li class="menu-item @(ViewContext.RouteData.Values["action"]?.ToString() == "Index" ? "active" : "")">
+                        <a href="@Url.Action("Index", "Admin")" class="menu-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Index" ? "active" : "")">
+                            <i class="menu-icon icon-dashboard"></i>
+                            <div>Dashboard</div>
+                            <div class="badge badge-danger">5</div>
+                        </a>
+                    </li>
+
+                    <li class="menu-item">
+                        <a href="javascript:void(0);" class="menu-link menu-toggle">
+                            <i class="menu-icon icon-book"></i>
+                            <div>Gestión Hotel</div>
+                        </a>
+                        <ul class="menu-sub">
+                            <li class="menu-item @(ViewContext.RouteData.Values["action"]?.ToString() == "Rooms" ? "active" : "")">
+                                <a href="@Url.Action("Rooms", "Admin")" class="menu-link">
+                                    <div>Habitaciones</div>
+                                </a>
+                            </li>
+                            <li class="menu-item @(ViewContext.RouteData.Values["action"]?.ToString() == "Guests" ? "active" : "")">
+                                <a href="@Url.Action("Guests", "Admin")" class="menu-link">
+                                    <div>Huéspedes</div>
+                                </a>
+                            </li>
+                            <li class="menu-item @(ViewContext.RouteData.Values["action"]?.ToString() == "Reservations" ? "active" : "")">
+                                <a href="@Url.Action("Reservations", "Admin")" class="menu-link">
+                                    <div>Reservaciones</div>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+
+                    <li class="menu-item">
+                        <a href="#" class="menu-link">
+                            <i class="menu-icon icon-mail"></i>
+                            <div>Email</div>
+                        </a>
+                    </li>
+
+                    <li class="menu-item">
+                        <a href="#" class="menu-link">
+                            <i class="menu-icon icon-chat"></i>
+                            <div>Chat</div>
+                        </a>
+                    </li>
+
+                    <li class="menu-item">
+                        <a href="#" class="menu-link">
+                            <i class="menu-icon icon-calendar"></i>
+                            <div>Calendar</div>
+                        </a>
+                    </li>
+
+                    <li class="menu-item">
+                        <a href="#" class="menu-link">
+                            <i class="menu-icon icon-kanban"></i>
+                            <div>Kanban</div>
+                        </a>
+                    </li>
+
+                    <li class="menu-item">
+                        <a href="#" class="menu-link">
+                            <i class="menu-icon icon-cart"></i>
+                            <div>eCommerce</div>
+                        </a>
+                    </li>
+
+                    <li class="menu-item">
+                        <a href="#" class="menu-link">
+                            <i class="menu-icon icon-invoice"></i>
+                            <div>Invoice</div>
+                        </a>
+                    </li>
+
+                    <li class="menu-item">
+                        <a href="#" class="menu-link">
+                            <i class="menu-icon icon-users"></i>
+                            <div>Users</div>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </aside>
+
+        <!-- Layout page -->
+        <div class="layout-page">
+            <!-- Navbar -->
+            <nav class="layout-navbar">
+                <div class="navbar">
+                    <div class="navbar-search">
+                        <div style="position: relative;">
+                            <span class="search-icon">🔍</span>
+                            <input type="text" class="search-input" placeholder="Search (Ctrl+K)" />
+                        </div>
+                    </div>
+                    
+                    <div class="navbar-actions">
+                        <!-- Aquí irían los iconos de notificaciones, perfil, etc -->
+                    </div>
+                </div>
+            </nav>
+
+            <!-- Content wrapper -->
+            <div class="content-wrapper">
+                <div class="container-fluid">
+                    @RenderBody()
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Template Customizer -->
+    <div class="template-customizer" id="template-customizer">
+        <div class="customizer-header">
+            <h3>Template Customizer</h3>
+            <p>Customize and preview in real time</p>
+            <button class="customizer-close" aria-label="Close">✕</button>
+        </div>
+        
+        <div class="customizer-body">
+            <!-- Theming Section -->
+            <div class="customizer-section">
+                <h4>Theming</h4>
+                
+                <!-- Primary Color -->
+                <div class="customizer-item">
+                    <label>Primary Color</label>
+                    <div class="color-options">
+                        <span class="color-option active" style="background-color: #696cff;" data-color="#696cff"></span>
+                        <span class="color-option" style="background-color: #03c3ec;" data-color="#03c3ec"></span>
+                        <span class="color-option" style="background-color: #ff9800;" data-color="#ff9800"></span>
+                        <span class="color-option" style="background-color: #ff3e1d;" data-color="#ff3e1d"></span>
+                        <span class="color-option" style="background-color: #00d97e;" data-color="#00d97e"></span>
+                    </div>
+                </div>
+
+                <!-- Theme -->
+                <div class="customizer-item">
+                    <label>Theme</label>
+                    <div class="theme-options">
+                        <button class="theme-option active" data-theme="light">
+                            ☀️ Light
+                        </button>
+                        <button class="theme-option" data-theme="dark">
+                            🌙 Dark
+                        </button>
+                        <button class="theme-option" data-theme="system">
+                            💻 System
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Skins -->
+                <div class="customizer-item">
+                    <label>Skins</label>
+                    <div class="skin-options">
+                        <button class="skin-option active" data-skin="default">
+                            Default
+                        </button>
+                        <button class="skin-option" data-skin="bordered">
+                            Bordered
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Semi Dark -->
+                <div class="customizer-item">
+                    <label class="switch-label">
+                        <span>Semi Dark</span>
+                        <input type="checkbox" class="switch-input" id="semi-dark-switch">
+                    </label>
+                </div>
+            </div>
+
+            <!-- Layout Section -->
+            <div class="customizer-section">
+                <h4>Layout</h4>
+                
+                <!-- Menu Layout -->
+                <div class="customizer-item">
+                    <label>Menu (Navigation)</label>
+                    <div class="layout-options">
+                        <button class="layout-option active" data-layout="vertical">
+                            Vertical
+                        </button>
+                        <button class="layout-option" data-layout="horizontal">
+                            Horizontal
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Customizer Toggle -->
+    <button class="customizer-toggle-btn" id="customizer-toggle">
+        ⚙️
+    </button>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/js/materialize-admin.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

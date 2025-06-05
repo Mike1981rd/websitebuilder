@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Hotel Admin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="~/css/materialize-exact.css" asp-append-version="true" />
+</head>
+<body>
+    <div class="layout-container">
+        <!-- Menu -->
+        <aside class="layout-menu">
+            <div class="app-brand">
+                <a href="@Url.Action("Index", "Admin")" class="app-brand-link">
+                    <span class="app-brand-logo">
+                        <svg viewBox="0 0 32 32" width="32" height="32">
+                            <path d="M0 12 L16 0 L32 12 L28 12 L16 4 L4 12 Z" fill="#e91e63"/>
+                            <path d="M0 20 L16 8 L32 20 L28 20 L16 12 L4 20 Z" fill="#e91e63"/>
+                            <path d="M0 28 L16 16 L32 28 L28 28 L16 20 L4 28 Z" fill="#e91e63"/>
+                        </svg>
+                    </span>
+                    <span class="app-brand-text">Materialize</span>
+                </a>
+            </div>
+
+            <div class="menu-inner">
+                <ul class="menu-inner-root" style="list-style: none; padding: 0;">
+                    <li class="menu-item">
+                        <a href="@Url.Action("ExactIndex", "Admin")" class="menu-link active">
+                            <i class="menu-icon fas fa-building"></i>
+                            <span class="menu-text" data-i18n="menu.empresa">Empresa</span>
+                        </a>
+                    </li>
+
+                    <li class="menu-item">
+                        <a href="#" class="menu-link">
+                            <i class="menu-icon fas fa-user-shield"></i>
+                            <span class="menu-text" data-i18n="menu.roles">Roles</span>
+                        </a>
+                    </li>
+
+                    <li class="menu-item">
+                        <a href="#" class="menu-link">
+                            <i class="menu-icon fas fa-users"></i>
+                            <span class="menu-text" data-i18n="menu.usuarios">Usuarios</span>
+                        </a>
+                    </li>
+
+                    <li class="menu-item">
+                        <a href="#" class="menu-link">
+                            <i class="menu-icon fas fa-user-friends"></i>
+                            <span class="menu-text" data-i18n="menu.clientes">Clientes</span>
+                        </a>
+                    </li>
+
+                    <li class="menu-item">
+                        <a href="#" class="menu-link">
+                            <i class="menu-icon fas fa-globe"></i>
+                            <span class="menu-text" data-i18n="menu.sitioWeb">Sitio Web</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </aside>
+
+        <!-- Page Content -->
+        <div class="layout-page">
+            <!-- Navbar -->
+            <nav class="layout-navbar">
+                <div class="navbar-content">
+                    <div class="search-wrapper">
+                        <i class="search-icon fas fa-search"></i>
+                        <input type="text" class="search-input" placeholder="Buscar (CTRL + K)" data-i18n-placeholder="search.placeholder" />
+                    </div>
+                    <div class="navbar-actions">
+                        <div class="language-selector">
+                            <button class="navbar-btn" id="language-toggle">
+                                <i class="fas fa-globe"></i>
+                            </button>
+                            <div class="language-dropdown" id="language-dropdown">
+                                <a href="#" class="language-option active" data-lang="es">
+                                    <img src="https://flagcdn.com/w20/es.png" alt="ES"> Español
+                                </a>
+                                <a href="#" class="language-option" data-lang="en">
+                                    <img src="https://flagcdn.com/w20/us.png" alt="EN"> English
+                                </a>
+                            </div>
+                        </div>
+                        <button class="navbar-btn">
+                            <i class="fas fa-moon"></i>
+                        </button>
+                        <button class="navbar-btn">
+                            <i class="fas fa-star"></i>
+                        </button>
+                        <button class="navbar-btn">
+                            <i class="fas fa-bell"></i>
+                            <span class="notification-badge">3</span>
+                        </button>
+                        <div class="user-avatar">
+                            <img src="https://ui-avatars.com/api/?background=e91e63&color=fff&name=U" alt="User" />
+                        </div>
+                    </div>
+                </div>
+            </nav>
+
+            <!-- Content -->
+            <div class="content-wrapper">
+                @RenderBody()
+            </div>
+        </div>
+    </div>
+
+    <!-- Customizer Button -->
+    <button class="customizer-btn" id="template-customizer-btn">
+        <i class="fas fa-cog"></i>
+    </button>
+
+    <!-- Color Picker Modal -->
+    <div class="color-picker-modal" id="color-picker-modal">
+        <div class="color-picker-header">
+            <h5 class="color-picker-title" data-i18n="colorPicker.title">Seleccionar Color</h5>
+            <button class="color-picker-close" id="color-picker-close">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="color-gradient" id="color-gradient">
+            <div class="color-picker-indicator" id="color-picker-indicator"></div>
+        </div>
+        <div class="hue-slider" id="hue-slider">
+            <div class="hue-indicator" id="hue-indicator"></div>
+        </div>
+        <div class="hex-input-wrapper">
+            <label class="hex-label">HEX:</label>
+            <input type="text" class="hex-input" id="hex-input" value="#e91e63" maxlength="7">
+        </div>
+        <div class="color-picker-actions">
+            <button class="btn-cancel" id="color-picker-cancel" data-i18n="colorPicker.cancel">Cancelar</button>
+            <button class="btn-apply" id="color-picker-apply" data-i18n="colorPicker.apply">Aplicar</button>
+        </div>
+    </div>
+
+    <!-- Menu Color Picker Modal -->
+    <div class="color-picker-modal" id="menu-color-picker-modal">
+        <div class="color-picker-header">
+            <h5 class="color-picker-title" data-i18n="colorPicker.menuTitle">Seleccionar Color de Fondo del Menú</h5>
+            <button class="color-picker-close" id="menu-color-picker-close">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="color-gradient" id="menu-color-gradient">
+            <div class="color-picker-indicator" id="menu-color-picker-indicator"></div>
+        </div>
+        <div class="hue-slider" id="menu-hue-slider">
+            <div class="hue-indicator" id="menu-hue-indicator"></div>
+        </div>
+        <div class="hex-input-wrapper">
+            <label class="hex-label">HEX:</label>
+            <input type="text" class="hex-input" id="menu-hex-input" value="#2b2c40" maxlength="7">
+        </div>
+        <div class="color-picker-actions">
+            <button class="btn-cancel" id="menu-color-picker-cancel" data-i18n="colorPicker.cancel">Cancelar</button>
+            <button class="btn-apply" id="menu-color-picker-apply" data-i18n="colorPicker.apply">Aplicar</button>
+        </div>
+    </div>
+
+    <!-- Template Customizer -->
+    <div class="customizer-overlay" id="customizer-overlay"></div>
+    <div class="template-customizer" id="template-customizer">
+        <div class="customizer-header">
+            <h5 class="customizer-title" data-i18n="customizer.title">Personalizador de Plantilla</h5>
+            <button class="customizer-close" id="customizer-close">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="customizer-body">
+            <!-- Theming Section -->
+            <div class="customizer-section">
+                <p class="customizer-section-title" data-i18n="customizer.theming">Tema</p>
+                
+                <p style="margin-bottom: 0.75rem; font-weight: 500; color: #444564;" data-i18n="customizer.primaryColor">Color Primario</p>
+                <div class="color-options">
+                    <div class="color-option primary" data-color="#5a5cdb"></div>
+                    <div class="color-option success" data-color="#00bfa5"></div>
+                    <div class="color-option warning" data-color="#ffa500"></div>
+                    <div class="color-option danger active" data-color="#e91e63"></div>
+                    <div class="color-option info" data-color="#00b8d4"></div>
+                    <div class="color-option custom" id="custom-color-picker">
+                        <i class="fas fa-palette"></i>
+                    </div>
+                </div>
+
+                <p style="margin-bottom: 0.75rem; font-weight: 500; color: #444564;" data-i18n="customizer.theme">Tema</p>
+                <div class="theme-options">
+                    <div class="theme-option active" data-theme="light">
+                        <div class="theme-icon">
+                            <i class="fas fa-sun" style="color: #ffa500;"></i>
+                        </div>
+                        <div class="theme-name" data-i18n="customizer.light">Claro</div>
+                    </div>
+                    <div class="theme-option" data-theme="dark">
+                        <div class="theme-icon">
+                            <i class="fas fa-moon" style="color: #6b7280;"></i>
+                        </div>
+                        <div class="theme-name" data-i18n="customizer.dark">Oscuro</div>
+                    </div>
+                    <div class="theme-option" data-theme="system">
+                        <div class="theme-icon">
+                            <i class="fas fa-laptop" style="color: #5a5cdb;"></i>
+                        </div>
+                        <div class="theme-name" data-i18n="customizer.system">Sistema</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Layout Section -->
+            <div class="customizer-section">
+                <p class="customizer-section-title" data-i18n="customizer.layout">Diseño</p>
+                
+                <p style="margin-bottom: 0.75rem; font-weight: 500; color: #444564;" data-i18n="customizer.skins">Apariencias</p>
+                <div class="layout-options">
+                    <div class="layout-option active" data-layout="default">
+                        <div class="layout-preview default"></div>
+                        <div class="layout-name" data-i18n="customizer.default">Por defecto</div>
+                    </div>
+                    <div class="layout-option" data-layout="bordered">
+                        <div class="layout-preview bordered"></div>
+                        <div class="layout-name" data-i18n="customizer.bordered">Con bordes</div>
+                    </div>
+                </div>
+
+                <div style="margin-top: 1rem;">
+                    <div class="switch-option">
+                        <span class="switch-label" data-i18n="customizer.semiDark">Semi Oscuro</span>
+                        <label class="switch">
+                            <input type="checkbox" id="semi-dark-toggle" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Menu Section -->
+            <div class="customizer-section">
+                <p class="customizer-section-title" data-i18n="customizer.menu">Menú (Navegación)</p>
+                
+                <p style="margin-bottom: 0.75rem; font-weight: 500; color: #444564;" data-i18n="customizer.menuBackground">Fondo del Menú</p>
+                <div class="color-options">
+                    <div class="color-option menu-bg" data-menu-bg="#2b2c40" style="background: #2b2c40;" title="Default Dark"></div>
+                    <div class="color-option menu-bg" data-menu-bg="#1a1a2e" style="background: #1a1a2e;" title="Deep Dark"></div>
+                    <div class="color-option menu-bg" data-menu-bg="#16213e" style="background: #16213e;" title="Navy Blue"></div>
+                    <div class="color-option menu-bg" data-menu-bg="#0f3460" style="background: #0f3460;" title="Ocean Blue"></div>
+                    <div class="color-option menu-bg" data-menu-bg="#3d3d3d" style="background: #3d3d3d;" title="Charcoal"></div>
+                    <div class="color-option menu-bg custom" id="custom-menu-bg">
+                        <i class="fas fa-palette"></i>
+                    </div>
+                </div>
+                
+                <div class="switch-option" style="margin-top: 1rem;">
+                    <span class="switch-label" data-i18n="customizer.menuCollapsed">Menú Colapsado</span>
+                    <label class="switch">
+                        <input type="checkbox" id="menu-collapsed-toggle">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                
+                <div class="switch-option">
+                    <span class="switch-label" data-i18n="customizer.menuHidden">Menú Oculto</span>
+                    <label class="switch">
+                        <input type="checkbox" id="menu-hidden-toggle">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Menu toggle
+        document.querySelectorAll('.menu-toggle').forEach(item => {
+            item.addEventListener('click', e => {
+                e.preventDefault();
+                const parent = item.parentElement;
+                parent.classList.toggle('open');
+            });
+        });
+
+        // Search shortcut
+        document.addEventListener('keydown', e => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                e.preventDefault();
+                document.querySelector('.search-input')?.focus();
+            }
+        });
+
+        // Template Customizer
+        const customizerBtn = document.getElementById('template-customizer-btn');
+        const customizer = document.getElementById('template-customizer');
+        const customizerOverlay = document.getElementById('customizer-overlay');
+        const customizerClose = document.getElementById('customizer-close');
+
+        customizerBtn.addEventListener('click', () => {
+            customizer.classList.add('show');
+            customizerOverlay.classList.add('show');
+        });
+
+        customizerClose.addEventListener('click', () => {
+            customizer.classList.remove('show');
+            customizerOverlay.classList.remove('show');
+        });
+
+        customizerOverlay.addEventListener('click', () => {
+            customizer.classList.remove('show');
+            customizerOverlay.classList.remove('show');
+        });
+
+        // Color options
+        document.querySelectorAll('.color-option').forEach(option => {
+            option.addEventListener('click', () => {
+                if (option.classList.contains('custom')) {
+                    // Open custom color picker
+                    document.getElementById('color-picker-modal').classList.add('show');
+                    customizerOverlay.classList.add('show');
+                    return;
+                }
+                document.querySelectorAll('.color-option').forEach(opt => opt.classList.remove('active'));
+                option.classList.add('active');
+                const color = option.getAttribute('data-color');
+                document.documentElement.style.setProperty('--primary', color);
+                
+                // Update active menu item color
+                updateActiveMenuColor(color);
+            });
+        });
+        
+        // Function to update active menu item gradient
+        function updateActiveMenuColor(color) {
+            const style = document.createElement('style');
+            style.innerHTML = `
+                .menu-link.active {
+                    background: linear-gradient(118deg, ${color}, ${color}dd);
+                    box-shadow: 0 3px 12px 0 ${color}55;
+                }
+            `;
+            document.head.appendChild(style);
+        }
+
+        // Color Picker functionality
+        const colorPickerModal = document.getElementById('color-picker-modal');
+        const colorPickerClose = document.getElementById('color-picker-close');
+        const colorPickerCancel = document.getElementById('color-picker-cancel');
+        const colorPickerApply = document.getElementById('color-picker-apply');
+        const hexInput = document.getElementById('hex-input');
+        
+        colorPickerClose.addEventListener('click', () => {
+            colorPickerModal.classList.remove('show');
+            customizerOverlay.classList.remove('show');
+        });
+        
+        colorPickerCancel.addEventListener('click', () => {
+            colorPickerModal.classList.remove('show');
+            customizerOverlay.classList.remove('show');
+        });
+        
+        colorPickerApply.addEventListener('click', () => {
+            const hexColor = hexInput.value;
+            if (/^#[0-9A-F]{6}$/i.test(hexColor)) {
+                document.documentElement.style.setProperty('--primary', hexColor);
+                updateActiveMenuColor(hexColor);
+                colorPickerModal.classList.remove('show');
+                customizerOverlay.classList.remove('show');
+                
+                // Update custom color option to show as active
+                document.querySelectorAll('.color-option').forEach(opt => opt.classList.remove('active'));
+                document.querySelector('.color-option.custom').classList.add('active');
+            }
+        });
+        
+        // Simple color picker interaction (basic implementation)
+        const colorGradient = document.getElementById('color-gradient');
+        const colorIndicator = document.getElementById('color-picker-indicator');
+        const hueSlider = document.getElementById('hue-slider');
+        const hueIndicator = document.getElementById('hue-indicator');
+        
+        let currentHue = 340; // Default pink hue
+        
+        colorGradient.addEventListener('click', (e) => {
+            const rect = colorGradient.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            colorIndicator.style.left = x + 'px';
+            colorIndicator.style.top = y + 'px';
+            
+            updateColorFromPosition(x / rect.width, y / rect.height);
+        });
+        
+        hueSlider.addEventListener('click', (e) => {
+            const rect = hueSlider.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            
+            hueIndicator.style.left = x + 'px';
+            currentHue = (x / rect.width) * 360;
+            
+            updateColorGradient();
+        });
+        
+        function updateColorFromPosition(x, y) {
+            const saturation = x * 100;
+            const lightness = (1 - y) * 50 + 25;
+            const hex = hslToHex(currentHue, saturation, lightness);
+            hexInput.value = hex;
+        }
+        
+        function updateColorGradient() {
+            colorGradient.style.background = `
+                linear-gradient(to bottom, transparent, black), 
+                linear-gradient(to right, white, hsl(${currentHue}, 100%, 50%))
+            `;
+        }
+        
+        function hslToHex(h, s, l) {
+            l /= 100;
+            const a = s * Math.min(l, 1 - l) / 100;
+            const f = n => {
+                const k = (n + h / 30) % 12;
+                const color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
+                return Math.round(255 * color).toString(16).padStart(2, '0');
+            };
+            return `#${f(0)}${f(8)}${f(4)}`;
+        }
+
+        // Theme options
+        document.querySelectorAll('.theme-option').forEach(option => {
+            option.addEventListener('click', () => {
+                document.querySelectorAll('.theme-option').forEach(opt => opt.classList.remove('active'));
+                option.classList.add('active');
+            });
+        });
+
+        // Layout options
+        document.querySelectorAll('.layout-option').forEach(option => {
+            option.addEventListener('click', () => {
+                document.querySelectorAll('.layout-option').forEach(opt => opt.classList.remove('active'));
+                option.classList.add('active');
+            });
+        });
+
+        // Menu background color options
+        document.querySelectorAll('.color-option.menu-bg').forEach(option => {
+            option.addEventListener('click', () => {
+                if (option.classList.contains('custom')) {
+                    // Open custom menu color picker
+                    document.getElementById('menu-color-picker-modal').classList.add('show');
+                    customizerOverlay.classList.add('show');
+                    return;
+                }
+                document.querySelectorAll('.color-option.menu-bg').forEach(opt => opt.classList.remove('active'));
+                option.classList.add('active');
+                const menuBg = option.getAttribute('data-menu-bg');
+                document.querySelector('.layout-menu').style.background = menuBg;
+            });
+        });
+
+        // Menu Color Picker functionality
+        const menuColorPickerModal = document.getElementById('menu-color-picker-modal');
+        const menuColorPickerClose = document.getElementById('menu-color-picker-close');
+        const menuColorPickerCancel = document.getElementById('menu-color-picker-cancel');
+        const menuColorPickerApply = document.getElementById('menu-color-picker-apply');
+        const menuHexInput = document.getElementById('menu-hex-input');
+        
+        menuColorPickerClose.addEventListener('click', () => {
+            menuColorPickerModal.classList.remove('show');
+            customizerOverlay.classList.remove('show');
+        });
+        
+        menuColorPickerCancel.addEventListener('click', () => {
+            menuColorPickerModal.classList.remove('show');
+            customizerOverlay.classList.remove('show');
+        });
+        
+        menuColorPickerApply.addEventListener('click', () => {
+            const hexColor = menuHexInput.value;
+            if (/^#[0-9A-F]{6}$/i.test(hexColor)) {
+                document.querySelector('.layout-menu').style.background = hexColor;
+                menuColorPickerModal.classList.remove('show');
+                customizerOverlay.classList.remove('show');
+                
+                // Update custom color option to show as active
+                document.querySelectorAll('.color-option.menu-bg').forEach(opt => opt.classList.remove('active'));
+                document.querySelector('#custom-menu-bg').classList.add('active');
+            }
+        });
+
+        // Initialize first menu bg option as active
+        document.querySelector('.color-option.menu-bg[data-menu-bg="#2b2c40"]').classList.add('active');
+
+        // Language selector
+        const languageToggle = document.getElementById('language-toggle');
+        const languageDropdown = document.getElementById('language-dropdown');
+        
+        languageToggle.addEventListener('click', (e) => {
+            e.stopPropagation();
+            languageDropdown.classList.toggle('show');
+        });
+        
+        document.addEventListener('click', () => {
+            languageDropdown.classList.remove('show');
+        });
+        
+        languageDropdown.addEventListener('click', (e) => {
+            e.stopPropagation();
+        });
+        
+        // Language change
+        const translations = {
+            es: {
+                // Menu items
+                'menu.empresa': 'Empresa',
+                'menu.roles': 'Roles',
+                'menu.usuarios': 'Usuarios',
+                'menu.clientes': 'Clientes',
+                'menu.sitioWeb': 'Sitio Web',
+                // Search
+                'search.placeholder': 'Buscar (CTRL + K)',
+                // Template Customizer
+                'customizer.title': 'Personalizador de Plantilla',
+                'customizer.theming': 'Tema',
+                'customizer.primaryColor': 'Color Primario',
+                'customizer.theme': 'Tema',
+                'customizer.light': 'Claro',
+                'customizer.dark': 'Oscuro',
+                'customizer.system': 'Sistema',
+                'customizer.layout': 'Diseño',
+                'customizer.skins': 'Apariencias',
+                'customizer.default': 'Por defecto',
+                'customizer.bordered': 'Con bordes',
+                'customizer.semiDark': 'Semi Oscuro',
+                'customizer.menu': 'Menú (Navegación)',
+                'customizer.menuBackground': 'Fondo del Menú',
+                'customizer.menuCollapsed': 'Menú Colapsado',
+                'customizer.menuHidden': 'Menú Oculto',
+                // Color picker
+                'colorPicker.title': 'Seleccionar Color',
+                'colorPicker.menuTitle': 'Seleccionar Color de Fondo del Menú',
+                'colorPicker.cancel': 'Cancelar',
+                'colorPicker.apply': 'Aplicar'
+            },
+            en: {
+                // Menu items
+                'menu.empresa': 'Company',
+                'menu.roles': 'Roles',
+                'menu.usuarios': 'Users',
+                'menu.clientes': 'Clients',
+                'menu.sitioWeb': 'Website',
+                // Search
+                'search.placeholder': 'Search (CTRL + K)',
+                // Template Customizer
+                'customizer.title': 'Template Customizer',
+                'customizer.theming': 'Theming',
+                'customizer.primaryColor': 'Primary Color',
+                'customizer.theme': 'Theme',
+                'customizer.light': 'Light',
+                'customizer.dark': 'Dark',
+                'customizer.system': 'System',
+                'customizer.layout': 'Layout',
+                'customizer.skins': 'Skins',
+                'customizer.default': 'Default',
+                'customizer.bordered': 'Bordered',
+                'customizer.semiDark': 'Semi Dark',
+                'customizer.menu': 'Menu (Navigation)',
+                'customizer.menuBackground': 'Menu Background',
+                'customizer.menuCollapsed': 'Menu Collapsed',
+                'customizer.menuHidden': 'Menu Hidden',
+                // Color picker
+                'colorPicker.title': 'Pick a Color',
+                'colorPicker.menuTitle': 'Pick Menu Background Color',
+                'colorPicker.cancel': 'Cancel',
+                'colorPicker.apply': 'Apply'
+            }
+        };
+        
+        let currentLang = 'es';
+        
+        function translatePage(lang) {
+            currentLang = lang;
+            const t = translations[lang];
+            
+            // Update menu items
+            document.querySelectorAll('[data-i18n]').forEach(element => {
+                const key = element.getAttribute('data-i18n');
+                if (t[key]) {
+                    element.textContent = t[key];
+                }
+            });
+            
+            // Update placeholders
+            document.querySelectorAll('[data-i18n-placeholder]').forEach(element => {
+                const key = element.getAttribute('data-i18n-placeholder');
+                if (t[key]) {
+                    element.placeholder = t[key];
+                }
+            });
+            
+            // Store language preference
+            localStorage.setItem('preferredLanguage', lang);
+        }
+        
+        document.querySelectorAll('.language-option').forEach(option => {
+            option.addEventListener('click', (e) => {
+                e.preventDefault();
+                document.querySelectorAll('.language-option').forEach(opt => opt.classList.remove('active'));
+                option.classList.add('active');
+                const lang = option.getAttribute('data-lang');
+                translatePage(lang);
+                languageDropdown.classList.remove('show');
+            });
+        });
+        
+        // Load saved language preference
+        const savedLang = localStorage.getItem('preferredLanguage') || 'es';
+        if (savedLang !== 'es') {
+            document.querySelector(`.language-option[data-lang="${savedLang}"]`).click();
+        }
+    </script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

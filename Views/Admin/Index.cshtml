@@ -1,0 +1,86 @@
+@{
+    ViewData["Title"] = "Dashboard";
+    Layout = "~/Views/Shared/_MaterializeLayout.cshtml";
+}
+
+<div class="content-header">
+    <h2 class="content-title">Bienvenido al Panel de Administración del Hotel</h2>
+    <nav class="breadcrumb" aria-label="breadcrumb">
+        <ol class="breadcrumb-list">
+            <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Inicio</a></li>
+            <li class="breadcrumb-item active">Dashboard</li>
+        </ol>
+    </nav>
+</div>
+
+<div class="content-body">
+    <div class="row">
+        <div class="col-md-3">
+            <div class="card stats-card">
+                <div class="card-icon" style="background: linear-gradient(45deg, #7c3aed, #9061f9);">
+                    🚪
+                </div>
+                <div class="card-body">
+                    <h3>Habitaciones Disponibles</h3>
+                    <p class="stats-number">24</p>
+                    <small class="stats-trend positive">+12% vs ayer</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card stats-card">
+                <div class="card-icon" style="background: linear-gradient(45deg, #14b8a6, #10d7c2);">
+                    📅
+                </div>
+                <div class="card-body">
+                    <h3>Reservaciones Hoy</h3>
+                    <p class="stats-number">12</p>
+                    <small class="stats-trend positive">+8% vs ayer</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card stats-card">
+                <div class="card-icon" style="background: linear-gradient(45deg, #ff9800, #ffb143);">
+                    ⏰
+                </div>
+                <div class="card-body">
+                    <h3>Check-ins Pendientes</h3>
+                    <p class="stats-number">5</p>
+                    <small class="stats-trend neutral">Sin cambios</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card stats-card">
+                <div class="card-icon" style="background: linear-gradient(45deg, #10b981, #34d399);">
+                    💰
+                </div>
+                <div class="card-body">
+                    <h3>Ingresos del Mes</h3>
+                    <p class="stats-number">$45,280</p>
+                    <small class="stats-trend positive">+22% vs mes anterior</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="welcome-banner" style="margin-top: 2rem;">
+        <div class="card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+            <div class="card-body" style="padding: 3rem;">
+                <h2 style="font-size: 2rem; margin-bottom: 1rem; color: white;">Sistema de Gestión Hotelera</h2>
+                <p style="font-size: 1.125rem; opacity: 0.9; margin-bottom: 2rem;">
+                    Administra eficientemente las operaciones de tu hotel con nuestro sistema integral.
+                </p>
+                <div style="display: flex; gap: 1rem;">
+                    <a href="@Url.Action("Reservations", "Admin")" class="btn" style="background: white; color: #667eea; padding: 0.75rem 1.5rem; border-radius: 6px; font-weight: 500; text-decoration: none;">
+                        Nueva Reservación
+                    </a>
+                    <a href="@Url.Action("Rooms", "Admin")" class="btn" style="background: rgba(255,255,255,0.2); color: white; padding: 0.75rem 1.5rem; border-radius: 6px; font-weight: 500; text-decoration: none; border: 1px solid rgba(255,255,255,0.3);">
+                        Ver Habitaciones
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
