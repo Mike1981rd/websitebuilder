@@ -103,8 +103,50 @@
                             <i class="fas fa-bell"></i>
                             <span class="notification-badge">3</span>
                         </button>
-                        <div class="user-avatar">
-                            <img src="https://ui-avatars.com/api/?background=e91e63&color=fff&name=U" alt="User" />
+                        @{
+                            var userImage = User.FindFirst("ProfileImagePath")?.Value;
+                            var userName = User.FindFirst("FullName")?.Value ?? "User";
+                            var userEmail = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value;
+                        }
+                        <!-- Nuevo Avatar con Dropdown -->
+                        <div class="avatar-container">
+                            <div class="avatar-trigger" id="avatarTrigger">
+                                @if (!string.IsNullOrEmpty(userImage))
+                                {
+                                    <img src="@userImage" alt="@userName" class="avatar-img" />
+                                }
+                                else
+                                {
+                                    <img src="https://ui-avatars.com/api/?background=e91e63&color=fff&name=@Uri.EscapeDataString(userName)&size=128" alt="@userName" class="avatar-img" />
+                                }
+                            </div>
+                            <div class="avatar-menu" id="avatarMenu">
+                                <div class="avatar-menu-header">
+                                    <div class="avatar-menu-name">@userName</div>
+                                    <div class="avatar-menu-email">@userEmail</div>
+                                </div>
+                                <div class="avatar-menu-divider"></div>
+                                <a href="@Url.Action("Company", "Admin")" class="avatar-menu-item">
+                                    <i class="fas fa-building"></i>
+                                    <span>Empresa</span>
+                                </a>
+                                <a href="#" class="avatar-menu-item">
+                                    <i class="fas fa-user"></i>
+                                    <span>Mi Perfil</span>
+                                </a>
+                                <a href="#" class="avatar-menu-item">
+                                    <i class="fas fa-cog"></i>
+                                    <span>Configuración</span>
+                                </a>
+                                <div class="avatar-menu-divider"></div>
+                                <form asp-controller="Account" asp-action="Logout" method="post" class="avatar-menu-form">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="avatar-menu-item avatar-menu-logout">
+                                        <i class="fas fa-sign-out-alt"></i>
+                                        <span>Cerrar Sesión</span>
+                                    </button>
+                                </form>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -639,7 +681,7 @@
                 // Roles
                 'roles.title': 'Lista de Roles',
                 'roles.subtitle': 'Un rol proporciona acceso a menús y características predefinidos para que, dependiendo del rol asignado, un administrador pueda tener acceso a lo que el usuario necesita',
-                'roles.totalUsers': 'Total usuarios',
+                'roles.totalUsers': 'Total {0} usuarios',
                 'roles.editRole': 'Editar Rol',
                 'roles.addNewRole': 'Agregar Nuevo Rol',
                 'roles.addNewRoleDesc': 'Agrega un nuevo rol, si no existe.',
@@ -685,7 +727,19 @@
                 'action.Create': 'Crear',
                 'action.read': 'Leer',
                 'action.write': 'Escribir',
-                'action.create': 'Crear'
+                'action.create': 'Crear',
+                // Users
+                'users.addUser': 'Agregar Usuario',
+                'users.editUser': 'Editar Usuario',
+                'users.fullName': 'Nombre Completo',
+                'users.userName': 'Nombre de Usuario',
+                'users.email': 'Correo Electrónico',
+                'users.role': 'Rol',
+                'users.password': 'Contraseña',
+                'users.confirmPassword': 'Confirmar Contraseña',
+                'users.status': 'Estado',
+                'users.profileImage': 'Imagen de Perfil',
+                'users.uploadImage': 'Cargar Imagen'
             },
             en: {
                 // Menu items
@@ -777,7 +831,7 @@
                 // Roles
                 'roles.title': 'Roles List',
                 'roles.subtitle': 'A role provides access to predefined menus and features so that depending on the assigned role, an administrator can have access to what the user needs',
-                'roles.totalUsers': 'Total users',
+                'roles.totalUsers': 'Total {0} users',
                 'roles.editRole': 'Edit Role',
                 'roles.addNewRole': 'Add New Role',
                 'roles.addNewRoleDesc': 'Add a new role, if it does not exist.',
@@ -823,7 +877,19 @@
                 'action.Create': 'Create',
                 'action.read': 'Read',
                 'action.write': 'Write',
-                'action.create': 'Create'
+                'action.create': 'Create',
+                // Users
+                'users.addUser': 'Add User',
+                'users.editUser': 'Edit User',
+                'users.fullName': 'Full Name',
+                'users.userName': 'Username',
+                'users.email': 'Email',
+                'users.role': 'Role',
+                'users.password': 'Password',
+                'users.confirmPassword': 'Confirm Password',
+                'users.status': 'Status',
+                'users.profileImage': 'Profile Image',
+                'users.uploadImage': 'Upload Image'
             }
         };
         
@@ -1043,6 +1109,48 @@
         if (savedNavbarType !== 'sticky') {
             document.querySelector(`.navbar-type[data-navbar-type="${savedNavbarType}"]`).click();
         }
+        
+        
+        // Nuevo código para el avatar dropdown
+        const avatarTrigger = document.getElementById('avatarTrigger');
+        const avatarMenu = document.getElementById('avatarMenu');
+        let isAvatarMenuOpen = false;
+        
+        // Toggle del menú al hacer click en el avatar
+        avatarTrigger.addEventListener('click', function(e) {
+            e.stopPropagation();
+            isAvatarMenuOpen = !isAvatarMenuOpen;
+            
+            if (isAvatarMenuOpen) {
+                avatarMenu.style.display = 'block';
+                setTimeout(() => {
+                    avatarMenu.classList.add('show');
+                }, 10);
+            } else {
+                avatarMenu.classList.remove('show');
+                setTimeout(() => {
+                    avatarMenu.style.display = 'none';
+                }, 200);
+            }
+        });
+        
+        // Cerrar el menú al hacer click fuera
+        document.addEventListener('click', function(e) {
+            if (!avatarTrigger.contains(e.target) && !avatarMenu.contains(e.target)) {
+                if (isAvatarMenuOpen) {
+                    isAvatarMenuOpen = false;
+                    avatarMenu.classList.remove('show');
+                    setTimeout(() => {
+                        avatarMenu.style.display = 'none';
+                    }, 200);
+                }
+            }
+        });
+        
+        // Prevenir que el menú se cierre al hacer click dentro
+        avatarMenu.addEventListener('click', function(e) {
+            e.stopPropagation();
+        });
     </script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>

@@ -3,6 +3,7 @@
     ViewData["Title"] = "Lista de Roles";
     Layout = "_MaterializeExactLayout";
     var userCounts = ViewBag.UserCounts as Dictionary<int, int>;
+    var roleUsers = ViewBag.RoleUsers as Dictionary<int, List<Hotel.Models.User>>;
 }
 
 <div class="roles-container">
@@ -47,16 +48,26 @@
             <div class="role-card">
                 <div class="role-card-header">
                     <div class="role-info">
-                        <div class="role-count" data-i18n="roles.totalUsers">Total @userCount usuarios</div>
+                        <div class="role-count">Total <span class="user-count-number">@userCount</span> usuarios</div>
                         <h4 class="role-name">@role.Name</h4>
                         <a href="@Url.Action("Edit", new { id = role.Id })" class="role-link" data-i18n="roles.editRole">Editar Rol</a>
                     </div>
                     <div class="user-avatars">
                         <div class="avatar-group">
-                            @for (int i = 0; i < Math.Min(userCount, 4); i++)
+                            @{
+                                var users = roleUsers?.GetValueOrDefault(role.Id, new List<Hotel.Models.User>()) ?? new List<Hotel.Models.User>();
+                            }
+                            @foreach (var user in users)
                             {
                                 <div class="avatar">
-                                    <img src="https://ui-avatars.com/api/?background=random&color=fff&name=U@(i)" alt="User" />
+                                    @if (!string.IsNullOrEmpty(user.ProfileImagePath))
+                                    {
+                                        <img src="@user.ProfileImagePath" alt="@user.FullName" />
+                                    }
+                                    else
+                                    {
+                                        <img src="https://ui-avatars.com/api/?background=5a67d8&color=fff&name=@Uri.EscapeDataString(user.FullName)&size=128" alt="@user.FullName" />
+                                    }
                                 </div>
                             }
                             @if (userCount > 4)
@@ -111,12 +122,29 @@
                 <div class="search-box">
                     <input type="text" placeholder="Buscar Usuario" data-i18n-placeholder="roles.searchUser" />
                 </div>
+                <select class="status-filter">
+                    <option value="active" selected data-i18n="status.active">Activo</option>
+                    <option value="inactive" data-i18n="status.inactive">Inactivo</option>
+                </select>
             </div>
             <div class="table-controls-right">
-                <button class="btn-export">
-                    <i class="fas fa-download"></i> <span data-i18n="buttons.export">Exportar</span>
-                </button>
-                <a href="#" class="btn-add-user">
+                <div class="dropdown export-dropdown">
+                    <button class="btn-export" onclick="toggleExportMenu(event)">
+                        <i class="fas fa-download"></i> <span data-i18n="buttons.export">Exportar</span>
+                    </button>
+                    <div class="dropdown-menu" id="exportMenu">
+                        <a href="#" onclick="exportUsers('excel')" class="dropdown-item">
+                            <i class="fas fa-file-excel"></i> Excel
+                        </a>
+                        <a href="#" onclick="exportUsers('pdf')" class="dropdown-item">
+                            <i class="fas fa-file-pdf"></i> PDF
+                        </a>
+                        <a href="#" onclick="exportUsers('csv')" class="dropdown-item">
+                            <i class="fas fa-file-csv"></i> CSV
+                        </a>
+                    </div>
+                </div>
+                <a href="#" class="btn-add-user" onclick="openUserForm(); return false;">
                     <i class="fas fa-plus"></i> <span data-i18n="roles.addNewUser">Agregar Nuevo Usuario</span>
                 </a>
             </div>
@@ -129,8 +157,6 @@
                         <th></th>
                         <th data-i18n="table.user">USUARIO</th>
                         <th data-i18n="table.role">ROL</th>
-                        <th data-i18n="table.plan">PLAN</th>
-                        <th data-i18n="table.billing">FACTURACIÓN</th>
                         <th data-i18n="table.status">ESTADO</th>
                         <th data-i18n="table.actions">ACCIONES</th>
                     </tr>
@@ -153,14 +179,11 @@
                                 <i class="fas fa-user-cog role-badge-icon"></i> Maintainer
                             </span>
                         </td>
-                        <td>Enterprise</td>
-                        <td>Auto Debit</td>
                         <td><span class="status-badge active" data-i18n="status.active">Activo</span></td>
                         <td>
                             <div class="action-buttons">
-                                <button class="btn-action" title="Eliminar"><i class="fas fa-trash"></i></button>
-                                <button class="btn-action" title="Ver"><i class="fas fa-eye"></i></button>
-                                <button class="btn-action" title="Más"><i class="fas fa-ellipsis-v"></i></button>
+                                <button class="btn-action" onclick="editUser(1)" title="Editar"><i class="fas fa-edit"></i></button>
+                                <button class="btn-action" onclick="toggleUserStatus(1)" title="Inactivar"><i class="fas fa-ban"></i></button>
                             </div>
                         </td>
                     </tr>
@@ -191,9 +214,112 @@
     @Html.AntiForgeryToken()
 </form>
 
+<!-- User Form Off-Canvas -->
+<div class="user-form-offcanvas" id="userFormOffCanvas">
+    <div class="offcanvas-overlay" onclick="closeUserForm()"></div>
+    <div class="offcanvas-content">
+        <div class="offcanvas-header">
+            <h3 class="offcanvas-title" data-i18n="users.addUser">Agregar Usuario</h3>
+            <button class="btn-close" onclick="closeUserForm()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <form id="userForm" class="offcanvas-body">
+            <div class="form-group">
+                <label class="form-label" data-i18n="users.profileImage">Imagen de Perfil</label>
+                <div class="image-upload-container">
+                    <div class="image-preview" id="imagePreview">
+                        <img id="previewImg" src="/uploads/profiles/default-avatar.png" alt="Preview" />
+                        <div class="image-overlay">
+                            <i class="fas fa-camera"></i>
+                        </div>
+                    </div>
+                    <input type="file" id="profileImage" accept="image/jpeg,image/jpg,image/png,image/webp" style="display: none;" />
+                    <input type="hidden" id="profileImagePath" />
+                    <button type="button" class="btn-upload" onclick="document.getElementById('profileImage').click()">
+                        <i class="fas fa-upload"></i> <span data-i18n="users.uploadImage">Cargar Imagen</span>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label" data-i18n="users.fullName">Nombre Completo <span class="required-asterisk">*</span></label>
+                <input type="text" class="form-control" id="userFullName" required />
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label" data-i18n="users.userName">Nombre de Usuario <span class="required-asterisk">*</span></label>
+                <input type="text" class="form-control" id="userUserName" required />
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label" data-i18n="users.email">Correo Electrónico <span class="required-asterisk">*</span></label>
+                <input type="email" class="form-control" id="userEmail" required />
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label" data-i18n="users.role">Rol <span class="required-asterisk">*</span></label>
+                <select class="form-control" id="userRole" required>
+                    <option value="">Seleccione un rol</option>
+                    @foreach (var role in Model)
+                    {
+                        <option value="@role.Id">@role.Name</option>
+                    }
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label" data-i18n="users.password">Contraseña <span class="required-asterisk">*</span></label>
+                <div class="password-input-wrapper">
+                    <input type="password" class="form-control" id="userPassword" required autocomplete="new-password" />
+                    <button type="button" class="password-toggle" onclick="togglePassword('userPassword')">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label" data-i18n="users.confirmPassword">Confirmar Contraseña <span class="required-asterisk">*</span></label>
+                <div class="password-input-wrapper">
+                    <input type="password" class="form-control" id="userConfirmPassword" required autocomplete="new-password" />
+                    <button type="button" class="password-toggle" onclick="togglePassword('userConfirmPassword')">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label" data-i18n="users.status">Estado</label>
+                <select class="form-control" id="userStatus">
+                    <option value="active" data-i18n="status.active">Activo</option>
+                    <option value="inactive" data-i18n="status.inactive">Inactivo</option>
+                </select>
+            </div>
+            
+            <div class="form-actions">
+                <button type="button" class="btn-cancel" onclick="closeUserForm()">
+                    <i class="fas fa-times"></i> <span data-i18n="buttons.cancel">Cancelar</span>
+                </button>
+                <button type="submit" class="btn-save">
+                    <i class="fas fa-save"></i> <span data-i18n="buttons.save">Guardar</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
 @section Scripts {
     <script>
         function deleteRole(roleId, roleName) {
+            // Obtener el contador de usuarios para este rol
+            const userCount = @Html.Raw(Json.Serialize(userCounts));
+            const count = userCount[roleId] || 0;
+            
+            if (count > 0) {
+                alert(`No se puede eliminar el rol "${roleName}" porque tiene ${count} usuario(s) asignado(s). Primero debe reasignar o eliminar los usuarios.`);
+                return;
+            }
+            
             if (confirm(`¿Está seguro de que desea eliminar el rol "${roleName}"?`)) {
                 const form = document.getElementById('deleteForm');
                 form.action = '@Url.Action("Delete", "Roles")/' + roleId;
@@ -206,9 +332,393 @@
             alert('Función de copia no implementada aún');
         }
 
+        // User form functions
+        async function openUserForm(userId = null) {
+            const offCanvas = document.getElementById('userFormOffCanvas');
+            offCanvas.classList.add('show');
+            document.body.style.overflow = 'hidden';
+            
+            if (userId) {
+                // Edit mode
+                document.querySelector('.offcanvas-title').setAttribute('data-i18n', 'users.editUser');
+                document.getElementById('userForm').setAttribute('data-user-id', userId);
+                
+                // Load user data
+                try {
+                    const response = await fetch(`/Users/Get/${userId}`);
+                    if (response.ok) {
+                        const user = await response.json();
+                        document.getElementById('userFullName').value = user.fullName;
+                        document.getElementById('userUserName').value = user.userName;
+                        document.getElementById('userEmail').value = user.email;
+                        document.getElementById('userRole').value = user.roleId || '';
+                        document.getElementById('userStatus').value = user.isActive ? 'active' : 'inactive';
+                        document.getElementById('userPassword').removeAttribute('required');
+                        document.getElementById('userConfirmPassword').removeAttribute('required');
+                        
+                        // Cargar imagen de perfil
+                        if (user.profileImagePath) {
+                            document.getElementById('previewImg').src = user.profileImagePath;
+                            document.getElementById('profileImagePath').value = user.profileImagePath;
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error loading user:', error);
+                }
+            } else {
+                // Add mode
+                document.querySelector('.offcanvas-title').setAttribute('data-i18n', 'users.addUser');
+                document.getElementById('userForm').removeAttribute('data-user-id');
+                document.getElementById('userForm').reset();
+                document.getElementById('userPassword').setAttribute('required', 'required');
+                document.getElementById('userConfirmPassword').setAttribute('required', 'required');
+            }
+            
+            // Re-translate
+            const currentLang = localStorage.getItem('preferredLanguage') || 'es';
+            if (typeof translatePage === 'function') {
+                translatePage(currentLang);
+            }
+        }
+        
+        function closeUserForm() {
+            const offCanvas = document.getElementById('userFormOffCanvas');
+            offCanvas.classList.remove('show');
+            document.body.style.overflow = '';
+        }
+        
+        function editUser(userId) {
+            openUserForm(userId);
+        }
+        
+        async function toggleUserStatus(userId) {
+            try {
+                const response = await fetch(`/Users/ToggleStatus/${userId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': document.querySelector('#deleteForm input[name="__RequestVerificationToken"]').value
+                    }
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    showAlert(result.message, 'success');
+                    await loadUsers(); // Recargar usuarios
+                } else {
+                    showAlert('Error al cambiar el estado del usuario', 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showAlert('Error al cambiar el estado del usuario', 'error');
+            }
+        }
+        
+        function togglePassword(inputId) {
+            const input = document.getElementById(inputId);
+            const button = input.nextElementSibling;
+            const icon = button.querySelector('i');
+            
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        }
+
+        // Variables globales para filtros
+        let allUsers = [];
+        let filteredUsers = [];
+        
         // Search functionality
-        document.querySelector('.search-input')?.addEventListener('input', function(e) {
-            // Implementar búsqueda
+        document.querySelector('.search-box input')?.addEventListener('input', function(e) {
+            applyFilters();
+        });
+        
+        // Status filter
+        document.querySelector('.status-filter')?.addEventListener('change', function(e) {
+            applyFilters();
+        });
+        
+        // Apply filters function
+        function applyFilters() {
+            const searchTerm = document.querySelector('.search-box input').value.toLowerCase();
+            const statusFilter = document.querySelector('.status-filter').value;
+            
+            filteredUsers = allUsers.filter(user => {
+                // Filtro de búsqueda
+                const matchesSearch = !searchTerm || 
+                    user.fullName.toLowerCase().includes(searchTerm) ||
+                    user.userName.toLowerCase().includes(searchTerm) ||
+                    user.email.toLowerCase().includes(searchTerm) ||
+                    user.roleName.toLowerCase().includes(searchTerm);
+                
+                // Filtro de estado
+                const matchesStatus = statusFilter === 'active' ? user.isActive : !user.isActive;
+                
+                return matchesSearch && matchesStatus;
+            });
+            
+            updateUsersTable(filteredUsers);
+        }
+        
+        // Form submit
+        document.getElementById('userForm')?.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const password = document.getElementById('userPassword').value;
+            const confirmPassword = document.getElementById('userConfirmPassword').value;
+            const userId = this.getAttribute('data-user-id');
+            
+            // Validar contraseñas
+            if (!userId && password !== confirmPassword) {
+                showAlert('Las contraseñas no coinciden', 'error');
+                return;
+            }
+            
+            if (userId && password && password !== confirmPassword) {
+                showAlert('Las contraseñas no coinciden', 'error');
+                return;
+            }
+            
+            const userData = {
+                fullName: document.getElementById('userFullName').value,
+                userName: document.getElementById('userUserName').value,
+                email: document.getElementById('userEmail').value,
+                roleId: document.getElementById('userRole').value || null,
+                isActive: document.getElementById('userStatus').value === 'active',
+                profileImagePath: document.getElementById('profileImagePath').value || null
+            };
+            
+            if (password) {
+                userData.password = password;
+            }
+            
+            try {
+                let url, method;
+                if (userId) {
+                    // Update
+                    url = '/Users/Update';
+                    userData.id = parseInt(userId);
+                } else {
+                    // Create
+                    url = '/Users/Create';
+                }
+                
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': document.querySelector('#deleteForm input[name="__RequestVerificationToken"]').value
+                    },
+                    body: JSON.stringify(userData)
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    showAlert(result.message, 'success');
+                    closeUserForm();
+                    await loadUsers(); // Recargar usuarios
+                } else {
+                    const error = await response.json();
+                    showAlert(error.message || 'Error al guardar el usuario', 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showAlert('Error al guardar el usuario', 'error');
+            }
+        });
+        
+        // Load users function
+        async function loadUsers() {
+            try {
+                const response = await fetch('/Users/GetAll');
+                if (response.ok) {
+                    allUsers = await response.json();
+                    filteredUsers = [...allUsers];
+                    applyFilters();
+                }
+            } catch (error) {
+                console.error('Error loading users:', error);
+            }
+        }
+        
+        // Update users table
+        function updateUsersTable(users) {
+            const tbody = document.querySelector('.users-table tbody');
+            tbody.innerHTML = '';
+            
+            users.forEach(user => {
+                const tr = document.createElement('tr');
+                const avatarSrc = user.profileImagePath || 'https://ui-avatars.com/api/?background=5a67d8&color=fff&name=' + encodeURIComponent(user.fullName) + '&size=128';
+                
+                // Crear elementos de forma segura para evitar conflictos con Razor
+                const td1 = document.createElement('td');
+                td1.innerHTML = '<input type="checkbox" class="user-checkbox" />';
+                
+                const td2 = document.createElement('td');
+                const userInfo = document.createElement('div');
+                userInfo.className = 'user-info';
+                
+                const img = document.createElement('img');
+                img.src = avatarSrc;
+                img.alt = user.fullName;
+                img.className = 'user-avatar-small';
+                
+                const userDetails = document.createElement('div');
+                userDetails.className = 'user-details';
+                userDetails.innerHTML = '<div class="user-name">' + user.fullName + '</div>' +
+                                      '<div class="user-username">&#64;' + user.userName + '</div>' +
+                                      '<div class="user-email">' + user.email + '</div>';
+                
+                userInfo.appendChild(img);
+                userInfo.appendChild(userDetails);
+                td2.appendChild(userInfo);
+                
+                const td3 = document.createElement('td');
+                td3.innerHTML = '<span class="role-badge maintainer"><i class="fas fa-user-cog role-badge-icon"></i> ' + user.roleName + '</span>';
+                
+                const td4 = document.createElement('td');
+                const statusClass = user.isActive ? 'active' : 'inactive';
+                const statusText = user.isActive ? 'Activo' : 'Inactivo';
+                td4.innerHTML = '<span class="status-badge ' + statusClass + '" data-i18n="status.' + statusClass + '">' + statusText + '</span>';
+                
+                const td5 = document.createElement('td');
+                const actionIcon = user.isActive ? 'ban' : 'check-circle';
+                const actionTitle = user.isActive ? 'Inactivar' : 'Activar';
+                td5.innerHTML = '<div class="action-buttons">' +
+                              '<button class="btn-action" onclick="editUser(' + user.id + ')" title="Editar"><i class="fas fa-edit"></i></button>' +
+                              '<button class="btn-action" onclick="toggleUserStatus(' + user.id + ')" title="' + actionTitle + '"><i class="fas fa-' + actionIcon + '"></i></button>' +
+                              '</div>';
+                
+                tr.appendChild(td1);
+                tr.appendChild(td2);
+                tr.appendChild(td3);
+                tr.appendChild(td4);
+                tr.appendChild(td5);
+                
+                tbody.appendChild(tr);
+            });
+            
+            // Re-translate
+            const currentLang = localStorage.getItem('preferredLanguage') || 'es';
+            if (typeof translatePage === 'function') {
+                translatePage(currentLang);
+            }
+        }
+        
+        // Update role counts translation
+        function updateRoleCountsTranslation() {
+            const currentLang = localStorage.getItem('preferredLanguage') || 'es';
+            document.querySelectorAll('.role-count').forEach(element => {
+                const countSpan = element.querySelector('.user-count-number');
+                if (countSpan) {
+                    const count = countSpan.textContent;
+                    if (currentLang === 'es') {
+                        element.innerHTML = `Total <span class="user-count-number">${count}</span> usuarios`;
+                    } else {
+                        element.innerHTML = `Total <span class="user-count-number">${count}</span> users`;
+                    }
+                }
+            });
+        }
+        
+        // Show alert function
+        function showAlert(message, type) {
+            // Implementación simple de alerta
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+            alertDiv.innerHTML = `
+                <i class="fas fa-${type === 'success' ? 'check' : 'exclamation'}-circle me-2"></i>
+                ${message}
+                <button type="button" class="btn-close" onclick="this.parentElement.remove()"></button>
+            `;
+            
+            const container = document.querySelector('.users-section');
+            container.insertBefore(alertDiv, container.firstChild);
+            
+            setTimeout(() => alertDiv.remove(), 5000);
+        }
+        
+        // Export functions
+        function toggleExportMenu(e) {
+            e.stopPropagation();
+            const menu = document.getElementById('exportMenu');
+            menu.classList.toggle('show');
+        }
+        
+        function exportUsers(format) {
+            window.location.href = `/Users/Export?format=${format}`;
+            document.getElementById('exportMenu').classList.remove('show');
+        }
+        
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function() {
+            document.getElementById('exportMenu').classList.remove('show');
+        });
+        
+        // Load users on page load
+        loadUsers();
+        
+        // Listen for language changes
+        document.addEventListener('languageChanged', function(e) {
+            updateRoleCountsTranslation();
+        });
+        
+        // Image upload handling
+        document.getElementById('profileImage')?.addEventListener('change', async function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            // Validar tipo
+            const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+            if (!validTypes.includes(file.type)) {
+                showAlert('Solo se permiten imágenes JPG, PNG o WebP', 'error');
+                return;
+            }
+            
+            // Validar tamaño (5MB)
+            if (file.size > 5 * 1024 * 1024) {
+                showAlert('La imagen no debe superar los 5MB', 'error');
+                return;
+            }
+            
+            // Preview de alta resolución
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('previewImg').src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+            
+            // Subir imagen
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            try {
+                const response = await fetch('/Users/UploadImage', {
+                    method: 'POST',
+                    headers: {
+                        'RequestVerificationToken': document.querySelector('#deleteForm input[name="__RequestVerificationToken"]').value
+                    },
+                    body: formData
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    document.getElementById('profileImagePath').value = result.path;
+                    showAlert('Imagen cargada exitosamente', 'success');
+                } else {
+                    const error = await response.json();
+                    showAlert(error.message || 'Error al cargar la imagen', 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showAlert('Error al cargar la imagen', 'error');
+            }
         });
     </script>
 }

@@ -57,8 +57,9 @@ body.dark-mode .roles-header {
 .role-card-header {
     display: flex;
     justify-content: space-between;
-    align-items: flex-start;
+    align-items: center;
     margin-bottom: 1.5rem;
+    min-height: 80px;
 }
 
 .role-info {
@@ -102,13 +103,22 @@ body.dark-mode .roles-header {
 }
 
 .avatar {
-    width: 38px;
-    height: 38px;
+    width: 72px;
+    height: 72px;
     border-radius: 50%;
-    border: 2px solid #fff;
-    margin-left: -10px;
+    border: 3px solid #fff;
+    margin-left: -18px;
     position: relative;
     z-index: 1;
+    overflow: hidden;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+    transition: all 0.3s ease;
+}
+
+.avatar:hover {
+    transform: scale(1.1) translateY(-5px);
+    z-index: 10;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
 }
 
 .avatar:first-child {
@@ -120,21 +130,30 @@ body.dark-mode .roles-header {
     height: 100%;
     border-radius: 50%;
     object-fit: cover;
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
 }
 
 .avatar-more {
-    width: 38px;
-    height: 38px;
+    width: 72px;
+    height: 72px;
     border-radius: 50%;
-    background: #f5f5f9;
-    color: #666;
+    background: #e8eaf6;
+    color: #5a5cdb;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 0.75rem;
+    font-size: 1.125rem;
     font-weight: 600;
-    border: 2px solid #fff;
-    margin-left: -10px;
+    border: 3px solid #fff;
+    margin-left: -18px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+    transition: all 0.3s ease;
+}
+
+.avatar-more:hover {
+    transform: scale(1.05);
+    background: #c5cae9;
 }
 
 /* Role Actions */
@@ -392,9 +411,11 @@ body.dark-mode .roles-header {
 }
 
 .user-avatar-small {
-    width: 38px;
-    height: 38px;
+    width: 48px;
+    height: 48px;
     border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #e0e0e0;
 }
 
 .user-details {
@@ -406,6 +427,11 @@ body.dark-mode .roles-header {
     font-weight: 600;
     color: #444564;
     font-size: 0.875rem;
+}
+
+.user-username {
+    color: #697a8d;
+    font-size: 0.8125rem;
 }
 
 .user-email {
@@ -584,9 +610,24 @@ body.dark-mode .role-name {
     color: #d1d1d8;
 }
 
+body.dark-mode .avatar {
+    border-color: #1a1a2e;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+body.dark-mode .avatar:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+}
+
 body.dark-mode .avatar-more {
     background: #393a50;
     color: #d1d1d8;
+    border-color: #1a1a2e;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+body.dark-mode .avatar-more:hover {
+    background: #494a62;
 }
 
 body.dark-mode .role-action-btn {
@@ -641,8 +682,16 @@ body.dark-mode .user-name {
     color: #d1d1d8;
 }
 
+body.dark-mode .user-username {
+    color: #a1a1aa;
+}
+
 body.dark-mode .user-email {
     color: #8b8b99;
+}
+
+body.dark-mode .user-avatar-small {
+    border-color: #393a50;
 }
 
 body.dark-mode .btn-action {
@@ -1056,6 +1105,272 @@ body.dark-mode .form-actions {
     color: #444564;
 }
 
+/* Status filter */
+.status-filter {
+    height: 36px !important;
+    padding: 8px 30px 8px 12px !important;
+    font-size: 14px !important;
+    color: #495057 !important;
+    background-color: #fff !important;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3e%3cpath fill='%23333' d='M10.293 3.293L6 7.586 1.707 3.293A1 1 0 00.293 4.707l5 5a1 1 0 001.414 0l5-5a1 1 0 10-1.414-1.414z'/%3e%3c/svg%3e") !important;
+    background-repeat: no-repeat !important;
+    background-position: right 10px center !important;
+    background-size: 12px !important;
+    border: 1px solid #ced4da !important;
+    border-radius: 0.25rem !important;
+    cursor: pointer !important;
+    -webkit-appearance: none !important;
+    -moz-appearance: none !important;
+    appearance: none !important;
+    margin: 0 !important;
+    vertical-align: middle !important;
+}
+
+.status-filter:focus {
+    color: #495057;
+    background-color: #fff;
+    border-color: var(--primary);
+    outline: 0;
+    box-shadow: 0 0 0 0.2rem rgba(var(--primary-rgb), 0.25);
+}
+
+/* User Form Off-Canvas */
+.user-form-offcanvas {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 1060;
+    display: none;
+}
+
+.user-form-offcanvas.show {
+    display: block;
+}
+
+.offcanvas-overlay {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    background: rgba(0, 0, 0, 0.5);
+    transition: opacity 0.3s ease;
+}
+
+.offcanvas-content {
+    position: absolute;
+    top: 0;
+    right: -600px;
+    bottom: 0;
+    width: 600px;
+    background: #fff;
+    box-shadow: -5px 0 25px rgba(0, 0, 0, 0.1);
+    transition: right 0.3s ease;
+    display: flex;
+    flex-direction: column;
+}
+
+.user-form-offcanvas.show .offcanvas-content {
+    right: 0;
+}
+
+.offcanvas-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid #e0e0e0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.offcanvas-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #444564;
+    margin: 0;
+}
+
+.btn-close {
+    background: none;
+    border: none;
+    font-size: 1.25rem;
+    color: #697a8d;
+    cursor: pointer;
+    padding: 0;
+    width: 2rem;
+    height: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.25rem;
+    transition: all 0.2s;
+}
+
+.btn-close:hover {
+    background: rgba(0, 0, 0, 0.04);
+    color: #384551;
+}
+
+.offcanvas-body {
+    flex: 1;
+    padding: 1.5rem;
+    overflow-y: auto;
+}
+
+/* Password input wrapper */
+.password-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.password-input-wrapper .form-control {
+    padding-right: 2.5rem;
+}
+
+/* Hide browser's password clear button */
+.password-input-wrapper input::-ms-clear,
+.password-input-wrapper input::-ms-reveal {
+    display: none !important;
+}
+
+.password-input-wrapper input::-webkit-clear-button,
+.password-input-wrapper input::-webkit-inner-spin-button,
+.password-input-wrapper input::-webkit-search-decoration,
+.password-input-wrapper input::-webkit-search-cancel-button,
+.password-input-wrapper input::-webkit-search-results-button,
+.password-input-wrapper input::-webkit-search-results-decoration,
+.password-input-wrapper input::-webkit-password-cancel-button {
+    -webkit-appearance: none !important;
+    appearance: none !important;
+    display: none !important;
+}
+
+/* Additional styles for password inputs */
+.password-input-wrapper input[type="password"],
+.password-input-wrapper input[type="text"] {
+    -webkit-appearance: none !important;
+    -moz-appearance: none !important;
+    appearance: none !important;
+}
+
+/* Edge specific */
+.password-input-wrapper input::-ms-reveal,
+.password-input-wrapper input::-ms-clear {
+    width: 0 !important;
+    height: 0 !important;
+}
+
+.password-toggle {
+    position: absolute;
+    right: 0.75rem;
+    background: none;
+    border: none;
+    color: #697a8d;
+    cursor: pointer;
+    padding: 0.25rem;
+    transition: color 0.2s;
+}
+
+.password-toggle:hover {
+    color: #444564;
+}
+
+/* Required asterisk */
+.required-asterisk {
+    color: #ff3e1d;
+    font-weight: 700;
+}
+
+/* Image upload styles */
+.image-upload-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+}
+
+.image-preview {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    overflow: hidden;
+    position: relative;
+    border: 3px solid #e0e0e0;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.image-preview:hover {
+    transform: scale(1.05);
+    border-color: var(--primary);
+}
+
+.image-preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.image-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.image-preview:hover .image-overlay {
+    opacity: 1;
+}
+
+.image-overlay i {
+    color: white;
+    font-size: 2rem;
+}
+
+.btn-upload {
+    padding: 0.5rem 1rem;
+    background: #f5f5f9;
+    border: 1px solid #e0e0e0;
+    border-radius: 0.375rem;
+    font-size: 0.875rem;
+    color: #566a7f;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn-upload:hover {
+    background: #e9ecef;
+    border-color: #d0d4d9;
+}
+
+/* Dark mode image upload */
+body.dark-mode .image-preview {
+    border-color: #393a50;
+}
+
+body.dark-mode .btn-upload {
+    background: #393a50;
+    border-color: #494a62;
+    color: #d1d1d8;
+}
+
+body.dark-mode .btn-upload:hover {
+    background: #494a62;
+    border-color: #5a5b73;
+}
+
 /* Table responsive wrapper */
 .table-responsive {
     overflow-x: auto;
@@ -1067,6 +1382,132 @@ body.dark-mode .form-actions {
     width: 18px;
     height: 18px;
     cursor: pointer;
+}
+
+/* Dark mode for status filter */
+body.dark-mode .status-filter {
+    background: #27293d !important;
+    border-color: #3f3f46 !important;
+    color: #e4e4e7 !important;
+}
+
+body.dark-mode .status-filter:focus {
+    border-color: var(--primary);
+    outline: none;
+}
+
+/* Export dropdown */
+.export-dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.dropdown-menu {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    margin-top: 0.5rem;
+    background: white;
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    min-width: 150px;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: all 0.2s;
+    z-index: 1040;
+}
+
+.dropdown-menu.show {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    color: #566a7f;
+    text-decoration: none;
+    transition: all 0.2s;
+    font-size: 0.875rem;
+}
+
+.dropdown-item:hover {
+    background: #f5f5f9;
+    color: #384551;
+}
+
+.dropdown-item i {
+    width: 16px;
+    text-align: center;
+}
+
+/* Dark mode dropdown */
+body.dark-mode .dropdown-menu {
+    background: #1a1a2e;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+}
+
+body.dark-mode .dropdown-item {
+    color: #a3a7c7;
+}
+
+body.dark-mode .dropdown-item:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: #cfd3ec;
+}
+
+/* Specific styles for off-canvas form inputs to hide X */
+#userFormOffCanvas input[type="password"]::-ms-clear,
+#userFormOffCanvas input[type="password"]::-ms-reveal,
+#userFormOffCanvas input[type="email"]::-ms-clear,
+#userFormOffCanvas input[type="text"]::-ms-clear {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+}
+
+#userFormOffCanvas input::-webkit-clear-button,
+#userFormOffCanvas input::-webkit-inner-spin-button,
+#userFormOffCanvas input::-webkit-search-decoration,
+#userFormOffCanvas input::-webkit-search-cancel-button,
+#userFormOffCanvas input::-webkit-search-results-button,
+#userFormOffCanvas input::-webkit-search-results-decoration {
+    -webkit-appearance: none !important;
+    display: none !important;
+}
+
+/* Dark mode for off-canvas */
+body.dark-mode .offcanvas-content {
+    background: #1a1a2e;
+}
+
+body.dark-mode .offcanvas-header {
+    border-bottom-color: #393a50;
+}
+
+body.dark-mode .offcanvas-title {
+    color: #d1d1d8;
+}
+
+body.dark-mode .btn-close {
+    color: #8b8b99;
+}
+
+body.dark-mode .btn-close:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: #d1d1d8;
+}
+
+body.dark-mode .password-toggle {
+    color: #8b8b99;
+}
+
+body.dark-mode .password-toggle:hover {
+    color: #d1d1d8;
 }
 
 /* Fix for customizer button visibility */
@@ -1129,6 +1570,16 @@ body.dark-mode .form-actions {
     .btn-save,
     .btn-cancel {
         width: 100%;
+    }
+    
+    /* Off-canvas responsive */
+    .offcanvas-content {
+        width: 100%;
+        max-width: 600px;
+    }
+    
+    .user-form-offcanvas.show .offcanvas-content {
+        right: 0;
     }
 }
 
