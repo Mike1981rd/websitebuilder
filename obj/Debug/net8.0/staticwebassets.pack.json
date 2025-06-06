@@ -9,6 +9,10 @@
       "PackagePath": "staticwebassets\\css\\admin-panel.css"
     },
     {
+      "Id": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\css\\company-settings.css",
+      "PackagePath": "staticwebassets\\css\\company-settings.css"
+    },
+    {
       "Id": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\css\\materialize-admin.css",
       "PackagePath": "staticwebassets\\css\\materialize-admin.css"
     },
@@ -19,6 +23,10 @@
     {
       "Id": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\css\\materialize-exact.css",
       "PackagePath": "staticwebassets\\css\\materialize-exact.css"
+    },
+    {
+      "Id": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\css\\roles.css",
+      "PackagePath": "staticwebassets\\css\\roles.css"
     },
     {
       "Id": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\css\\site.css",
@@ -267,6 +275,14 @@
     {
       "Id": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\jquery\\dist\\jquery.min.map",
       "PackagePath": "staticwebassets\\lib\\jquery\\dist\\jquery.min.map"
+    },
+    {
+      "Id": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\uploads\\logos\\234c2c73-3b15-4708-a501-fc6eac175b28_25.png",
+      "PackagePath": "staticwebassets\\uploads\\logos\\234c2c73-3b15-4708-a501-fc6eac175b28_25.png"
+    },
+    {
+      "Id": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\uploads\\logos\\39239043-4a03-42d1-8138-e5a6272e63c5_25.png",
+      "PackagePath": "staticwebassets\\uploads\\logos\\39239043-4a03-42d1-8138-e5a6272e63c5_25.png"
     },
     {
       "Id": "obj\\Debug\\net8.0\\staticwebassets\\msbuild.Hotel.Microsoft.AspNetCore.StaticWebAssetEndpoints.props",

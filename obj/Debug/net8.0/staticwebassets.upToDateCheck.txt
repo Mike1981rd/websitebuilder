@@ -1,7 +1,9 @@
 wwwroot\css\admin-panel.css
+wwwroot\css\company-settings.css
 wwwroot\css\materialize-admin.css
 wwwroot\css\materialize-exact.css
 wwwroot\css\materialize-exact-improved.css
+wwwroot\css\roles.css
 wwwroot\css\site.css
 wwwroot\favicon.ico
 wwwroot\js\admin-panel.js
@@ -64,3 +66,5 @@ wwwroot\lib\jquery-validation\LICENSE.md
 wwwroot\lib\jquery-validation-unobtrusive\jquery.validate.unobtrusive.js
 wwwroot\lib\jquery-validation-unobtrusive\jquery.validate.unobtrusive.min.js
 wwwroot\lib\jquery-validation-unobtrusive\LICENSE.txt
+wwwroot\uploads\logos\234c2c73-3b15-4708-a501-fc6eac175b28_25.png
+wwwroot\uploads\logos\39239043-4a03-42d1-8138-e5a6272e63c5_25.png

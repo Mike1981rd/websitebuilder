@@ -1,0 +1,144 @@
+@model Hotel.Models.Role
+@{
+    ViewData["Title"] = "Editar Rol";
+    Layout = "_MaterializeExactLayout";
+    var permissions = ViewBag.Permissions as Dictionary<string, List<Hotel.Models.Permission>>;
+    var selectedPermissions = ViewBag.SelectedPermissions as List<int> ?? new List<int>();
+}
+
+<div class="role-form-container">
+    <!-- Breadcrumbs -->
+    <nav class="breadcrumb-nav">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item">
+                <a href="@Url.Action("ExactIndex", "Admin")"><i class="fas fa-home"></i> <span data-i18n="breadcrumb.home">Inicio</span></a>
+            </li>
+            <li class="breadcrumb-item">
+                <a href="@Url.Action("Index")"><span data-i18n="menu.roles">Roles</span></a>
+            </li>
+            <li class="breadcrumb-item active" data-i18n="roles.editRole">Editar Rol</li>
+        </ol>
+    </nav>
+
+    <div class="role-form-card">
+        <div class="role-form-header">
+            <h2 class="role-form-title" data-i18n="roles.editRole">Editar Rol</h2>
+            <p class="role-form-subtitle" data-i18n="roles.setPermissionsDesc">Establecer permisos del rol</p>
+        </div>
+
+        <form asp-action="Edit" method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <input type="hidden" asp-for="Id" />
+
+            <div class="form-group">
+                <label class="form-label" asp-for="Name"><span data-i18n="roles.roleName">Nombre del Rol</span> <span class="required-asterisk">*</span></label>
+                <input asp-for="Name" class="form-control" placeholder="Ingrese el nombre del rol" data-i18n-placeholder="roles.enterRoleName" />
+                <span asp-validation-for="Name" class="text-danger"></span>
+            </div>
+
+            <div class="permissions-section">
+                <div class="permissions-header">
+                    <h3 class="permissions-title" data-i18n="roles.permissions">Permisos del Rol</h3>
+                    <div class="select-all-container">
+                        <input type="checkbox" id="selectAll" class="select-all-checkbox" />
+                        <label for="selectAll" class="select-all-label" data-i18n="roles.selectAll">Seleccionar Todo</label>
+                    </div>
+                </div>
+                
+                <div class="admin-toggle">
+                    <label class="admin-toggle-label" data-i18n="roles.adminAccess">Acceso de Administrador</label>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="adminAccess" />
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+
+                <div class="permission-groups">
+                    @if (permissions != null)
+                    {
+                        foreach (var moduleGroup in permissions)
+                        {
+                            <div class="permission-group">
+                                <div class="permission-group-header">
+                                    <span class="permission-group-name" data-i18n="module.@moduleGroup.Key">@moduleGroup.Key</span>
+                                    <div class="permission-toggles">
+                                        @foreach (var permission in moduleGroup.Value)
+                                        {
+                                            var isChecked = selectedPermissions.Contains(permission.Id);
+                                            <div class="permission-toggle">
+                                                <label class="toggle-switch">
+                                                    <input type="checkbox" name="selectedPermissions" value="@permission.Id" class="permission-checkbox" @(isChecked ? "checked" : "") />
+                                                    <span class="toggle-slider"></span>
+                                                </label>
+                                                <span class="permission-toggle-label" data-i18n="action.@permission.Action">@permission.Action</span>
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    }
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <a href="@Url.Action("Index")" class="btn-cancel" data-i18n="buttons.cancel">Cancelar</a>
+                <button type="submit" class="btn-save" data-i18n="buttons.save">Guardar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Select All functionality
+        document.getElementById('selectAll')?.addEventListener('change', function(e) {
+            const checkboxes = document.querySelectorAll('.permission-checkbox');
+            checkboxes.forEach(cb => cb.checked = e.target.checked);
+        });
+
+        // Update Select All based on individual checkboxes
+        function updateSelectAll() {
+            const allCheckboxes = document.querySelectorAll('.permission-checkbox');
+            const selectAll = document.getElementById('selectAll');
+            const allChecked = Array.from(allCheckboxes).every(cb => cb.checked);
+            const someChecked = Array.from(allCheckboxes).some(cb => cb.checked);
+            
+            if (selectAll) {
+                selectAll.checked = allChecked;
+                selectAll.indeterminate = !allChecked && someChecked;
+            }
+        }
+
+        document.querySelectorAll('.permission-checkbox').forEach(cb => {
+            cb.addEventListener('change', updateSelectAll);
+        });
+
+        // Check initial state
+        updateSelectAll();
+
+        // Handle permission action translations
+        function translatePermissionActions() {
+            document.querySelectorAll('.permission-toggle-label').forEach(element => {
+                const key = element.getAttribute('data-i18n');
+                if (key && key.startsWith('action.')) {
+                    const action = key.replace('action.', '').toLowerCase();
+                    const translations = {
+                        es: { 'read': 'Leer', 'write': 'Escribir', 'create': 'Crear' },
+                        en: { 'read': 'Read', 'write': 'Write', 'create': 'Create' }
+                    };
+                    const currentLang = localStorage.getItem('preferredLanguage') || 'es';
+                    if (translations[currentLang] && translations[currentLang][action]) {
+                        element.textContent = translations[currentLang][action];
+                    }
+                }
+            });
+        }
+
+        // Call on page load
+        translatePermissionActions();
+
+        // Listen for language changes
+        document.addEventListener('languageChanged', translatePermissionActions);
+    </script>
+}

@@ -1,0 +1,214 @@
+@model IEnumerable<Hotel.Models.Role>
+@{
+    ViewData["Title"] = "Lista de Roles";
+    Layout = "_MaterializeExactLayout";
+    var userCounts = ViewBag.UserCounts as Dictionary<int, int>;
+}
+
+<div class="roles-container">
+    <!-- Breadcrumbs -->
+    <nav class="breadcrumb-nav">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item">
+                <a href="@Url.Action("ExactIndex", "Admin")"><i class="fas fa-home"></i> <span data-i18n="breadcrumb.home">Inicio</span></a>
+            </li>
+            <li class="breadcrumb-item active" data-i18n="menu.roles">Roles</li>
+        </ol>
+    </nav>
+
+    <div class="roles-header">
+        <h1 data-i18n="roles.title">Lista de Roles</h1>
+        <p data-i18n="roles.subtitle">Un rol proporciona acceso a menús y características predefinidos para que, dependiendo del rol asignado, un administrador pueda tener acceso a lo que el usuario necesita</p>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2"></i>
+            @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-circle me-2"></i>
+            @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <!-- Role Cards -->
+    <div class="roles-grid">
+        @foreach (var role in Model)
+        {
+            var userCount = userCounts?.GetValueOrDefault(role.Id, 0) ?? 0;
+            <div class="role-card">
+                <div class="role-card-header">
+                    <div class="role-info">
+                        <div class="role-count" data-i18n="roles.totalUsers">Total @userCount usuarios</div>
+                        <h4 class="role-name">@role.Name</h4>
+                        <a href="@Url.Action("Edit", new { id = role.Id })" class="role-link" data-i18n="roles.editRole">Editar Rol</a>
+                    </div>
+                    <div class="user-avatars">
+                        <div class="avatar-group">
+                            @for (int i = 0; i < Math.Min(userCount, 4); i++)
+                            {
+                                <div class="avatar">
+                                    <img src="https://ui-avatars.com/api/?background=random&color=fff&name=U@(i)" alt="User" />
+                                </div>
+                            }
+                            @if (userCount > 4)
+                            {
+                                <div class="avatar-more">+@(userCount - 4)</div>
+                            }
+                        </div>
+                    </div>
+                </div>
+                <div class="role-actions">
+                    <button type="button" class="role-action-btn" onclick="copyRole(@role.Id)" title="Copiar">
+                        <i class="fas fa-copy"></i>
+                    </button>
+                    <button type="button" class="role-action-btn" onclick="deleteRole(@role.Id, '@role.Name')" title="Eliminar">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </div>
+        }
+
+        <!-- Add New Role Card -->
+        <a href="@Url.Action("Create")" class="add-role-card">
+            <svg class="add-role-illustration" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="60" cy="60" r="50" fill="#f3e8ff"/>
+                <path d="M40 60 L80 60 M60 40 L60 80" stroke="#7c3aed" stroke-width="4" stroke-linecap="round"/>
+            </svg>
+            <button type="button" class="add-role-btn">
+                <i class="fas fa-plus"></i>
+                <span data-i18n="roles.addNewRole">Agregar Nuevo Rol</span>
+            </button>
+            <p class="add-role-text" data-i18n="roles.addNewRoleDesc">Agrega un nuevo rol, si no existe.</p>
+        </a>
+    </div>
+
+    <!-- Users Table -->
+    <div class="users-section">
+        <div class="users-section-header">
+            <div>
+                <h4 class="users-section-title" data-i18n="roles.totalUsersWithRoles">Total de usuarios con sus roles</h4>
+                <p class="users-section-subtitle" data-i18n="roles.findUsersDesc">Encuentra todos los usuarios de tu empresa y sus roles asociados.</p>
+            </div>
+        </div>
+
+        <div class="table-controls">
+            <div class="table-controls-left">
+                <select class="entries-select">
+                    <option value="10">10</option>
+                    <option value="25">25</option>
+                    <option value="50">50</option>
+                    <option value="100">100</option>
+                </select>
+                <div class="search-box">
+                    <input type="text" placeholder="Buscar Usuario" data-i18n-placeholder="roles.searchUser" />
+                </div>
+            </div>
+            <div class="table-controls-right">
+                <button class="btn-export">
+                    <i class="fas fa-download"></i> <span data-i18n="buttons.export">Exportar</span>
+                </button>
+                <a href="#" class="btn-add-user">
+                    <i class="fas fa-plus"></i> <span data-i18n="roles.addNewUser">Agregar Nuevo Usuario</span>
+                </a>
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="users-table">
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th data-i18n="table.user">USUARIO</th>
+                        <th data-i18n="table.role">ROL</th>
+                        <th data-i18n="table.plan">PLAN</th>
+                        <th data-i18n="table.billing">FACTURACIÓN</th>
+                        <th data-i18n="table.status">ESTADO</th>
+                        <th data-i18n="table.actions">ACCIONES</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Placeholder data - replace with actual user data -->
+                    <tr>
+                        <td><input type="checkbox" class="user-checkbox" /></td>
+                        <td>
+                            <div class="user-info">
+                                <img src="https://ui-avatars.com/api/?background=5a67d8&color=fff&name=ZM" alt="User" class="user-avatar-small" />
+                                <div class="user-details">
+                                    <div class="user-name">Zsazsa McCleverty</div>
+                                    <div class="user-email">zmccleverty@soundcloud.com</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="role-badge maintainer">
+                                <i class="fas fa-user-cog role-badge-icon"></i> Maintainer
+                            </span>
+                        </td>
+                        <td>Enterprise</td>
+                        <td>Auto Debit</td>
+                        <td><span class="status-badge active" data-i18n="status.active">Activo</span></td>
+                        <td>
+                            <div class="action-buttons">
+                                <button class="btn-action" title="Eliminar"><i class="fas fa-trash"></i></button>
+                                <button class="btn-action" title="Ver"><i class="fas fa-eye"></i></button>
+                                <button class="btn-action" title="Más"><i class="fas fa-ellipsis-v"></i></button>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="table-pagination">
+            <div class="pagination-info">
+                <span data-i18n="pagination.showing">Mostrando</span> 1 <span data-i18n="pagination.to">a</span> 10 <span data-i18n="pagination.of">de</span> 50 <span data-i18n="pagination.entries">entradas</span>
+            </div>
+            <div class="pagination-controls">
+                <button class="pagination-btn" disabled><i class="fas fa-chevron-left"></i></button>
+                <button class="pagination-btn active">1</button>
+                <button class="pagination-btn">2</button>
+                <button class="pagination-btn">3</button>
+                <button class="pagination-btn">4</button>
+                <button class="pagination-btn">5</button>
+                <button class="pagination-btn"><i class="fas fa-chevron-right"></i></button>
+                <button class="pagination-btn"><i class="fas fa-angle-double-right"></i></button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<form id="deleteForm" method="post" style="display: none;">
+    @Html.AntiForgeryToken()
+</form>
+
+@section Scripts {
+    <script>
+        function deleteRole(roleId, roleName) {
+            if (confirm(`¿Está seguro de que desea eliminar el rol "${roleName}"?`)) {
+                const form = document.getElementById('deleteForm');
+                form.action = '@Url.Action("Delete", "Roles")/' + roleId;
+                form.submit();
+            }
+        }
+
+        function copyRole(roleId) {
+            // Implementar lógica de copia
+            alert('Función de copia no implementada aún');
+        }
+
+        // Search functionality
+        document.querySelector('.search-input')?.addEventListener('input', function(e) {
+            // Implementar búsqueda
+        });
+    </script>
+}

@@ -1,0 +1,365 @@
+@model Hotel.Models.Company
+@{
+    ViewData["Title"] = "Configurar empresa";
+    Layout = "_MaterializeExactLayout";
+}
+
+<div class="company-settings-container">
+    <!-- Breadcrumbs -->
+    <nav class="breadcrumb-nav">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item">
+                <a href="@Url.Action("ExactIndex", "Admin")"><i class="fas fa-home"></i> <span data-i18n="breadcrumb.home">Inicio</span></a>
+            </li>
+            <li class="breadcrumb-item active" data-i18n="menu.empresa">Empresa</li>
+        </ol>
+    </nav>
+
+    <div class="company-header">
+        <h3 class="page-title" data-i18n="company.title">Personaliza tu Empresa</h3>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2"></i>
+            @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-circle me-2"></i>
+            @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <form asp-action="Company" method="post" enctype="multipart/form-data">
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+        <!-- Datos generales -->
+        <div class="form-section">
+            
+            <div class="form-grid">
+                <div class="logo-upload-container">
+                    <div class="logo-preview">
+                        @if (!string.IsNullOrEmpty(Model.Logo))
+                        {
+                            <img src="@Model.Logo" alt="Logo" id="logoPreview" />
+                        }
+                        else
+                        {
+                            <div class="logo-placeholder" id="logoPlaceholder">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                                    <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                                    <polyline points="21 15 16 10 5 21"></polyline>
+                                </svg>
+                            </div>
+                        }
+                    </div>
+                    <input type="file" id="logoFile" name="logoFile" accept="image/*" class="d-none" />
+                    <button type="button" class="upload-btn" onclick="document.getElementById('logoFile').click()">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path>
+                            <polyline points="14 2 14 8 20 8"></polyline>
+                        </svg>
+                    </button>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="BusinessName"><span data-i18n="company.businessName">Razón social</span> <span class="required-asterisk">*</span></label>
+                    <input asp-for="BusinessName" class="form-control" placeholder="Ingrese la razón social" data-i18n-placeholder="company.businessNamePlaceholder" />
+                    <span asp-validation-for="BusinessName" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="RncOrId"><span data-i18n="company.rncOrId">RNC o Cédula</span> <span class="required-asterisk">*</span></label>
+                    <input asp-for="RncOrId" class="form-control" placeholder="00114024797" />
+                    <span asp-validation-for="RncOrId" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="TradeName" data-i18n="company.tradeName">Nombre comercial</label>
+                    <input asp-for="TradeName" class="form-control" placeholder="Ingrese el nombre comercial" data-i18n-placeholder="company.tradeNamePlaceholder" />
+                    <span asp-validation-for="TradeName" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="Email" data-i18n="company.email">Correo electrónico</label>
+                    <input asp-for="Email" type="email" class="form-control" placeholder="support@hotel.com" />
+                    <span asp-validation-for="Email" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="Website" data-i18n="company.website">Sitio web</label>
+                    <input asp-for="Website" type="url" class="form-control" placeholder="https://www.hotel.com" />
+                    <span asp-validation-for="Website" class="text-danger"></span>
+                </div>
+
+                <div class="form-group phone-group">
+                    <label asp-for="Phone" data-i18n="company.phone">Teléfono</label>
+                    <div class="phone-input-wrapper">
+                        <select class="country-code">
+                            <option value="+1">+1</option>
+                        </select>
+                        <input asp-for="Phone" type="tel" class="form-control phone-input" placeholder="8096374142" />
+                    </div>
+                    <span asp-validation-for="Phone" class="text-danger"></span>
+                </div>
+
+                <div class="form-group billing-toggle">
+                    <label data-i18n="company.electronicBilling">Facturación electrónica</label>
+                    <div class="toggle-container">
+                        <span class="toggle-label" data-i18n="company.deactivated">Desactivado</span>
+                        <label class="switch">
+                            <input asp-for="ElectronicBilling" type="checkbox" />
+                            <span class="slider"></span>
+                        </label>
+                        <button type="button" class="activate-btn" id="activateBtn" data-i18n="company.activate">Activar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Datos de ubicación -->
+        <div class="form-section">
+            
+            <div class="form-grid">
+                <div class="form-group full-width">
+                    <label asp-for="Address" data-i18n="company.address">Dirección</label>
+                    <input asp-for="Address" class="form-control" placeholder="Ingrese la dirección completa" data-i18n-placeholder="company.addressPlaceholder" />
+                    <span asp-validation-for="Address" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="Province" data-i18n="company.province">Provincia</label>
+                    <input asp-for="Province" class="form-control" placeholder="Ingrese la provincia" data-i18n-placeholder="company.provincePlaceholder" />
+                    <span asp-validation-for="Province" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="Municipality" data-i18n="company.municipality">Municipio</label>
+                    <input asp-for="Municipality" class="form-control" placeholder="Ingrese el municipio" data-i18n-placeholder="company.municipalityPlaceholder" />
+                    <span asp-validation-for="Municipality" class="text-danger"></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Datos adicionales -->
+        <div class="form-section">
+            
+            <div class="form-grid">
+                <div class="form-group">
+                    <label asp-for="TaxRegime" data-i18n="company.taxRegime">Régimen</label>
+                    <select asp-for="TaxRegime" class="form-control">
+                        <option value="Régimen general" data-i18n="company.generalRegime">Régimen general</option>
+                        <option value="Régimen simplificado" data-i18n="company.simplifiedRegime">Régimen simplificado</option>
+                    </select>
+                    <span asp-validation-for="TaxRegime" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="Sector" data-i18n="company.sector">Sector</label>
+                    <select asp-for="Sector" class="form-control">
+                        <option value="" data-i18n="company.select">Seleccionar</option>
+                        <option value="Turismo" data-i18n="company.tourism">Turismo</option>
+                        <option value="Hotelería" data-i18n="company.hospitality">Hotelería</option>
+                        <option value="Servicios" data-i18n="company.services">Servicios</option>
+                    </select>
+                    <span asp-validation-for="Sector" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="EmployeeCount" data-i18n="company.employeeCount">Número de empleados</label>
+                    <select asp-for="EmployeeCount" class="form-control">
+                        <option value="" data-i18n="company.select">Seleccionar</option>
+                        <option value="1">1-10</option>
+                        <option value="11">11-50</option>
+                        <option value="51">51-100</option>
+                        <option value="101" data-i18n="company.moreThan100">Más de 100</option>
+                    </select>
+                    <span asp-validation-for="EmployeeCount" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="Currency" data-i18n="company.currency">Moneda</label>
+                    <select asp-for="Currency" class="form-control">
+                        <option value="ARS">ARS - Peso Argentino</option>
+                        <option value="BOB">BOB - Boliviano</option>
+                        <option value="BRL">BRL - Real Brasileño</option>
+                        <option value="CLP">CLP - Peso Chileno</option>
+                        <option value="COP">COP - Peso Colombiano</option>
+                        <option value="CRC">CRC - Colón Costarricense</option>
+                        <option value="CUP">CUP - Peso Cubano</option>
+                        <option value="DOP">DOP - Peso Dominicano</option>
+                        <option value="GTQ">GTQ - Quetzal Guatemalteco</option>
+                        <option value="HNL">HNL - Lempira Hondureño</option>
+                        <option value="MXN">MXN - Peso Mexicano</option>
+                        <option value="NIO">NIO - Córdoba Nicaragüense</option>
+                        <option value="PAB">PAB - Balboa Panameño</option>
+                        <option value="PEN">PEN - Sol Peruano</option>
+                        <option value="PYG">PYG - Guaraní Paraguayo</option>
+                        <option value="USD">USD - Dólar Estadounidense</option>
+                        <option value="UYU">UYU - Peso Uruguayo</option>
+                        <option value="VES">VES - Bolívar Venezolano</option>
+                    </select>
+                    <span asp-validation-for="Currency" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="DecimalPrecision" data-i18n="company.decimalPrecision">Precisión decimal</label>
+                    <select asp-for="DecimalPrecision" class="form-control">
+                        <option value="0">0</option>
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                    </select>
+                    <span asp-validation-for="DecimalPrecision" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="DecimalSeparator" data-i18n="company.decimalSeparator">Separador decimal</label>
+                    <select asp-for="DecimalSeparator" class="form-control">
+                        <option value=".">.</option>
+                        <option value=",">,</option>
+                    </select>
+                    <span asp-validation-for="DecimalSeparator" class="text-danger"></span>
+                </div>
+            </div>
+
+
+        </div>
+
+        <!-- Time zone and units of measurement -->
+        <div class="form-section">
+            
+            <div class="form-grid">
+                <div class="form-group full-width">
+                    <label asp-for="TimeZone" data-i18n="company.timeZone">Zona horaria</label>
+                    <select asp-for="TimeZone" class="form-control">
+                        <option value="(GMT-12:00) Baker Island">(GMT-12:00) Baker Island</option>
+                        <option value="(GMT-11:00) Samoa">(GMT-11:00) Samoa</option>
+                        <option value="(GMT-10:00) Hawaii">(GMT-10:00) Hawaii</option>
+                        <option value="(GMT-09:00) Alaska">(GMT-09:00) Alaska</option>
+                        <option value="(GMT-08:00) Los Angeles">(GMT-08:00) Los Angeles</option>
+                        <option value="(GMT-07:00) Phoenix">(GMT-07:00) Phoenix</option>
+                        <option value="(GMT-06:00) Ciudad de México">(GMT-06:00) Ciudad de México</option>
+                        <option value="(GMT-05:00) Lima">(GMT-05:00) Lima</option>
+                        <option value="(GMT-05:00) Bogotá">(GMT-05:00) Bogotá</option>
+                        <option value="(GMT-05:00) Nueva York">(GMT-05:00) Nueva York</option>
+                        <option value="(GMT-04:00) Caracas">(GMT-04:00) Caracas</option>
+                        <option value="(GMT-04:00) La Paz">(GMT-04:00) La Paz</option>
+                        <option value="(GMT-04:00) Santo Domingo" selected>(GMT-04:00) Santo Domingo</option>
+                        <option value="(GMT-03:00) Buenos Aires">(GMT-03:00) Buenos Aires</option>
+                        <option value="(GMT-03:00) Montevideo">(GMT-03:00) Montevideo</option>
+                        <option value="(GMT-03:00) São Paulo">(GMT-03:00) São Paulo</option>
+                        <option value="(GMT-02:00) Fernando de Noronha">(GMT-02:00) Fernando de Noronha</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="Metric" data-i18n="company.metric">Métrica</label>
+                    <select asp-for="Metric" class="form-control">
+                        <option value="Metric" data-i18n="company.metricSystem">Métrico</option>
+                        <option value="Imperial" data-i18n="company.imperialSystem">Imperial</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="Weight" data-i18n="company.weight">Peso</label>
+                    <select asp-for="Weight" class="form-control">
+                        <option value="Kilograms" data-i18n="company.kilograms">Kilogramos</option>
+                        <option value="Pounds" data-i18n="company.pounds">Libras</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Order ID format -->
+        <div class="form-section">
+            
+            <div class="form-grid">
+                <div class="form-group">
+                    <label asp-for="OrderPrefix" data-i18n="company.orderPrefix">Prefijo</label>
+                    <input asp-for="OrderPrefix" class="form-control" placeholder="#" />
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="OrderSuffix" data-i18n="company.orderSuffix">Sufijo</label>
+                    <input asp-for="OrderSuffix" class="form-control" placeholder="" />
+                </div>
+            </div>
+
+            <p class="order-format-example" data-i18n="company.orderExample">Tu ID de orden aparecerá como #1001, #1002, #1003 ...</p>
+        </div>
+
+        <!-- Final actions -->
+        <div class="form-section final-actions">
+            <button type="button" class="btn-cancel" onclick="window.history.back()" data-i18n="buttons.cancel">Cancelar</button>
+            <button type="submit" class="btn-save" data-i18n="buttons.save">Guardar cambios</button>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <script>
+        // Handle logo preview
+        document.getElementById('logoFile').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file && file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const preview = document.getElementById('logoPreview');
+                    const placeholder = document.getElementById('logoPlaceholder');
+                    
+                    if (preview) {
+                        preview.src = e.target.result;
+                    } else {
+                        const img = document.createElement('img');
+                        img.id = 'logoPreview';
+                        img.src = e.target.result;
+                        img.alt = 'Logo';
+                        
+                        if (placeholder) {
+                            placeholder.parentNode.replaceChild(img, placeholder);
+                        }
+                    }
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Handle electronic billing toggle
+        document.getElementById('activateBtn').addEventListener('click', function() {
+            const checkbox = document.querySelector('input[name="ElectronicBilling"]');
+            checkbox.checked = true;
+            this.textContent = 'Activado';
+            this.classList.add('activated');
+        });
+
+        // Handle theme based on body class
+        const updateTheme = () => {
+            const isDarkMode = document.body.classList.contains('dark-mode');
+            if (isDarkMode) {
+                document.querySelector('.company-settings-container').classList.add('dark-mode');
+            } else {
+                document.querySelector('.company-settings-container').classList.remove('dark-mode');
+            }
+        };
+        
+        // Initial theme check
+        updateTheme();
+        
+        // Watch for theme changes
+        const observer = new MutationObserver(updateTheme);
+        observer.observe(document.body, {
+            attributes: true,
+            attributeFilter: ['class']
+        });
+    </script>
+}

@@ -22,6 +22,109 @@ namespace Hotel.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("Hotel.Models.Company", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Address")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<string>("BusinessName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Currency")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("DecimalPrecision")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("DecimalSeparator")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<bool>("ElectronicBilling")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int?>("EmployeeCount")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Logo")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Metric")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Municipality")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("OrderPrefix")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("OrderSuffix")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Phone")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Province")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("RncOrId")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<string>("Sector")
+                        .HasColumnType("text");
+
+                    b.Property<string>("TaxRegime")
+                        .HasColumnType("text");
+
+                    b.Property<string>("TimeZone")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("TradeName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Website")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Weight")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Companies");
+                });
+
             modelBuilder.Entity("Hotel.Models.Guest", b =>
                 {
                     b.Property<int>("Id")
@@ -139,6 +242,158 @@ namespace Hotel.Migrations
                     b.ToTable("Payments");
                 });
 
+            modelBuilder.Entity("Hotel.Models.Permission", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Action")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<int>("DisplayOrder")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Module")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Permissions");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Action = "Read",
+                            Description = "Ver información de empresa",
+                            DisplayOrder = 1,
+                            Module = "Empresa"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Action = "Write",
+                            Description = "Editar información de empresa",
+                            DisplayOrder = 1,
+                            Module = "Empresa"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Action = "Create",
+                            Description = "Crear información de empresa",
+                            DisplayOrder = 1,
+                            Module = "Empresa"
+                        },
+                        new
+                        {
+                            Id = 4,
+                            Action = "Read",
+                            Description = "Ver roles",
+                            DisplayOrder = 2,
+                            Module = "Roles"
+                        },
+                        new
+                        {
+                            Id = 5,
+                            Action = "Write",
+                            Description = "Editar roles",
+                            DisplayOrder = 2,
+                            Module = "Roles"
+                        },
+                        new
+                        {
+                            Id = 6,
+                            Action = "Create",
+                            Description = "Crear roles",
+                            DisplayOrder = 2,
+                            Module = "Roles"
+                        },
+                        new
+                        {
+                            Id = 7,
+                            Action = "Read",
+                            Description = "Ver usuarios",
+                            DisplayOrder = 3,
+                            Module = "Usuarios"
+                        },
+                        new
+                        {
+                            Id = 8,
+                            Action = "Write",
+                            Description = "Editar usuarios",
+                            DisplayOrder = 3,
+                            Module = "Usuarios"
+                        },
+                        new
+                        {
+                            Id = 9,
+                            Action = "Create",
+                            Description = "Crear usuarios",
+                            DisplayOrder = 3,
+                            Module = "Usuarios"
+                        },
+                        new
+                        {
+                            Id = 10,
+                            Action = "Read",
+                            Description = "Ver clientes",
+                            DisplayOrder = 4,
+                            Module = "Clientes"
+                        },
+                        new
+                        {
+                            Id = 11,
+                            Action = "Write",
+                            Description = "Editar clientes",
+                            DisplayOrder = 4,
+                            Module = "Clientes"
+                        },
+                        new
+                        {
+                            Id = 12,
+                            Action = "Create",
+                            Description = "Crear clientes",
+                            DisplayOrder = 4,
+                            Module = "Clientes"
+                        },
+                        new
+                        {
+                            Id = 13,
+                            Action = "Read",
+                            Description = "Ver configuración del sitio web",
+                            DisplayOrder = 5,
+                            Module = "SitioWeb"
+                        },
+                        new
+                        {
+                            Id = 14,
+                            Action = "Write",
+                            Description = "Editar configuración del sitio web",
+                            DisplayOrder = 5,
+                            Module = "SitioWeb"
+                        },
+                        new
+                        {
+                            Id = 15,
+                            Action = "Create",
+                            Description = "Crear contenido del sitio web",
+                            DisplayOrder = 5,
+                            Module = "SitioWeb"
+                        });
+                });
+
             modelBuilder.Entity("Hotel.Models.Reservation", b =>
                 {
                     b.Property<int>("Id")
@@ -194,6 +449,93 @@ namespace Hotel.Migrations
                     b.HasIndex("RoomId");
 
                     b.ToTable("Reservations");
+                });
+
+            modelBuilder.Entity("Hotel.Models.Role", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Roles");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            CreatedAt = new DateTime(2025, 6, 6, 0, 12, 52, 467, DateTimeKind.Utc).AddTicks(652),
+                            Description = "Acceso completo al sistema",
+                            IsActive = true,
+                            Name = "Administrator",
+                            UpdatedAt = new DateTime(2025, 6, 6, 0, 12, 52, 467, DateTimeKind.Utc).AddTicks(653)
+                        },
+                        new
+                        {
+                            Id = 2,
+                            CreatedAt = new DateTime(2025, 6, 6, 0, 12, 52, 467, DateTimeKind.Utc).AddTicks(657),
+                            Description = "Acceso de gestión",
+                            IsActive = true,
+                            Name = "Manager",
+                            UpdatedAt = new DateTime(2025, 6, 6, 0, 12, 52, 467, DateTimeKind.Utc).AddTicks(658)
+                        },
+                        new
+                        {
+                            Id = 3,
+                            CreatedAt = new DateTime(2025, 6, 6, 0, 12, 52, 467, DateTimeKind.Utc).AddTicks(660),
+                            Description = "Acceso de soporte",
+                            IsActive = true,
+                            Name = "Support",
+                            UpdatedAt = new DateTime(2025, 6, 6, 0, 12, 52, 467, DateTimeKind.Utc).AddTicks(660)
+                        },
+                        new
+                        {
+                            Id = 4,
+                            CreatedAt = new DateTime(2025, 6, 6, 0, 12, 52, 467, DateTimeKind.Utc).AddTicks(662),
+                            Description = "Acceso básico de usuario",
+                            IsActive = true,
+                            Name = "Users",
+                            UpdatedAt = new DateTime(2025, 6, 6, 0, 12, 52, 467, DateTimeKind.Utc).AddTicks(662)
+                        });
+                });
+
+            modelBuilder.Entity("Hotel.Models.RolePermission", b =>
+                {
+                    b.Property<int>("RoleId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("PermissionId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("AssignedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("RoleId", "PermissionId");
+
+                    b.HasIndex("PermissionId");
+
+                    b.ToTable("RolePermissions");
                 });
 
             modelBuilder.Entity("Hotel.Models.Room", b =>
@@ -279,7 +621,7 @@ namespace Hotel.Migrations
                         {
                             Id = 1,
                             BasePrice = 50.00m,
-                            CreatedAt = new DateTime(2025, 6, 5, 15, 2, 13, 575, DateTimeKind.Utc).AddTicks(7996),
+                            CreatedAt = new DateTime(2025, 6, 6, 0, 12, 52, 466, DateTimeKind.Utc).AddTicks(9908),
                             Description = "Habitación individual estándar",
                             MaxOccupancy = 1,
                             Name = "Individual"
@@ -288,7 +630,7 @@ namespace Hotel.Migrations
                         {
                             Id = 2,
                             BasePrice = 80.00m,
-                            CreatedAt = new DateTime(2025, 6, 5, 15, 2, 13, 575, DateTimeKind.Utc).AddTicks(8008),
+                            CreatedAt = new DateTime(2025, 6, 6, 0, 12, 52, 466, DateTimeKind.Utc).AddTicks(9923),
                             Description = "Habitación doble estándar",
                             MaxOccupancy = 2,
                             Name = "Doble"
@@ -297,7 +639,7 @@ namespace Hotel.Migrations
                         {
                             Id = 3,
                             BasePrice = 150.00m,
-                            CreatedAt = new DateTime(2025, 6, 5, 15, 2, 13, 575, DateTimeKind.Utc).AddTicks(8010),
+                            CreatedAt = new DateTime(2025, 6, 6, 0, 12, 52, 466, DateTimeKind.Utc).AddTicks(9926),
                             Description = "Suite de lujo",
                             MaxOccupancy = 4,
                             Name = "Suite"
@@ -306,7 +648,7 @@ namespace Hotel.Migrations
                         {
                             Id = 4,
                             BasePrice = 300.00m,
-                            CreatedAt = new DateTime(2025, 6, 5, 15, 2, 13, 575, DateTimeKind.Utc).AddTicks(8013),
+                            CreatedAt = new DateTime(2025, 6, 6, 0, 12, 52, 466, DateTimeKind.Utc).AddTicks(9928),
                             Description = "Suite presidencial de lujo",
                             MaxOccupancy = 6,
                             Name = "Suite Presidencial"
@@ -343,6 +685,25 @@ namespace Hotel.Migrations
                     b.Navigation("Room");
                 });
 
+            modelBuilder.Entity("Hotel.Models.RolePermission", b =>
+                {
+                    b.HasOne("Hotel.Models.Permission", "Permission")
+                        .WithMany("RolePermissions")
+                        .HasForeignKey("PermissionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Hotel.Models.Role", "Role")
+                        .WithMany("RolePermissions")
+                        .HasForeignKey("RoleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Permission");
+
+                    b.Navigation("Role");
+                });
+
             modelBuilder.Entity("Hotel.Models.Room", b =>
                 {
                     b.HasOne("Hotel.Models.RoomType", "RoomType")
@@ -359,9 +720,19 @@ namespace Hotel.Migrations
                     b.Navigation("Reservations");
                 });
 
+            modelBuilder.Entity("Hotel.Models.Permission", b =>
+                {
+                    b.Navigation("RolePermissions");
+                });
+
             modelBuilder.Entity("Hotel.Models.Reservation", b =>
                 {
                     b.Navigation("Payments");
+                });
+
+            modelBuilder.Entity("Hotel.Models.Role", b =>
+                {
+                    b.Navigation("RolePermissions");
                 });
 
             modelBuilder.Entity("Hotel.Models.Room", b =>

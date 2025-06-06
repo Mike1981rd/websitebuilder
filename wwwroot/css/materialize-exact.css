@@ -1871,6 +1871,7 @@ body.dark-mode .menu-tooltip::before {
 /* Fix icon alignment in collapsed state */
 .layout-container.menu-collapsed .menu-link {
     padding: 0.75rem 0 !important;
+    padding-left: 0.875rem !important;
     height: 48px !important;
     width: 100% !important;
     margin: 0 !important;
@@ -2118,7 +2119,8 @@ body.dark-mode .menu-tooltip::before {
 .layout-container.menu-collapsed .app-brand-link {
     width: 100%;
     justify-content: center;
-    padding-left: 0.25rem;
+    padding-left: 0;
+    margin-left: -0.5rem;
 }
 
 .layout-container.menu-collapsed .logo-full {
@@ -2176,6 +2178,44 @@ body.dark-mode .menu-tooltip::before {
 /* Perfect vertical alignment */
 .layout-container.menu-collapsed .menu-inner {
     padding-top: 0 !important;
+}
+
+/* Hide page scrollbar */
+html {
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE and Edge */
+}
+
+html::-webkit-scrollbar {
+    display: none; /* Chrome, Safari and Opera */
+}
+
+body {
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE and Edge */
+}
+
+body::-webkit-scrollbar {
+    display: none; /* Chrome, Safari and Opera */
+}
+
+/* Hide menu scrollbar */
+.menu-inner {
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE and Edge */
+}
+
+.menu-inner::-webkit-scrollbar {
+    display: none; /* Chrome, Safari and Opera */
+}
+
+.layout-menu {
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE and Edge */
+}
+
+.layout-menu::-webkit-scrollbar {
+    display: none; /* Chrome, Safari and Opera */
 }
 
 /* Cache breaker: 1749150399 */

@@ -7,6 +7,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <link rel="stylesheet" href="~/css/materialize-exact.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/company-settings.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/roles.css" asp-append-version="true" />
 </head>
 <body>
     <div class="layout-container">
@@ -34,7 +36,7 @@
             <div class="menu-inner">
                 <ul class="menu-inner-root" style="list-style: none; padding: 0;">
                     <li class="menu-item">
-                        <a href="@Url.Action("ExactIndex", "Admin")" class="menu-link active">
+                        <a href="@Url.Action("Company", "Admin")" class="menu-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Company" ? "active" : "")">
                             <i class="menu-icon fas fa-building"></i>
                             <span class="menu-text" data-i18n="menu.empresa">Empresa</span>
                             <span class="menu-tooltip" data-i18n="menu.empresa">Empresa</span>
@@ -42,18 +44,10 @@
                     </li>
 
                     <li class="menu-item">
-                        <a href="#" class="menu-link">
+                        <a href="@Url.Action("Index", "Roles")" class="menu-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Roles" ? "active" : "")">
                             <i class="menu-icon fas fa-user-shield"></i>
-                            <span class="menu-text" data-i18n="menu.roles">Roles</span>
-                            <span class="menu-tooltip" data-i18n="menu.roles">Roles</span>
-                        </a>
-                    </li>
-
-                    <li class="menu-item">
-                        <a href="#" class="menu-link">
-                            <i class="menu-icon fas fa-users"></i>
-                            <span class="menu-text" data-i18n="menu.usuarios">Usuarios</span>
-                            <span class="menu-tooltip" data-i18n="menu.usuarios">Usuarios</span>
+                            <span class="menu-text" data-i18n="menu.rolesUsers">Roles & Usuarios</span>
+                            <span class="menu-tooltip" data-i18n="menu.rolesUsers">Roles & Usuarios</span>
                         </a>
                     </li>
 
@@ -357,6 +351,9 @@
                 const color = option.getAttribute('data-color');
                 document.documentElement.style.setProperty('--primary', color);
                 
+                // Save color preference
+                localStorage.setItem('primaryColor', color);
+                
                 // Update active menu item color
                 updateActiveMenuColor(color);
             });
@@ -398,6 +395,9 @@
                 updateActiveMenuColor(hexColor);
                 colorPickerModal.classList.remove('show');
                 customizerOverlay.classList.remove('show');
+                
+                // Save custom color preference
+                localStorage.setItem('primaryColor', hexColor);
                 
                 // Update custom color option to show as active
                 document.querySelectorAll('.color-option').forEach(opt => opt.classList.remove('active'));
@@ -488,6 +488,9 @@
                 option.classList.add('active');
                 const menuBg = option.getAttribute('data-menu-bg');
                 document.querySelector('.layout-menu').style.background = menuBg;
+                
+                // Save menu background color preference
+                localStorage.setItem('menuBgColor', menuBg);
             });
         });
 
@@ -514,6 +517,9 @@
                 document.querySelector('.layout-menu').style.background = hexColor;
                 menuColorPickerModal.classList.remove('show');
                 customizerOverlay.classList.remove('show');
+                
+                // Save custom menu background color
+                localStorage.setItem('menuBgColor', hexColor);
                 
                 // Update custom color option to show as active
                 document.querySelectorAll('.color-option.menu-bg').forEach(opt => opt.classList.remove('active'));
@@ -547,6 +553,7 @@
                 // Menu items
                 'menu.empresa': 'Empresa',
                 'menu.roles': 'Roles',
+                'menu.rolesUsers': 'Roles & Usuarios',
                 'menu.usuarios': 'Usuarios',
                 'menu.clientes': 'Clientes',
                 'menu.sitioWeb': 'Sitio Web',
@@ -579,12 +586,112 @@
                 'colorPicker.title': 'Seleccionar Color',
                 'colorPicker.menuTitle': 'Seleccionar Color de Fondo del Menú',
                 'colorPicker.cancel': 'Cancelar',
-                'colorPicker.apply': 'Aplicar'
+                'colorPicker.apply': 'Aplicar',
+                // Company page
+                'breadcrumb.home': 'Inicio',
+                'breadcrumb.settings': 'Configuración',
+                'breadcrumb.company': 'Empresa',
+                'company.title': 'Personaliza tu Empresa',
+                'company.businessName': 'Razón social',
+                'company.businessNamePlaceholder': 'Ingrese la razón social',
+                'company.rncOrId': 'RNC o Cédula',
+                'company.tradeName': 'Nombre comercial',
+                'company.tradeNamePlaceholder': 'Ingrese el nombre comercial',
+                'company.email': 'Correo electrónico',
+                'company.website': 'Sitio web',
+                'company.phone': 'Teléfono',
+                'company.electronicBilling': 'Facturación electrónica',
+                'company.deactivated': 'Desactivado',
+                'company.activate': 'Activar',
+                'company.address': 'Dirección',
+                'company.addressPlaceholder': 'Ingrese la dirección completa',
+                'company.province': 'Provincia',
+                'company.provincePlaceholder': 'Ingrese la provincia',
+                'company.municipality': 'Municipio',
+                'company.municipalityPlaceholder': 'Ingrese el municipio',
+                'company.taxRegime': 'Régimen',
+                'company.generalRegime': 'Régimen general',
+                'company.simplifiedRegime': 'Régimen simplificado',
+                'company.sector': 'Sector',
+                'company.select': 'Seleccionar',
+                'company.tourism': 'Turismo',
+                'company.hospitality': 'Hotelería',
+                'company.services': 'Servicios',
+                'company.employeeCount': 'Número de empleados',
+                'company.moreThan100': 'Más de 100',
+                'company.currency': 'Moneda',
+                'company.decimalPrecision': 'Precisión decimal',
+                'company.decimalSeparator': 'Separador decimal',
+                'company.timeZone': 'Zona horaria',
+                'company.metric': 'Métrica',
+                'company.metricSystem': 'Métrico',
+                'company.imperialSystem': 'Imperial',
+                'company.weight': 'Peso',
+                'company.kilograms': 'Kilogramos',
+                'company.pounds': 'Libras',
+                'company.orderPrefix': 'Prefijo',
+                'company.orderSuffix': 'Sufijo',
+                'company.orderExample': 'Tu ID de orden aparecerá como #1001, #1002, #1003 ...',
+                'buttons.cancel': 'Cancelar',
+                'buttons.save': 'Guardar',
+                'buttons.saveChanges': 'Guardar cambios',
+                'buttons.export': 'Exportar',
+                // Roles
+                'roles.title': 'Lista de Roles',
+                'roles.subtitle': 'Un rol proporciona acceso a menús y características predefinidos para que, dependiendo del rol asignado, un administrador pueda tener acceso a lo que el usuario necesita',
+                'roles.totalUsers': 'Total usuarios',
+                'roles.editRole': 'Editar Rol',
+                'roles.addNewRole': 'Agregar Nuevo Rol',
+                'roles.addNewRoleDesc': 'Agrega un nuevo rol, si no existe.',
+                'roles.totalUsersWithRoles': 'Total de usuarios con sus roles',
+                'roles.findUsersDesc': 'Encuentra todos los usuarios de tu empresa y sus roles asociados.',
+                'roles.searchUser': 'Buscar Usuario',
+                'roles.addNewUser': 'Agregar Nuevo Usuario',
+                'roles.roleName': 'Nombre del Rol',
+                'roles.enterRoleName': 'Ingrese el nombre del rol',
+                'roles.description': 'Descripción',
+                'roles.enterDescription': 'Ingrese una descripción del rol',
+                'roles.permissions': 'Permisos del Rol',
+                'roles.setPermissionsDesc': 'Establecer permisos del rol',
+                'roles.adminAccess': 'Acceso de Administrador',
+                'roles.selectAll': 'Seleccionar Todo',
+                'roles.status': 'Estado',
+                'roles.active': 'Activo',
+                // Table headers
+                'table.user': 'USUARIO',
+                'table.role': 'ROL',
+                'table.plan': 'PLAN',
+                'table.billing': 'FACTURACIÓN',
+                'table.status': 'ESTADO',
+                'table.actions': 'ACCIONES',
+                // Pagination
+                'pagination.showing': 'Mostrando',
+                'pagination.to': 'a',
+                'pagination.of': 'de',
+                'pagination.entries': 'entradas',
+                // Status
+                'status.active': 'Activo',
+                'status.pending': 'Pendiente',
+                'status.inactive': 'Inactivo',
+                // Modules (for permissions)
+                'module.Empresa': 'Empresa',
+                'module.Roles': 'Roles',
+                'module.Usuarios': 'Usuarios',
+                'module.Clientes': 'Clientes',
+                'module.SitioWeb': 'Sitio Web',
+                // Actions
+                'action.Read': 'Leer',
+                'action.Write': 'Escribir',
+                'action.Create': 'Crear',
+                'action.read': 'Leer',
+                'action.write': 'Escribir',
+                'action.create': 'Crear'
             },
             en: {
                 // Menu items
                 'menu.empresa': 'Company',
                 'menu.roles': 'Roles',
+                'menu.rolesUsers': 'Roles & Users',
                 'menu.usuarios': 'Users',
                 'menu.clientes': 'Clients',
                 'menu.sitioWeb': 'Website',
@@ -617,7 +724,106 @@
                 'colorPicker.title': 'Pick a Color',
                 'colorPicker.menuTitle': 'Pick Menu Background Color',
                 'colorPicker.cancel': 'Cancel',
-                'colorPicker.apply': 'Apply'
+                'colorPicker.apply': 'Apply',
+                // Company page
+                'breadcrumb.home': 'Home',
+                'breadcrumb.settings': 'Settings',
+                'breadcrumb.company': 'Company',
+                'company.title': 'Customize your Company',
+                'company.businessName': 'Business Name',
+                'company.businessNamePlaceholder': 'Enter business name',
+                'company.rncOrId': 'RNC or ID',
+                'company.tradeName': 'Trade Name',
+                'company.tradeNamePlaceholder': 'Enter trade name',
+                'company.email': 'Email',
+                'company.website': 'Website',
+                'company.phone': 'Phone',
+                'company.electronicBilling': 'Electronic Billing',
+                'company.deactivated': 'Deactivated',
+                'company.activate': 'Activate',
+                'company.address': 'Address',
+                'company.addressPlaceholder': 'Enter full address',
+                'company.province': 'Province',
+                'company.provincePlaceholder': 'Enter province',
+                'company.municipality': 'Municipality',
+                'company.municipalityPlaceholder': 'Enter municipality',
+                'company.taxRegime': 'Tax Regime',
+                'company.generalRegime': 'General regime',
+                'company.simplifiedRegime': 'Simplified regime',
+                'company.sector': 'Sector',
+                'company.select': 'Select',
+                'company.tourism': 'Tourism',
+                'company.hospitality': 'Hospitality',
+                'company.services': 'Services',
+                'company.employeeCount': 'Number of employees',
+                'company.moreThan100': 'More than 100',
+                'company.currency': 'Currency',
+                'company.decimalPrecision': 'Decimal precision',
+                'company.decimalSeparator': 'Decimal separator',
+                'company.timeZone': 'Time Zone',
+                'company.metric': 'Metric',
+                'company.metricSystem': 'Metric',
+                'company.imperialSystem': 'Imperial',
+                'company.weight': 'Weight',
+                'company.kilograms': 'Kilograms',
+                'company.pounds': 'Pounds',
+                'company.orderPrefix': 'Prefix',
+                'company.orderSuffix': 'Suffix',
+                'company.orderExample': 'Your order ID will appear as #1001, #1002, #1003 ...',
+                'buttons.cancel': 'Cancel',
+                'buttons.save': 'Save',
+                'buttons.saveChanges': 'Save changes',
+                'buttons.export': 'Export',
+                // Roles
+                'roles.title': 'Roles List',
+                'roles.subtitle': 'A role provides access to predefined menus and features so that depending on the assigned role, an administrator can have access to what the user needs',
+                'roles.totalUsers': 'Total users',
+                'roles.editRole': 'Edit Role',
+                'roles.addNewRole': 'Add New Role',
+                'roles.addNewRoleDesc': 'Add a new role, if it does not exist.',
+                'roles.totalUsersWithRoles': 'Total users with their roles',
+                'roles.findUsersDesc': 'Find all users in your company and their associated roles.',
+                'roles.searchUser': 'Search User',
+                'roles.addNewUser': 'Add New User',
+                'roles.roleName': 'Role Name',
+                'roles.enterRoleName': 'Enter role name',
+                'roles.description': 'Description',
+                'roles.enterDescription': 'Enter role description',
+                'roles.permissions': 'Role Permissions',
+                'roles.setPermissionsDesc': 'Set role permissions',
+                'roles.adminAccess': 'Administrator Access',
+                'roles.selectAll': 'Select All',
+                'roles.status': 'Status',
+                'roles.active': 'Active',
+                // Table headers
+                'table.user': 'USER',
+                'table.role': 'ROLE',
+                'table.plan': 'PLAN',
+                'table.billing': 'BILLING',
+                'table.status': 'STATUS',
+                'table.actions': 'ACTIONS',
+                // Pagination
+                'pagination.showing': 'Showing',
+                'pagination.to': 'to',
+                'pagination.of': 'of',
+                'pagination.entries': 'entries',
+                // Status
+                'status.active': 'Active',
+                'status.pending': 'Pending',
+                'status.inactive': 'Inactive',
+                // Modules (for permissions)
+                'module.Empresa': 'Company',
+                'module.Roles': 'Roles',
+                'module.Usuarios': 'Users',
+                'module.Clientes': 'Clients',
+                'module.SitioWeb': 'Website',
+                // Actions
+                'action.Read': 'Read',
+                'action.Write': 'Write',
+                'action.Create': 'Create',
+                'action.read': 'Read',
+                'action.write': 'Write',
+                'action.create': 'Create'
             }
         };
         
@@ -645,6 +851,9 @@
             
             // Store language preference
             localStorage.setItem('preferredLanguage', lang);
+            
+            // Dispatch custom event for language change
+            document.dispatchEvent(new CustomEvent('languageChanged', { detail: { language: lang } }));
         }
         
         document.querySelectorAll('.language-option').forEach(option => {
@@ -767,6 +976,47 @@
             }
         }
         updateMenuLayoutOption();
+
+        // Load saved color preference
+        const savedColor = localStorage.getItem('primaryColor');
+        if (savedColor) {
+            document.documentElement.style.setProperty('--primary', savedColor);
+            updateActiveMenuColor(savedColor);
+            
+            // Find and activate the corresponding color option
+            let colorFound = false;
+            document.querySelectorAll('.color-option:not(.custom)').forEach(opt => {
+                if (opt.getAttribute('data-color') === savedColor) {
+                    opt.classList.add('active');
+                    colorFound = true;
+                }
+            });
+            
+            // If it's a custom color, activate the custom option
+            if (!colorFound) {
+                document.querySelector('.color-option.custom').classList.add('active');
+            }
+        }
+
+        // Load saved menu background color
+        const savedMenuBg = localStorage.getItem('menuBgColor');
+        if (savedMenuBg) {
+            document.querySelector('.layout-menu').style.background = savedMenuBg;
+            
+            // Find and activate the corresponding menu bg option
+            let menuBgFound = false;
+            document.querySelectorAll('.color-option.menu-bg:not(.custom)').forEach(opt => {
+                if (opt.getAttribute('data-menu-bg') === savedMenuBg) {
+                    opt.classList.add('active');
+                    menuBgFound = true;
+                }
+            });
+            
+            // If it's a custom color, activate the custom option
+            if (!menuBgFound) {
+                document.querySelector('#custom-menu-bg').classList.add('active');
+            }
+        }
 
         // Navbar type options
         document.querySelectorAll('.navbar-type').forEach(option => {
