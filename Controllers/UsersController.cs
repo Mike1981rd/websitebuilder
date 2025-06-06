@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Hotel.Data;
 using Hotel.Models;
@@ -11,6 +12,7 @@ using QuestPDF.Infrastructure;
 
 namespace Hotel.Controllers
 {
+    [Authorize]
     public class UsersController : Controller
     {
         private readonly HotelDbContext _context;

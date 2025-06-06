@@ -1,10 +1,12 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Hotel.Data;
 using Hotel.Models;
 
 namespace Hotel.Controllers
 {
+    [Authorize]
     public class AdminController : Controller
     {
         private readonly HotelDbContext _context;

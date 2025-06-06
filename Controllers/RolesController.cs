@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Hotel.Data;
 using Hotel.Models;
@@ -6,6 +7,7 @@ using System.Linq;
 
 namespace Hotel.Controllers
 {
+    [Authorize]
     public class RolesController : Controller
     {
         private readonly HotelDbContext _context;
@@ -24,14 +26,23 @@ namespace Hotel.Controllers
                 .OrderBy(r => r.Name)
                 .ToListAsync();
 
-            // Get user count for each role (placeholder for now)
-            ViewBag.UserCounts = new Dictionary<int, int>
+            // Get users for each role
+            var roleUsers = new Dictionary<int, List<User>>();
+            var userCounts = new Dictionary<int, int>();
+
+            foreach (var role in roles)
             {
-                { 1, 4 }, // Administrator
-                { 2, 7 }, // Manager
-                { 3, 3 }, // Support
-                { 4, 2 }  // Users
-            };
+                var users = await _context.Users
+                    .Where(u => u.RoleId == role.Id && u.IsActive)
+                    .Take(4) // Solo tomar los primeros 4 usuarios para mostrar
+                    .ToListAsync();
+                
+                roleUsers[role.Id] = users;
+                userCounts[role.Id] = await _context.Users.CountAsync(u => u.RoleId == role.Id);
+            }
+
+            ViewBag.RoleUsers = roleUsers;
+            ViewBag.UserCounts = userCounts;
 
             return View(roles);
         }
@@ -189,6 +200,14 @@ namespace Hotel.Controllers
                 var role = await _context.Roles.FindAsync(id);
                 if (role != null)
                 {
+                    // Verificar si el rol tiene usuarios asignados
+                    var hasUsers = await _context.Users.AnyAsync(u => u.RoleId == id);
+                    if (hasUsers)
+                    {
+                        TempData["ErrorMessage"] = "No se puede eliminar este rol porque tiene usuarios asignados. Primero debe reasignar o eliminar los usuarios.";
+                        return RedirectToAction(nameof(Index));
+                    }
+
                     _context.Roles.Remove(role);
                     await _context.SaveChangesAsync();
                     TempData["SuccessMessage"] = "El rol se ha eliminado correctamente.";
