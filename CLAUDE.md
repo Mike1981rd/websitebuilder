@@ -8,6 +8,13 @@
 - El usuario ejecutará el comando de migración desde Visual Studio
 - NO ejecutar comandos `dotnet ef` directamente
 
+### Flujo de Trabajo con Prompts
+- Siempre preparar archivos de migración y proporcionar solo el nombre
+- Mantener responsividad en todas las vistas
+- Las traducciones ya están implementadas en JavaScript - revisar implementación
+- Trabajar a través de una serie de prompts fielmente
+- Al terminar una tarea, solo responder con "siguiente prompt"
+
 ## Configuración de Base de Datos
 - Base de datos: Hotel (PostgreSQL)
 - Usuario: postgres
@@ -19,6 +26,21 @@
 - Entity Framework Core con PostgreSQL
 - Modelos creados: Room, RoomType, Guest, Reservation, Payment, Company
 - DbContext: HotelDbContext
+
+## Módulo Constructor de Sitios Web
+- **Objetivo Principal:** Replicar UI y UX del editor de Shopify (tema Dawn de fábrica)
+- **Contexto:** Módulo nuevo en app existente, una empresa por DB
+- **UI Requerida:** Responsividad, preparación para traducciones (EN/ES)
+- **Layout Especial:** _WebsiteBuilderLayout oculta sidebar principal
+- **Estructura:** Barra superior tipo Shopify con selector de páginas y controles
+
+## Notas Importantes de Desarrollo
+
+1. **Migraciones**: Siempre preparar archivos de migración y proporcionar solo el nombre de la migración - el usuario ejecutará en Visual Studio
+2. **Responsividad**: Mantener responsividad en todas las vistas
+3. **Traducciones**: Las traducciones ya están implementadas en JavaScript - solo revisar la implementación del proyecto
+4. **Flujo de Trabajo**: Trabajar a través de una serie de prompts fielmente
+5. **Finalización de Tareas**: Al terminar una tarea, solo responder con "siguiente prompt"
 
 ## Patrones y Estándares Implementados
 

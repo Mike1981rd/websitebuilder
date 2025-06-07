@@ -1,0 +1,70 @@
+@{
+    ViewData["Title"] = "Website Builder";
+    Layout = "_WebsiteBuilderLayout";
+}
+
+<div class="website-builder-container">
+    <!-- Builder Top Bar -->
+    <div class="builder-topbar">
+        <div class="topbar-left">
+            <button id="exit-builder-btn" class="btn-icon-text">
+                <i class="material-icons">arrow_back</i>
+            </button>
+            <span class="badge-active">Activa</span>
+            <button class="topbar-nav-icon active" data-view="sections" title="Secciones">
+                <i class="material-icons">layers</i>
+            </button>
+            <button class="topbar-nav-icon" data-view="settings" title="Configuración">
+                <i class="material-icons">settings</i>
+            </button>
+        </div>
+        
+        <div class="topbar-center">
+            <div class="page-selector">
+                <button id="page-selector-trigger" class="page-selector-btn">
+                    <span class="page-name"></span>
+                    <i class="material-icons">arrow_drop_down</i>
+                </button>
+            </div>
+        </div>
+        
+        <div class="topbar-right">
+            <button class="btn-icon">
+                <i class="material-icons">remove_red_eye</i>
+            </button>
+            <button class="btn-icon">
+                <i class="material-icons">computer</i>
+            </button>
+            <button class="btn-icon">
+                <i class="material-icons">smartphone</i>
+            </button>
+            <button class="btn-icon">
+                <i class="material-icons">fullscreen</i>
+            </button>
+            <button id="save-builder-btn-topbar" class="btn-primary">
+                <span class="btn-text"></span>
+            </button>
+        </div>
+    </div>
+    
+    <!-- Editor Main Area -->
+    <div class="editor-main-area">
+        <!-- Editor Sidebar Panel -->
+        <aside id="editor-sidebar-panel">
+            <div id="sidebar-dynamic-content">
+                <p class="sidebar-loading-text"></p>
+            </div>
+        </aside>
+        
+        <!-- Editor Preview Area -->
+        <main id="editor-preview-area">
+            <div id="preview-content-placeholder">
+                <p class="preview-placeholder-text"></p>
+            </div>
+        </main>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/website-builder.js"></script>
+}

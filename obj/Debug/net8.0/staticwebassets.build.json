@@ -1,6 +1,6 @@
 {
   "Version": 1,
-  "Hash": "BDmO4yoLHqiPQ28YP8JOET/k81wp+a0VtG5kefKCUhE=",
+  "Hash": "iALMkSrglTz3Hysacm467G0kz86jLr0QMAnWtoP4Y5M=",
   "Source": "Hotel",
   "BasePath": "_content/Hotel",
   "Mode": "Default",
@@ -10,17 +10,17 @@
     {
       "Name": "Hotel\\wwwroot",
       "Source": "Hotel",
-      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\",
+      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\",
       "BasePath": "_content/Hotel",
       "Pattern": "**"
     }
   ],
   "Assets": [
     {
-      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\obj\\Debug\\net8.0\\scopedcss\\bundle\\Hotel.styles.css",
+      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\obj\\Debug\\net8.0\\scopedcss\\bundle\\Hotel.styles.css",
       "SourceId": "Hotel",
       "SourceType": "Computed",
-      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\obj\\Debug\\net8.0\\scopedcss\\bundle\\",
+      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\obj\\Debug\\net8.0\\scopedcss\\bundle\\",
       "BasePath": "_content/Hotel",
       "RelativePath": "Hotel#[.{fingerprint}]?.styles.css",
       "AssetKind": "All",
@@ -35,13 +35,13 @@
       "Integrity": "zAyL61gFW7DZkM7J6FFmBCsDzjErp88JCebmrQSqcng=",
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
-      "OriginalItemSpec": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\obj\\Debug\\net8.0\\scopedcss\\bundle\\Hotel.styles.css"
+      "OriginalItemSpec": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\obj\\Debug\\net8.0\\scopedcss\\bundle\\Hotel.styles.css"
     },
     {
-      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\obj\\Debug\\net8.0\\scopedcss\\projectbundle\\Hotel.bundle.scp.css",
+      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\obj\\Debug\\net8.0\\scopedcss\\projectbundle\\Hotel.bundle.scp.css",
       "SourceId": "Hotel",
       "SourceType": "Computed",
-      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\obj\\Debug\\net8.0\\scopedcss\\projectbundle\\",
+      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\obj\\Debug\\net8.0\\scopedcss\\projectbundle\\",
       "BasePath": "_content/Hotel",
       "RelativePath": "Hotel#[.{fingerprint}]!.bundle.scp.css",
       "AssetKind": "All",
@@ -56,13 +56,13 @@
       "Integrity": "zAyL61gFW7DZkM7J6FFmBCsDzjErp88JCebmrQSqcng=",
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
-      "OriginalItemSpec": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\obj\\Debug\\net8.0\\scopedcss\\projectbundle\\Hotel.bundle.scp.css"
+      "OriginalItemSpec": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\obj\\Debug\\net8.0\\scopedcss\\projectbundle\\Hotel.bundle.scp.css"
     },
     {
-      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\css\\admin-panel.css",
+      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\css\\admin-panel.css",
       "SourceId": "Hotel",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\",
+      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\",
       "BasePath": "_content/Hotel",
       "RelativePath": "css/admin-panel#[.{fingerprint}]?.css",
       "AssetKind": "All",
@@ -80,10 +80,10 @@
       "OriginalItemSpec": "wwwroot\\css\\admin-panel.css"
     },
     {
-      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\css\\company-settings.css",
+      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\css\\company-settings.css",
       "SourceId": "Hotel",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\",
+      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\",
       "BasePath": "_content/Hotel",
       "RelativePath": "css/company-settings#[.{fingerprint}]?.css",
       "AssetKind": "All",
@@ -101,10 +101,31 @@
       "OriginalItemSpec": "wwwroot\\css\\company-settings.css"
     },
     {
-      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\css\\materialize-admin.css",
+      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\css\\login.css",
       "SourceId": "Hotel",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\",
+      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\",
+      "BasePath": "_content/Hotel",
+      "RelativePath": "css/login#[.{fingerprint}]?.css",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "Fingerprint": "ektxwu391j",
+      "Integrity": "7tvlqF1+seYK2TO032ICh99yDbdK7jA+Nmi5phjSxbA=",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot\\css\\login.css"
+    },
+    {
+      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\css\\materialize-admin.css",
+      "SourceId": "Hotel",
+      "SourceType": "Discovered",
+      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\",
       "BasePath": "_content/Hotel",
       "RelativePath": "css/materialize-admin#[.{fingerprint}]?.css",
       "AssetKind": "All",
@@ -122,10 +143,10 @@
       "OriginalItemSpec": "wwwroot\\css\\materialize-admin.css"
     },
     {
-      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\css\\materialize-exact.css",
+      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\css\\materialize-exact.css",
       "SourceId": "Hotel",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\",
+      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\",
       "BasePath": "_content/Hotel",
       "RelativePath": "css/materialize-exact#[.{fingerprint}]?.css",
       "AssetKind": "All",
@@ -136,17 +157,17 @@
       "RelatedAsset": "",
       "AssetTraitName": "",
       "AssetTraitValue": "",
-      "Fingerprint": "0aypbjlrmq",
-      "Integrity": "OF8uBqQXuWG+BFHcvmCbVNtMHL8XRPBNRaUvJbh/sHs=",
+      "Fingerprint": "9eqvt4jywu",
+      "Integrity": "YRTjO438lctt9nkwZV7l1Zf2DbqRNn3vaIUy8DRAGaA=",
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
       "OriginalItemSpec": "wwwroot\\css\\materialize-exact.css"
     },
     {
-      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\css\\materialize-exact-improved.css",
+      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\css\\materialize-exact-improved.css",
       "SourceId": "Hotel",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\",
+      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\",
       "BasePath": "_content/Hotel",
       "RelativePath": "css/materialize-exact-improved#[.{fingerprint}]?.css",
       "AssetKind": "All",
@@ -164,10 +185,10 @@
       "OriginalItemSpec": "wwwroot\\css\\materialize-exact-improved.css"
     },
     {
-      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\css\\roles.css",
+      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\css\\roles.css",
       "SourceId": "Hotel",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\",
+      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\",
       "BasePath": "_content/Hotel",
       "RelativePath": "css/roles#[.{fingerprint}]?.css",
       "AssetKind": "All",
@@ -178,17 +199,17 @@
       "RelatedAsset": "",
       "AssetTraitName": "",
       "AssetTraitValue": "",
-      "Fingerprint": "mxkfmeir8h",
-      "Integrity": "RjpQdJ1XDfqQb/LVfXcUVDIB+BXzEHIPFc6puinH2hM=",
+      "Fingerprint": "sui3ra3bwp",
+      "Integrity": "zCrxIOKH9pfidoqKJoPb2TAoA9qUP+yWWnh3Oame23o=",
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
       "OriginalItemSpec": "wwwroot\\css\\roles.css"
     },
     {
-      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\css\\site.css",
+      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\css\\site.css",
       "SourceId": "Hotel",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\",
+      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\",
       "BasePath": "_content/Hotel",
       "RelativePath": "css/site#[.{fingerprint}]?.css",
       "AssetKind": "All",
@@ -206,10 +227,31 @@
       "OriginalItemSpec": "wwwroot\\css\\site.css"
     },
     {
-      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\favicon.ico",
+      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\css\\website-builder.css",
       "SourceId": "Hotel",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\",
+      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\",
+      "BasePath": "_content/Hotel",
+      "RelativePath": "css/website-builder#[.{fingerprint}]?.css",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "Fingerprint": "z1y3n5kcgv",
+      "Integrity": "2UVmOOtUgQvvhnwqqug/2TQEKYTThD6z0Ih/okLrIaY=",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot\\css\\website-builder.css"
+    },
+    {
+      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\favicon.ico",
+      "SourceId": "Hotel",
+      "SourceType": "Discovered",
+      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\",
       "BasePath": "_content/Hotel",
       "RelativePath": "favicon#[.{fingerprint}]?.ico",
       "AssetKind": "All",
@@ -227,10 +269,10 @@
       "OriginalItemSpec": "wwwroot\\favicon.ico"
     },
     {
-      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\js\\admin-panel.js",
+      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\js\\admin-panel.js",
       "SourceId": "Hotel",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\",
+      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\",
       "BasePath": "_content/Hotel",
       "RelativePath": "js/admin-panel#[.{fingerprint}]?.js",
       "AssetKind": "All",
@@ -248,10 +290,10 @@
       "OriginalItemSpec": "wwwroot\\js\\admin-panel.js"
     },
     {
-      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\js\\materialize-admin.js",
+      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\js\\materialize-admin.js",
       "SourceId": "Hotel",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\",
+      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\",
       "BasePath": "_content/Hotel",
       "RelativePath": "js/materialize-admin#[.{fingerprint}]?.js",
       "AssetKind": "All",
@@ -269,10 +311,10 @@
       "OriginalItemSpec": "wwwroot\\js\\materialize-admin.js"
     },
     {
-      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\js\\site.js",
+      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\js\\site.js",
       "SourceId": "Hotel",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\",
+      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\",
       "BasePath": "_content/Hotel",
       "RelativePath": "js/site#[.{fingerprint}]?.js",
       "AssetKind": "All",
@@ -290,10 +332,31 @@
       "OriginalItemSpec": "wwwroot\\js\\site.js"
     },
     {
-      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.css",
+      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\js\\website-builder.js",
       "SourceId": "Hotel",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\",
+      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\",
+      "BasePath": "_content/Hotel",
+      "RelativePath": "js/website-builder#[.{fingerprint}]?.js",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "Fingerprint": "bfmrx7rtzq",
+      "Integrity": "uSgV3LkMZEPS8623L0bInfCnvJGOiremvj+Oe2oZOvg=",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot\\js\\website-builder.js"
+    },
+    {
+      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.css",
+      "SourceId": "Hotel",
+      "SourceType": "Discovered",
+      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\",
       "BasePath": "_content/Hotel",
       "RelativePath": "lib/bootstrap/dist/css/bootstrap#[.{fingerprint}]?.css",
       "AssetKind": "All",
@@ -311,10 +374,10 @@
       "OriginalItemSpec": "wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.css"
     },
     {
-      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.css.map",
+      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.css.map",
       "SourceId": "Hotel",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\",
+      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\",
       "BasePath": "_content/Hotel",
       "RelativePath": "lib/bootstrap/dist/css/bootstrap.css#[.{fingerprint}]?.map",
       "AssetKind": "All",
@@ -332,10 +395,10 @@
       "OriginalItemSpec": "wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.css.map"
     },
     {
-      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.min.css",
+      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.min.css",
       "SourceId": "Hotel",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\",
+      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\",
       "BasePath": "_content/Hotel",
       "RelativePath": "lib/bootstrap/dist/css/bootstrap.min#[.{fingerprint}]?.css",
       "AssetKind": "All",
@@ -353,10 +416,10 @@
       "OriginalItemSpec": "wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.min.css"
     },
     {
-      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.min.css.map",
+      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.min.css.map",
       "SourceId": "Hotel",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\",
+      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\",
       "BasePath": "_content/Hotel",
       "RelativePath": "lib/bootstrap/dist/css/bootstrap.min.css#[.{fingerprint}]?.map",
       "AssetKind": "All",
@@ -374,10 +437,10 @@
       "OriginalItemSpec": "wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.min.css.map"
     },
     {
-      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.rtl.css",
+      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.rtl.css",
       "SourceId": "Hotel",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\",
+      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\",
       "BasePath": "_content/Hotel",
       "RelativePath": "lib/bootstrap/dist/css/bootstrap.rtl#[.{fingerprint}]?.css",
       "AssetKind": "All",
@@ -395,10 +458,10 @@
       "OriginalItemSpec": "wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.rtl.css"
     },
     {
-      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.rtl.css.map",
+      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.rtl.css.map",
       "SourceId": "Hotel",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\",
+      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\",
       "BasePath": "_content/Hotel",
       "RelativePath": "lib/bootstrap/dist/css/bootstrap.rtl.css#[.{fingerprint}]?.map",
       "AssetKind": "All",
@@ -416,10 +479,10 @@
       "OriginalItemSpec": "wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.rtl.css.map"
     },
     {
-      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.rtl.min.css",
+      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.rtl.min.css",
       "SourceId": "Hotel",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\",
+      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\",
       "BasePath": "_content/Hotel",
       "RelativePath": "lib/bootstrap/dist/css/bootstrap.rtl.min#[.{fingerprint}]?.css",
       "AssetKind": "All",
@@ -437,10 +500,10 @@
       "OriginalItemSpec": "wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.rtl.min.css"
     },
     {
-      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.rtl.min.css.map",
+      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.rtl.min.css.map",
       "SourceId": "Hotel",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\",
+      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\",
       "BasePath": "_content/Hotel",
       "RelativePath": "lib/bootstrap/dist/css/bootstrap.rtl.min.css#[.{fingerprint}]?.map",
       "AssetKind": "All",
@@ -458,10 +521,10 @@
       "OriginalItemSpec": "wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.rtl.min.css.map"
     },
     {
-      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-grid.css",
+      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-grid.css",
       "SourceId": "Hotel",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\",
+      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\",
       "BasePath": "_content/Hotel",
       "RelativePath": "lib/bootstrap/dist/css/bootstrap-grid#[.{fingerprint}]?.css",
       "AssetKind": "All",
@@ -479,10 +542,10 @@
       "OriginalItemSpec": "wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-grid.css"
     },
     {
-      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-grid.css.map",
+      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-grid.css.map",
       "SourceId": "Hotel",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\",
+      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\",
       "BasePath": "_content/Hotel",
       "RelativePath": "lib/bootstrap/dist/css/bootstrap-grid.css#[.{fingerprint}]?.map",
       "AssetKind": "All",
@@ -500,10 +563,10 @@
       "OriginalItemSpec": "wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-grid.css.map"
     },
     {
-      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-grid.min.css",
+      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-grid.min.css",
       "SourceId": "Hotel",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\",
+      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\",
       "BasePath": "_content/Hotel",
       "RelativePath": "lib/bootstrap/dist/css/bootstrap-grid.min#[.{fingerprint}]?.css",
       "AssetKind": "All",
@@ -521,10 +584,10 @@
       "OriginalItemSpec": "wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-grid.min.css"
     },
     {
-      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-grid.min.css.map",
+      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-grid.min.css.map",
       "SourceId": "Hotel",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\",
+      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\",
       "BasePath": "_content/Hotel",
       "RelativePath": "lib/bootstrap/dist/css/bootstrap-grid.min.css#[.{fingerprint}]?.map",
       "AssetKind": "All",
@@ -542,10 +605,10 @@
       "OriginalItemSpec": "wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-grid.min.css.map"
     },
     {
-      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-grid.rtl.css",
+      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-grid.rtl.css",
       "SourceId": "Hotel",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\",
+      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\",
       "BasePath": "_content/Hotel",
       "RelativePath": "lib/bootstrap/dist/css/bootstrap-grid.rtl#[.{fingerprint}]?.css",
       "AssetKind": "All",
@@ -563,10 +626,10 @@
       "OriginalItemSpec": "wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-grid.rtl.css"
     },
     {
-      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-grid.rtl.css.map",
+      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-grid.rtl.css.map",
       "SourceId": "Hotel",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\",
+      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\",
       "BasePath": "_content/Hotel",
       "RelativePath": "lib/bootstrap/dist/css/bootstrap-grid.rtl.css#[.{fingerprint}]?.map",
       "AssetKind": "All",
@@ -584,10 +647,10 @@
       "OriginalItemSpec": "wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-grid.rtl.css.map"
     },
     {
-      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-grid.rtl.min.css",
+      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-grid.rtl.min.css",
       "SourceId": "Hotel",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\",
+      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\",
       "BasePath": "_content/Hotel",
       "RelativePath": "lib/bootstrap/dist/css/bootstrap-grid.rtl.min#[.{fingerprint}]?.css",
       "AssetKind": "All",
@@ -605,10 +668,10 @@
       "OriginalItemSpec": "wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-grid.rtl.min.css"
     },
     {
-      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-grid.rtl.min.css.map",
+      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-grid.rtl.min.css.map",
       "SourceId": "Hotel",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\",
+      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\",
       "BasePath": "_content/Hotel",
       "RelativePath": "lib/bootstrap/dist/css/bootstrap-grid.rtl.min.css#[.{fingerprint}]?.map",
       "AssetKind": "All",
@@ -626,10 +689,10 @@
       "OriginalItemSpec": "wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-grid.rtl.min.css.map"
     },
     {
-      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.css",
+      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.css",
       "SourceId": "Hotel",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\",
+      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\",
       "BasePath": "_content/Hotel",
       "RelativePath": "lib/bootstrap/dist/css/bootstrap-reboot#[.{fingerprint}]?.css",
       "AssetKind": "All",
@@ -647,10 +710,10 @@
       "OriginalItemSpec": "wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.css"
     },
     {
-      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.css.map",
+      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.css.map",
       "SourceId": "Hotel",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\",
+      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\",
       "BasePath": "_content/Hotel",
       "RelativePath": "lib/bootstrap/dist/css/bootstrap-reboot.css#[.{fingerprint}]?.map",
       "AssetKind": "All",
@@ -668,10 +731,10 @@
       "OriginalItemSpec": "wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.css.map"
     },
     {
-      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.min.css",
+      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.min.css",
       "SourceId": "Hotel",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\",
+      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\",
       "BasePath": "_content/Hotel",
       "RelativePath": "lib/bootstrap/dist/css/bootstrap-reboot.min#[.{fingerprint}]?.css",
       "AssetKind": "All",
@@ -689,10 +752,10 @@
       "OriginalItemSpec": "wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.min.css"
     },
     {
-      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.min.css.map",
+      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.min.css.map",
       "SourceId": "Hotel",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\",
+      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\",
       "BasePath": "_content/Hotel",
       "RelativePath": "lib/bootstrap/dist/css/bootstrap-reboot.min.css#[.{fingerprint}]?.map",
       "AssetKind": "All",
@@ -710,10 +773,10 @@
       "OriginalItemSpec": "wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.min.css.map"
     },
     {
-      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.rtl.css",
+      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.rtl.css",
       "SourceId": "Hotel",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\",
+      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\",
       "BasePath": "_content/Hotel",
       "RelativePath": "lib/bootstrap/dist/css/bootstrap-reboot.rtl#[.{fingerprint}]?.css",
       "AssetKind": "All",
@@ -731,10 +794,10 @@
       "OriginalItemSpec": "wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.rtl.css"
     },
     {
-      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.rtl.css.map",
+      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.rtl.css.map",
       "SourceId": "Hotel",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\",
+      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\",
       "BasePath": "_content/Hotel",
       "RelativePath": "lib/bootstrap/dist/css/bootstrap-reboot.rtl.css#[.{fingerprint}]?.map",
       "AssetKind": "All",
@@ -752,10 +815,10 @@
       "OriginalItemSpec": "wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.rtl.css.map"
     },
     {
-      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.rtl.min.css",
+      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.rtl.min.css",
       "SourceId": "Hotel",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\",
+      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\",
       "BasePath": "_content/Hotel",
       "RelativePath": "lib/bootstrap/dist/css/bootstrap-reboot.rtl.min#[.{fingerprint}]?.css",
       "AssetKind": "All",
@@ -773,10 +836,10 @@
       "OriginalItemSpec": "wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.rtl.min.css"
     },
     {
-      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.rtl.min.css.map",
+      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.rtl.min.css.map",
       "SourceId": "Hotel",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\",
+      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\",
       "BasePath": "_content/Hotel",
       "RelativePath": "lib/bootstrap/dist/css/bootstrap-reboot.rtl.min.css#[.{fingerprint}]?.map",
       "AssetKind": "All",
@@ -794,10 +857,10 @@
       "OriginalItemSpec": "wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.rtl.min.css.map"
     },
     {
-      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.css",
+      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.css",
       "SourceId": "Hotel",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\",
+      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\",
       "BasePath": "_content/Hotel",
       "RelativePath": "lib/bootstrap/dist/css/bootstrap-utilities#[.{fingerprint}]?.css",
       "AssetKind": "All",
@@ -815,10 +878,10 @@
       "OriginalItemSpec": "wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.css"
     },
     {
-      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.css.map",
+      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.css.map",
       "SourceId": "Hotel",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\",
+      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\",
       "BasePath": "_content/Hotel",
       "RelativePath": "lib/bootstrap/dist/css/bootstrap-utilities.css#[.{fingerprint}]?.map",
       "AssetKind": "All",
@@ -836,10 +899,10 @@
       "OriginalItemSpec": "wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.css.map"
     },
     {
-      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.min.css",
+      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.min.css",
       "SourceId": "Hotel",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\",
+      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\",
       "BasePath": "_content/Hotel",
       "RelativePath": "lib/bootstrap/dist/css/bootstrap-utilities.min#[.{fingerprint}]?.css",
       "AssetKind": "All",
@@ -857,10 +920,10 @@
       "OriginalItemSpec": "wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.min.css"
     },
     {
-      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.min.css.map",
+      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.min.css.map",
       "SourceId": "Hotel",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\",
+      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\",
       "BasePath": "_content/Hotel",
       "RelativePath": "lib/bootstrap/dist/css/bootstrap-utilities.min.css#[.{fingerprint}]?.map",
       "AssetKind": "All",
@@ -878,10 +941,10 @@
       "OriginalItemSpec": "wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.min.css.map"
     },
     {
-      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.rtl.css",
+      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.rtl.css",
       "SourceId": "Hotel",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\",
+      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\",
       "BasePath": "_content/Hotel",
       "RelativePath": "lib/bootstrap/dist/css/bootstrap-utilities.rtl#[.{fingerprint}]?.css",
       "AssetKind": "All",
@@ -899,10 +962,10 @@
       "OriginalItemSpec": "wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.rtl.css"
     },
     {
-      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.rtl.css.map",
+      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.rtl.css.map",
       "SourceId": "Hotel",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\",
+      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\",
       "BasePath": "_content/Hotel",
       "RelativePath": "lib/bootstrap/dist/css/bootstrap-utilities.rtl.css#[.{fingerprint}]?.map",
       "AssetKind": "All",
@@ -920,10 +983,10 @@
       "OriginalItemSpec": "wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.rtl.css.map"
     },
     {
-      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.rtl.min.css",
+      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.rtl.min.css",
       "SourceId": "Hotel",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\",
+      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\",
       "BasePath": "_content/Hotel",
       "RelativePath": "lib/bootstrap/dist/css/bootstrap-utilities.rtl.min#[.{fingerprint}]?.css",
       "AssetKind": "All",
@@ -941,10 +1004,10 @@
       "OriginalItemSpec": "wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.rtl.min.css"
     },
     {
-      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.rtl.min.css.map",
+      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.rtl.min.css.map",
       "SourceId": "Hotel",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\",
+      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\",
       "BasePath": "_content/Hotel",
       "RelativePath": "lib/bootstrap/dist/css/bootstrap-utilities.rtl.min.css#[.{fingerprint}]?.map",
       "AssetKind": "All",
@@ -962,10 +1025,10 @@
       "OriginalItemSpec": "wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.rtl.min.css.map"
     },
     {
-      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.bundle.js",
+      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.bundle.js",
       "SourceId": "Hotel",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\",
+      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\",
       "BasePath": "_content/Hotel",
       "RelativePath": "lib/bootstrap/dist/js/bootstrap.bundle#[.{fingerprint}]?.js",
       "AssetKind": "All",
@@ -983,10 +1046,10 @@
       "OriginalItemSpec": "wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.bundle.js"
     },
     {
-      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.bundle.js.map",
+      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.bundle.js.map",
       "SourceId": "Hotel",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\",
+      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\",
       "BasePath": "_content/Hotel",
       "RelativePath": "lib/bootstrap/dist/js/bootstrap.bundle.js#[.{fingerprint}]?.map",
       "AssetKind": "All",
@@ -1004,10 +1067,10 @@
       "OriginalItemSpec": "wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.bundle.js.map"
     },
     {
-      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.bundle.min.js",
+      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.bundle.min.js",
       "SourceId": "Hotel",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\",
+      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\",
       "BasePath": "_content/Hotel",
       "RelativePath": "lib/bootstrap/dist/js/bootstrap.bundle.min#[.{fingerprint}]?.js",
       "AssetKind": "All",
@@ -1025,10 +1088,10 @@
       "OriginalItemSpec": "wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.bundle.min.js"
     },
     {
-      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.bundle.min.js.map",
+      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.bundle.min.js.map",
       "SourceId": "Hotel",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\",
+      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\",
       "BasePath": "_content/Hotel",
       "RelativePath": "lib/bootstrap/dist/js/bootstrap.bundle.min.js#[.{fingerprint}]?.map",
       "AssetKind": "All",
@@ -1046,10 +1109,10 @@
       "OriginalItemSpec": "wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.bundle.min.js.map"
     },
     {
-      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.esm.js",
+      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.esm.js",
       "SourceId": "Hotel",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\",
+      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\",
       "BasePath": "_content/Hotel",
       "RelativePath": "lib/bootstrap/dist/js/bootstrap.esm#[.{fingerprint}]?.js",
       "AssetKind": "All",
@@ -1067,10 +1130,10 @@
       "OriginalItemSpec": "wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.esm.js"
     },
     {
-      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.esm.js.map",
+      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.esm.js.map",
       "SourceId": "Hotel",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\",
+      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\",
       "BasePath": "_content/Hotel",
       "RelativePath": "lib/bootstrap/dist/js/bootstrap.esm.js#[.{fingerprint}]?.map",
       "AssetKind": "All",
@@ -1088,10 +1151,10 @@
       "OriginalItemSpec": "wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.esm.js.map"
     },
     {
-      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.esm.min.js",
+      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.esm.min.js",
       "SourceId": "Hotel",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\",
+      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\",
       "BasePath": "_content/Hotel",
       "RelativePath": "lib/bootstrap/dist/js/bootstrap.esm.min#[.{fingerprint}]?.js",
       "AssetKind": "All",
@@ -1109,10 +1172,10 @@
       "OriginalItemSpec": "wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.esm.min.js"
     },
     {
-      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.esm.min.js.map",
+      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.esm.min.js.map",
       "SourceId": "Hotel",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\",
+      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\",
       "BasePath": "_content/Hotel",
       "RelativePath": "lib/bootstrap/dist/js/bootstrap.esm.min.js#[.{fingerprint}]?.map",
       "AssetKind": "All",
@@ -1130,10 +1193,10 @@
       "OriginalItemSpec": "wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.esm.min.js.map"
     },
     {
-      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.js",
+      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.js",
       "SourceId": "Hotel",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\",
+      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\",
       "BasePath": "_content/Hotel",
       "RelativePath": "lib/bootstrap/dist/js/bootstrap#[.{fingerprint}]?.js",
       "AssetKind": "All",
@@ -1151,10 +1214,10 @@
       "OriginalItemSpec": "wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.js"
     },
     {
-      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.js.map",
+      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.js.map",
       "SourceId": "Hotel",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\",
+      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\",
       "BasePath": "_content/Hotel",
       "RelativePath": "lib/bootstrap/dist/js/bootstrap.js#[.{fingerprint}]?.map",
       "AssetKind": "All",
@@ -1172,10 +1235,10 @@
       "OriginalItemSpec": "wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.js.map"
     },
     {
-      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.min.js",
+      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.min.js",
       "SourceId": "Hotel",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\",
+      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\",
       "BasePath": "_content/Hotel",
       "RelativePath": "lib/bootstrap/dist/js/bootstrap.min#[.{fingerprint}]?.js",
       "AssetKind": "All",
@@ -1193,10 +1256,10 @@
       "OriginalItemSpec": "wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.min.js"
     },
     {
-      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.min.js.map",
+      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.min.js.map",
       "SourceId": "Hotel",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\",
+      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\",
       "BasePath": "_content/Hotel",
       "RelativePath": "lib/bootstrap/dist/js/bootstrap.min.js#[.{fingerprint}]?.map",
       "AssetKind": "All",
@@ -1214,10 +1277,10 @@
       "OriginalItemSpec": "wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.min.js.map"
     },
     {
-      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\LICENSE",
+      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\LICENSE",
       "SourceId": "Hotel",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\",
+      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\",
       "BasePath": "_content/Hotel",
       "RelativePath": "lib/bootstrap/LICENSE#[.{fingerprint}]?",
       "AssetKind": "All",
@@ -1235,10 +1298,10 @@
       "OriginalItemSpec": "wwwroot\\lib\\bootstrap\\LICENSE"
     },
     {
-      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\jquery\\dist\\jquery.js",
+      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\jquery\\dist\\jquery.js",
       "SourceId": "Hotel",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\",
+      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\",
       "BasePath": "_content/Hotel",
       "RelativePath": "lib/jquery/dist/jquery#[.{fingerprint}]?.js",
       "AssetKind": "All",
@@ -1256,10 +1319,10 @@
       "OriginalItemSpec": "wwwroot\\lib\\jquery\\dist\\jquery.js"
     },
     {
-      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\jquery\\dist\\jquery.min.js",
+      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\jquery\\dist\\jquery.min.js",
       "SourceId": "Hotel",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\",
+      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\",
       "BasePath": "_content/Hotel",
       "RelativePath": "lib/jquery/dist/jquery.min#[.{fingerprint}]?.js",
       "AssetKind": "All",
@@ -1277,10 +1340,10 @@
       "OriginalItemSpec": "wwwroot\\lib\\jquery\\dist\\jquery.min.js"
     },
     {
-      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\jquery\\dist\\jquery.min.map",
+      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\jquery\\dist\\jquery.min.map",
       "SourceId": "Hotel",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\",
+      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\",
       "BasePath": "_content/Hotel",
       "RelativePath": "lib/jquery/dist/jquery.min#[.{fingerprint}]?.map",
       "AssetKind": "All",
@@ -1298,10 +1361,10 @@
       "OriginalItemSpec": "wwwroot\\lib\\jquery\\dist\\jquery.min.map"
     },
     {
-      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\jquery\\LICENSE.txt",
+      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\jquery\\LICENSE.txt",
       "SourceId": "Hotel",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\",
+      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\",
       "BasePath": "_content/Hotel",
       "RelativePath": "lib/jquery/LICENSE#[.{fingerprint}]?.txt",
       "AssetKind": "All",
@@ -1319,10 +1382,10 @@
       "OriginalItemSpec": "wwwroot\\lib\\jquery\\LICENSE.txt"
     },
     {
-      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\jquery-validation\\dist\\additional-methods.js",
+      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\jquery-validation\\dist\\additional-methods.js",
       "SourceId": "Hotel",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\",
+      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\",
       "BasePath": "_content/Hotel",
       "RelativePath": "lib/jquery-validation/dist/additional-methods#[.{fingerprint}]?.js",
       "AssetKind": "All",
@@ -1340,10 +1403,10 @@
       "OriginalItemSpec": "wwwroot\\lib\\jquery-validation\\dist\\additional-methods.js"
     },
     {
-      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\jquery-validation\\dist\\additional-methods.min.js",
+      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\jquery-validation\\dist\\additional-methods.min.js",
       "SourceId": "Hotel",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\",
+      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\",
       "BasePath": "_content/Hotel",
       "RelativePath": "lib/jquery-validation/dist/additional-methods.min#[.{fingerprint}]?.js",
       "AssetKind": "All",
@@ -1361,10 +1424,10 @@
       "OriginalItemSpec": "wwwroot\\lib\\jquery-validation\\dist\\additional-methods.min.js"
     },
     {
-      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\jquery-validation\\dist\\jquery.validate.js",
+      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\jquery-validation\\dist\\jquery.validate.js",
       "SourceId": "Hotel",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\",
+      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\",
       "BasePath": "_content/Hotel",
       "RelativePath": "lib/jquery-validation/dist/jquery.validate#[.{fingerprint}]?.js",
       "AssetKind": "All",
@@ -1382,10 +1445,10 @@
       "OriginalItemSpec": "wwwroot\\lib\\jquery-validation\\dist\\jquery.validate.js"
     },
     {
-      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\jquery-validation\\dist\\jquery.validate.min.js",
+      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\jquery-validation\\dist\\jquery.validate.min.js",
       "SourceId": "Hotel",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\",
+      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\",
       "BasePath": "_content/Hotel",
       "RelativePath": "lib/jquery-validation/dist/jquery.validate.min#[.{fingerprint}]?.js",
       "AssetKind": "All",
@@ -1403,10 +1466,10 @@
       "OriginalItemSpec": "wwwroot\\lib\\jquery-validation\\dist\\jquery.validate.min.js"
     },
     {
-      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\jquery-validation\\LICENSE.md",
+      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\jquery-validation\\LICENSE.md",
       "SourceId": "Hotel",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\",
+      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\",
       "BasePath": "_content/Hotel",
       "RelativePath": "lib/jquery-validation/LICENSE#[.{fingerprint}]?.md",
       "AssetKind": "All",
@@ -1424,10 +1487,10 @@
       "OriginalItemSpec": "wwwroot\\lib\\jquery-validation\\LICENSE.md"
     },
     {
-      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\jquery-validation-unobtrusive\\jquery.validate.unobtrusive.js",
+      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\jquery-validation-unobtrusive\\jquery.validate.unobtrusive.js",
       "SourceId": "Hotel",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\",
+      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\",
       "BasePath": "_content/Hotel",
       "RelativePath": "lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive#[.{fingerprint}]?.js",
       "AssetKind": "All",
@@ -1445,10 +1508,10 @@
       "OriginalItemSpec": "wwwroot\\lib\\jquery-validation-unobtrusive\\jquery.validate.unobtrusive.js"
     },
     {
-      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\jquery-validation-unobtrusive\\jquery.validate.unobtrusive.min.js",
+      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\jquery-validation-unobtrusive\\jquery.validate.unobtrusive.min.js",
       "SourceId": "Hotel",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\",
+      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\",
       "BasePath": "_content/Hotel",
       "RelativePath": "lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min#[.{fingerprint}]?.js",
       "AssetKind": "All",
@@ -1466,10 +1529,10 @@
       "OriginalItemSpec": "wwwroot\\lib\\jquery-validation-unobtrusive\\jquery.validate.unobtrusive.min.js"
     },
     {
-      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\jquery-validation-unobtrusive\\LICENSE.txt",
+      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\jquery-validation-unobtrusive\\LICENSE.txt",
       "SourceId": "Hotel",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\",
+      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\",
       "BasePath": "_content/Hotel",
       "RelativePath": "lib/jquery-validation-unobtrusive/LICENSE#[.{fingerprint}]?.txt",
       "AssetKind": "All",
@@ -1487,10 +1550,10 @@
       "OriginalItemSpec": "wwwroot\\lib\\jquery-validation-unobtrusive\\LICENSE.txt"
     },
     {
-      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\uploads\\logos\\234c2c73-3b15-4708-a501-fc6eac175b28_25.png",
+      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\uploads\\logos\\234c2c73-3b15-4708-a501-fc6eac175b28_25.png",
       "SourceId": "Hotel",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\",
+      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\",
       "BasePath": "_content/Hotel",
       "RelativePath": "uploads/logos/234c2c73-3b15-4708-a501-fc6eac175b28_25#[.{fingerprint}]?.png",
       "AssetKind": "All",
@@ -1508,10 +1571,10 @@
       "OriginalItemSpec": "wwwroot\\uploads\\logos\\234c2c73-3b15-4708-a501-fc6eac175b28_25.png"
     },
     {
-      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\uploads\\logos\\39239043-4a03-42d1-8138-e5a6272e63c5_25.png",
+      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\uploads\\logos\\39239043-4a03-42d1-8138-e5a6272e63c5_25.png",
       "SourceId": "Hotel",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\",
+      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\",
       "BasePath": "_content/Hotel",
       "RelativePath": "uploads/logos/39239043-4a03-42d1-8138-e5a6272e63c5_25#[.{fingerprint}]?.png",
       "AssetKind": "All",
@@ -1527,12 +1590,75 @@
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
       "OriginalItemSpec": "wwwroot\\uploads\\logos\\39239043-4a03-42d1-8138-e5a6272e63c5_25.png"
+    },
+    {
+      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\uploads\\profiles\\3a486dd5-4339-4847-a3fd-956cb92ade81_profile picture.jpg",
+      "SourceId": "Hotel",
+      "SourceType": "Discovered",
+      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\",
+      "BasePath": "_content/Hotel",
+      "RelativePath": "uploads/profiles/3a486dd5-4339-4847-a3fd-956cb92ade81_profile picture#[.{fingerprint}]?.jpg",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "Fingerprint": "ixx3l3z7bg",
+      "Integrity": "eiAle8nurx/py2PLu2sXM7odauf58wRB2hZ/kp0w0Yo=",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot\\uploads\\profiles\\3a486dd5-4339-4847-a3fd-956cb92ade81_profile picture.jpg"
+    },
+    {
+      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\uploads\\profiles\\ce284fdd-08b5-42ff-8423-b17ff3e3c2c0_profile picture.jpg",
+      "SourceId": "Hotel",
+      "SourceType": "Discovered",
+      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\",
+      "BasePath": "_content/Hotel",
+      "RelativePath": "uploads/profiles/ce284fdd-08b5-42ff-8423-b17ff3e3c2c0_profile picture#[.{fingerprint}]?.jpg",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "Fingerprint": "ixx3l3z7bg",
+      "Integrity": "eiAle8nurx/py2PLu2sXM7odauf58wRB2hZ/kp0w0Yo=",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot\\uploads\\profiles\\ce284fdd-08b5-42ff-8423-b17ff3e3c2c0_profile picture.jpg"
+    },
+    {
+      "Identity": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\uploads\\profiles\\de3e89a6-9442-4f8c-9c45-8f0c6f712471_images.jpeg",
+      "SourceId": "Hotel",
+      "SourceType": "Discovered",
+      "ContentRoot": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\",
+      "BasePath": "_content/Hotel",
+      "RelativePath": "uploads/profiles/de3e89a6-9442-4f8c-9c45-8f0c6f712471_images#[.{fingerprint}]?.jpeg",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "Fingerprint": "14yduxdcn1",
+      "Integrity": "8b9jsO8lRUMi+k7RiudYeRhAuHxOCUgfYCV9kjKSNbk=",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot\\uploads\\profiles\\de3e89a6-9442-4f8c-9c45-8f0c6f712471_images.jpeg"
     }
   ],
   "Endpoints": [
     {
       "Route": "css/admin-panel.css",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\css\\admin-panel.css",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\css\\admin-panel.css",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -1569,7 +1695,7 @@
     },
     {
       "Route": "css/admin-panel.gvlisvj9tm.css",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\css\\admin-panel.css",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\css\\admin-panel.css",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -1614,7 +1740,7 @@
     },
     {
       "Route": "css/company-settings.css",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\css\\company-settings.css",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\css\\company-settings.css",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -1651,7 +1777,7 @@
     },
     {
       "Route": "css/company-settings.zctkx9pvor.css",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\css\\company-settings.css",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\css\\company-settings.css",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -1695,8 +1821,90 @@
       ]
     },
     {
+      "Route": "css/login.css",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\css\\login.css",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "9613"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "text/css"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"7tvlqF1+seYK2TO032ICh99yDbdK7jA+Nmi5phjSxbA=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Fri, 06 Jun 2025 14:28:29 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "no-cache"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "integrity",
+          "Value": "sha256-7tvlqF1+seYK2TO032ICh99yDbdK7jA+Nmi5phjSxbA="
+        }
+      ]
+    },
+    {
+      "Route": "css/login.ektxwu391j.css",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\css\\login.css",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "9613"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "text/css"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"7tvlqF1+seYK2TO032ICh99yDbdK7jA+Nmi5phjSxbA=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Fri, 06 Jun 2025 14:28:29 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=31536000, immutable"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "fingerprint",
+          "Value": "ektxwu391j"
+        },
+        {
+          "Name": "label",
+          "Value": "css/login.css"
+        },
+        {
+          "Name": "integrity",
+          "Value": "sha256-7tvlqF1+seYK2TO032ICh99yDbdK7jA+Nmi5phjSxbA="
+        }
+      ]
+    },
+    {
       "Route": "css/materialize-admin.css",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\css\\materialize-admin.css",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\css\\materialize-admin.css",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -1733,7 +1941,7 @@
     },
     {
       "Route": "css/materialize-admin.x32k37ftku.css",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\css\\materialize-admin.css",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\css\\materialize-admin.css",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -1777,8 +1985,8 @@
       ]
     },
     {
-      "Route": "css/materialize-exact.0aypbjlrmq.css",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\css\\materialize-exact.css",
+      "Route": "css/materialize-exact.9eqvt4jywu.css",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\css\\materialize-exact.css",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -1787,7 +1995,7 @@
         },
         {
           "Name": "Content-Length",
-          "Value": "44161"
+          "Value": "49395"
         },
         {
           "Name": "Content-Type",
@@ -1795,11 +2003,11 @@
         },
         {
           "Name": "ETag",
-          "Value": "\"OF8uBqQXuWG+BFHcvmCbVNtMHL8XRPBNRaUvJbh/sHs=\""
+          "Value": "\"YRTjO438lctt9nkwZV7l1Zf2DbqRNn3vaIUy8DRAGaA=\""
         },
         {
           "Name": "Last-Modified",
-          "Value": "Thu, 05 Jun 2025 21:19:28 GMT"
+          "Value": "Fri, 06 Jun 2025 15:23:33 GMT"
         },
         {
           "Name": "Cache-Control",
@@ -1809,7 +2017,7 @@
       "EndpointProperties": [
         {
           "Name": "fingerprint",
-          "Value": "0aypbjlrmq"
+          "Value": "9eqvt4jywu"
         },
         {
           "Name": "label",
@@ -1817,13 +2025,13 @@
         },
         {
           "Name": "integrity",
-          "Value": "sha256-OF8uBqQXuWG+BFHcvmCbVNtMHL8XRPBNRaUvJbh/sHs="
+          "Value": "sha256-YRTjO438lctt9nkwZV7l1Zf2DbqRNn3vaIUy8DRAGaA="
         }
       ]
     },
     {
       "Route": "css/materialize-exact.css",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\css\\materialize-exact.css",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\css\\materialize-exact.css",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -1832,7 +2040,7 @@
         },
         {
           "Name": "Content-Length",
-          "Value": "44161"
+          "Value": "49395"
         },
         {
           "Name": "Content-Type",
@@ -1840,11 +2048,11 @@
         },
         {
           "Name": "ETag",
-          "Value": "\"OF8uBqQXuWG+BFHcvmCbVNtMHL8XRPBNRaUvJbh/sHs=\""
+          "Value": "\"YRTjO438lctt9nkwZV7l1Zf2DbqRNn3vaIUy8DRAGaA=\""
         },
         {
           "Name": "Last-Modified",
-          "Value": "Thu, 05 Jun 2025 21:19:28 GMT"
+          "Value": "Fri, 06 Jun 2025 15:23:33 GMT"
         },
         {
           "Name": "Cache-Control",
@@ -1854,13 +2062,13 @@
       "EndpointProperties": [
         {
           "Name": "integrity",
-          "Value": "sha256-OF8uBqQXuWG+BFHcvmCbVNtMHL8XRPBNRaUvJbh/sHs="
+          "Value": "sha256-YRTjO438lctt9nkwZV7l1Zf2DbqRNn3vaIUy8DRAGaA="
         }
       ]
     },
     {
       "Route": "css/materialize-exact-improved.c2sk9ihv6x.css",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\css\\materialize-exact-improved.css",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\css\\materialize-exact-improved.css",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -1905,7 +2113,7 @@
     },
     {
       "Route": "css/materialize-exact-improved.css",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\css\\materialize-exact-improved.css",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\css\\materialize-exact-improved.css",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -1942,7 +2150,7 @@
     },
     {
       "Route": "css/roles.css",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\css\\roles.css",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\css\\roles.css",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -1951,7 +2159,7 @@
         },
         {
           "Name": "Content-Length",
-          "Value": "20821"
+          "Value": "30473"
         },
         {
           "Name": "Content-Type",
@@ -1959,11 +2167,11 @@
         },
         {
           "Name": "ETag",
-          "Value": "\"RjpQdJ1XDfqQb/LVfXcUVDIB+BXzEHIPFc6puinH2hM=\""
+          "Value": "\"zCrxIOKH9pfidoqKJoPb2TAoA9qUP+yWWnh3Oame23o=\""
         },
         {
           "Name": "Last-Modified",
-          "Value": "Fri, 06 Jun 2025 01:27:01 GMT"
+          "Value": "Fri, 06 Jun 2025 03:00:22 GMT"
         },
         {
           "Name": "Cache-Control",
@@ -1973,13 +2181,13 @@
       "EndpointProperties": [
         {
           "Name": "integrity",
-          "Value": "sha256-RjpQdJ1XDfqQb/LVfXcUVDIB+BXzEHIPFc6puinH2hM="
+          "Value": "sha256-zCrxIOKH9pfidoqKJoPb2TAoA9qUP+yWWnh3Oame23o="
         }
       ]
     },
     {
-      "Route": "css/roles.mxkfmeir8h.css",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\css\\roles.css",
+      "Route": "css/roles.sui3ra3bwp.css",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\css\\roles.css",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -1988,7 +2196,7 @@
         },
         {
           "Name": "Content-Length",
-          "Value": "20821"
+          "Value": "30473"
         },
         {
           "Name": "Content-Type",
@@ -1996,11 +2204,11 @@
         },
         {
           "Name": "ETag",
-          "Value": "\"RjpQdJ1XDfqQb/LVfXcUVDIB+BXzEHIPFc6puinH2hM=\""
+          "Value": "\"zCrxIOKH9pfidoqKJoPb2TAoA9qUP+yWWnh3Oame23o=\""
         },
         {
           "Name": "Last-Modified",
-          "Value": "Fri, 06 Jun 2025 01:27:01 GMT"
+          "Value": "Fri, 06 Jun 2025 03:00:22 GMT"
         },
         {
           "Name": "Cache-Control",
@@ -2010,7 +2218,7 @@
       "EndpointProperties": [
         {
           "Name": "fingerprint",
-          "Value": "mxkfmeir8h"
+          "Value": "sui3ra3bwp"
         },
         {
           "Name": "label",
@@ -2018,13 +2226,13 @@
         },
         {
           "Name": "integrity",
-          "Value": "sha256-RjpQdJ1XDfqQb/LVfXcUVDIB+BXzEHIPFc6puinH2hM="
+          "Value": "sha256-zCrxIOKH9pfidoqKJoPb2TAoA9qUP+yWWnh3Oame23o="
         }
       ]
     },
     {
       "Route": "css/site.c2tiyv64ts.css",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\css\\site.css",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\css\\site.css",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -2069,7 +2277,7 @@
     },
     {
       "Route": "css/site.css",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\css\\site.css",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\css\\site.css",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -2105,8 +2313,90 @@
       ]
     },
     {
+      "Route": "css/website-builder.css",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\css\\website-builder.css",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "17898"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "text/css"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"2UVmOOtUgQvvhnwqqug/2TQEKYTThD6z0Ih/okLrIaY=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Sat, 07 Jun 2025 06:39:07 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "no-cache"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "integrity",
+          "Value": "sha256-2UVmOOtUgQvvhnwqqug/2TQEKYTThD6z0Ih/okLrIaY="
+        }
+      ]
+    },
+    {
+      "Route": "css/website-builder.z1y3n5kcgv.css",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\css\\website-builder.css",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "17898"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "text/css"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"2UVmOOtUgQvvhnwqqug/2TQEKYTThD6z0Ih/okLrIaY=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Sat, 07 Jun 2025 06:39:07 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=31536000, immutable"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "fingerprint",
+          "Value": "z1y3n5kcgv"
+        },
+        {
+          "Name": "label",
+          "Value": "css/website-builder.css"
+        },
+        {
+          "Name": "integrity",
+          "Value": "sha256-2UVmOOtUgQvvhnwqqug/2TQEKYTThD6z0Ih/okLrIaY="
+        }
+      ]
+    },
+    {
       "Route": "favicon.61n19gt1b8.ico",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\favicon.ico",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\favicon.ico",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -2151,7 +2441,7 @@
     },
     {
       "Route": "favicon.ico",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\favicon.ico",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\favicon.ico",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -2188,7 +2478,7 @@
     },
     {
       "Route": "Hotel.bundle.scp.css",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\obj\\Debug\\net8.0\\scopedcss\\projectbundle\\Hotel.bundle.scp.css",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\obj\\Debug\\net8.0\\scopedcss\\projectbundle\\Hotel.bundle.scp.css",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -2209,7 +2499,7 @@
         },
         {
           "Name": "Last-Modified",
-          "Value": "Thu, 05 Jun 2025 20:15:02 GMT"
+          "Value": "Fri, 06 Jun 2025 02:41:52 GMT"
         },
         {
           "Name": "Cache-Control",
@@ -2225,7 +2515,7 @@
     },
     {
       "Route": "Hotel.gd5o6vedgh.bundle.scp.css",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\obj\\Debug\\net8.0\\scopedcss\\projectbundle\\Hotel.bundle.scp.css",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\obj\\Debug\\net8.0\\scopedcss\\projectbundle\\Hotel.bundle.scp.css",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -2246,7 +2536,7 @@
         },
         {
           "Name": "Last-Modified",
-          "Value": "Thu, 05 Jun 2025 20:15:02 GMT"
+          "Value": "Fri, 06 Jun 2025 02:41:52 GMT"
         },
         {
           "Name": "Cache-Control",
@@ -2270,7 +2560,7 @@
     },
     {
       "Route": "Hotel.gd5o6vedgh.styles.css",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\obj\\Debug\\net8.0\\scopedcss\\bundle\\Hotel.styles.css",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\obj\\Debug\\net8.0\\scopedcss\\bundle\\Hotel.styles.css",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -2291,7 +2581,7 @@
         },
         {
           "Name": "Last-Modified",
-          "Value": "Thu, 05 Jun 2025 20:15:02 GMT"
+          "Value": "Fri, 06 Jun 2025 02:41:52 GMT"
         },
         {
           "Name": "Cache-Control",
@@ -2315,7 +2605,7 @@
     },
     {
       "Route": "Hotel.styles.css",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\obj\\Debug\\net8.0\\scopedcss\\bundle\\Hotel.styles.css",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\obj\\Debug\\net8.0\\scopedcss\\bundle\\Hotel.styles.css",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -2336,7 +2626,7 @@
         },
         {
           "Name": "Last-Modified",
-          "Value": "Thu, 05 Jun 2025 20:15:02 GMT"
+          "Value": "Fri, 06 Jun 2025 02:41:52 GMT"
         },
         {
           "Name": "Cache-Control",
@@ -2352,7 +2642,7 @@
     },
     {
       "Route": "js/admin-panel.gddhzpxy9r.js",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\js\\admin-panel.js",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\js\\admin-panel.js",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -2397,7 +2687,7 @@
     },
     {
       "Route": "js/admin-panel.js",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\js\\admin-panel.js",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\js\\admin-panel.js",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -2434,7 +2724,7 @@
     },
     {
       "Route": "js/materialize-admin.0tksu8797g.js",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\js\\materialize-admin.js",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\js\\materialize-admin.js",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -2479,7 +2769,7 @@
     },
     {
       "Route": "js/materialize-admin.js",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\js\\materialize-admin.js",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\js\\materialize-admin.js",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -2516,7 +2806,7 @@
     },
     {
       "Route": "js/site.js",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\js\\site.js",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\js\\site.js",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -2553,7 +2843,7 @@
     },
     {
       "Route": "js/site.xtxxf3hu2r.js",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\js\\site.js",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\js\\site.js",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -2597,8 +2887,90 @@
       ]
     },
     {
+      "Route": "js/website-builder.bfmrx7rtzq.js",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\js\\website-builder.js",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "25231"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "text/javascript"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"uSgV3LkMZEPS8623L0bInfCnvJGOiremvj+Oe2oZOvg=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Sat, 07 Jun 2025 06:15:45 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=31536000, immutable"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "fingerprint",
+          "Value": "bfmrx7rtzq"
+        },
+        {
+          "Name": "label",
+          "Value": "js/website-builder.js"
+        },
+        {
+          "Name": "integrity",
+          "Value": "sha256-uSgV3LkMZEPS8623L0bInfCnvJGOiremvj+Oe2oZOvg="
+        }
+      ]
+    },
+    {
+      "Route": "js/website-builder.js",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\js\\website-builder.js",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "25231"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "text/javascript"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"uSgV3LkMZEPS8623L0bInfCnvJGOiremvj+Oe2oZOvg=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Sat, 07 Jun 2025 06:15:45 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "no-cache"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "integrity",
+          "Value": "sha256-uSgV3LkMZEPS8623L0bInfCnvJGOiremvj+Oe2oZOvg="
+        }
+      ]
+    },
+    {
       "Route": "lib/bootstrap/dist/css/bootstrap.css",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.css",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.css",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -2635,7 +3007,7 @@
     },
     {
       "Route": "lib/bootstrap/dist/css/bootstrap.css.73kdqttayv.map",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.css.map",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.css.map",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -2680,7 +3052,7 @@
     },
     {
       "Route": "lib/bootstrap/dist/css/bootstrap.css.map",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.css.map",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.css.map",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -2717,7 +3089,7 @@
     },
     {
       "Route": "lib/bootstrap/dist/css/bootstrap.min.bpk8xqwxhs.css",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.min.css",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.min.css",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -2762,7 +3134,7 @@
     },
     {
       "Route": "lib/bootstrap/dist/css/bootstrap.min.css",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.min.css",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.min.css",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -2799,7 +3171,7 @@
     },
     {
       "Route": "lib/bootstrap/dist/css/bootstrap.min.css.8inm30yfxf.map",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.min.css.map",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.min.css.map",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -2844,7 +3216,7 @@
     },
     {
       "Route": "lib/bootstrap/dist/css/bootstrap.min.css.map",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.min.css.map",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.min.css.map",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -2881,7 +3253,7 @@
     },
     {
       "Route": "lib/bootstrap/dist/css/bootstrap.mpyigms19s.css",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.css",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.css",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -2926,7 +3298,7 @@
     },
     {
       "Route": "lib/bootstrap/dist/css/bootstrap.rtl.css",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.rtl.css",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.rtl.css",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -2963,7 +3335,7 @@
     },
     {
       "Route": "lib/bootstrap/dist/css/bootstrap.rtl.css.4gxs3k148c.map",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.rtl.css.map",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.rtl.css.map",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -3008,7 +3380,7 @@
     },
     {
       "Route": "lib/bootstrap/dist/css/bootstrap.rtl.css.map",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.rtl.css.map",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.rtl.css.map",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -3045,7 +3417,7 @@
     },
     {
       "Route": "lib/bootstrap/dist/css/bootstrap.rtl.min.9b9oa1qrmt.css",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.rtl.min.css",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.rtl.min.css",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -3090,7 +3462,7 @@
     },
     {
       "Route": "lib/bootstrap/dist/css/bootstrap.rtl.min.css",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.rtl.min.css",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.rtl.min.css",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -3127,7 +3499,7 @@
     },
     {
       "Route": "lib/bootstrap/dist/css/bootstrap.rtl.min.css.fctod5rc9n.map",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.rtl.min.css.map",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.rtl.min.css.map",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -3172,7 +3544,7 @@
     },
     {
       "Route": "lib/bootstrap/dist/css/bootstrap.rtl.min.css.map",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.rtl.min.css.map",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.rtl.min.css.map",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -3209,7 +3581,7 @@
     },
     {
       "Route": "lib/bootstrap/dist/css/bootstrap.rtl.ve6x09088i.css",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.rtl.css",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.rtl.css",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -3254,7 +3626,7 @@
     },
     {
       "Route": "lib/bootstrap/dist/css/bootstrap-grid.agp80tu62r.css",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-grid.css",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-grid.css",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -3299,7 +3671,7 @@
     },
     {
       "Route": "lib/bootstrap/dist/css/bootstrap-grid.css",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-grid.css",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-grid.css",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -3336,7 +3708,7 @@
     },
     {
       "Route": "lib/bootstrap/dist/css/bootstrap-grid.css.map",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-grid.css.map",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-grid.css.map",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -3373,7 +3745,7 @@
     },
     {
       "Route": "lib/bootstrap/dist/css/bootstrap-grid.css.st1cbwfwo5.map",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-grid.css.map",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-grid.css.map",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -3418,7 +3790,7 @@
     },
     {
       "Route": "lib/bootstrap/dist/css/bootstrap-grid.min.css",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-grid.min.css",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-grid.min.css",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -3455,7 +3827,7 @@
     },
     {
       "Route": "lib/bootstrap/dist/css/bootstrap-grid.min.css.5vj65cig9w.map",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-grid.min.css.map",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-grid.min.css.map",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -3500,7 +3872,7 @@
     },
     {
       "Route": "lib/bootstrap/dist/css/bootstrap-grid.min.css.map",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-grid.min.css.map",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-grid.min.css.map",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -3537,7 +3909,7 @@
     },
     {
       "Route": "lib/bootstrap/dist/css/bootstrap-grid.min.unj9p35syc.css",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-grid.min.css",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-grid.min.css",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -3582,7 +3954,7 @@
     },
     {
       "Route": "lib/bootstrap/dist/css/bootstrap-grid.rtl.css",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-grid.rtl.css",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-grid.rtl.css",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -3619,7 +3991,7 @@
     },
     {
       "Route": "lib/bootstrap/dist/css/bootstrap-grid.rtl.css.2q4vfeazbq.map",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-grid.rtl.css.map",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-grid.rtl.css.map",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -3664,7 +4036,7 @@
     },
     {
       "Route": "lib/bootstrap/dist/css/bootstrap-grid.rtl.css.map",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-grid.rtl.css.map",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-grid.rtl.css.map",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -3701,7 +4073,7 @@
     },
     {
       "Route": "lib/bootstrap/dist/css/bootstrap-grid.rtl.min.css",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-grid.rtl.min.css",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-grid.rtl.min.css",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -3738,7 +4110,7 @@
     },
     {
       "Route": "lib/bootstrap/dist/css/bootstrap-grid.rtl.min.css.map",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-grid.rtl.min.css.map",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-grid.rtl.min.css.map",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -3775,7 +4147,7 @@
     },
     {
       "Route": "lib/bootstrap/dist/css/bootstrap-grid.rtl.min.css.o371a8zbv2.map",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-grid.rtl.min.css.map",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-grid.rtl.min.css.map",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -3820,7 +4192,7 @@
     },
     {
       "Route": "lib/bootstrap/dist/css/bootstrap-grid.rtl.min.n1oizzvkh6.css",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-grid.rtl.min.css",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-grid.rtl.min.css",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -3865,7 +4237,7 @@
     },
     {
       "Route": "lib/bootstrap/dist/css/bootstrap-grid.rtl.q2ku51ktnl.css",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-grid.rtl.css",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-grid.rtl.css",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -3910,7 +4282,7 @@
     },
     {
       "Route": "lib/bootstrap/dist/css/bootstrap-reboot.7na4sro3qu.css",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.css",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.css",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -3955,7 +4327,7 @@
     },
     {
       "Route": "lib/bootstrap/dist/css/bootstrap-reboot.css",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.css",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.css",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -3992,7 +4364,7 @@
     },
     {
       "Route": "lib/bootstrap/dist/css/bootstrap-reboot.css.jeal3x0ldm.map",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.css.map",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.css.map",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -4037,7 +4409,7 @@
     },
     {
       "Route": "lib/bootstrap/dist/css/bootstrap-reboot.css.map",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.css.map",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.css.map",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -4074,7 +4446,7 @@
     },
     {
       "Route": "lib/bootstrap/dist/css/bootstrap-reboot.min.css",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.min.css",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.min.css",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -4111,7 +4483,7 @@
     },
     {
       "Route": "lib/bootstrap/dist/css/bootstrap-reboot.min.css.map",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.min.css.map",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.min.css.map",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -4148,7 +4520,7 @@
     },
     {
       "Route": "lib/bootstrap/dist/css/bootstrap-reboot.min.css.okkk44j0xs.map",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.min.css.map",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.min.css.map",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -4193,7 +4565,7 @@
     },
     {
       "Route": "lib/bootstrap/dist/css/bootstrap-reboot.min.f8imaxxbri.css",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.min.css",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.min.css",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -4238,7 +4610,7 @@
     },
     {
       "Route": "lib/bootstrap/dist/css/bootstrap-reboot.rtl.0wve5yxp74.css",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.rtl.css",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.rtl.css",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -4283,7 +4655,7 @@
     },
     {
       "Route": "lib/bootstrap/dist/css/bootstrap-reboot.rtl.css",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.rtl.css",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.rtl.css",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -4320,7 +4692,7 @@
     },
     {
       "Route": "lib/bootstrap/dist/css/bootstrap-reboot.rtl.css.cwzlr5n8x4.map",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.rtl.css.map",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.rtl.css.map",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -4365,7 +4737,7 @@
     },
     {
       "Route": "lib/bootstrap/dist/css/bootstrap-reboot.rtl.css.map",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.rtl.css.map",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.rtl.css.map",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -4402,7 +4774,7 @@
     },
     {
       "Route": "lib/bootstrap/dist/css/bootstrap-reboot.rtl.min.css",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.rtl.min.css",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.rtl.min.css",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -4439,7 +4811,7 @@
     },
     {
       "Route": "lib/bootstrap/dist/css/bootstrap-reboot.rtl.min.css.map",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.rtl.min.css.map",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.rtl.min.css.map",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -4476,7 +4848,7 @@
     },
     {
       "Route": "lib/bootstrap/dist/css/bootstrap-reboot.rtl.min.css.wmug9u23qg.map",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.rtl.min.css.map",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.rtl.min.css.map",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -4521,7 +4893,7 @@
     },
     {
       "Route": "lib/bootstrap/dist/css/bootstrap-reboot.rtl.min.npxfuf8dg6.css",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.rtl.min.css",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.rtl.min.css",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -4566,7 +4938,7 @@
     },
     {
       "Route": "lib/bootstrap/dist/css/bootstrap-utilities.css",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.css",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.css",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -4603,7 +4975,7 @@
     },
     {
       "Route": "lib/bootstrap/dist/css/bootstrap-utilities.css.j75batdsum.map",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.css.map",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.css.map",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -4648,7 +5020,7 @@
     },
     {
       "Route": "lib/bootstrap/dist/css/bootstrap-utilities.css.map",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.css.map",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.css.map",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -4685,7 +5057,7 @@
     },
     {
       "Route": "lib/bootstrap/dist/css/bootstrap-utilities.min.16095smhkz.css",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.min.css",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.min.css",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -4730,7 +5102,7 @@
     },
     {
       "Route": "lib/bootstrap/dist/css/bootstrap-utilities.min.css",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.min.css",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.min.css",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -4767,7 +5139,7 @@
     },
     {
       "Route": "lib/bootstrap/dist/css/bootstrap-utilities.min.css.map",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.min.css.map",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.min.css.map",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -4804,7 +5176,7 @@
     },
     {
       "Route": "lib/bootstrap/dist/css/bootstrap-utilities.min.css.vy0bq9ydhf.map",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.min.css.map",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.min.css.map",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -4849,7 +5221,7 @@
     },
     {
       "Route": "lib/bootstrap/dist/css/bootstrap-utilities.rtl.b4skse8du6.css",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.rtl.css",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.rtl.css",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -4894,7 +5266,7 @@
     },
     {
       "Route": "lib/bootstrap/dist/css/bootstrap-utilities.rtl.css",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.rtl.css",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.rtl.css",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -4931,7 +5303,7 @@
     },
     {
       "Route": "lib/bootstrap/dist/css/bootstrap-utilities.rtl.css.ab1c3rmv7g.map",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.rtl.css.map",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.rtl.css.map",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -4976,7 +5348,7 @@
     },
     {
       "Route": "lib/bootstrap/dist/css/bootstrap-utilities.rtl.css.map",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.rtl.css.map",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.rtl.css.map",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -5013,7 +5385,7 @@
     },
     {
       "Route": "lib/bootstrap/dist/css/bootstrap-utilities.rtl.min.css",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.rtl.min.css",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.rtl.min.css",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -5050,7 +5422,7 @@
     },
     {
       "Route": "lib/bootstrap/dist/css/bootstrap-utilities.rtl.min.css.56d2bn4wt9.map",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.rtl.min.css.map",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.rtl.min.css.map",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -5095,7 +5467,7 @@
     },
     {
       "Route": "lib/bootstrap/dist/css/bootstrap-utilities.rtl.min.css.map",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.rtl.min.css.map",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.rtl.min.css.map",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -5132,7 +5504,7 @@
     },
     {
       "Route": "lib/bootstrap/dist/css/bootstrap-utilities.rtl.min.u3xrusw2ol.css",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.rtl.min.css",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.rtl.min.css",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -5177,7 +5549,7 @@
     },
     {
       "Route": "lib/bootstrap/dist/css/bootstrap-utilities.tey0rigmnh.css",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.css",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.css",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -5222,7 +5594,7 @@
     },
     {
       "Route": "lib/bootstrap/dist/js/bootstrap.bundle.js",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.bundle.js",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.bundle.js",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -5259,7 +5631,7 @@
     },
     {
       "Route": "lib/bootstrap/dist/js/bootstrap.bundle.js.kbynt5jhd9.map",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.bundle.js.map",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.bundle.js.map",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -5304,7 +5676,7 @@
     },
     {
       "Route": "lib/bootstrap/dist/js/bootstrap.bundle.js.map",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.bundle.js.map",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.bundle.js.map",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -5341,7 +5713,7 @@
     },
     {
       "Route": "lib/bootstrap/dist/js/bootstrap.bundle.l2av4jpuoj.js",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.bundle.js",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.bundle.js",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -5386,7 +5758,7 @@
     },
     {
       "Route": "lib/bootstrap/dist/js/bootstrap.bundle.min.25iw1kog22.js",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.bundle.min.js",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.bundle.min.js",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -5431,7 +5803,7 @@
     },
     {
       "Route": "lib/bootstrap/dist/js/bootstrap.bundle.min.js",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.bundle.min.js",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.bundle.min.js",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -5468,7 +5840,7 @@
     },
     {
       "Route": "lib/bootstrap/dist/js/bootstrap.bundle.min.js.c2nslu3uf3.map",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.bundle.min.js.map",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.bundle.min.js.map",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -5513,7 +5885,7 @@
     },
     {
       "Route": "lib/bootstrap/dist/js/bootstrap.bundle.min.js.map",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.bundle.min.js.map",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.bundle.min.js.map",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -5550,7 +5922,7 @@
     },
     {
       "Route": "lib/bootstrap/dist/js/bootstrap.esm.js",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.esm.js",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.esm.js",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -5587,7 +5959,7 @@
     },
     {
       "Route": "lib/bootstrap/dist/js/bootstrap.esm.js.2lgwfvgpvi.map",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.esm.js.map",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.esm.js.map",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -5632,7 +6004,7 @@
     },
     {
       "Route": "lib/bootstrap/dist/js/bootstrap.esm.js.map",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.esm.js.map",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.esm.js.map",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -5669,7 +6041,7 @@
     },
     {
       "Route": "lib/bootstrap/dist/js/bootstrap.esm.m39kt2b5c9.js",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.esm.js",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.esm.js",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -5714,7 +6086,7 @@
     },
     {
       "Route": "lib/bootstrap/dist/js/bootstrap.esm.min.js",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.esm.min.js",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.esm.min.js",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -5751,7 +6123,7 @@
     },
     {
       "Route": "lib/bootstrap/dist/js/bootstrap.esm.min.js.map",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.esm.min.js.map",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.esm.min.js.map",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -5788,7 +6160,7 @@
     },
     {
       "Route": "lib/bootstrap/dist/js/bootstrap.esm.min.js.wsezl0heh6.map",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.esm.min.js.map",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.esm.min.js.map",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -5833,7 +6205,7 @@
     },
     {
       "Route": "lib/bootstrap/dist/js/bootstrap.esm.min.um2aeqy4ik.js",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.esm.min.js",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.esm.min.js",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -5878,7 +6250,7 @@
     },
     {
       "Route": "lib/bootstrap/dist/js/bootstrap.js",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.js",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.js",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -5915,7 +6287,7 @@
     },
     {
       "Route": "lib/bootstrap/dist/js/bootstrap.js.6ukhryfubh.map",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.js.map",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.js.map",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -5960,7 +6332,7 @@
     },
     {
       "Route": "lib/bootstrap/dist/js/bootstrap.js.map",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.js.map",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.js.map",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -5997,7 +6369,7 @@
     },
     {
       "Route": "lib/bootstrap/dist/js/bootstrap.min.js",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.min.js",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.min.js",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -6034,7 +6406,7 @@
     },
     {
       "Route": "lib/bootstrap/dist/js/bootstrap.min.js.map",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.min.js.map",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.min.js.map",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -6071,7 +6443,7 @@
     },
     {
       "Route": "lib/bootstrap/dist/js/bootstrap.min.js.u33ctipx7g.map",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.min.js.map",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.min.js.map",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -6116,7 +6488,7 @@
     },
     {
       "Route": "lib/bootstrap/dist/js/bootstrap.min.zwph15dxgs.js",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.min.js",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.min.js",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -6161,7 +6533,7 @@
     },
     {
       "Route": "lib/bootstrap/dist/js/bootstrap.o4kw7cc6tf.js",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.js",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.js",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -6206,7 +6578,7 @@
     },
     {
       "Route": "lib/bootstrap/LICENSE",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\LICENSE",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\LICENSE",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -6243,7 +6615,7 @@
     },
     {
       "Route": "lib/bootstrap/LICENSE.81b7ukuj9c",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\bootstrap\\LICENSE",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\bootstrap\\LICENSE",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -6288,7 +6660,7 @@
     },
     {
       "Route": "lib/jquery/dist/jquery.fwhahm2icz.js",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\jquery\\dist\\jquery.js",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\jquery\\dist\\jquery.js",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -6333,7 +6705,7 @@
     },
     {
       "Route": "lib/jquery/dist/jquery.js",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\jquery\\dist\\jquery.js",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\jquery\\dist\\jquery.js",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -6370,7 +6742,7 @@
     },
     {
       "Route": "lib/jquery/dist/jquery.min.5pze98is44.map",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\jquery\\dist\\jquery.min.map",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\jquery\\dist\\jquery.min.map",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -6415,7 +6787,7 @@
     },
     {
       "Route": "lib/jquery/dist/jquery.min.dd6z7egasc.js",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\jquery\\dist\\jquery.min.js",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\jquery\\dist\\jquery.min.js",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -6460,7 +6832,7 @@
     },
     {
       "Route": "lib/jquery/dist/jquery.min.js",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\jquery\\dist\\jquery.min.js",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\jquery\\dist\\jquery.min.js",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -6497,7 +6869,7 @@
     },
     {
       "Route": "lib/jquery/dist/jquery.min.map",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\jquery\\dist\\jquery.min.map",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\jquery\\dist\\jquery.min.map",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -6534,7 +6906,7 @@
     },
     {
       "Route": "lib/jquery/LICENSE.mlv21k5csn.txt",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\jquery\\LICENSE.txt",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\jquery\\LICENSE.txt",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -6579,7 +6951,7 @@
     },
     {
       "Route": "lib/jquery/LICENSE.txt",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\jquery\\LICENSE.txt",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\jquery\\LICENSE.txt",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -6616,7 +6988,7 @@
     },
     {
       "Route": "lib/jquery-validation/dist/additional-methods.ay5nd8zt9x.js",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\jquery-validation\\dist\\additional-methods.js",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\jquery-validation\\dist\\additional-methods.js",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -6661,7 +7033,7 @@
     },
     {
       "Route": "lib/jquery-validation/dist/additional-methods.js",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\jquery-validation\\dist\\additional-methods.js",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\jquery-validation\\dist\\additional-methods.js",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -6698,7 +7070,7 @@
     },
     {
       "Route": "lib/jquery-validation/dist/additional-methods.min.9oaff4kq20.js",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\jquery-validation\\dist\\additional-methods.min.js",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\jquery-validation\\dist\\additional-methods.min.js",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -6743,7 +7115,7 @@
     },
     {
       "Route": "lib/jquery-validation/dist/additional-methods.min.js",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\jquery-validation\\dist\\additional-methods.min.js",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\jquery-validation\\dist\\additional-methods.min.js",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -6780,7 +7152,7 @@
     },
     {
       "Route": "lib/jquery-validation/dist/jquery.validate.js",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\jquery-validation\\dist\\jquery.validate.js",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\jquery-validation\\dist\\jquery.validate.js",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -6817,7 +7189,7 @@
     },
     {
       "Route": "lib/jquery-validation/dist/jquery.validate.min.b7iojwaux1.js",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\jquery-validation\\dist\\jquery.validate.min.js",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\jquery-validation\\dist\\jquery.validate.min.js",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -6862,7 +7234,7 @@
     },
     {
       "Route": "lib/jquery-validation/dist/jquery.validate.min.js",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\jquery-validation\\dist\\jquery.validate.min.js",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\jquery-validation\\dist\\jquery.validate.min.js",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -6899,7 +7271,7 @@
     },
     {
       "Route": "lib/jquery-validation/dist/jquery.validate.pzqfkb6aqo.js",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\jquery-validation\\dist\\jquery.validate.js",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\jquery-validation\\dist\\jquery.validate.js",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -6944,7 +7316,7 @@
     },
     {
       "Route": "lib/jquery-validation/LICENSE.md",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\jquery-validation\\LICENSE.md",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\jquery-validation\\LICENSE.md",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -6981,7 +7353,7 @@
     },
     {
       "Route": "lib/jquery-validation/LICENSE.x0q3zqp4vz.md",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\jquery-validation\\LICENSE.md",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\jquery-validation\\LICENSE.md",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -7026,7 +7398,7 @@
     },
     {
       "Route": "lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.47otxtyo56.js",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\jquery-validation-unobtrusive\\jquery.validate.unobtrusive.js",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\jquery-validation-unobtrusive\\jquery.validate.unobtrusive.js",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -7071,7 +7443,7 @@
     },
     {
       "Route": "lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.js",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\jquery-validation-unobtrusive\\jquery.validate.unobtrusive.js",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\jquery-validation-unobtrusive\\jquery.validate.unobtrusive.js",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -7108,7 +7480,7 @@
     },
     {
       "Route": "lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.4v8eqarkd7.js",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\jquery-validation-unobtrusive\\jquery.validate.unobtrusive.min.js",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\jquery-validation-unobtrusive\\jquery.validate.unobtrusive.min.js",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -7153,7 +7525,7 @@
     },
     {
       "Route": "lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\jquery-validation-unobtrusive\\jquery.validate.unobtrusive.min.js",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\jquery-validation-unobtrusive\\jquery.validate.unobtrusive.min.js",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -7190,7 +7562,7 @@
     },
     {
       "Route": "lib/jquery-validation-unobtrusive/LICENSE.356vix0kms.txt",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\jquery-validation-unobtrusive\\LICENSE.txt",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\jquery-validation-unobtrusive\\LICENSE.txt",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -7235,7 +7607,7 @@
     },
     {
       "Route": "lib/jquery-validation-unobtrusive/LICENSE.txt",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\lib\\jquery-validation-unobtrusive\\LICENSE.txt",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\lib\\jquery-validation-unobtrusive\\LICENSE.txt",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -7272,7 +7644,7 @@
     },
     {
       "Route": "uploads/logos/234c2c73-3b15-4708-a501-fc6eac175b28_25.png",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\uploads\\logos\\234c2c73-3b15-4708-a501-fc6eac175b28_25.png",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\uploads\\logos\\234c2c73-3b15-4708-a501-fc6eac175b28_25.png",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -7309,7 +7681,7 @@
     },
     {
       "Route": "uploads/logos/234c2c73-3b15-4708-a501-fc6eac175b28_25.uln9s0ffgt.png",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\uploads\\logos\\234c2c73-3b15-4708-a501-fc6eac175b28_25.png",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\uploads\\logos\\234c2c73-3b15-4708-a501-fc6eac175b28_25.png",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -7354,7 +7726,7 @@
     },
     {
       "Route": "uploads/logos/39239043-4a03-42d1-8138-e5a6272e63c5_25.png",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\uploads\\logos\\39239043-4a03-42d1-8138-e5a6272e63c5_25.png",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\uploads\\logos\\39239043-4a03-42d1-8138-e5a6272e63c5_25.png",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -7391,7 +7763,7 @@
     },
     {
       "Route": "uploads/logos/39239043-4a03-42d1-8138-e5a6272e63c5_25.uln9s0ffgt.png",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel\\Hotel\\wwwroot\\uploads\\logos\\39239043-4a03-42d1-8138-e5a6272e63c5_25.png",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\uploads\\logos\\39239043-4a03-42d1-8138-e5a6272e63c5_25.png",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -7431,6 +7803,252 @@
         {
           "Name": "integrity",
           "Value": "sha256-PtS/5zUvL4vAotJI6QcgMGCX4HZwqFksMnHygCexd5g="
+        }
+      ]
+    },
+    {
+      "Route": "uploads/profiles/3a486dd5-4339-4847-a3fd-956cb92ade81_profile picture.ixx3l3z7bg.jpg",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\uploads\\profiles\\3a486dd5-4339-4847-a3fd-956cb92ade81_profile picture.jpg",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "33922"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "image/jpeg"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"eiAle8nurx/py2PLu2sXM7odauf58wRB2hZ/kp0w0Yo=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Fri, 06 Jun 2025 02:05:20 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=31536000, immutable"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "fingerprint",
+          "Value": "ixx3l3z7bg"
+        },
+        {
+          "Name": "label",
+          "Value": "uploads/profiles/3a486dd5-4339-4847-a3fd-956cb92ade81_profile picture.jpg"
+        },
+        {
+          "Name": "integrity",
+          "Value": "sha256-eiAle8nurx/py2PLu2sXM7odauf58wRB2hZ/kp0w0Yo="
+        }
+      ]
+    },
+    {
+      "Route": "uploads/profiles/3a486dd5-4339-4847-a3fd-956cb92ade81_profile picture.jpg",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\uploads\\profiles\\3a486dd5-4339-4847-a3fd-956cb92ade81_profile picture.jpg",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "33922"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "image/jpeg"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"eiAle8nurx/py2PLu2sXM7odauf58wRB2hZ/kp0w0Yo=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Fri, 06 Jun 2025 02:05:20 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=3600, must-revalidate"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "integrity",
+          "Value": "sha256-eiAle8nurx/py2PLu2sXM7odauf58wRB2hZ/kp0w0Yo="
+        }
+      ]
+    },
+    {
+      "Route": "uploads/profiles/ce284fdd-08b5-42ff-8423-b17ff3e3c2c0_profile picture.ixx3l3z7bg.jpg",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\uploads\\profiles\\ce284fdd-08b5-42ff-8423-b17ff3e3c2c0_profile picture.jpg",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "33922"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "image/jpeg"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"eiAle8nurx/py2PLu2sXM7odauf58wRB2hZ/kp0w0Yo=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Fri, 06 Jun 2025 02:09:34 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=31536000, immutable"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "fingerprint",
+          "Value": "ixx3l3z7bg"
+        },
+        {
+          "Name": "label",
+          "Value": "uploads/profiles/ce284fdd-08b5-42ff-8423-b17ff3e3c2c0_profile picture.jpg"
+        },
+        {
+          "Name": "integrity",
+          "Value": "sha256-eiAle8nurx/py2PLu2sXM7odauf58wRB2hZ/kp0w0Yo="
+        }
+      ]
+    },
+    {
+      "Route": "uploads/profiles/ce284fdd-08b5-42ff-8423-b17ff3e3c2c0_profile picture.jpg",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\uploads\\profiles\\ce284fdd-08b5-42ff-8423-b17ff3e3c2c0_profile picture.jpg",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "33922"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "image/jpeg"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"eiAle8nurx/py2PLu2sXM7odauf58wRB2hZ/kp0w0Yo=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Fri, 06 Jun 2025 02:09:34 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=3600, must-revalidate"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "integrity",
+          "Value": "sha256-eiAle8nurx/py2PLu2sXM7odauf58wRB2hZ/kp0w0Yo="
+        }
+      ]
+    },
+    {
+      "Route": "uploads/profiles/de3e89a6-9442-4f8c-9c45-8f0c6f712471_images.14yduxdcn1.jpeg",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\uploads\\profiles\\de3e89a6-9442-4f8c-9c45-8f0c6f712471_images.jpeg",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "7825"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "image/jpeg"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"8b9jsO8lRUMi+k7RiudYeRhAuHxOCUgfYCV9kjKSNbk=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Fri, 06 Jun 2025 02:44:18 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=31536000, immutable"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "fingerprint",
+          "Value": "14yduxdcn1"
+        },
+        {
+          "Name": "label",
+          "Value": "uploads/profiles/de3e89a6-9442-4f8c-9c45-8f0c6f712471_images.jpeg"
+        },
+        {
+          "Name": "integrity",
+          "Value": "sha256-8b9jsO8lRUMi+k7RiudYeRhAuHxOCUgfYCV9kjKSNbk="
+        }
+      ]
+    },
+    {
+      "Route": "uploads/profiles/de3e89a6-9442-4f8c-9c45-8f0c6f712471_images.jpeg",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\uploads\\profiles\\de3e89a6-9442-4f8c-9c45-8f0c6f712471_images.jpeg",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "7825"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "image/jpeg"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"8b9jsO8lRUMi+k7RiudYeRhAuHxOCUgfYCV9kjKSNbk=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Fri, 06 Jun 2025 02:44:18 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=3600, must-revalidate"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "integrity",
+          "Value": "sha256-8b9jsO8lRUMi+k7RiudYeRhAuHxOCUgfYCV9kjKSNbk="
         }
       ]
     }
