@@ -1,6 +1,6 @@
 {
   "Version": 1,
-  "Hash": "ytLWNFyP3eW/E2CTw2GlpelHuyggJ2y1LNPKiZYaSnY=",
+  "Hash": "lpbPORT23hxadisAL5ciX82mHUVLSwvSc5a3xP/ma94=",
   "Source": "Hotel",
   "BasePath": "_content/Hotel",
   "Mode": "Default",
@@ -241,8 +241,8 @@
       "RelatedAsset": "",
       "AssetTraitName": "",
       "AssetTraitValue": "",
-      "Fingerprint": "6x8wtudwk2",
-      "Integrity": "Kjr1lLZDTBV8JhJO6KBFoG4zHLh82xNNUSj20cT6oFo=",
+      "Fingerprint": "6d76ukrev2",
+      "Integrity": "ykgv2a0Vathu6PI9mnfsaV7U9NssUNVu+BJ28Ub1Oro=",
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
       "OriginalItemSpec": "wwwroot\\css\\website-builder.css"
@@ -346,8 +346,8 @@
       "RelatedAsset": "",
       "AssetTraitName": "",
       "AssetTraitValue": "",
-      "Fingerprint": "ovnlykqbyq",
-      "Integrity": "JP6ZSFlAVml9QyCm+ozftPZtRtEk7VXaPZlxS4Qlu5Y=",
+      "Fingerprint": "scf693bgy2",
+      "Integrity": "PNjOHOVuwZVMgpA7bRR+Ru//IyP+MWkDwW24Wajc0RQ=",
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
       "OriginalItemSpec": "wwwroot\\js\\website-builder.js"
@@ -2313,7 +2313,7 @@
       ]
     },
     {
-      "Route": "css/website-builder.6x8wtudwk2.css",
+      "Route": "css/website-builder.6d76ukrev2.css",
       "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\css\\website-builder.css",
       "Selectors": [],
       "ResponseHeaders": [
@@ -2323,7 +2323,7 @@
         },
         {
           "Name": "Content-Length",
-          "Value": "24344"
+          "Value": "32222"
         },
         {
           "Name": "Content-Type",
@@ -2331,11 +2331,11 @@
         },
         {
           "Name": "ETag",
-          "Value": "\"Kjr1lLZDTBV8JhJO6KBFoG4zHLh82xNNUSj20cT6oFo=\""
+          "Value": "\"ykgv2a0Vathu6PI9mnfsaV7U9NssUNVu+BJ28Ub1Oro=\""
         },
         {
           "Name": "Last-Modified",
-          "Value": "Sat, 07 Jun 2025 16:17:53 GMT"
+          "Value": "Sat, 07 Jun 2025 20:11:05 GMT"
         },
         {
           "Name": "Cache-Control",
@@ -2345,7 +2345,7 @@
       "EndpointProperties": [
         {
           "Name": "fingerprint",
-          "Value": "6x8wtudwk2"
+          "Value": "6d76ukrev2"
         },
         {
           "Name": "label",
@@ -2353,7 +2353,7 @@
         },
         {
           "Name": "integrity",
-          "Value": "sha256-Kjr1lLZDTBV8JhJO6KBFoG4zHLh82xNNUSj20cT6oFo="
+          "Value": "sha256-ykgv2a0Vathu6PI9mnfsaV7U9NssUNVu+BJ28Ub1Oro="
         }
       ]
     },
@@ -2368,7 +2368,7 @@
         },
         {
           "Name": "Content-Length",
-          "Value": "24344"
+          "Value": "32222"
         },
         {
           "Name": "Content-Type",
@@ -2376,11 +2376,11 @@
         },
         {
           "Name": "ETag",
-          "Value": "\"Kjr1lLZDTBV8JhJO6KBFoG4zHLh82xNNUSj20cT6oFo=\""
+          "Value": "\"ykgv2a0Vathu6PI9mnfsaV7U9NssUNVu+BJ28Ub1Oro=\""
         },
         {
           "Name": "Last-Modified",
-          "Value": "Sat, 07 Jun 2025 16:17:53 GMT"
+          "Value": "Sat, 07 Jun 2025 20:11:05 GMT"
         },
         {
           "Name": "Cache-Control",
@@ -2390,7 +2390,7 @@
       "EndpointProperties": [
         {
           "Name": "integrity",
-          "Value": "sha256-Kjr1lLZDTBV8JhJO6KBFoG4zHLh82xNNUSj20cT6oFo="
+          "Value": "sha256-ykgv2a0Vathu6PI9mnfsaV7U9NssUNVu+BJ28Ub1Oro="
         }
       ]
     },
@@ -2897,7 +2897,7 @@
         },
         {
           "Name": "Content-Length",
-          "Value": "50776"
+          "Value": "132717"
         },
         {
           "Name": "Content-Type",
@@ -2905,11 +2905,11 @@
         },
         {
           "Name": "ETag",
-          "Value": "\"JP6ZSFlAVml9QyCm+ozftPZtRtEk7VXaPZlxS4Qlu5Y=\""
+          "Value": "\"PNjOHOVuwZVMgpA7bRR+Ru//IyP+MWkDwW24Wajc0RQ=\""
         },
         {
           "Name": "Last-Modified",
-          "Value": "Sat, 07 Jun 2025 16:33:55 GMT"
+          "Value": "Sat, 07 Jun 2025 20:17:42 GMT"
         },
         {
           "Name": "Cache-Control",
@@ -2919,12 +2919,12 @@
       "EndpointProperties": [
         {
           "Name": "integrity",
-          "Value": "sha256-JP6ZSFlAVml9QyCm+ozftPZtRtEk7VXaPZlxS4Qlu5Y="
+          "Value": "sha256-PNjOHOVuwZVMgpA7bRR+Ru//IyP+MWkDwW24Wajc0RQ="
         }
       ]
     },
     {
-      "Route": "js/website-builder.ovnlykqbyq.js",
+      "Route": "js/website-builder.scf693bgy2.js",
       "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\js\\website-builder.js",
       "Selectors": [],
       "ResponseHeaders": [
@@ -2934,7 +2934,7 @@
         },
         {
           "Name": "Content-Length",
-          "Value": "50776"
+          "Value": "132717"
         },
         {
           "Name": "Content-Type",
@@ -2942,11 +2942,11 @@
         },
         {
           "Name": "ETag",
-          "Value": "\"JP6ZSFlAVml9QyCm+ozftPZtRtEk7VXaPZlxS4Qlu5Y=\""
+          "Value": "\"PNjOHOVuwZVMgpA7bRR+Ru//IyP+MWkDwW24Wajc0RQ=\""
         },
         {
           "Name": "Last-Modified",
-          "Value": "Sat, 07 Jun 2025 16:33:55 GMT"
+          "Value": "Sat, 07 Jun 2025 20:17:42 GMT"
         },
         {
           "Name": "Cache-Control",
@@ -2956,7 +2956,7 @@
       "EndpointProperties": [
         {
           "Name": "fingerprint",
-          "Value": "ovnlykqbyq"
+          "Value": "scf693bgy2"
         },
         {
           "Name": "label",
@@ -2964,7 +2964,7 @@
         },
         {
           "Name": "integrity",
-          "Value": "sha256-JP6ZSFlAVml9QyCm+ozftPZtRtEk7VXaPZlxS4Qlu5Y="
+          "Value": "sha256-PNjOHOVuwZVMgpA7bRR+Ru//IyP+MWkDwW24Wajc0RQ="
         }
       ]
     },

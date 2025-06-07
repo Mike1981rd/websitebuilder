@@ -82,4 +82,89 @@
 
 @section Scripts {
     <script src="~/js/website-builder.js?v=@DateTime.Now.Ticks"></script>
+    <script>
+        // Dynamic font loading
+        const loadedFonts = new Set(['Inter', 'Roboto', 'Open Sans', 'Playfair Display', 'Montserrat', 'Lato', 'Poppins']);
+        
+        function loadGoogleFont(fontName) {
+            if (loadedFonts.has(fontName)) return;
+            
+            const link = document.createElement('link');
+            link.href = `https://fonts.googleapis.com/css2?family=${fontName.replace(/\s+/g, '+')}:wght@400;500;600;700&display=swap`;
+            link.rel = 'stylesheet';
+            document.head.appendChild(link);
+            
+            loadedFonts.add(fontName);
+        }
+        
+        // Listen for font changes
+        $(document).on('change', '.typography-font-select', function() {
+            const fontValue = $(this).val();
+            const fontName = getFontNameFromValue(fontValue);
+            if (fontName) {
+                loadGoogleFont(fontName);
+            }
+        });
+        
+        window.getFontNameFromValue = function(fontValue) {
+            // Convert font value back to font name
+            const fontMap = {
+                'abel': 'Abel',
+                'archivo': 'Archivo',
+                'archivo-narrow': 'Archivo Narrow',
+                'arimo': 'Arimo',
+                'assistant': 'Assistant',
+                'bebas-neue': 'Bebas Neue',
+                'cabin': 'Cabin',
+                'chivo': 'Chivo',
+                'dosis': 'Dosis',
+                'fjalla-one': 'Fjalla One',
+                'josefin-sans': 'Josefin Sans',
+                'karla': 'Karla',
+                'libre-franklin': 'Libre Franklin',
+                'noto-sans': 'Noto Sans',
+                'nunito-sans': 'Nunito Sans',
+                'oswald': 'Oswald',
+                'oxygen': 'Oxygen',
+                'pt-sans': 'PT Sans',
+                'raleway': 'Raleway',
+                'rubik': 'Rubik',
+                'source-sans-pro': 'Source Sans Pro',
+                'titillium-web': 'Titillium Web',
+                'ubuntu': 'Ubuntu',
+                'work-sans': 'Work Sans',
+                'arvo': 'Arvo',
+                'bitter': 'Bitter',
+                'cardo': 'Cardo',
+                'cormorant': 'Cormorant',
+                'crimson-text': 'Crimson Text',
+                'david-libre': 'David Libre',
+                'eb-garamond': 'EB Garamond',
+                'eczar': 'Eczar',
+                'libre-baskerville': 'Libre Baskerville',
+                'lora': 'Lora',
+                'merriweather': 'Merriweather',
+                'noticia-text': 'Noticia Text',
+                'noto-serif': 'Noto Serif',
+                'pt-serif': 'PT Serif',
+                'roboto-slab': 'Roboto Slab',
+                'source-serif-pro': 'Source Serif Pro',
+                'vollkorn': 'Vollkorn',
+                'anonymous-pro': 'Anonymous Pro',
+                'fira-mono': 'Fira Mono',
+                'ibm-plex-mono': 'IBM Plex Mono',
+                'inconsolata': 'Inconsolata',
+                'jetbrains-mono': 'JetBrains Mono',
+                'noto-sans-mono': 'Noto Sans Mono',
+                'roboto-mono': 'Roboto Mono',
+                'source-code-pro': 'Source Code Pro',
+                'space-mono': 'Space Mono',
+                'ubuntu-mono': 'Ubuntu Mono'
+            };
+            
+            return fontMap[fontValue] || fontValue.split('-').map(word => 
+                word.charAt(0).toUpperCase() + word.slice(1)
+            ).join(' ');
+        }
+    </script>
 }

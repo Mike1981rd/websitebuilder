@@ -57,3 +57,24 @@
 8. **Botones**: Solo un set al final, Guardar usa var(--primary)
 9. **Requeridos**: `<span class="required-asterisk">*</span>`
 10. **Traducciones**: Agregar en _MaterializeExactLayout translations object
+
+## Website Builder - Implementación Correcta
+
+### Sistema de Traducciones
+1. **Variables**: Usar `let currentLanguage` (no const) en website-builder.js
+2. **Estructura**: Objeto `translations` con keys es/en, cada vista necesita sus traducciones
+3. **HTML**: Agregar `data-i18n="key"` a elementos traducibles
+4. **Aplicar**: Llamar `applyTranslations()` después de renderizar vistas dinámicas
+5. **Eventos**: Escuchar `languageChanged` del layout principal y re-renderizar si es necesario
+
+### CSS - Orden Correcto
+1. **Ubicación**: Estilos específicos en `/wwwroot/css/website-builder.css`
+2. **Evitar**: NO poner CSS inline en JS - Materialize puede sobrescribir
+3. **Especificidad**: Usar `!important` solo si Materialize interfiere
+4. **Clases Shopify**: Prefijo `shopify-` para componentes específicos (shopify-slider, shopify-select)
+
+### Renderizado de Vistas Dinámicas
+1. **Función**: `switchSidebarView(viewName, data)` controla qué mostrar
+2. **Render**: Cada vista tiene su función render (renderBlockListView, renderThemeSettingsView)
+3. **Post-Render**: Siempre `setTimeout(applyTranslations, 0)` después de innerHTML
+4. **Eventos**: Attachar event listeners específicos después de renderizar

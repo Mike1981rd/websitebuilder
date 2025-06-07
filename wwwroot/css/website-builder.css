@@ -1263,6 +1263,458 @@
     color: #8c9196;
 }
 
+/* Typography controls */
+.section-info {
+    font-size: 13px;
+    color: #6d7175;
+    line-height: 1.5;
+    margin-bottom: 8px;
+}
+
+.dark-mode .section-info {
+    color: #8c9196;
+}
+
+.learn-more-link {
+    font-size: 13px;
+    color: #2c6ecb;
+    text-decoration: none;
+    display: inline-block;
+    margin-bottom: 20px;
+}
+
+.learn-more-link:hover {
+    text-decoration: underline;
+}
+
+.dark-mode .learn-more-link {
+    color: #4d9ef6;
+}
+
+.subsection-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #202223;
+    margin-bottom: 12px;
+}
+
+.dark-mode .subsection-title {
+    color: #e3e3e3;
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    user-select: none;
+    position: relative;
+}
+
+.shopify-checkbox {
+    margin-right: 8px;
+    cursor: pointer;
+}
+
+/* Color schemes */
+.scheme-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+}
+
+.scheme-tab {
+    padding: 8px 16px;
+    border: 1px solid #c9cccf;
+    background: #ffffff;
+    color: #202223;
+    cursor: pointer;
+    border-radius: 6px;
+    font-size: 14px;
+    transition: all 0.1s ease;
+}
+
+.dark-mode .scheme-tab {
+    background: #303030;
+    border-color: #404040;
+    color: #e3e3e3;
+}
+
+.scheme-tab:hover {
+    background: #f7f7f7;
+}
+
+.dark-mode .scheme-tab:hover {
+    background: #404040;
+}
+
+.scheme-tab.active {
+    background: #202223;
+    color: #ffffff;
+    border-color: #202223;
+}
+
+.dark-mode .scheme-tab.active {
+    background: #e3e3e3;
+    color: #202223;
+    border-color: #e3e3e3;
+}
+
+.color-picker-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.color-picker {
+    width: 40px;
+    height: 40px;
+    border: 1px solid #c9cccf;
+    border-radius: 6px;
+    cursor: pointer;
+    padding: 2px;
+}
+
+.dark-mode .color-picker {
+    border-color: #404040;
+}
+
+.color-input {
+    flex: 1;
+    padding: 8px 12px;
+    border: 1px solid #c9cccf;
+    border-radius: 6px;
+    font-size: 14px;
+    color: #202223;
+    background: #ffffff;
+}
+
+.dark-mode .color-input {
+    background: #303030;
+    border-color: #404040;
+    color: #e3e3e3;
+}
+
+.shopify-input {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #c9cccf;
+    border-radius: 6px;
+    font-size: 14px;
+    color: #202223;
+    background: #ffffff;
+}
+
+.dark-mode .shopify-input {
+    background: #303030;
+    border-color: #404040;
+    color: #e3e3e3;
+}
+
+.shopify-button {
+    padding: 8px 16px;
+    background: #ffffff;
+    border: 1px solid #c9cccf;
+    border-radius: 6px;
+    font-size: 14px;
+    color: #202223;
+    cursor: pointer;
+    transition: all 0.1s ease;
+}
+
+.dark-mode .shopify-button {
+    background: #303030;
+    border-color: #404040;
+    color: #e3e3e3;
+}
+
+.shopify-button:hover {
+    background: #f7f7f7;
+}
+
+.dark-mode .shopify-button:hover {
+    background: #404040;
+}
+
+.image-upload-container {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.image-preview {
+    width: 100px;
+    height: 100px;
+    border: 1px solid #c9cccf;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f7f7f7;
+}
+
+.dark-mode .image-preview {
+    border-color: #404040;
+    background: #303030;
+}
+
+.no-image-text {
+    font-size: 12px;
+    color: #6d7175;
+    text-align: center;
+    padding: 8px;
+}
+
+.dark-mode .no-image-text {
+    color: #8c9196;
+}
+
+/* Shopify section content */
+.shopify-section-content {
+    background-color: #ffffff !important;
+    padding: 20px !important;
+}
+
+.dark-mode .shopify-section-content {
+    background-color: #202223 !important;
+}
+
+/* Shopify Toggle Switch */
+.shopify-toggle {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.toggle-slider {
+    position: relative;
+    display: inline-block;
+    width: 36px;
+    height: 20px;
+    background-color: #c9cccf;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    margin-left: auto;
+}
+
+.dark-mode .toggle-slider {
+    background-color: #616161;
+}
+
+.toggle-slider:after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 16px;
+    height: 16px;
+    background-color: #ffffff;
+    border-radius: 50%;
+    transition: transform 0.2s;
+}
+
+.shopify-toggle:checked + .toggle-slider {
+    background-color: #008060;
+}
+
+.dark-mode .shopify-toggle:checked + .toggle-slider {
+    background-color: #00a878;
+}
+
+.shopify-toggle:checked + .toggle-slider:after {
+    transform: translateX(16px);
+}
+
+/* Typography specific styles */
+.typography-subsection {
+    margin-bottom: 16px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #e3e3e3;
+}
+
+.dark-mode .typography-subsection {
+    border-bottom-color: #404040;
+}
+
+.typography-subsection:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+
+/* Font selector with search */
+.font-select-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #ffffff;
+    border: 1px solid #c9cccf;
+    border-radius: 4px;
+    padding: 0 12px;
+}
+
+.dark-mode .font-select-wrapper {
+    background: #303030;
+    border-color: #616161;
+}
+
+.font-search-input {
+    flex: 1;
+    border: none;
+    background: none;
+    padding: 8px 0;
+    font-size: 13px;
+    color: #202223;
+    outline: none;
+}
+
+.dark-mode .font-search-input {
+    color: #e3e3e3;
+}
+
+.font-preview-text {
+    font-size: 16px;
+    color: #6d7175;
+    padding: 4px 8px;
+    border-left: 1px solid #e3e3e3;
+}
+
+.dark-mode .font-preview-text {
+    color: #8c9196;
+    border-left-color: #404040;
+}
+
+.font-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    max-height: 400px;
+    overflow-y: auto;
+    background: #ffffff;
+    border: 1px solid #c9cccf;
+    border-radius: 4px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    z-index: 9999;
+    margin-top: 4px;
+}
+
+.dark-mode .font-dropdown {
+    background: #303030;
+    border-color: #616161;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+}
+
+.font-dropdown-header {
+    padding: 12px 16px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #6d7175;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    background: #f7f7f7;
+    border-bottom: 1px solid #e3e3e3;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+}
+
+.dark-mode .font-dropdown-header {
+    color: #8c9196;
+    background: #282828;
+    border-bottom-color: #404040;
+}
+
+.font-category {
+    padding: 8px 16px 4px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #6d7175;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    background: #f7f7f7;
+    border-bottom: 1px solid #e3e3e3;
+    position: sticky;
+    top: 44px;
+}
+
+.dark-mode .font-category {
+    color: #8c9196;
+    background: #282828;
+    border-bottom-color: #404040;
+}
+
+.font-item {
+    padding: 10px 16px;
+    font-size: 14px;
+    color: #202223;
+    cursor: pointer;
+    transition: all 0.1s ease;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
+}
+
+.dark-mode .font-item {
+    color: #e3e3e3;
+}
+
+.font-item:hover {
+    background-color: #f6f6f7;
+}
+
+.dark-mode .font-item:hover {
+    background-color: rgba(255,255,255,0.04);
+}
+
+.font-item.selected {
+    background-color: #f0f6ff;
+}
+
+.dark-mode .font-item.selected {
+    background-color: rgba(77, 158, 246, 0.1);
+}
+
+.font-name {
+    flex: 1;
+}
+
+.font-check {
+    font-size: 18px;
+    color: #008060;
+}
+
+.dark-mode .font-check {
+    color: #00a878;
+}
+
+.font-no-results {
+    padding: 24px 16px;
+    text-align: center;
+    font-size: 13px;
+    color: #6d7175;
+}
+
+.dark-mode .font-no-results {
+    color: #8c9196;
+}
+
+/* Focus state for font wrapper */
+.font-select-wrapper:focus-within {
+    border-color: #005bd3;
+    box-shadow: 0 0 0 1px #005bd3;
+}
+
+.dark-mode .font-select-wrapper:focus-within {
+    border-color: #4d9ef6;
+    box-shadow: 0 0 0 1px #4d9ef6;
+}
+
+
 /* Responsive */
 @media screen and (max-width: 992px) {
     #editor-sidebar-panel {
