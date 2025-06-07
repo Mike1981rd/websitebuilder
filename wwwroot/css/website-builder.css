@@ -1316,48 +1316,156 @@
     cursor: pointer;
 }
 
-/* Color schemes */
-.scheme-tabs {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 20px;
+/* Color schemes - Shopify Style */
+.color-scheme-selector {
+    margin-bottom: 24px;
 }
 
-.scheme-tab {
-    padding: 8px 16px;
-    border: 1px solid #c9cccf;
-    background: #ffffff;
+.color-scheme-selector label {
+    display: block;
+    font-size: 13px;
+    font-weight: 400;
     color: #202223;
-    cursor: pointer;
-    border-radius: 6px;
-    font-size: 14px;
-    transition: all 0.1s ease;
+    margin-bottom: 8px;
 }
 
-.dark-mode .scheme-tab {
-    background: #303030;
-    border-color: #404040;
+.dark-mode .color-scheme-selector label {
     color: #e3e3e3;
 }
 
-.scheme-tab:hover {
-    background: #f7f7f7;
+.color-scheme-dropdown {
+    width: 100%;
+    margin-bottom: 12px;
 }
 
-.dark-mode .scheme-tab:hover {
-    background: #404040;
+.color-scheme-learn {
+    font-size: 13px;
+    display: inline-block;
 }
 
-.scheme-tab.active {
-    background: #202223;
-    color: #ffffff;
-    border-color: #202223;
+.color-section {
+    margin-bottom: 32px;
 }
 
-.dark-mode .scheme-tab.active {
-    background: #e3e3e3;
+.color-section-title {
+    font-size: 14px;
+    font-weight: 600;
     color: #202223;
-    border-color: #e3e3e3;
+    margin: 0 0 16px 0;
+}
+
+.dark-mode .color-section-title {
+    color: #e3e3e3;
+}
+
+.color-field {
+    margin-bottom: 12px;
+}
+
+.color-field label {
+    display: block;
+    font-size: 13px;
+    font-weight: 400;
+    color: #202223;
+    margin-bottom: 8px;
+}
+
+.dark-mode .color-field label {
+    color: #e3e3e3;
+}
+
+.shopify-color-input-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    position: relative;
+}
+
+.shopify-color-picker {
+    width: 40px;
+    height: 40px;
+    border: 1px solid #c9cccf;
+    border-radius: 50%;
+    cursor: pointer;
+    padding: 3px;
+    background-clip: content-box;
+    background-color: #ffffff;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+}
+
+.dark-mode .shopify-color-picker {
+    border-color: #616161;
+}
+
+.shopify-color-picker::-webkit-color-swatch-wrapper {
+    padding: 0;
+    border-radius: 50%;
+}
+
+.shopify-color-picker::-webkit-color-swatch {
+    border: none;
+    border-radius: 50%;
+}
+
+.shopify-color-picker::-moz-color-swatch {
+    border: none;
+    border-radius: 50%;
+}
+
+.shopify-color-text {
+    flex: 1;
+    padding: 8px 40px 8px 12px;
+    border: 1px solid #c9cccf;
+    border-left: none;
+    border-radius: 0 4px 4px 0;
+    font-size: 13px;
+    color: #202223;
+    background: #ffffff;
+    text-transform: uppercase;
+}
+
+.dark-mode .shopify-color-text {
+    background: #303030;
+    border-color: #616161;
+    color: #e3e3e3;
+}
+
+.shopify-color-text:focus {
+    outline: none;
+    border-color: #005bd3;
+}
+
+.dark-mode .shopify-color-text:focus {
+    border-color: #4d9ef6;
+}
+
+.shopify-color-copy {
+    position: absolute;
+    right: 4px;
+    background: none;
+    border: none;
+    padding: 8px;
+    cursor: pointer;
+    color: #6d7175;
+    transition: color 0.1s ease;
+}
+
+.shopify-color-copy:hover {
+    color: #202223;
+}
+
+.dark-mode .shopify-color-copy {
+    color: #8c9196;
+}
+
+.dark-mode .shopify-color-copy:hover {
+    color: #e3e3e3;
+}
+
+.shopify-color-copy i {
+    font-size: 16px;
 }
 
 .color-picker-container {

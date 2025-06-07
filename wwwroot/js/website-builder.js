@@ -85,15 +85,21 @@ $(document).ready(function() {
             'typography.letterSpacing': 'Espaciado entre letras',
             // Color Schemes translations  
             'colorSchemes.title': 'Esquemas de color',
-            'colorSchemes.scheme': 'Esquema',
+            'colorSchemes.defaultColorScheme': 'Esquema de color predeterminado',
+            'colorSchemes.learnAbout': 'Aprende sobre esquemas de color',
             'colorSchemes.primary': 'Primario',
             'colorSchemes.secondary': 'Secundario',
-            'colorSchemes.background': 'Fondo',
-            'colorSchemes.backgroundGradient': 'Degradado de fondo',
+            'colorSchemes.contrasting': 'Contrastante',
             'colorSchemes.text': 'Texto',
+            'colorSchemes.background': 'Fondo',
+            'colorSchemes.foreground': 'Primer plano',
+            'colorSchemes.border': 'Borde',
+            'colorSchemes.solidButton': 'Botón sólido',
             'colorSchemes.solidButtonText': 'Texto de botón sólido',
             'colorSchemes.outlineButton': 'Botón de contorno',
-            'colorSchemes.shadow': 'Sombra',
+            'colorSchemes.outlineButtonText': 'Texto de botón de contorno',
+            'colorSchemes.imageOverlay': 'Superposición de imagen',
+            'colorSchemes.configuration': 'Configuración del esquema de color',
             // Product Cards translations
             'productCards.title': 'Tarjetas de producto',
             'productCards.style': 'Estilo',
@@ -246,15 +252,21 @@ $(document).ready(function() {
             'typography.letterSpacing': 'Letter spacing',
             // Color Schemes translations  
             'colorSchemes.title': 'Color schemes',
-            'colorSchemes.scheme': 'Scheme',
+            'colorSchemes.defaultColorScheme': 'Default color scheme',
+            'colorSchemes.learnAbout': 'Learn about color schemes',
             'colorSchemes.primary': 'Primary',
             'colorSchemes.secondary': 'Secondary',
-            'colorSchemes.background': 'Background',
-            'colorSchemes.backgroundGradient': 'Background gradient',
+            'colorSchemes.contrasting': 'Contrasting',
             'colorSchemes.text': 'Text',
+            'colorSchemes.background': 'Background',
+            'colorSchemes.foreground': 'Foreground',
+            'colorSchemes.border': 'Border',
+            'colorSchemes.solidButton': 'Solid button',
             'colorSchemes.solidButtonText': 'Solid button text',
             'colorSchemes.outlineButton': 'Outline button',
-            'colorSchemes.shadow': 'Shadow',
+            'colorSchemes.outlineButtonText': 'Outline button text',
+            'colorSchemes.imageOverlay': 'Image overlay',
+            'colorSchemes.configuration': 'Color Scheme Configuration',
             // Product Cards translations
             'productCards.title': 'Product cards',
             'productCards.style': 'Style',
@@ -810,69 +822,444 @@ $(document).ready(function() {
                     </button>
                     <div class="theme-section-content shopify-section-content" style="display: none;">
                         <div class="color-schemes-controls">
-                            <div class="scheme-tabs">
-                                <button class="scheme-tab active">Scheme 1</button>
-                                <button class="scheme-tab">Scheme 2</button>
+                            <!-- Color Scheme Selector -->
+                            <div class="color-scheme-selector">
+                                <label data-i18n="colorSchemes.defaultColorScheme">Default color scheme</label>
+                                <select class="shopify-select color-scheme-dropdown" id="colorSchemeSelect">
+                                    <option value="scheme1">Scheme 1</option>
+                                    <option value="scheme2">Scheme 2</option>
+                                    <option value="scheme3">Scheme 3</option>
+                                    <option value="scheme4">Scheme 4</option>
+                                    <option value="scheme5">Scheme 5</option>
+                                </select>
+                                <a href="#" class="learn-more-link color-scheme-learn" data-i18n="colorSchemes.learnAbout">Learn about color schemes</a>
                             </div>
                             
-                            <div class="settings-field">
-                                <label data-i18n="colorSchemes.primary">Primary</label>
-                                <div class="color-picker-container">
-                                    <input type="color" value="#000000" class="color-picker">
-                                    <input type="text" value="#000000" class="color-input">
+                            <!-- Color Scheme Settings -->
+                            <div class="color-scheme-settings" data-scheme="scheme1">
+                                    
+                                    <div class="color-field">
+                                        <label data-i18n="colorSchemes.text">Text</label>
+                                        <div class="shopify-color-input-wrapper">
+                                            <input type="color" value="#FFFFFF" class="shopify-color-picker" data-field="primary-text">
+                                            <input type="text" value="#FFFFFF" class="shopify-color-text" data-field="primary-text">
+                                            <button class="shopify-color-copy" data-field="primary-text">
+                                                <i class="material-icons">content_copy</i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="color-field">
+                                        <label data-i18n="colorSchemes.background">Background</label>
+                                        <div class="shopify-color-input-wrapper">
+                                            <input type="color" value="#020711" class="shopify-color-picker" data-field="primary-background">
+                                            <input type="text" value="#020711" class="shopify-color-text" data-field="primary-background">
+                                            <button class="shopify-color-copy" data-field="primary-background">
+                                                <i class="material-icons">content_copy</i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="color-field">
+                                        <label data-i18n="colorSchemes.foreground">Foreground</label>
+                                        <div class="shopify-color-input-wrapper">
+                                            <input type="color" value="#020711" class="shopify-color-picker" data-field="primary-foreground">
+                                            <input type="text" value="#020711" class="shopify-color-text" data-field="primary-foreground">
+                                            <button class="shopify-color-copy" data-field="primary-foreground">
+                                                <i class="material-icons">content_copy</i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="color-field">
+                                        <label data-i18n="colorSchemes.border">Border</label>
+                                        <div class="shopify-color-input-wrapper">
+                                            <input type="color" value="#000000" class="shopify-color-picker" data-field="primary-border">
+                                            <input type="text" value="#000000" class="shopify-color-text" data-field="primary-border">
+                                            <button class="shopify-color-copy" data-field="primary-border">
+                                                <i class="material-icons">content_copy</i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="color-field">
+                                        <label data-i18n="colorSchemes.solidButton">Solid button</label>
+                                        <div class="shopify-color-input-wrapper">
+                                            <input type="color" value="#2F3349" class="shopify-color-picker" data-field="primary-solid-button">
+                                            <input type="text" value="#2F3349" class="shopify-color-text" data-field="primary-solid-button">
+                                            <button class="shopify-color-copy" data-field="primary-solid-button">
+                                                <i class="material-icons">content_copy</i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="color-field">
+                                        <label data-i18n="colorSchemes.solidButtonText">Solid button text</label>
+                                        <div class="shopify-color-input-wrapper">
+                                            <input type="color" value="#FFFFFF" class="shopify-color-picker" data-field="primary-solid-button-text">
+                                            <input type="text" value="#FFFFFF" class="shopify-color-text" data-field="primary-solid-button-text">
+                                            <button class="shopify-color-copy" data-field="primary-solid-button-text">
+                                                <i class="material-icons">content_copy</i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="color-field">
+                                        <label data-i18n="colorSchemes.outlineButton">Outline button</label>
+                                        <div class="shopify-color-input-wrapper">
+                                            <input type="color" value="#473C63" class="shopify-color-picker" data-field="primary-outline-button">
+                                            <input type="text" value="#473C63" class="shopify-color-text" data-field="primary-outline-button">
+                                            <button class="shopify-color-copy" data-field="primary-outline-button">
+                                                <i class="material-icons">content_copy</i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="color-field">
+                                        <label data-i18n="colorSchemes.outlineButtonText">Outline button text</label>
+                                        <div class="shopify-color-input-wrapper">
+                                            <input type="color" value="#FFFFFF" class="shopify-color-picker" data-field="primary-outline-button-text">
+                                            <input type="text" value="#FFFFFF" class="shopify-color-text" data-field="primary-outline-button-text">
+                                            <button class="shopify-color-copy" data-field="primary-outline-button-text">
+                                                <i class="material-icons">content_copy</i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="color-field">
+                                        <label data-i18n="colorSchemes.imageOverlay">Image overlay</label>
+                                        <div class="shopify-color-input-wrapper">
+                                            <input type="color" value="#000000" class="shopify-color-picker" data-field="primary-image-overlay">
+                                            <input type="text" value="#000000" class="shopify-color-text" data-field="primary-image-overlay">
+                                            <button class="shopify-color-copy" data-field="primary-image-overlay">
+                                                <i class="material-icons">content_copy</i>
+                                            </button>
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
-                            
-                            <div class="settings-field">
-                                <label data-i18n="colorSchemes.secondary">Secondary</label>
-                                <div class="color-picker-container">
-                                    <input type="color" value="#F4F4F4" class="color-picker">
-                                    <input type="text" value="#F4F4F4" class="color-input">
+                                
+                                <!-- Secondary Section -->
+                                <div class="color-section">
+                                    <h4 class="color-section-title" data-i18n="colorSchemes.secondary">Secondary</h4>
+                                    
+                                    <div class="color-field">
+                                        <label data-i18n="colorSchemes.text">Text</label>
+                                        <div class="shopify-color-input-wrapper">
+                                            <input type="color" value="#000000" class="shopify-color-picker" data-field="secondary-text">
+                                            <input type="text" value="#000000" class="shopify-color-text" data-field="secondary-text">
+                                            <button class="shopify-color-copy" data-field="secondary-text">
+                                                <i class="material-icons">content_copy</i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="color-field">
+                                        <label data-i18n="colorSchemes.background">Background</label>
+                                        <div class="shopify-color-input-wrapper">
+                                            <input type="color" value="#FFFFFF" class="shopify-color-picker" data-field="secondary-background">
+                                            <input type="text" value="#FFFFFF" class="shopify-color-text" data-field="secondary-background">
+                                            <button class="shopify-color-copy" data-field="secondary-background">
+                                                <i class="material-icons">content_copy</i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="color-field">
+                                        <label data-i18n="colorSchemes.foreground">Foreground</label>
+                                        <div class="shopify-color-input-wrapper">
+                                            <input type="color" value="#FDF48B" class="shopify-color-picker" data-field="secondary-foreground">
+                                            <input type="text" value="#FDF48B" class="shopify-color-text" data-field="secondary-foreground">
+                                            <button class="shopify-color-copy" data-field="secondary-foreground">
+                                                <i class="material-icons">content_copy</i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="color-field">
+                                        <label data-i18n="colorSchemes.border">Border</label>
+                                        <div class="shopify-color-input-wrapper">
+                                            <input type="color" value="#FFFFFF" class="shopify-color-picker" data-field="secondary-border">
+                                            <input type="text" value="#FFFFFF" class="shopify-color-text" data-field="secondary-border">
+                                            <button class="shopify-color-copy" data-field="secondary-border">
+                                                <i class="material-icons">content_copy</i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="color-field">
+                                        <label data-i18n="colorSchemes.solidButton">Solid button</label>
+                                        <div class="shopify-color-input-wrapper">
+                                            <input type="color" value="#2F3349" class="shopify-color-picker" data-field="secondary-solid-button">
+                                            <input type="text" value="#2F3349" class="shopify-color-text" data-field="secondary-solid-button">
+                                            <button class="shopify-color-copy" data-field="secondary-solid-button">
+                                                <i class="material-icons">content_copy</i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="color-field">
+                                        <label data-i18n="colorSchemes.solidButtonText">Solid button text</label>
+                                        <div class="shopify-color-input-wrapper">
+                                            <input type="color" value="#FFFFFF" class="shopify-color-picker" data-field="secondary-solid-button-text">
+                                            <input type="text" value="#FFFFFF" class="shopify-color-text" data-field="secondary-solid-button-text">
+                                            <button class="shopify-color-copy" data-field="secondary-solid-button-text">
+                                                <i class="material-icons">content_copy</i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="color-field">
+                                        <label data-i18n="colorSchemes.outlineButton">Outline button</label>
+                                        <div class="shopify-color-input-wrapper">
+                                            <input type="color" value="#000000" class="shopify-color-picker" data-field="secondary-outline-button">
+                                            <input type="text" value="#000000" class="shopify-color-text" data-field="secondary-outline-button">
+                                            <button class="shopify-color-copy" data-field="secondary-outline-button">
+                                                <i class="material-icons">content_copy</i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="color-field">
+                                        <label data-i18n="colorSchemes.outlineButtonText">Outline button text</label>
+                                        <div class="shopify-color-input-wrapper">
+                                            <input type="color" value="#000000" class="shopify-color-picker" data-field="secondary-outline-button-text">
+                                            <input type="text" value="#000000" class="shopify-color-text" data-field="secondary-outline-button-text">
+                                            <button class="shopify-color-copy" data-field="secondary-outline-button-text">
+                                                <i class="material-icons">content_copy</i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="color-field">
+                                        <label data-i18n="colorSchemes.imageOverlay">Image overlay</label>
+                                        <div class="shopify-color-input-wrapper">
+                                            <input type="color" value="#3B3933" class="shopify-color-picker" data-field="secondary-image-overlay">
+                                            <input type="text" value="#3B3933" class="shopify-color-text" data-field="secondary-image-overlay">
+                                            <button class="shopify-color-copy" data-field="secondary-image-overlay">
+                                                <i class="material-icons">content_copy</i>
+                                            </button>
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
-                            
-                            <div class="settings-field">
-                                <label data-i18n="colorSchemes.background">Background</label>
-                                <div class="color-picker-container">
-                                    <input type="color" value="#FFFFFF" class="color-picker">
-                                    <input type="text" value="#FFFFFF" class="color-input">
+                                
+                                <!-- Contrasting Section -->
+                                <div class="color-section">
+                                    <h4 class="color-section-title" data-i18n="colorSchemes.contrasting">Contrasting</h4>
+                                    
+                                    <div class="color-field">
+                                        <label data-i18n="colorSchemes.text">Text</label>
+                                        <div class="shopify-color-input-wrapper">
+                                            <input type="color" value="#FFFFFF" class="shopify-color-picker" data-field="contrasting-text">
+                                            <input type="text" value="#FFFFFF" class="shopify-color-text" data-field="contrasting-text">
+                                            <button class="shopify-color-copy" data-field="contrasting-text">
+                                                <i class="material-icons">content_copy</i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="color-field">
+                                        <label data-i18n="colorSchemes.background">Background</label>
+                                        <div class="shopify-color-input-wrapper">
+                                            <input type="color" value="#000000" class="shopify-color-picker" data-field="contrasting-background">
+                                            <input type="text" value="#000000" class="shopify-color-text" data-field="contrasting-background">
+                                            <button class="shopify-color-copy" data-field="contrasting-background">
+                                                <i class="material-icons">content_copy</i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="color-field">
+                                        <label data-i18n="colorSchemes.foreground">Foreground</label>
+                                        <div class="shopify-color-input-wrapper">
+                                            <input type="color" value="#000000" class="shopify-color-picker" data-field="contrasting-foreground">
+                                            <input type="text" value="#000000" class="shopify-color-text" data-field="contrasting-foreground">
+                                            <button class="shopify-color-copy" data-field="contrasting-foreground">
+                                                <i class="material-icons">content_copy</i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="color-field">
+                                        <label data-i18n="colorSchemes.border">Border</label>
+                                        <div class="shopify-color-input-wrapper">
+                                            <input type="color" value="#FFFFFF" class="shopify-color-picker" data-field="contrasting-border">
+                                            <input type="text" value="#FFFFFF" class="shopify-color-text" data-field="contrasting-border">
+                                            <button class="shopify-color-copy" data-field="contrasting-border">
+                                                <i class="material-icons">content_copy</i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="color-field">
+                                        <label data-i18n="colorSchemes.solidButton">Solid button</label>
+                                        <div class="shopify-color-input-wrapper">
+                                            <input type="color" value="#F0FF2E" class="shopify-color-picker" data-field="contrasting-solid-button">
+                                            <input type="text" value="#F0FF2E" class="shopify-color-text" data-field="contrasting-solid-button">
+                                            <button class="shopify-color-copy" data-field="contrasting-solid-button">
+                                                <i class="material-icons">content_copy</i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="color-field">
+                                        <label data-i18n="colorSchemes.solidButtonText">Solid button text</label>
+                                        <div class="shopify-color-input-wrapper">
+                                            <input type="color" value="#FFFFFF" class="shopify-color-picker" data-field="contrasting-solid-button-text">
+                                            <input type="text" value="#FFFFFF" class="shopify-color-text" data-field="contrasting-solid-button-text">
+                                            <button class="shopify-color-copy" data-field="contrasting-solid-button-text">
+                                                <i class="material-icons">content_copy</i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="color-field">
+                                        <label data-i18n="colorSchemes.outlineButton">Outline button</label>
+                                        <div class="shopify-color-input-wrapper">
+                                            <input type="color" value="#F0FF2E" class="shopify-color-picker" data-field="contrasting-outline-button">
+                                            <input type="text" value="#F0FF2E" class="shopify-color-text" data-field="contrasting-outline-button">
+                                            <button class="shopify-color-copy" data-field="contrasting-outline-button">
+                                                <i class="material-icons">content_copy</i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="color-field">
+                                        <label data-i18n="colorSchemes.outlineButtonText">Outline button text</label>
+                                        <div class="shopify-color-input-wrapper">
+                                            <input type="color" value="#F0FF2E" class="shopify-color-picker" data-field="contrasting-outline-button-text">
+                                            <input type="text" value="#F0FF2E" class="shopify-color-text" data-field="contrasting-outline-button-text">
+                                            <button class="shopify-color-copy" data-field="contrasting-outline-button-text">
+                                                <i class="material-icons">content_copy</i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="color-field">
+                                        <label data-i18n="colorSchemes.imageOverlay">Image overlay</label>
+                                        <div class="shopify-color-input-wrapper">
+                                            <input type="color" value="#222222" class="shopify-color-picker" data-field="contrasting-image-overlay">
+                                            <input type="text" value="#222222" class="shopify-color-text" data-field="contrasting-image-overlay">
+                                            <button class="shopify-color-copy" data-field="contrasting-image-overlay">
+                                                <i class="material-icons">content_copy</i>
+                                            </button>
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
-                            
-                            <div class="settings-field">
-                                <label data-i18n="colorSchemes.backgroundGradient">Background gradient</label>
-                                <input type="text" class="shopify-input" placeholder="linear-gradient(...)">
-                            </div>
-                            
-                            <div class="settings-field">
-                                <label data-i18n="colorSchemes.text">Text</label>
-                                <div class="color-picker-container">
-                                    <input type="color" value="#121212" class="color-picker">
-                                    <input type="text" value="#121212" class="color-input">
-                                </div>
-                            </div>
-                            
-                            <div class="settings-field">
-                                <label data-i18n="colorSchemes.solidButtonText">Solid button text</label>
-                                <div class="color-picker-container">
-                                    <input type="color" value="#FFFFFF" class="color-picker">
-                                    <input type="text" value="#FFFFFF" class="color-input">
-                                </div>
-                            </div>
-                            
-                            <div class="settings-field">
-                                <label data-i18n="colorSchemes.outlineButton">Outline button</label>
-                                <div class="color-picker-container">
-                                    <input type="color" value="#121212" class="color-picker">
-                                    <input type="text" value="#121212" class="color-input">
-                                </div>
-                            </div>
-                            
-                            <div class="settings-field">
-                                <label data-i18n="colorSchemes.shadow">Shadow</label>
-                                <div class="color-picker-container">
-                                    <input type="color" value="#121212" class="color-picker">
-                                    <input type="text" value="#121212" class="color-input">
+                                
+                                <!-- Additional Color Scheme Configuration -->
+                                <div class="color-section" style="margin-top: 40px;">
+                                    <h4 class="color-section-title" data-i18n="colorSchemes.configuration">Color Scheme Configuration</h4>
+                                    
+                                    <!-- Scheme Selector -->
+                                    <div class="color-field">
+                                        <label data-i18n="colorSchemes.selectScheme">Select Scheme to Configure</label>
+                                        <select class="shopify-select" id="schemeConfigSelect" style="width: 100%; margin-bottom: 20px;">
+                                            <option value="scheme1">Scheme 1</option>
+                                            <option value="scheme2">Scheme 2</option>
+                                            <option value="scheme3">Scheme 3</option>
+                                            <option value="scheme4">Scheme 4</option>
+                                            <option value="scheme5">Scheme 5</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <div class="color-field">
+                                        <label data-i18n="colorSchemes.text">Text</label>
+                                        <div class="shopify-color-input-wrapper">
+                                            <input type="color" value="#FFFFFF" class="shopify-color-picker" data-field="scheme-text">
+                                            <input type="text" value="#FFFFFF" class="shopify-color-text" data-field="scheme-text">
+                                            <button class="shopify-color-copy" data-field="scheme-text">
+                                                <i class="material-icons">content_copy</i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="color-field">
+                                        <label data-i18n="colorSchemes.background">Background</label>
+                                        <div class="shopify-color-input-wrapper">
+                                            <input type="color" value="#473C63" class="shopify-color-picker" data-field="scheme-background">
+                                            <input type="text" value="#473C63" class="shopify-color-text" data-field="scheme-background">
+                                            <button class="shopify-color-copy" data-field="scheme-background">
+                                                <i class="material-icons">content_copy</i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="color-field">
+                                        <label data-i18n="colorSchemes.foreground">Foreground</label>
+                                        <div class="shopify-color-input-wrapper">
+                                            <input type="color" value="#FFFFFF" class="shopify-color-picker" data-field="scheme-foreground">
+                                            <input type="text" value="#FFFFFF" class="shopify-color-text" data-field="scheme-foreground">
+                                            <button class="shopify-color-copy" data-field="scheme-foreground">
+                                                <i class="material-icons">content_copy</i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="color-field">
+                                        <label data-i18n="colorSchemes.border">Border</label>
+                                        <div class="shopify-color-input-wrapper">
+                                            <input type="color" value="#FFFFFF" class="shopify-color-picker" data-field="scheme-border">
+                                            <input type="text" value="#FFFFFF" class="shopify-color-text" data-field="scheme-border">
+                                            <button class="shopify-color-copy" data-field="scheme-border">
+                                                <i class="material-icons">content_copy</i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="color-field">
+                                        <label data-i18n="colorSchemes.solidButton">Solid button</label>
+                                        <div class="shopify-color-input-wrapper">
+                                            <input type="color" value="#EA7A84" class="shopify-color-picker" data-field="scheme-solid-button">
+                                            <input type="text" value="#EA7A84" class="shopify-color-text" data-field="scheme-solid-button">
+                                            <button class="shopify-color-copy" data-field="scheme-solid-button">
+                                                <i class="material-icons">content_copy</i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="color-field">
+                                        <label data-i18n="colorSchemes.solidButtonText">Solid button text</label>
+                                        <div class="shopify-color-input-wrapper">
+                                            <input type="color" value="#FFFFFF" class="shopify-color-picker" data-field="scheme-solid-button-text">
+                                            <input type="text" value="#FFFFFF" class="shopify-color-text" data-field="scheme-solid-button-text">
+                                            <button class="shopify-color-copy" data-field="scheme-solid-button-text">
+                                                <i class="material-icons">content_copy</i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="color-field">
+                                        <label data-i18n="colorSchemes.outlineButton">Outline button</label>
+                                        <div class="shopify-color-input-wrapper">
+                                            <input type="color" value="#473C63" class="shopify-color-picker" data-field="scheme-outline-button">
+                                            <input type="text" value="#473C63" class="shopify-color-text" data-field="scheme-outline-button">
+                                            <button class="shopify-color-copy" data-field="scheme-outline-button">
+                                                <i class="material-icons">content_copy</i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="color-field">
+                                        <label data-i18n="colorSchemes.outlineButtonText">Outline button text</label>
+                                        <div class="shopify-color-input-wrapper">
+                                            <input type="color" value="#FFFFFF" class="shopify-color-picker" data-field="scheme-outline-button-text">
+                                            <input type="text" value="#FFFFFF" class="shopify-color-text" data-field="scheme-outline-button-text">
+                                            <button class="shopify-color-copy" data-field="scheme-outline-button-text">
+                                                <i class="material-icons">content_copy</i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="color-field">
+                                        <label data-i18n="colorSchemes.imageOverlay">Image overlay</label>
+                                        <div class="shopify-color-input-wrapper">
+                                            <input type="color" value="#FFFFFF" class="shopify-color-picker" data-field="scheme-image-overlay">
+                                            <input type="text" value="#FFFFFF" class="shopify-color-text" data-field="scheme-image-overlay">
+                                            <button class="shopify-color-copy" data-field="scheme-image-overlay">
+                                                <i class="material-icons">content_copy</i>
+                                            </button>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -1214,6 +1601,11 @@ $(document).ready(function() {
             // Initialize font selectors when Typography section is opened
             if ($(this).data('section') === 'typography') {
                 setTimeout(initializeFontSelectors, 100);
+            }
+            
+            // Initialize color schemes when Color schemes section is opened
+            if ($(this).data('section') === 'color-schemes') {
+                setTimeout(initializeColorSchemes, 100);
             }
             
             // Apply translations to the expanded content
@@ -2348,3 +2740,366 @@ style.textContent = `
     }
 `;
 document.head.appendChild(style);
+
+    // Color Schemes Data
+    const colorSchemes = {
+        scheme1: {
+            primary: {
+                text: '#FFFFFF',
+                background: '#020711',
+                foreground: '#020711',
+                border: '#000000',
+                solidButton: '#2F3349',
+                solidButtonText: '#FFFFFF',
+                outlineButton: '#473C63',
+                outlineButtonText: '#FFFFFF',
+                imageOverlay: '#000000'
+            },
+            secondary: {
+                text: '#000000',
+                background: '#FFFFFF',
+                foreground: '#FDF48B',
+                border: '#FFFFFF',
+                solidButton: '#2F3349',
+                solidButtonText: '#FFFFFF',
+                outlineButton: '#000000',
+                outlineButtonText: '#000000',
+                imageOverlay: '#3B3933'
+            },
+            contrasting: {
+                text: '#FFFFFF',
+                background: '#000000',
+                foreground: '#000000',
+                border: '#FFFFFF',
+                solidButton: '#F0FF2E',
+                solidButtonText: '#FFFFFF',
+                outlineButton: '#F0FF2E',
+                outlineButtonText: '#F0FF2E',
+                imageOverlay: '#222222'
+            }
+        },
+        scheme2: {
+            primary: {
+                text: '#FFFFFF',
+                background: '#1A1A1A',
+                foreground: '#000000',
+                border: '#333333',
+                solidButton: '#FFFFFF',
+                solidButtonText: '#1A1A1A',
+                outlineButton: '#FFFFFF',
+                outlineButtonText: '#FFFFFF',
+                imageOverlay: '#1A1A1A'
+            },
+            secondary: {
+                text: '#1A1A1A',
+                background: '#FFFFFF',
+                foreground: '#F6F6F6',
+                border: '#E1E1E1',
+                solidButton: '#1A1A1A',
+                solidButtonText: '#FFFFFF',
+                outlineButton: '#1A1A1A',
+                outlineButtonText: '#1A1A1A',
+                imageOverlay: '#1A1A1A'
+            },
+            contrasting: {
+                text: '#FFFFFF',
+                background: '#FF6B6B',
+                foreground: '#FF5252',
+                border: '#FFFFFF',
+                solidButton: '#FFFFFF',
+                solidButtonText: '#FF6B6B',
+                outlineButton: '#FFFFFF',
+                outlineButtonText: '#FFFFFF',
+                imageOverlay: '#FF6B6B'
+            }
+        },
+        scheme3: {
+            primary: {
+                text: '#FFFFFF',
+                background: '#2A475E',
+                foreground: '#1A3A52',
+                border: '#122E42',
+                solidButton: '#FFB800',
+                solidButtonText: '#2A475E',
+                outlineButton: '#FFB800',
+                outlineButtonText: '#FFB800',
+                imageOverlay: '#2A475E'
+            },
+            secondary: {
+                text: '#2A475E',
+                background: '#FFFFFF',
+                foreground: '#F3F5F7',
+                border: '#CCCCCC',
+                solidButton: '#2A475E',
+                solidButtonText: '#FFFFFF',
+                outlineButton: '#2A475E',
+                outlineButtonText: '#2A475E',
+                imageOverlay: '#2A475E'
+            },
+            contrasting: {
+                text: '#2A475E',
+                background: '#FFB800',
+                foreground: '#FFC933',
+                border: '#2A475E',
+                solidButton: '#2A475E',
+                solidButtonText: '#FFFFFF',
+                outlineButton: '#2A475E',
+                outlineButtonText: '#2A475E',
+                imageOverlay: '#2A475E'
+            }
+        },
+        scheme4: {
+            primary: {
+                text: '#FFFFFF',
+                background: '#004145',
+                foreground: '#003135',
+                border: '#00262A',
+                solidButton: '#52DCE6',
+                solidButtonText: '#004145',
+                outlineButton: '#52DCE6',
+                outlineButtonText: '#52DCE6',
+                imageOverlay: '#004145'
+            },
+            secondary: {
+                text: '#004145',
+                background: '#FFFFFF',
+                foreground: '#F0FEFF',
+                border: '#B3E5E8',
+                solidButton: '#004145',
+                solidButtonText: '#FFFFFF',
+                outlineButton: '#004145',
+                outlineButtonText: '#004145',
+                imageOverlay: '#004145'
+            },
+            contrasting: {
+                text: '#FFFFFF',
+                background: '#FF7F50',
+                foreground: '#FF6347',
+                border: '#FFFFFF',
+                solidButton: '#FFFFFF',
+                solidButtonText: '#FF7F50',
+                outlineButton: '#FFFFFF',
+                outlineButtonText: '#FFFFFF',
+                imageOverlay: '#FF7F50'
+            }
+        },
+        scheme5: {
+            primary: {
+                text: '#FFFFFF',
+                background: '#6B5B95',
+                foreground: '#5A4A7F',
+                border: '#493969',
+                solidButton: '#FF6F61',
+                solidButtonText: '#FFFFFF',
+                outlineButton: '#FF6F61',
+                outlineButtonText: '#FF6F61',
+                imageOverlay: '#6B5B95'
+            },
+            secondary: {
+                text: '#6B5B95',
+                background: '#FFFFFF',
+                foreground: '#F5F3F9',
+                border: '#D8D0E8',
+                solidButton: '#6B5B95',
+                solidButtonText: '#FFFFFF',
+                outlineButton: '#6B5B95',
+                outlineButtonText: '#6B5B95',
+                imageOverlay: '#6B5B95'
+            },
+            contrasting: {
+                text: '#FFFFFF',
+                background: '#88D8B0',
+                foreground: '#6FC99B',
+                border: '#FFFFFF',
+                solidButton: '#6B5B95',
+                solidButtonText: '#FFFFFF',
+                outlineButton: '#6B5B95',
+                outlineButtonText: '#6B5B95',
+                imageOverlay: '#88D8B0'
+            }
+        }
+    };
+    
+    // Color Scheme Settings Configuration (Additional settings for each scheme)
+    const colorSchemeSettings = {
+        scheme1: {
+            text: '#FFFFFF',
+            background: '#473C63',
+            foreground: '#FFFFFF',
+            border: '#FFFFFF',
+            solidButton: '#EA7A84',
+            solidButtonText: '#FFFFFF',
+            outlineButton: '#473C63',
+            outlineButtonText: '#FFFFFF',
+            imageOverlay: '#FFFFFF'
+        },
+        scheme2: {
+            text: '#121212',
+            background: '#FFFFFF',
+            foreground: '#F6F6F7',
+            border: '#E1E3E5',
+            solidButton: '#121212',
+            solidButtonText: '#FFFFFF',
+            outlineButton: '#121212',
+            outlineButtonText: '#121212',
+            imageOverlay: '#121212'
+        },
+        scheme3: {
+            text: '#FFFFFF',
+            background: '#2A475E',
+            foreground: '#1A3A52',
+            border: '#122E42',
+            solidButton: '#FFB800',
+            solidButtonText: '#2A475E',
+            outlineButton: '#FFB800',
+            outlineButtonText: '#FFB800',
+            imageOverlay: '#2A475E'
+        },
+        scheme4: {
+            text: '#FFFFFF',
+            background: '#000000',
+            foreground: '#242424',
+            border: '#FFFFFF',
+            solidButton: '#FFFFFF',
+            solidButtonText: '#000000',
+            outlineButton: '#FFFFFF',
+            outlineButtonText: '#FFFFFF',
+            imageOverlay: '#000000'
+        },
+        scheme5: {
+            text: '#FFFFFF',
+            background: '#9B5925',
+            foreground: '#7C4420',
+            border: '#5D2E18',
+            solidButton: '#FFFFFF',
+            solidButtonText: '#9B5925',
+            outlineButton: '#FFFFFF',
+            outlineButtonText: '#FFFFFF',
+            imageOverlay: '#9B5925'
+        }
+    };
+
+    // Initialize Color Schemes
+    window.initializeColorSchemes = function() {
+        console.log('Initializing color schemes...');
+        
+        // Color picker and text input sync
+        $('.shopify-color-picker').on('input', function() {
+            const value = $(this).val();
+            $(this).siblings('.shopify-color-text').val(value.toUpperCase());
+            
+            // Save changes to the appropriate data structure
+            const field = $(this).data('field');
+            if (field && field.startsWith('scheme-')) {
+                saveSchemeConfigurationChange(field, value);
+            }
+        });
+        
+        $('.shopify-color-text').on('input', function() {
+            let value = $(this).val();
+            // Ensure it's a valid hex color
+            if (!value.startsWith('#')) {
+                value = '#' + value;
+            }
+            // Remove non-hex characters
+            value = value.replace(/[^#0-9A-Fa-f]/g, '');
+            // Limit to 7 characters
+            if (value.length > 7) {
+                value = value.slice(0, 7);
+            }
+            $(this).val(value.toUpperCase());
+            
+            // Update color picker if valid
+            if (/^#[0-9A-F]{6}$/i.test(value)) {
+                $(this).siblings('.shopify-color-picker').val(value);
+                
+                // Save changes to the appropriate data structure
+                const field = $(this).data('field');
+                if (field && field.startsWith('scheme-')) {
+                    saveSchemeConfigurationChange(field, value);
+                }
+            }
+        });
+        
+        // Copy button functionality
+        $('.shopify-color-copy').on('click', function(e) {
+            e.preventDefault();
+            const colorValue = $(this).siblings('.shopify-color-text').val();
+            navigator.clipboard.writeText(colorValue).then(() => {
+                // Show feedback
+                const originalIcon = $(this).find('i').text();
+                $(this).find('i').text('check');
+                setTimeout(() => {
+                    $(this).find('i').text(originalIcon);
+                }, 1000);
+            });
+        });
+        
+        // Color scheme dropdown change
+        $('#colorSchemeSelect').on('change', function() {
+            const selectedScheme = $(this).val();
+            loadColorScheme(selectedScheme);
+        });
+        
+        // Scheme configuration dropdown change
+        $('#schemeConfigSelect').on('change', function() {
+            const selectedScheme = $(this).val();
+            loadSchemeConfiguration(selectedScheme);
+        });
+        
+        // Load initial color scheme
+        loadColorScheme('scheme1');
+        // Load initial scheme configuration
+        loadSchemeConfiguration('scheme1');
+    };
+    
+    // Load color scheme data
+    function loadColorScheme(schemeName) {
+        const scheme = colorSchemes[schemeName];
+        
+        if (!scheme) return;
+        
+        // Update all color inputs for Primary, Secondary, Contrasting
+        Object.keys(scheme).forEach(section => {
+            Object.keys(scheme[section]).forEach(field => {
+                const value = scheme[section][field];
+                const fieldName = `${section}-${field.replace(/([A-Z])/g, '-$1').toLowerCase()}`;
+                
+                // Update both picker and text input
+                $(`.shopify-color-picker[data-field="${fieldName}"]`).val(value);
+                $(`.shopify-color-text[data-field="${fieldName}"]`).val(value.toUpperCase());
+            });
+        });
+    }
+    
+    // Load scheme configuration data
+    function loadSchemeConfiguration(schemeName) {
+        const schemeSettings = colorSchemeSettings[schemeName];
+        
+        if (!schemeSettings) return;
+        
+        // Update additional color scheme configuration
+        Object.keys(schemeSettings).forEach(field => {
+            const value = schemeSettings[field];
+            const fieldName = `scheme-${field.replace(/([A-Z])/g, '-$1').toLowerCase()}`;
+            
+            // Update both picker and text input
+            $(`.shopify-color-picker[data-field="${fieldName}"]`).val(value);
+            $(`.shopify-color-text[data-field="${fieldName}"]`).val(value.toUpperCase());
+        });
+        
+        console.log(`Loaded configuration for ${schemeName}:`, schemeSettings);
+    }
+    
+    // Save changes to scheme configuration
+    function saveSchemeConfigurationChange(fieldName, value) {
+        const currentScheme = $('#schemeConfigSelect').val();
+        
+        // Extract the field name (e.g., "scheme-text" -> "text")
+        const field = fieldName.replace('scheme-', '').replace(/-([a-z])/g, (match, letter) => letter.toUpperCase());
+        
+        if (colorSchemeSettings[currentScheme]) {
+            colorSchemeSettings[currentScheme][field] = value.toUpperCase();
+            console.log(`Updated ${currentScheme}.${field} to ${value}`);
+        }
+    }
