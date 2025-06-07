@@ -65,6 +65,21 @@
     </div>
 </div>
 
+@section Styles {
+    <style>
+        /* Override Materialize styles for Website Builder */
+        #editor-sidebar-panel input[type="range"] {
+            border: none !important;
+            margin: 0 !important;
+        }
+        
+        #editor-sidebar-panel select {
+            display: block !important;
+            height: auto !important;
+        }
+    </style>
+}
+
 @section Scripts {
-    <script src="~/js/website-builder.js"></script>
+    <script src="~/js/website-builder.js?v=@DateTime.Now.Ticks"></script>
 }

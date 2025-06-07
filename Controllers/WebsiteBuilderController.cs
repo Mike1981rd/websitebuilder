@@ -8,5 +8,10 @@ namespace Hotel.Controllers
         {
             return View();
         }
+
+        public IActionResult Appearance()
+        {
+            return View();
+        }
     }
 }

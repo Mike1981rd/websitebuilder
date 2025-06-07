@@ -1,0 +1,391 @@
+@{
+    ViewData["Title"] = "Appearance Settings";
+    Layout = "_MaterializeExactLayout";
+}
+
+<div class="container-fluid">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="breadcrumb-nav">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item">
+                <a href="@Url.Action("ExactIndex", "Admin")" data-i18n="breadcrumb.home">Inicio</a>
+            </li>
+            <li class="breadcrumb-item">
+                <a href="@Url.Action("Index", "WebsiteBuilder")" data-i18n="websiteBuilder.title">Constructor de Sitio Web</a>
+            </li>
+            <li class="breadcrumb-item active" aria-current="page" data-i18n="appearance.title">Configuración del tema</li>
+        </ol>
+    </nav>
+
+    <div class="card">
+        <div class="card-header">
+            <h4 data-i18n="appearance.title">Configuración del tema</h4>
+        </div>
+        <div class="card-body">
+            <form id="appearance-form">
+                <!-- Appearance Section -->
+                <div class="form-section">
+                    <h5 class="form-section-title" data-i18n="appearance.subtitle">Appearance</h5>
+                    
+                    <!-- Page Width -->
+                    <div class="form-group">
+                        <label for="pageWidth" data-i18n="appearance.pageWidth">Page width</label>
+                        <div class="slider-container">
+                            <input type="range" id="pageWidth" min="1000" max="5000" value="3000" step="100" class="slider">
+                            <div class="slider-value-container">
+                                <input type="number" id="pageWidthValue" min="1000" max="5000" value="3000" class="slider-value-input">
+                                <span class="slider-unit">px</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Side Padding Size -->
+                    <div class="form-group">
+                        <label for="sidePaddingSize" data-i18n="appearance.sidePaddingSize">Side padding size</label>
+                        <div class="slider-container">
+                            <input type="range" id="sidePaddingSize" min="10" max="100" value="34" step="1" class="slider">
+                            <div class="slider-value-container">
+                                <input type="number" id="sidePaddingSizeValue" min="10" max="100" value="34" class="slider-value-input">
+                                <span class="slider-unit">px</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Edge Rounding -->
+                    <div class="form-group">
+                        <label for="edgeRounding" data-i18n="appearance.edgeRounding">Edge rounding</label>
+                        <select id="edgeRounding" class="form-select">
+                            <option value="size0" data-i18n="appearance.edgeRoundingNone">Size 0 - None</option>
+                            <option value="size1" data-i18n="appearance.edgeRoundingXSmall">Size 1 - Extra small</option>
+                            <option value="size2" data-i18n="appearance.edgeRoundingSmall">Size 2 - Small</option>
+                            <option value="size3" data-i18n="appearance.edgeRoundingMedium">Size 3 - Medium</option>
+                            <option value="size4" data-i18n="appearance.edgeRoundingLarge">Size 4 - Large</option>
+                        </select>
+                        <small class="form-text text-muted" data-i18n="appearance.edgeRoundingDescription">
+                            Applies to cards, buttons, section corners, and other elements
+                        </small>
+                    </div>
+                </div>
+
+                <!-- Buttons -->
+                <div class="form-buttons">
+                    <a href="@Url.Action("Index", "WebsiteBuilder")" class="btn btn-secondary" data-i18n="buttons.cancel">Cancelar</a>
+                    <button type="submit" class="btn btn-primary" data-i18n="buttons.save">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Language change event listener
+        document.addEventListener('languageChanged', function(e) {
+            // Re-translate any dynamically loaded content if needed
+        });
+
+        // Slider functionality
+        const pageWidthSlider = document.getElementById('pageWidth');
+        const pageWidthValue = document.getElementById('pageWidthValue');
+        const sidePaddingSlider = document.getElementById('sidePaddingSize');
+        const sidePaddingValue = document.getElementById('sidePaddingSizeValue');
+
+        // Sync slider with input
+        pageWidthSlider.addEventListener('input', function() {
+            pageWidthValue.value = this.value;
+        });
+
+        pageWidthValue.addEventListener('input', function() {
+            pageWidthSlider.value = this.value;
+        });
+
+        sidePaddingSlider.addEventListener('input', function() {
+            sidePaddingValue.value = this.value;
+        });
+
+        sidePaddingValue.addEventListener('input', function() {
+            sidePaddingSlider.value = this.value;
+        });
+
+        // Form submission
+        document.getElementById('appearance-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = {
+                pageWidth: pageWidthValue.value,
+                sidePaddingSize: sidePaddingValue.value,
+                edgeRounding: document.getElementById('edgeRounding').value
+            };
+
+            // Save to localStorage for demo purposes
+            localStorage.setItem('appearanceSettings', JSON.stringify(formData));
+            
+            // Show success message
+            alert('Settings saved successfully!');
+        });
+
+        // Load saved settings
+        const savedSettings = localStorage.getItem('appearanceSettings');
+        if (savedSettings) {
+            const settings = JSON.parse(savedSettings);
+            pageWidthSlider.value = settings.pageWidth || 3000;
+            pageWidthValue.value = settings.pageWidth || 3000;
+            sidePaddingSlider.value = settings.sidePaddingSize || 34;
+            sidePaddingValue.value = settings.sidePaddingSize || 34;
+            document.getElementById('edgeRounding').value = settings.edgeRounding || 'size0';
+        }
+    </script>
+}
+
+<style>
+    /* Appearance Settings Styles */
+    .form-section {
+        margin-bottom: 30px;
+    }
+
+    .form-section-title {
+        font-size: 20px;
+        font-weight: 500;
+        margin-bottom: 20px;
+        color: #202223;
+    }
+
+    .dark-mode .form-section-title {
+        color: #e3e3e3;
+    }
+
+    .form-group {
+        margin-bottom: 24px;
+    }
+
+    .form-group label {
+        display: block;
+        font-size: 14px;
+        font-weight: 500;
+        margin-bottom: 8px;
+        color: #202223;
+    }
+
+    .dark-mode .form-group label {
+        color: #e3e3e3;
+    }
+
+    /* Slider Styles */
+    .slider-container {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+    }
+
+    .slider {
+        flex: 1;
+        height: 6px;
+        -webkit-appearance: none;
+        appearance: none;
+        background: #dfe0e1;
+        outline: none;
+        border-radius: 3px;
+        transition: background 0.1s ease;
+    }
+
+    .dark-mode .slider {
+        background: #404040;
+    }
+
+    .slider:hover {
+        background: #c9cccf;
+    }
+
+    .dark-mode .slider:hover {
+        background: #616161;
+    }
+
+    .slider::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 20px;
+        height: 20px;
+        background: #202223;
+        cursor: pointer;
+        border-radius: 50%;
+        transition: all 0.1s ease;
+    }
+
+    .dark-mode .slider::-webkit-slider-thumb {
+        background: #e3e3e3;
+    }
+
+    .slider::-webkit-slider-thumb:hover {
+        transform: scale(1.1);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    }
+
+    .slider::-moz-range-thumb {
+        width: 20px;
+        height: 20px;
+        background: #202223;
+        cursor: pointer;
+        border-radius: 50%;
+        border: none;
+        transition: all 0.1s ease;
+    }
+
+    .dark-mode .slider::-moz-range-thumb {
+        background: #e3e3e3;
+    }
+
+    .slider::-moz-range-thumb:hover {
+        transform: scale(1.1);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    }
+
+    .slider-value-container {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        background: #ffffff;
+        border: 1px solid #c9cccf;
+        border-radius: 6px;
+        padding: 4px 8px;
+    }
+
+    .dark-mode .slider-value-container {
+        background: #303030;
+        border-color: #404040;
+    }
+
+    .slider-value-input {
+        width: 60px;
+        border: none;
+        background: none;
+        font-size: 14px;
+        text-align: right;
+        color: #202223;
+    }
+
+    .dark-mode .slider-value-input {
+        color: #e3e3e3;
+    }
+
+    .slider-value-input:focus {
+        outline: none;
+    }
+
+    .slider-unit {
+        font-size: 14px;
+        color: #6d7175;
+    }
+
+    .dark-mode .slider-unit {
+        color: #8c9196;
+    }
+
+    /* Select Styles */
+    .form-select {
+        width: 100%;
+        padding: 8px 12px;
+        padding-right: 36px;
+        font-size: 14px;
+        border: 1px solid #c9cccf;
+        border-radius: 6px;
+        background-color: #ffffff;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Cpath fill='%236d7175' d='M8 10.5L4 6.5h8L8 10.5z'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 12px center;
+        background-size: 16px;
+        appearance: none;
+        cursor: pointer;
+        transition: border-color 0.1s ease;
+        color: #202223;
+    }
+
+    .dark-mode .form-select {
+        background-color: #303030;
+        border-color: #404040;
+        color: #e3e3e3;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Cpath fill='%238c9196' d='M8 10.5L4 6.5h8L8 10.5z'/%3E%3C/svg%3E");
+    }
+
+    .form-select:focus {
+        outline: none;
+        border-color: #2c6ecb;
+        box-shadow: 0 0 0 1px #2c6ecb;
+    }
+
+    .dark-mode .form-select:focus {
+        border-color: #4d9ef6;
+        box-shadow: 0 0 0 1px #4d9ef6;
+    }
+
+    .form-text {
+        display: block;
+        margin-top: 8px;
+        font-size: 13px;
+        color: #6d7175;
+    }
+
+    .dark-mode .form-text {
+        color: #8c9196;
+    }
+
+    /* Form Buttons */
+    .form-buttons {
+        display: flex;
+        justify-content: flex-end;
+        gap: 12px;
+        margin-top: 24px;
+        padding-top: 24px;
+        border-top: 1px solid #dfe0e1;
+    }
+
+    .dark-mode .form-buttons {
+        border-top-color: #404040;
+    }
+
+    .btn-secondary {
+        padding: 8px 16px;
+        font-size: 14px;
+        font-weight: 500;
+        background-color: #ffffff;
+        color: #202223;
+        border: 1px solid #c9cccf;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.1s ease;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+    .dark-mode .btn-secondary {
+        background-color: #303030;
+        color: #e3e3e3;
+        border-color: #404040;
+    }
+
+    .btn-secondary:hover {
+        background-color: #f6f6f7;
+        border-color: #8c9196;
+    }
+
+    .dark-mode .btn-secondary:hover {
+        background-color: #404040;
+        border-color: #616161;
+    }
+
+    .btn-primary {
+        padding: 8px 16px;
+        font-size: 14px;
+        font-weight: 600;
+        background-color: var(--primary);
+        color: #ffffff;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.1s ease;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    }
+</style>

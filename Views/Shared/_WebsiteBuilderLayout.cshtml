@@ -30,6 +30,15 @@
             if (darkMode) {
                 $('body').addClass('dark-mode');
             }
+            
+            // Check if coming from main layout and dispatch language event
+            const currentLang = localStorage.getItem('preferredLanguage') || 'es';
+            // Dispatch language changed event for WebsiteBuilder
+            setTimeout(() => {
+                document.dispatchEvent(new CustomEvent('languageChanged', { 
+                    detail: { language: currentLang } 
+                }));
+            }, 100);
         });
     </script>
     
