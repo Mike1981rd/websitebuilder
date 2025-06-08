@@ -102,34 +102,112 @@ $(document).ready(function() {
             'colorSchemes.configuration': 'Configuración del esquema de color',
             // Product Cards translations
             'productCards.title': 'Tarjetas de producto',
-            'productCards.style': 'Estilo',
-            'productCards.standard': 'Estándar',
-            'productCards.card': 'Tarjeta',
-            'productCards.imageRatio': 'Relación de imagen',
-            'productCards.adapt': 'Adaptar a imagen',
-            'productCards.portrait': 'Retrato',
-            'productCards.square': 'Cuadrado',
-            'productCards.showSecondImage': 'Mostrar segunda imagen al pasar el cursor',
+            'productCards.defaultImageRatio': 'Relación de imagen predeterminada',
+            'productCards.portraitLarge23': 'Retrato grande (2:3) - Llenar',
+            'productCards.square11': 'Cuadrado (1:1) - Llenar',
+            'productCards.portrait34': 'Retrato (3:4) - Llenar',
+            'productCards.portraitLarge23Fit': 'Retrato grande (2:3) - Ajustar',
+            'productCards.landscape43': 'Horizontal (4:3) - Llenar',
+            'productCards.square11Fit': 'Cuadrado (1:1) - Ajustar',
+            'productCards.portrait34Fit': 'Retrato (3:4) - Ajustar',
+            'productCards.portraitLarge23Fit2': 'Retrato grande (2:3) - Ajustar',
+            'productCards.landscape43Fit': 'Horizontal (4:3) - Ajustar',
             'productCards.showVendor': 'Mostrar proveedor',
-            'productCards.showRating': 'Mostrar calificación del producto',
-            'productCards.enableQuickAdd': 'Habilitar botón de agregar rápido',
+            'productCards.showCurrencyCode': 'Mostrar código de moneda',
+            'productCards.showColorCount': 'Mostrar cantidad de colores',
+            'productCards.colorCardBackground': 'Colorear fondo de tarjeta',
+            'productCards.darkenImageBackground': 'Oscurecer fondo de imagen',
+            'productCards.transparentBackgroundInfo': 'Para imágenes de productos con fondo inicialmente blanco o transparente',
+            'productCards.productRating': 'Calificación del producto',
+            'productCards.none': 'Ninguno',
+            'productCards.starsOnly': 'Solo estrellas',
+            'productCards.reviewCountOnly': 'Solo conteo de reseñas',
+            'productCards.averageRatingOnly': 'Solo calificación promedio',
+            'productCards.reviewCountAndStars': 'Conteo de reseñas y estrellas',
+            'productCards.averageRatingAndStars': 'Calificación promedio y estrellas',
+            'productCards.reviewAppInfo': 'Para mostrar calificación dinámica del producto, agrega una aplicación de reseñas',
+            'productCards.priceLabelSize': 'Tamaño de etiqueta de precio',
+            'productCards.extraSmall': 'Extra pequeño',
+            'productCards.small': 'Pequeño',
+            'productCards.medium': 'Mediano',
+            'productCards.large': 'Grande',
+            'productCards.imageHoverEffect': 'Efecto de imagen al pasar el cursor',
+            'productCards.zoom': 'Zoom',
+            'productCards.showAllMedia': 'Mostrar todos los medios',
+            'productCards.showSecondMedia': 'Mostrar segundo medio',
+            'productCards.swatches': 'Muestras',
+            'productCards.swatchesInfo': 'Ajusta la vista de muestras en Configuración del tema>Muestras',
+            'productCards.whatToShow': 'Qué mostrar',
+            'productCards.variantImages': 'Imágenes de variantes',
+            'productCards.colorSwatches': 'Muestras de color',
+            'productCards.both': 'Ambos',
+            'productCards.showOnDesktop': 'Mostrar en escritorio',
+            'productCards.onHover': 'Al pasar el cursor',
+            'productCards.always': 'Siempre',
+            'productCards.never': 'Nunca',
+            'productCards.showOnMobile': 'Mostrar en móvil',
+            'productCards.hideForSingleValue': 'Ocultar para productos de un solo valor',
+            'productCards.quickBuyButtons': 'Botones de compra rápida',
+            'productCards.showQuickView': 'Mostrar "Vista rápida"',
+            'productCards.showAddToCart': 'Mostrar "Agregar al carrito"',
+            'productCards.singleVariantInfo': 'Solo para productos de una sola variante',
+            'productCards.desktopButtonStyle': 'Estilo de botón en escritorio',
+            'productCards.labels': 'Etiquetas',
+            'productCards.icons': 'Iconos',
+            'productCards.showButtonsOnHover': 'Mostrar botones al pasar el cursor',
+            'productCards.productBadges': 'Insignias de producto',
+            'productCards.badgesInfo': 'Ajusta la vista y los colores de las insignias en Configuración del tema>Insignias de producto',
+            'productCards.badgesDesktopPosition': 'Posición en escritorio',
+            'productCards.badgesOnImage': 'En la imagen',
+            'productCards.badgesBelowImage': 'Debajo de la imagen',
+            'productCards.badgesAboveTitle': 'Encima del título',
+            'productCards.showSoldOutBadge': 'Mostrar insignia "Agotado"',
+            'productCards.showSaleBadge': 'Mostrar insignia "Oferta"',
+            'productCards.showSaleBadgeNextToPrice': 'Mostrar insignia "Oferta" junto al precio',
+            'productCards.highlightSalePrice': 'Resaltar precio de oferta',
+            'productCards.showCustom1Badge': 'Mostrar insignia "Personalizada 1"',
+            'productCards.showCustom2Badge': 'Mostrar insignia "Personalizada 2"',
+            'productCards.showCustom3Badge': 'Mostrar insignia "Personalizada 3"',
             // Product Badges translations
             'productBadges.title': 'Insignias de producto',
-            'productBadges.onSale': 'En oferta',
-            'productBadges.soldOut': 'Agotado',
-            'productBadges.position': 'Posición',
-            'productBadges.topLeft': 'Superior izquierda',
-            'productBadges.topRight': 'Superior derecha',
-            'productBadges.bottomLeft': 'Inferior izquierda',
-            'productBadges.bottomRight': 'Inferior derecha',
+            'productBadges.adjustInfo': 'Ajusta la vista y los colores de las insignias. Puedes activarlas en el bloque "blocks" en la página del producto o en Configuración del tema>Tarjetas de producto',
+            'productBadges.soldOutBadge': 'Insignia "Agotado"',
+            'productBadges.saleBadge': 'Insignia "Oferta"',
+            'productBadges.saleBadgeNextToPrice': 'Insignia "Oferta" junto al precio',
+            'productBadges.salePriceHighlight': 'Resaltado de precio de oferta',
+            'productBadges.custom1Badge': 'Insignia "Personalizada 1"',
+            'productBadges.customBadgeInfo': 'Crea tus propias insignias vinculándolas a etiquetas de productos',
+            'productBadges.background': 'Fondo',
+            'productBadges.text': 'Texto',
+            'productBadges.showAs': 'Mostrar como',
+            'productBadges.sale': 'Oferta',
+            'productBadges.percentageOff': '-10%',
+            'productBadges.valueOff': '-$10',
+            'productBadges.tag': 'Etiqueta',
+            'productBadges.textPlaceholder': 'Más vendido',
+            'productBadges.tagPlaceholder': 'Más vendidos',
             // Cart translations
             'cart.title': 'Carrito',
-            'cart.type': 'Tipo de carrito',
-            'cart.drawer': 'Cajón',
-            'cart.page': 'Página',
-            'cart.popup': 'Notificación emergente',
-            'cart.showVendor': 'Mostrar proveedor',
-            'cart.enableNote': 'Habilitar nota del carrito',
+            'cart.showAs': 'Mostrar como',
+            'cart.drawerAndPage': 'Cajón y página',
+            'cart.drawerOnly': 'Solo cajón',
+            'cart.pageOnly': 'Solo página',
+            'cart.showStickyCart': 'Mostrar carrito fijo',
+            'cart.cartStatusColors': 'Colores de estado del carrito',
+            'cart.background': 'Fondo',
+            'cart.text': 'Texto',
+            'cart.freeShippingBar': 'Barra de envío gratis',
+            'cart.showProgressBar': 'Mostrar barra de progreso',
+            'cart.freeShippingThreshold': 'Umbral de envío gratis',
+            'cart.thresholdDescription': 'Ingresa el valor en la moneda principal de tu tienda. Configura tu tarifa de envío o descuento automático de envío gratis para que coincida con el objetivo.',
+            'cart.shippingRate': 'tarifa de envío',
+            'cart.automaticFreeShipping': 'descuento automático de envío gratis',
+            'cart.progressBar': 'Barra de progreso',
+            'cart.progressBarTrack': 'Pista de barra de progreso',
+            'cart.degradadoIn': 'Degradado In...',
+            'cart.solid': 'Sólido',
+            'cart.gradient': 'Degradado',
+            'cart.message': 'Mensaje',
             // Favicon translations
             'favicon.title': 'Favicon',
             'favicon.description': 'Los favicons son iconos pequeños que aparecen en las pestañas del navegador.',
@@ -137,20 +215,94 @@ $(document).ready(function() {
             'favicon.noImageSelected': 'No se ha seleccionado ninguna imagen',
             // Navigation translations
             'navigation.title': 'Navegación',
-            'navigation.colorScheme': 'Esquema de color',
-            'navigation.menu': 'Menú',
-            'navigation.logoPosition': 'Posición del logo en escritorio',
-            'navigation.middleLeft': 'Centro izquierda',
-            'navigation.topLeft': 'Superior izquierda',
-            'navigation.topCenter': 'Superior centro',
-            'navigation.middleCenter': 'Centro centro',
-            'navigation.mobileLogoPosition': 'Posición del logo en móvil',
-            'navigation.center': 'Centro',
-            'navigation.left': 'Izquierda',
+            'navigation.search': 'Búsqueda',
+            'navigation.showAs': 'Mostrar como',
+            'navigation.drawerAndPage': 'Cajón y página',
+            'navigation.drawerOnly': 'Solo cajón',
+            'navigation.pageOnly': 'Solo página',
+            'navigation.none': 'Ninguno',
+            'navigation.backToTop': 'Volver arriba',
+            'navigation.showBackToTopButton': 'Mostrar botón de volver arriba',
+            'navigation.buttonPosition': 'Posición del botón',
+            'navigation.bottomLeft': 'Inferior izquierda',
+            'navigation.bottomCenter': 'Inferior centro',
+            'navigation.bottomRight': 'Inferior derecha',
+            'navigation.alwaysBottomLeftOnMobile': 'Siempre "Inferior izquierda" en móvil',
+            'navigation.socialMedia': 'Redes sociales',
+            'navigation.socialAccounts': 'Cuentas sociales',
+            'navigation.socialAccountsInfo': 'Para mostrar tus cuentas de redes sociales, vincúlalas en la configuración de tu tema.',
             'navigation.enableStickyHeader': 'Habilitar encabezado pegajoso en escritorio',
             'navigation.showSeparatorLine': 'Mostrar línea separadora',
             'navigation.reduceLogoSize': 'Reducir tamaño del logo al desplazarse',
             'navigation.announcementBar': 'Barra de anuncios',
+            // Social Media translations
+            'socialMedia.title': 'Redes sociales',
+            'socialMedia.iconStyle': 'Estilo de ícono',
+            'socialMedia.solid': 'Sólido',
+            'socialMedia.outline': 'Contorno',
+            'socialMedia.instagram': 'Instagram',
+            'socialMedia.instagramPlaceholder': 'http://instagram.com',
+            'socialMedia.instagramHelp': 'http://instagram.com/tutienda',
+            'socialMedia.facebook': 'Facebook',
+            'socialMedia.facebookPlaceholder': 'https://facebook.com',
+            'socialMedia.facebookHelp': 'https://facebook.com/tutienda',
+            'socialMedia.twitter': 'Twitter',
+            'socialMedia.twitterPlaceholder': 'https://twitter.com/',
+            'socialMedia.twitterHelp': 'https://twitter.com/tutienda',
+            'socialMedia.youtube': 'YouTube',
+            'socialMedia.youtubePlaceholder': '',
+            'socialMedia.youtubeHelp': 'https://www.youtube.com/tutienda',
+            'socialMedia.pinterest': 'Pinterest',
+            'socialMedia.pinterestPlaceholder': 'https://pinterest.com',
+            'socialMedia.pinterestHelp': 'https://pinterest.com/tutienda',
+            'socialMedia.tiktok': 'TikTok',
+            'socialMedia.tiktokPlaceholder': '',
+            'socialMedia.tiktokHelp': 'https://tiktok.com/@tutienda',
+            'socialMedia.tumblr': 'Tumblr',
+            'socialMedia.tumblrPlaceholder': '',
+            'socialMedia.tumblrHelp': 'https://tutienda.tumblr.com',
+            'socialMedia.snapchat': 'Snapchat',
+            'socialMedia.snapchatPlaceholder': '',
+            'socialMedia.snapchatHelp': 'https://www.snapchat.com/add/tutienda',
+            'socialMedia.linkedin': 'LinkedIn',
+            'socialMedia.linkedinPlaceholder': '',
+            'socialMedia.linkedinHelp': 'https://www.linkedin.com/company/tutienda',
+            'socialMedia.vimeo': 'Vimeo',
+            'socialMedia.vimeoPlaceholder': '',
+            'socialMedia.vimeoHelp': 'https://vimeo.com/tutienda',
+            'socialMedia.flickr': 'Flickr',
+            'socialMedia.flickrPlaceholder': '',
+            'socialMedia.flickrHelp': 'https://www.flickr.com/photos/tutienda',
+            'socialMedia.reddit': 'Reddit',
+            'socialMedia.redditPlaceholder': '',
+            'socialMedia.redditHelp': 'https://www.reddit.com/user/tutienda',
+            'socialMedia.email': 'Correo electrónico',
+            'socialMedia.emailPlaceholder': '',
+            'socialMedia.emailHelp': 'mailto:contacto@tutienda.com',
+            'socialMedia.behance': 'Behance',
+            'socialMedia.behancePlaceholder': '',
+            'socialMedia.behanceHelp': 'https://www.behance.net/tutienda',
+            'socialMedia.discord': 'Discord',
+            'socialMedia.discordPlaceholder': '',
+            'socialMedia.discordHelp': 'https://discordapp.com/users/tutienda',
+            'socialMedia.dribbble': 'Dribbble',
+            'socialMedia.dribbblePlaceholder': '',
+            'socialMedia.dribbbleHelp': 'https://dribbble.com',
+            'socialMedia.medium': 'Medium',
+            'socialMedia.mediumPlaceholder': '',
+            'socialMedia.mediumHelp': 'https://medium.com/@tutienda',
+            'socialMedia.twitch': 'Twitch',
+            'socialMedia.twitchPlaceholder': '',
+            'socialMedia.twitchHelp': 'https://twitch.tv/tutienda',
+            'socialMedia.whatsapp': 'WhatsApp',
+            'socialMedia.whatsappPlaceholder': '',
+            'socialMedia.whatsappHelp': 'https://wa.me/numero_telefono',
+            'socialMedia.viber': 'Viber',
+            'socialMedia.viberPlaceholder': '',
+            'socialMedia.viberHelp': 'viber://add?number=XXXXXXXXX',
+            'socialMedia.telegram': 'Telegram',
+            'socialMedia.telegramPlaceholder': '',
+            'socialMedia.telegramHelp': 'https://t.me/usuario',
             'navigation.showAnnouncementBar': 'Mostrar barra de anuncios',
             'navigation.homePageOnly': 'Solo en página de inicio',
             'navigation.announcementText': 'Texto',
@@ -170,7 +322,98 @@ $(document).ready(function() {
             'socialMedia.vimeo': 'Vimeo',
             // Swatches translations
             'swatches.title': 'Muestras',
-            'swatches.colors': 'Colores'
+            'swatches.colors': 'Colores',
+            'swatches.learnAbout': 'Aprende sobre',
+            'swatches.primarySwatchOption': 'Opción de muestra principal',
+            'swatches.showSwatchesInfo': 'Mostrar muestras en tarjetas de producto, páginas de producto y filtros',
+            'swatches.optionName': 'Nombre de opción',
+            'swatches.optionNamePlaceholder': 'Color',
+            'swatches.optionNameHelp': 'Completa los nombres de opciones relevantes desde tu administrador para activar las muestras',
+            'swatches.shapeForProductCards': 'Forma para tarjetas de producto',
+            'swatches.portrait': 'Retrato',
+            'swatches.landscape': 'Horizontal',
+            'swatches.sizeForProductCards': 'Tamaño para tarjetas de producto',
+            'swatches.shapeForProductPages': 'Forma para páginas de producto',
+            'swatches.sizeForProductPages': 'Tamaño para páginas de producto',
+            'swatches.shapeForFilters': 'Forma para filtros',
+            'swatches.square': 'Cuadrado',
+            'swatches.round': 'Redondo',
+            'swatches.sizeForFilters': 'Tamaño para filtros',
+            'swatches.customColorsAndPatterns': 'Colores y patrones personalizados',
+            'swatches.customColorsPlaceholder': 'Ultramarino::#0043F2\nCerezo en flor::#FFB7C5\nDía soleado::amarillo/verde/azul/\nVerano::#F9AFB1/#0F9D5B/#4285F4',
+            'swatches.customColorsHelp': 'Coloca cada regla en una línea separada.',
+            'swatches.learnHowToAdd': 'Aprende cómo agregar muestras de color',
+            'swatches.secondarySwatchOptions': 'Opciones de muestra secundarias',
+            'swatches.showSwatchesForMore': 'Mostrar muestras para más de una opción en páginas de producto y filtros',
+            'swatches.optionNames': 'Nombres de opciones',
+            'swatches.optionNamesPlaceholder': 'Material\nMarco',
+            'swatches.optionNamesHelp': 'Completa los nombres de opciones relevantes desde tu administrador, coloca cada uno en una línea separada',
+            'swatches.learnAbout': 'Aprende sobre',
+            'swatches.primarySwatchOption': 'Opción de muestra principal',
+            'swatches.showSwatchesInfo': 'Mostrar muestras en tarjetas de productos, páginas de productos y filtros',
+            'swatches.optionName': 'Nombre de opción',
+            // Add section modal translations
+            'sections.searchSections': 'Buscar secciones',
+            'sections.sectionsTab': 'Secciones',
+            'sections.applicationsTab': 'Aplicaciones',
+            'sections.selectToPreview': 'Selecciona una sección para ver vista previa',
+            'sections.noApplications': 'No hay aplicaciones disponibles',
+            'sections.noPreview': 'Vista previa no disponible',
+            // Section names
+            'sections.featuredCollection': 'Colección destacada',
+            'sections.featuredProduct': 'Producto destacado',
+            'sections.collectionList': 'Lista de colecciones',
+            'sections.richText': 'Texto enriquecido',
+            'sections.imageBanner': 'Banner de imagen',
+            'sections.slideshow': 'Presentación de diapositivas',
+            'sections.collage': 'Collage',
+            'sections.multicolumn': 'Multicolumna',
+            'sections.newsletter': 'Boletín',
+            'sections.contactForm': 'Formulario de contacto',
+            'sections.customLiquid': 'Líquido personalizado',
+            'sections.accordion': 'Acordeón',
+            'sections.beforeAfterImages': 'Imágenes antes/después',
+            'sections.blogPosts': 'Publicaciones del blog',
+            'sections.collectionWithText': 'Colección con texto',
+            'sections.countdownBanner': 'Banner de cuenta regresiva',
+            'sections.featuredNavigation': 'Navegación destacada',
+            'sections.gallery': 'Galería',
+            'sections.hotspots': 'Puntos de acceso',
+            'sections.imageSlider': 'Deslizador de imágenes',
+            'sections.imagesWithText': 'Imágenes con texto',
+            'sections.logoList': 'Lista de logos',
+            'sections.lookbook': 'Libro de estilo',
+            'sections.map': 'Mapa',
+            'sections.multipleCollections': 'Múltiples colecciones',
+            'sections.page': 'Página',
+            'sections.recentlyViewed': 'Vistos recientemente',
+            'sections.scrollingText': 'Texto deslizante',
+            'sections.spacer': 'Espaciador',
+            'sections.splitImageBanner': 'Banner de imagen dividida',
+            'sections.testimonials': 'Testimonios',
+            'sections.video': 'Video',
+            // Common translations
+            'common.cancel': 'Cancelar',
+            'swatches.optionNamePlaceholder': 'Color',
+            'swatches.optionNameHelp': 'Completa los nombres de opciones relevantes de tu administrador para activar las muestras',
+            'swatches.shapeForProductCards': 'Forma para tarjetas de productos',
+            'swatches.portrait': 'Retrato',
+            'swatches.landscape': 'Paisaje',
+            'swatches.sizeForProductCards': 'Tamaño para tarjetas de productos',
+            'swatches.shapeForProductPages': 'Forma para páginas de productos',
+            'swatches.sizeForProductPages': 'Tamaño para páginas de productos',
+            'swatches.shapeForFilters': 'Forma para filtros',
+            'swatches.square': 'Cuadrado',
+            'swatches.round': 'Redondo',
+            'swatches.sizeForFilters': 'Tamaño para filtros',
+            'swatches.customColorsAndPatterns': 'Colores y patrones personalizados',
+            'swatches.customColorsHelp': 'Coloca cada regla en una línea separada.',
+            'swatches.learnHowToAdd': 'Aprende cómo agregar muestras de colores',
+            'swatches.secondarySwatchOptions': 'Opciones de muestra secundarias',
+            'swatches.showSwatchesForMore': 'Mostrar muestras para más de una opción en páginas de productos y filtros',
+            'swatches.optionNames': 'Nombres de opciones',
+            'swatches.optionNamesPlaceholder': 'Material\nMarco',
+            'swatches.optionNamesHelp': 'Completa los nombres de opciones relevantes de tu administrador, coloca cada uno en una línea separada'
         },
         en: {
             exitEditorButtonText: "Exit",
@@ -337,7 +580,98 @@ $(document).ready(function() {
             'socialMedia.vimeo': 'Vimeo',
             // Swatches translations
             'swatches.title': 'Swatches',
-            'swatches.colors': 'Colors'
+            'swatches.colors': 'Colors',
+            'swatches.learnAbout': 'Learn about',
+            'swatches.primarySwatchOption': 'Primary swatch option',
+            'swatches.showSwatchesInfo': 'Show swatches in product cards, product pages, and filters',
+            'swatches.optionName': 'Option name',
+            'swatches.optionNamePlaceholder': 'Color',
+            'swatches.optionNameHelp': 'Fill in the relevant option names from your admin to turn on swatches',
+            'swatches.shapeForProductCards': 'Shape for product cards',
+            'swatches.portrait': 'Portrait',
+            'swatches.landscape': 'Landscape',
+            'swatches.sizeForProductCards': 'Size for product cards',
+            'swatches.shapeForProductPages': 'Shape for product pages',
+            'swatches.sizeForProductPages': 'Size for product pages',
+            'swatches.shapeForFilters': 'Shape for filters',
+            'swatches.square': 'Square',
+            'swatches.round': 'Round',
+            'swatches.sizeForFilters': 'Size for filters',
+            'swatches.customColorsAndPatterns': 'Custom colors and patterns',
+            'swatches.customColorsPlaceholder': 'Ultramarine::#0043F2\nCherry blossom::#FFB7C5\nSunny day::yellow/green/blue/\nSummertime::#F9AFB1/#0F9D5B/#4285F4',
+            'swatches.customColorsHelp': 'Place each rule in a separate line.',
+            'swatches.learnHowToAdd': 'Learn how to add color swatches',
+            'swatches.secondarySwatchOptions': 'Secondary swatch options',
+            'swatches.showSwatchesForMore': 'Show swatches for more than one option in product pages and filters',
+            'swatches.optionNames': 'Option names',
+            'swatches.optionNamesPlaceholder': 'Material\nFrame',
+            'swatches.optionNamesHelp': 'Fill in relevant option names from your admin, place each in a separate line',
+            'swatches.learnAbout': 'Learn about',
+            'swatches.primarySwatchOption': 'Primary swatch option',
+            'swatches.showSwatchesInfo': 'Show swatches in product cards, product pages, and filters',
+            'swatches.optionName': 'Option name',
+            // Add section modal translations
+            'sections.searchSections': 'Search sections',
+            'sections.sectionsTab': 'Sections',
+            'sections.applicationsTab': 'Applications',
+            'sections.selectToPreview': 'Select a section to preview',
+            'sections.noApplications': 'No applications available',
+            'sections.noPreview': 'Preview not available',
+            // Section names
+            'sections.featuredCollection': 'Featured collection',
+            'sections.featuredProduct': 'Featured product',
+            'sections.collectionList': 'Collection list',
+            'sections.richText': 'Rich text',
+            'sections.imageBanner': 'Image banner',
+            'sections.slideshow': 'Slideshow',
+            'sections.collage': 'Collage',
+            'sections.multicolumn': 'Multicolumn',
+            'sections.newsletter': 'Newsletter',
+            'sections.contactForm': 'Contact form',
+            'sections.customLiquid': 'Custom liquid',
+            'sections.accordion': 'Accordion',
+            'sections.beforeAfterImages': 'Before/after images',
+            'sections.blogPosts': 'Blog posts',
+            'sections.collectionWithText': 'Collection with text',
+            'sections.countdownBanner': 'Countdown banner',
+            'sections.featuredNavigation': 'Featured navigation',
+            'sections.gallery': 'Gallery',
+            'sections.hotspots': 'Hotspots',
+            'sections.imageSlider': 'Image slider',
+            'sections.imagesWithText': 'Images with text',
+            'sections.logoList': 'Logo list',
+            'sections.lookbook': 'Lookbook',
+            'sections.map': 'Map',
+            'sections.multipleCollections': 'Multiple collections',
+            'sections.page': 'Page',
+            'sections.recentlyViewed': 'Recently viewed',
+            'sections.scrollingText': 'Scrolling text',
+            'sections.spacer': 'Spacer',
+            'sections.splitImageBanner': 'Split image banner',
+            'sections.testimonials': 'Testimonials',
+            'sections.video': 'Video',
+            // Common translations
+            'common.cancel': 'Cancel',
+            'swatches.optionNamePlaceholder': 'Color',
+            'swatches.optionNameHelp': 'Fill in the relevant option names from your admin to turn on swatches',
+            'swatches.shapeForProductCards': 'Shape for product cards',
+            'swatches.portrait': 'Portrait',
+            'swatches.landscape': 'Landscape',
+            'swatches.sizeForProductCards': 'Size for product cards',
+            'swatches.shapeForProductPages': 'Shape for product pages',
+            'swatches.sizeForProductPages': 'Size for product pages',
+            'swatches.shapeForFilters': 'Shape for filters',
+            'swatches.square': 'Square',
+            'swatches.round': 'Round',
+            'swatches.sizeForFilters': 'Size for filters',
+            'swatches.customColorsAndPatterns': 'Custom colors and patterns',
+            'swatches.customColorsHelp': 'Place each rule in a separate line.',
+            'swatches.learnHowToAdd': 'Learn how to add color swatches',
+            'swatches.secondarySwatchOptions': 'Secondary swatch options',
+            'swatches.showSwatchesForMore': 'Show swatches for more than one option in product pages and filters',
+            'swatches.optionNames': 'Option names',
+            'swatches.optionNamesPlaceholder': 'Material\nFrame',
+            'swatches.optionNamesHelp': 'Fill in relevant option names from your admin, place each in a separate line'
         }
     };
     
@@ -440,6 +774,10 @@ $(document).ready(function() {
                     <div class="sidebar-subsection" data-block-type="header">
                         <i class="material-icons" style="font-size: 16px;">view_day</i>
                         <span data-i18n="sections.headerSection">Encabezado</span>
+                    </div>
+                    <div class="add-section-button add-header-section" data-group="header">
+                        <i class="material-icons" style="font-size: 18px;">add_circle</i>
+                        <span data-i18n="sections.addSection">Agregar sección</span>
                     </div>
                 </div>
             </div>
@@ -550,24 +888,77 @@ $(document).ready(function() {
     }
     
     // Function to render add section view
-    function renderAddSectionView() {
-        const blockTypesHtml = Object.keys(blockSettingsSchemas).map(type => `
-            <div class="block-type-item" data-block-type="${type}">
-                <i class="material-icons">add_circle_outline</i>
-                <span>${lang[`blockType${type.charAt(0).toUpperCase() + type.slice(1)}`] || type}</span>
-            </div>
-        `).join('');
+    function renderAddSectionView(group = 'template') {
+        // Show all sections regardless of group (like Shopify does)
+        const sections = [
+            { id: 'featured-collection', icon: 'view_module', name: 'featuredCollection' },
+            { id: 'featured-product', icon: 'shopping_bag', name: 'featuredProduct' },
+            { id: 'collection-list', icon: 'list', name: 'collectionList' },
+            { id: 'rich-text', icon: 'text_fields', name: 'richText' },
+            { id: 'image-banner', icon: 'image', name: 'imageBanner' },
+            { id: 'slideshow', icon: 'view_carousel', name: 'slideshow' },
+            { id: 'collage', icon: 'dashboard', name: 'collage' },
+            { id: 'multicolumn', icon: 'view_week', name: 'multicolumn' },
+            { id: 'newsletter', icon: 'email', name: 'newsletter' },
+            { id: 'contact-form', icon: 'mail_outline', name: 'contactForm' },
+            { id: 'custom-liquid', icon: 'code', name: 'customLiquid' },
+            { id: 'accordion', icon: 'expand_more', name: 'accordion' },
+            { id: 'before-after-images', icon: 'compare', name: 'beforeAfterImages' },
+            { id: 'blog-posts', icon: 'article', name: 'blogPosts' },
+            { id: 'collection-with-text', icon: 'text_snippet', name: 'collectionWithText' },
+            { id: 'countdown-banner', icon: 'timer', name: 'countdownBanner' },
+            { id: 'featured-navigation', icon: 'menu', name: 'featuredNavigation' },
+            { id: 'gallery', icon: 'photo_library', name: 'gallery' },
+            { id: 'hotspots', icon: 'place', name: 'hotspots' },
+            { id: 'image-slider', icon: 'view_carousel', name: 'imageSlider' },
+            { id: 'images-with-text', icon: 'image', name: 'imagesWithText' },
+            { id: 'logo-list', icon: 'business', name: 'logoList' },
+            { id: 'lookbook', icon: 'book', name: 'lookbook' },
+            { id: 'map', icon: 'map', name: 'map' },
+            { id: 'multiple-collections', icon: 'view_module', name: 'multipleCollections' },
+            { id: 'page', icon: 'description', name: 'page' },
+            { id: 'recently-viewed', icon: 'history', name: 'recentlyViewed' },
+            { id: 'scrolling-text', icon: 'text_rotation_none', name: 'scrollingText' },
+            { id: 'spacer', icon: 'space_bar', name: 'spacer' },
+            { id: 'split-image-banner', icon: 'view_column', name: 'splitImageBanner' },
+            { id: 'testimonials', icon: 'rate_review', name: 'testimonials' },
+            { id: 'video', icon: 'videocam', name: 'video' }
+        ];
         
         return `
-            <div class="sidebar-view-header">
-                <button class="back-to-block-list-btn">
-                    <i class="material-icons">arrow_back</i>
-                </button>
-                <h3>${lang.addSectionViewTitle || "Añadir Sección"}</h3>
-            </div>
-            <div class="block-types-container">
-                <p class="section-description">${lang.availableBlockTypesTitle || "Tipos de bloques disponibles:"}</p>
-                ${blockTypesHtml}
+            <div class="add-section-modal">
+                <div class="add-section-header">
+                    <h3 class="modal-title" data-i18n="sections.addSection">Agregar sección</h3>
+                    <button class="cancel-button" data-i18n="common.cancel">Cancelar</button>
+                </div>
+                <div class="add-section-content">
+                    <div class="add-section-left">
+                        <div class="search-sections-wrapper">
+                            <div class="search-input-container">
+                                <i class="material-icons search-icon">search</i>
+                                <input type="text" class="search-sections-input" placeholder="" data-i18n-placeholder="sections.searchSections">
+                            </div>
+                        </div>
+                        <div class="sections-list">
+                            ${sections.map(section => {
+                                const translationKey = `sections.${section.name}`;
+                                const displayName = (translations[currentLanguage] && translations[currentLanguage][translationKey]) || section.name;
+                                return `
+                                    <div class="section-item" data-section-id="${section.id}">
+                                        <i class="material-icons">${section.icon}</i>
+                                        <span data-i18n="${translationKey}">${displayName}</span>
+                                        ${section.id === 'featured-product' ? '<i class="material-icons info-icon">info_outline</i>' : ''}
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    </div>
+                    <div class="section-preview">
+                        <div class="preview-placeholder">
+                            <p data-i18n="sections.selectToPreview">Selecciona una sección para ver vista previa</p>
+                        </div>
+                    </div>
+                </div>
             </div>
         `;
     }
@@ -1274,48 +1665,257 @@ $(document).ready(function() {
                     </button>
                     <div class="theme-section-content shopify-section-content" style="display: none;">
                         <div class="product-cards-controls">
+                            <!-- Main Product Cards Settings -->
                             <div class="settings-field">
-                                <label data-i18n="productCards.style">Style</label>
+                                <label data-i18n="productCards.defaultImageRatio">Default image ratio</label>
                                 <select class="shopify-select">
-                                    <option value="standard" data-i18n="productCards.standard">Standard</option>
-                                    <option value="card" data-i18n="productCards.card">Card</option>
-                                </select>
-                            </div>
-                            
-                            <div class="settings-field">
-                                <label data-i18n="productCards.imageRatio">Image ratio</label>
-                                <select class="shopify-select">
-                                    <option value="adapt" data-i18n="productCards.adapt">Adapt to image</option>
-                                    <option value="portrait" data-i18n="productCards.portrait">Portrait</option>
-                                    <option value="square" data-i18n="productCards.square">Square</option>
+                                    <option value="portrait-large-2-3" data-i18n="productCards.portraitLarge23">Portrait large (2:3) - Fill</option>
+                                    <option value="square-1-1" data-i18n="productCards.square11">Square (1:1) - Fill</option>
+                                    <option value="portrait-3-4" data-i18n="productCards.portrait34">Portrait (3:4) - Fill</option>
+                                    <option value="portrait-large-2-3-fit" data-i18n="productCards.portraitLarge23Fit">Portrait large (2:3) - Fit</option>
+                                    <option value="landscape-4-3" data-i18n="productCards.landscape43">Landscape (4:3) - Fill</option>
+                                    <option value="square-1-1-fit" data-i18n="productCards.square11Fit">Square (1:1) - Fit</option>
+                                    <option value="portrait-3-4-fit" data-i18n="productCards.portrait34Fit">Portrait (3:4) - Fit</option>
+                                    <option value="portrait-large-2-3-fit2" data-i18n="productCards.portraitLarge23Fit2">Portrait large (2:3) - Fit</option>
+                                    <option value="landscape-4-3-fit" data-i18n="productCards.landscape43Fit">Landscape (4:3) - Fit</option>
                                 </select>
                             </div>
                             
                             <div class="settings-field">
                                 <label class="checkbox-label">
-                                    <input type="checkbox" class="shopify-checkbox" checked>
-                                    <span data-i18n="productCards.showSecondImage">Show second image on hover</span>
-                                </label>
-                            </div>
-                            
-                            <div class="settings-field">
-                                <label class="checkbox-label">
-                                    <input type="checkbox" class="shopify-checkbox">
                                     <span data-i18n="productCards.showVendor">Show vendor</span>
+                                    <input type="checkbox" class="shopify-toggle" id="show-vendor-toggle">
+                                    <label for="show-vendor-toggle" class="toggle-slider"></label>
                                 </label>
                             </div>
                             
                             <div class="settings-field">
                                 <label class="checkbox-label">
-                                    <input type="checkbox" class="shopify-checkbox">
-                                    <span data-i18n="productCards.showRating">Show product rating</span>
+                                    <span data-i18n="productCards.showCurrencyCode">Show currency code</span>
+                                    <input type="checkbox" class="shopify-toggle" id="show-currency-code-toggle">
+                                    <label for="show-currency-code-toggle" class="toggle-slider"></label>
                                 </label>
                             </div>
                             
                             <div class="settings-field">
                                 <label class="checkbox-label">
-                                    <input type="checkbox" class="shopify-checkbox" checked>
-                                    <span data-i18n="productCards.enableQuickAdd">Enable quick add button</span>
+                                    <span data-i18n="productCards.showColorCount">Show color count</span>
+                                    <input type="checkbox" class="shopify-toggle" id="show-color-count-toggle">
+                                    <label for="show-color-count-toggle" class="toggle-slider"></label>
+                                </label>
+                            </div>
+                            
+                            <div class="settings-field">
+                                <label class="checkbox-label">
+                                    <span data-i18n="productCards.colorCardBackground">Color card background</span>
+                                    <input type="checkbox" class="shopify-toggle" id="color-card-background-toggle">
+                                    <label for="color-card-background-toggle" class="toggle-slider"></label>
+                                </label>
+                            </div>
+                            
+                            <div class="settings-field">
+                                <label class="checkbox-label">
+                                    <span data-i18n="productCards.darkenImageBackground">Darken image background</span>
+                                    <input type="checkbox" class="shopify-toggle" id="darken-image-background-toggle">
+                                    <label for="darken-image-background-toggle" class="toggle-slider"></label>
+                                </label>
+                            </div>
+                            
+                            <p class="section-info" style="margin-top: -8px;" data-i18n="productCards.transparentBackgroundInfo">For product images with initially white or transparent background</p>
+                            
+                            <div class="settings-field">
+                                <label data-i18n="productCards.productRating">Product rating</label>
+                                <select class="shopify-select">
+                                    <option value="none" data-i18n="productCards.none">None</option>
+                                    <option value="stars-only" data-i18n="productCards.starsOnly">Stars only</option>
+                                    <option value="review-count-only" data-i18n="productCards.reviewCountOnly">Review count only</option>
+                                    <option value="average-rating-only" data-i18n="productCards.averageRatingOnly">Average rating only</option>
+                                    <option value="review-count-and-stars" data-i18n="productCards.reviewCountAndStars">Review count and stars</option>
+                                    <option value="average-rating-and-stars" data-i18n="productCards.averageRatingAndStars">Average rating and stars</option>
+                                </select>
+                            </div>
+                            
+                            <p class="section-info" style="margin-top: -8px;" data-i18n="productCards.reviewAppInfo">To show dynamic product rating, add a product review app</p>
+                            
+                            <div class="settings-field">
+                                <label data-i18n="productCards.priceLabelSize">Price label size</label>
+                                <select class="shopify-select">
+                                    <option value="extra-small" data-i18n="productCards.extraSmall">Extra small</option>
+                                    <option value="small" data-i18n="productCards.small">Small</option>
+                                    <option value="medium" data-i18n="productCards.medium">Medium</option>
+                                    <option value="large" data-i18n="productCards.large">Large</option>
+                                </select>
+                            </div>
+                            
+                            <div class="settings-field">
+                                <label data-i18n="productCards.imageHoverEffect">Image hover effect</label>
+                                <select class="shopify-select">
+                                    <option value="zoom" data-i18n="productCards.zoom">Zoom</option>
+                                    <option value="none" data-i18n="productCards.none">None</option>
+                                    <option value="show-all-media" data-i18n="productCards.showAllMedia">Show all media</option>
+                                    <option value="show-second-media" data-i18n="productCards.showSecondMedia">Show second media</option>
+                                </select>
+                            </div>
+                            
+                            <!-- Swatches Section -->
+                            <div class="subsection-divider" style="margin: 32px 0;">
+                                <h4 class="subsection-title" data-i18n="productCards.swatches">Swatches</h4>
+                            </div>
+                            
+                            <p class="section-info" data-i18n="productCards.swatchesInfo">Adjust the view of swatches in Theme settings>Swatches</p>
+                            
+                            <div class="settings-field">
+                                <label data-i18n="productCards.whatToShow">What to show</label>
+                                <select class="shopify-select">
+                                    <option value="variant-images" data-i18n="productCards.variantImages">Variant images</option>
+                                    <option value="color-swatches" data-i18n="productCards.colorSwatches">Color swatches</option>
+                                    <option value="both" data-i18n="productCards.both">Both</option>
+                                </select>
+                            </div>
+                            
+                            <div class="settings-field">
+                                <label data-i18n="productCards.showOnDesktop">Show on desktop</label>
+                                <select class="shopify-select">
+                                    <option value="on-hover" data-i18n="productCards.onHover">On hover</option>
+                                    <option value="always" data-i18n="productCards.always">Always</option>
+                                    <option value="never" data-i18n="productCards.never">Never</option>
+                                </select>
+                            </div>
+                            
+                            <div class="settings-field">
+                                <label data-i18n="productCards.showOnMobile">Show on mobile</label>
+                                <div class="radio-button-group">
+                                    <label class="radio-label">
+                                        <input type="radio" name="show-on-mobile" value="never" checked>
+                                        <span data-i18n="productCards.never">Never</span>
+                                    </label>
+                                    <label class="radio-label">
+                                        <input type="radio" name="show-on-mobile" value="always">
+                                        <span data-i18n="productCards.always">Always</span>
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="settings-field">
+                                <label class="checkbox-label">
+                                    <span data-i18n="productCards.hideForSingleValue">Hide for single-value products</span>
+                                    <input type="checkbox" class="shopify-toggle" id="hide-single-value-toggle">
+                                    <label for="hide-single-value-toggle" class="toggle-slider"></label>
+                                </label>
+                            </div>
+                            
+                            <!-- Quick buy buttons -->
+                            <div class="subsection-title" style="margin-top: 24px; margin-bottom: 16px;" data-i18n="productCards.quickBuyButtons">Quick buy buttons</div>
+                            
+                            <div class="settings-field">
+                                <label class="checkbox-label">
+                                    <span data-i18n="productCards.showQuickView">Show 'Quick view'</span>
+                                    <input type="checkbox" class="shopify-toggle" id="show-quick-view-toggle">
+                                    <label for="show-quick-view-toggle" class="toggle-slider"></label>
+                                </label>
+                            </div>
+                            
+                            <div class="settings-field">
+                                <label class="checkbox-label">
+                                    <span data-i18n="productCards.showAddToCart">Show 'Add to cart'</span>
+                                    <input type="checkbox" class="shopify-toggle" id="show-add-to-cart-toggle">
+                                    <label for="show-add-to-cart-toggle" class="toggle-slider"></label>
+                                </label>
+                            </div>
+                            
+                            <p class="section-info" style="margin-top: -8px;" data-i18n="productCards.singleVariantInfo">Only for single-variant products</p>
+                            
+                            <div class="settings-field">
+                                <label data-i18n="productCards.desktopButtonStyle">Desktop button style</label>
+                                <div class="radio-button-group">
+                                    <label class="radio-label">
+                                        <input type="radio" name="desktop-button-style" value="labels" checked>
+                                        <span data-i18n="productCards.labels">Labels</span>
+                                    </label>
+                                    <label class="radio-label">
+                                        <input type="radio" name="desktop-button-style" value="icons">
+                                        <span data-i18n="productCards.icons">Icons</span>
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="settings-field">
+                                <label class="checkbox-label">
+                                    <span data-i18n="productCards.showButtonsOnHover">Show buttons on hover</span>
+                                    <input type="checkbox" class="shopify-toggle" id="show-buttons-on-hover-toggle">
+                                    <label for="show-buttons-on-hover-toggle" class="toggle-slider"></label>
+                                </label>
+                            </div>
+                            
+                            <!-- Product badges Section -->
+                            <div class="subsection-divider" style="margin: 32px 0;">
+                                <h4 class="subsection-title" data-i18n="productCards.productBadges">Product badges</h4>
+                            </div>
+                            
+                            <p class="section-info" data-i18n="productCards.badgesInfo">Adjust the view and colors for badges in Theme settings>Product badges</p>
+                            
+                            <div class="settings-field">
+                                <label data-i18n="productCards.badgesDesktopPosition">Desktop position</label>
+                                <select class="shopify-select">
+                                    <option value="on-image" data-i18n="productCards.badgesOnImage">On image</option>
+                                    <option value="below-image" data-i18n="productCards.badgesBelowImage">Below image</option>
+                                    <option value="above-title" data-i18n="productCards.badgesAboveTitle">Above title</option>
+                                </select>
+                            </div>
+                            
+                            <div class="settings-field">
+                                <label class="checkbox-label">
+                                    <span data-i18n="productCards.showSoldOutBadge">Show 'Sold out' badge</span>
+                                    <input type="checkbox" class="shopify-toggle" id="pc-show-sold-out-badge-toggle">
+                                    <label for="pc-show-sold-out-badge-toggle" class="toggle-slider"></label>
+                                </label>
+                            </div>
+                            
+                            <div class="settings-field">
+                                <label class="checkbox-label">
+                                    <span data-i18n="productCards.showSaleBadge">Show 'Sale' badge</span>
+                                    <input type="checkbox" class="shopify-toggle" id="pc-show-sale-badge-toggle">
+                                    <label for="pc-show-sale-badge-toggle" class="toggle-slider"></label>
+                                </label>
+                            </div>
+                            
+                            <div class="settings-field">
+                                <label class="checkbox-label">
+                                    <span data-i18n="productCards.showSaleBadgeNextToPrice">Show 'Sale' badge next to price</span>
+                                    <input type="checkbox" class="shopify-toggle" id="pc-show-sale-badge-next-to-price-toggle">
+                                    <label for="pc-show-sale-badge-next-to-price-toggle" class="toggle-slider"></label>
+                                </label>
+                            </div>
+                            
+                            <div class="settings-field">
+                                <label class="checkbox-label">
+                                    <span data-i18n="productCards.highlightSalePrice">Highlight sale price</span>
+                                    <input type="checkbox" class="shopify-toggle" id="pc-highlight-sale-price-toggle">
+                                    <label for="pc-highlight-sale-price-toggle" class="toggle-slider"></label>
+                                </label>
+                            </div>
+                            
+                            <div class="settings-field">
+                                <label class="checkbox-label">
+                                    <span data-i18n="productCards.showCustom1Badge">Show 'Custom 1' badge</span>
+                                    <input type="checkbox" class="shopify-toggle" id="pc-show-custom-1-badge-toggle">
+                                    <label for="pc-show-custom-1-badge-toggle" class="toggle-slider"></label>
+                                </label>
+                            </div>
+                            
+                            <div class="settings-field">
+                                <label class="checkbox-label">
+                                    <span data-i18n="productCards.showCustom2Badge">Show 'Custom 2' badge</span>
+                                    <input type="checkbox" class="shopify-toggle" id="pc-show-custom-2-badge-toggle">
+                                    <label for="pc-show-custom-2-badge-toggle" class="toggle-slider"></label>
+                                </label>
+                            </div>
+                            
+                            <div class="settings-field">
+                                <label class="checkbox-label">
+                                    <span data-i18n="productCards.showCustom3Badge">Show 'Custom 3' badge</span>
+                                    <input type="checkbox" class="shopify-toggle" id="pc-show-custom-3-badge-toggle">
+                                    <label for="pc-show-custom-3-badge-toggle" class="toggle-slider"></label>
                                 </label>
                             </div>
                         </div>
@@ -1330,28 +1930,160 @@ $(document).ready(function() {
                     </button>
                     <div class="theme-section-content shopify-section-content" style="display: none;">
                         <div class="product-badges-controls">
-                            <div class="subsection-title" data-i18n="productBadges.onSale">On sale</div>
+                            <p class="section-info" data-i18n="productBadges.adjustInfo">Adjust the view and colors for badges. You can turn them on in the 'blocks' block on the product page or in Theme settings>Product cards</p>
                             
-                            <div class="settings-field">
-                                <label data-i18n="productBadges.position">Position</label>
-                                <select class="shopify-select">
-                                    <option value="top-left" data-i18n="productBadges.topLeft">Top left</option>
-                                    <option value="top-right" data-i18n="productBadges.topRight">Top right</option>
-                                    <option value="bottom-left" data-i18n="productBadges.bottomLeft">Bottom left</option>
-                                    <option value="bottom-right" data-i18n="productBadges.bottomRight">Bottom right</option>
-                                </select>
+                            <!-- Sold out badge -->
+                            <div class="badge-section">
+                                <h4 class="badge-section-title" data-i18n="productBadges.soldOutBadge">'Sold out' badge</h4>
+                                
+                                <div class="settings-field">
+                                    <label data-i18n="productBadges.background">Background</label>
+                                    <div class="shopify-color-input-wrapper">
+                                        <input type="color" value="#FFEDF5" class="shopify-color-picker" id="sold-out-bg-color">
+                                        <input type="text" value="#FFEDF5" class="shopify-color-text" data-color-for="sold-out-bg-color">
+                                        <button class="shopify-color-copy">
+                                            <i class="material-icons">content_copy</i>
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <div class="settings-field">
+                                    <label data-i18n="productBadges.text">Text</label>
+                                    <div class="shopify-color-input-wrapper">
+                                        <input type="color" value="#000000" class="shopify-color-picker" id="sold-out-text-color">
+                                        <input type="text" value="#000000" class="shopify-color-text" data-color-for="sold-out-text-color">
+                                        <button class="shopify-color-copy">
+                                            <i class="material-icons">content_copy</i>
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
                             
-                            <div class="subsection-title" data-i18n="productBadges.soldOut" style="margin-top: 24px;">Sold out</div>
+                            <!-- Sale badge -->
+                            <div class="badge-section">
+                                <h4 class="badge-section-title" data-i18n="productBadges.saleBadge">'Sale' badge</h4>
+                                
+                                <div class="settings-field">
+                                    <label data-i18n="productBadges.showAs">Show as</label>
+                                    <select class="shopify-select" id="sale-badge-show-as">
+                                        <option value="sale" data-i18n="productBadges.sale">Sale</option>
+                                        <option value="percentage" data-i18n="productBadges.percentageOff">-10%</option>
+                                        <option value="value" data-i18n="productBadges.valueOff">-$10</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="settings-field">
+                                    <label data-i18n="productBadges.background">Background</label>
+                                    <div class="shopify-color-input-wrapper">
+                                        <input type="color" value="#473C63" class="shopify-color-picker" id="sale-bg-color">
+                                        <input type="text" value="#473C63" class="shopify-color-text" data-color-for="sale-bg-color">
+                                        <button class="shopify-color-copy">
+                                            <i class="material-icons">content_copy</i>
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <div class="settings-field">
+                                    <label data-i18n="productBadges.text">Text</label>
+                                    <div class="shopify-color-input-wrapper">
+                                        <input type="color" value="#FFFFFF" class="shopify-color-picker" id="sale-text-color">
+                                        <input type="text" value="#FFFFFF" class="shopify-color-text" data-color-for="sale-text-color">
+                                        <button class="shopify-color-copy">
+                                            <i class="material-icons">content_copy</i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
                             
-                            <div class="settings-field">
-                                <label data-i18n="productBadges.position">Position</label>
-                                <select class="shopify-select">
-                                    <option value="top-left" data-i18n="productBadges.topLeft">Top left</option>
-                                    <option value="top-right" data-i18n="productBadges.topRight">Top right</option>
-                                    <option value="bottom-left" data-i18n="productBadges.bottomLeft">Bottom left</option>
-                                    <option value="bottom-right" data-i18n="productBadges.bottomRight">Bottom right</option>
-                                </select>
+                            <!-- Sale badge next to price -->
+                            <div class="badge-section">
+                                <h4 class="badge-section-title" data-i18n="productBadges.saleBadgeNextToPrice">'Sale' badge next to price</h4>
+                                
+                                <div class="settings-field">
+                                    <label data-i18n="productBadges.showAs">Show as</label>
+                                    <select class="shopify-select" id="sale-price-badge-show-as">
+                                        <option value="-10%" data-i18n="productBadges.percentageOff">-10%</option>
+                                        <option value="sale" data-i18n="productBadges.sale">Sale</option>
+                                        <option value="-$10" data-i18n="productBadges.valueOff">-$10</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="settings-field">
+                                    <label data-i18n="productBadges.background">Background</label>
+                                    <div class="shopify-color-input-wrapper">
+                                        <input type="color" value="#DB0007" class="shopify-color-picker" id="sale-price-bg-color">
+                                        <input type="text" value="#DB0007" class="shopify-color-text" data-color-for="sale-price-bg-color">
+                                        <button class="shopify-color-copy">
+                                            <i class="material-icons">content_copy</i>
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <div class="settings-field">
+                                    <label data-i18n="productBadges.text">Text</label>
+                                    <div class="shopify-color-input-wrapper">
+                                        <input type="color" value="#FFFFFF" class="shopify-color-picker" id="sale-price-text-color">
+                                        <input type="text" value="#FFFFFF" class="shopify-color-text" data-color-for="sale-price-text-color">
+                                        <button class="shopify-color-copy">
+                                            <i class="material-icons">content_copy</i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Sale price highlight -->
+                            <div class="badge-section">
+                                <h4 class="badge-section-title" data-i18n="productBadges.salePriceHighlight">Sale price highlight</h4>
+                                
+                                <div class="settings-field">
+                                    <label data-i18n="productBadges.text">Text</label>
+                                    <div class="shopify-color-input-wrapper">
+                                        <input type="color" value="#000000" class="shopify-color-picker" id="sale-highlight-text-color">
+                                        <input type="text" value="#000000" class="shopify-color-text" data-color-for="sale-highlight-text-color">
+                                        <button class="shopify-color-copy">
+                                            <i class="material-icons">content_copy</i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Custom 1 badge -->
+                            <div class="badge-section">
+                                <h4 class="badge-section-title" data-i18n="productBadges.custom1Badge">'Custom 1' badge</h4>
+                                
+                                <p class="section-info" style="margin-bottom: 16px;" data-i18n="productBadges.customBadgeInfo">Create your own badges by linking them to product tags</p>
+                                
+                                <div class="settings-field">
+                                    <label data-i18n="productBadges.text">Text</label>
+                                    <input type="text" class="shopify-input" placeholder="Best seller" data-i18n-placeholder="productBadges.textPlaceholder" value="Best seller">
+                                </div>
+                                
+                                <div class="settings-field">
+                                    <label data-i18n="productBadges.tag">Tag</label>
+                                    <input type="text" class="shopify-input" placeholder="Best Sellers" data-i18n-placeholder="productBadges.tagPlaceholder" value="Best Sellers">
+                                </div>
+                                
+                                <div class="settings-field">
+                                    <label data-i18n="productBadges.background">Background</label>
+                                    <div class="shopify-color-input-wrapper">
+                                        <input type="color" value="#FFEDF5" class="shopify-color-picker" id="custom1-bg-color">
+                                        <input type="text" value="#FFEDF5" class="shopify-color-text" data-color-for="custom1-bg-color">
+                                        <button class="shopify-color-copy">
+                                            <i class="material-icons">content_copy</i>
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <div class="settings-field">
+                                    <label data-i18n="productBadges.text">Text</label>
+                                    <div class="shopify-color-input-wrapper">
+                                        <input type="color" value="#000000" class="shopify-color-picker" id="custom1-text-color">
+                                        <input type="text" value="#000000" class="shopify-color-text" data-color-for="custom1-text-color">
+                                        <button class="shopify-color-copy">
+                                            <i class="material-icons">content_copy</i>
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -1366,26 +2098,102 @@ $(document).ready(function() {
                     <div class="theme-section-content shopify-section-content" style="display: none;">
                         <div class="cart-controls">
                             <div class="settings-field">
-                                <label data-i18n="cart.type">Cart type</label>
-                                <select class="shopify-select">
-                                    <option value="drawer" data-i18n="cart.drawer">Drawer</option>
-                                    <option value="page" data-i18n="cart.page">Page</option>
-                                    <option value="popup" data-i18n="cart.popup">Popup notification</option>
+                                <label data-i18n="cart.showAs">Show as</label>
+                                <select class="shopify-select" id="cart-show-as">
+                                    <option value="drawer-and-page" data-i18n="cart.drawerAndPage">Drawer and page</option>
+                                    <option value="drawer-only" data-i18n="cart.drawerOnly">Drawer only</option>
+                                    <option value="page-only" data-i18n="cart.pageOnly">Page only</option>
                                 </select>
                             </div>
                             
                             <div class="settings-field">
                                 <label class="checkbox-label">
-                                    <input type="checkbox" class="shopify-checkbox">
-                                    <span data-i18n="cart.showVendor">Show vendor</span>
+                                    <span data-i18n="cart.showStickyCart">Show sticky cart</span>
+                                    <input type="checkbox" class="shopify-toggle" id="show-sticky-cart-toggle">
+                                    <label for="show-sticky-cart-toggle" class="toggle-slider"></label>
                                 </label>
                             </div>
                             
-                            <div class="settings-field">
-                                <label class="checkbox-label">
-                                    <input type="checkbox" class="shopify-checkbox">
-                                    <span data-i18n="cart.enableNote">Enable cart note</span>
-                                </label>
+                            <!-- Cart status colors -->
+                            <div class="cart-section">
+                                <h4 class="cart-section-title" data-i18n="cart.cartStatusColors">Cart status colors</h4>
+                                
+                                <div class="settings-field">
+                                    <label data-i18n="cart.background">Background</label>
+                                    <div class="shopify-color-input-wrapper">
+                                        <input type="color" value="#F0FF2E" class="shopify-color-picker" id="cart-status-bg-color">
+                                        <input type="text" value="#F0FF2E" class="shopify-color-text" data-color-for="cart-status-bg-color">
+                                        <button class="shopify-color-copy">
+                                            <i class="material-icons">content_copy</i>
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <div class="settings-field">
+                                    <label data-i18n="cart.text">Text</label>
+                                    <div class="shopify-color-input-wrapper">
+                                        <input type="color" value="#3B3933" class="shopify-color-picker" id="cart-status-text-color">
+                                        <input type="text" value="#3B3933" class="shopify-color-text" data-color-for="cart-status-text-color">
+                                        <button class="shopify-color-copy">
+                                            <i class="material-icons">content_copy</i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Free shipping bar -->
+                            <div class="cart-section">
+                                <h4 class="cart-section-title" data-i18n="cart.freeShippingBar">Free shipping bar</h4>
+                                
+                                <div class="settings-field">
+                                    <label class="checkbox-label">
+                                        <span data-i18n="cart.showProgressBar">Show progress bar</span>
+                                        <input type="checkbox" class="shopify-toggle" id="show-progress-bar-toggle">
+                                        <label for="show-progress-bar-toggle" class="toggle-slider"></label>
+                                    </label>
+                                </div>
+                                
+                                <div class="settings-field">
+                                    <label data-i18n="cart.freeShippingThreshold">Free shipping threshold</label>
+                                    <input type="number" class="shopify-input" placeholder="0" value="0" min="0">
+                                    <p class="shopify-description" data-i18n="cart.thresholdDescription">
+                                        Fill in the value in your store's main currency. Set up your 
+                                        <a href="#" data-i18n="cart.shippingRate">shipping rate</a> or 
+                                        <a href="#" data-i18n="cart.automaticFreeShipping">automatic free shipping discount</a> 
+                                        to match the goal.
+                                    </p>
+                                </div>
+                                
+                                <div class="settings-field">
+                                    <label data-i18n="cart.progressBar">Progress bar</label>
+                                    <div class="shopify-color-input-wrapper">
+                                        <input type="color" value="#3B3933" class="shopify-color-picker" id="progress-bar-color">
+                                        <input type="text" value="#3B3933" class="shopify-color-text" data-color-for="progress-bar-color">
+                                        <button class="shopify-color-copy">
+                                            <i class="material-icons">content_copy</i>
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <div class="settings-field">
+                                    <label data-i18n="cart.progressBarTrack">Progress bar track</label>
+                                    <select class="shopify-select" id="progress-bar-track">
+                                        <option value="degradado-in" data-i18n="cart.degradadoIn">Degradado In...</option>
+                                        <option value="solid" data-i18n="cart.solid">Solid</option>
+                                        <option value="gradient" data-i18n="cart.gradient">Gradient</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="settings-field">
+                                    <label data-i18n="cart.message">Message</label>
+                                    <div class="shopify-color-input-wrapper">
+                                        <input type="color" value="#3B3933" class="shopify-color-picker" id="message-color">
+                                        <input type="text" value="#3B3933" class="shopify-color-text" data-color-for="message-color">
+                                        <button class="shopify-color-copy">
+                                            <i class="material-icons">content_copy</i>
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -1417,8 +2225,56 @@ $(document).ready(function() {
                         <span data-i18n="themeSettings.navigation">Navigation</span>
                         <i class="material-icons section-chevron">keyboard_arrow_down</i>
                     </button>
-                    <div class="theme-section-content" style="display: none;">
-                        <p style="padding: 12px 16px; color: #6d7175; font-size: 13px;">Configuración de navegación</p>
+                    <div class="theme-section-content shopify-section-content" style="display: none;">
+                        <div class="navigation-controls">
+                            <!-- Search Section -->
+                            <div class="navigation-section">
+                                <h4 class="navigation-section-title" data-i18n="navigation.search">Search</h4>
+                                
+                                <div class="settings-field">
+                                    <label data-i18n="navigation.showAs">Show as</label>
+                                    <select class="shopify-select" id="search-show-as">
+                                        <option value="drawer-and-page" data-i18n="navigation.drawerAndPage">Drawer and page</option>
+                                        <option value="drawer-only" data-i18n="navigation.drawerOnly">Drawer only</option>
+                                        <option value="page-only" data-i18n="navigation.pageOnly">Page only</option>
+                                        <option value="none" data-i18n="navigation.none">None</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <!-- Back-to-top Section -->
+                            <div class="navigation-section">
+                                <h4 class="navigation-section-title" data-i18n="navigation.backToTop">Back-to-top</h4>
+                                
+                                <div class="settings-field">
+                                    <label class="checkbox-label">
+                                        <span data-i18n="navigation.showBackToTopButton">Show back-to-top button</span>
+                                        <input type="checkbox" class="shopify-toggle" id="show-back-to-top-toggle">
+                                        <label for="show-back-to-top-toggle" class="toggle-slider"></label>
+                                    </label>
+                                </div>
+                                
+                                <div class="settings-field">
+                                    <label data-i18n="navigation.buttonPosition">Button position</label>
+                                    <select class="shopify-select" id="back-to-top-position">
+                                        <option value="bottom-left" data-i18n="navigation.bottomLeft">Bottom left</option>
+                                        <option value="bottom-center" data-i18n="navigation.bottomCenter">Bottom center</option>
+                                        <option value="bottom-right" data-i18n="navigation.bottomRight">Bottom right</option>
+                                    </select>
+                                    <p class="section-info" style="margin-top: 8px;" data-i18n="navigation.alwaysBottomLeftOnMobile">Always 'Bottom left' on mobile</p>
+                                </div>
+                            </div>
+                            
+                            <!-- Social media Section -->
+                            <div class="navigation-section">
+                                <h4 class="navigation-section-title" data-i18n="navigation.socialMedia">Social media</h4>
+                                
+                                <div class="settings-field">
+                                    <label data-i18n="navigation.socialAccounts">Social accounts</label>
+                                    <p class="section-info" data-i18n="navigation.socialAccountsInfo">To display your social media accounts, link them in your theme settings.</p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 
@@ -1428,8 +2284,169 @@ $(document).ready(function() {
                         <span data-i18n="themeSettings.socialMedia">Social media</span>
                         <i class="material-icons section-chevron">keyboard_arrow_down</i>
                     </button>
-                    <div class="theme-section-content" style="display: none;">
-                        <p style="padding: 12px 16px; color: #6d7175; font-size: 13px;">Redes sociales</p>
+                    <div class="theme-section-content shopify-section-content" style="display: none;">
+                        <div class="social-media-controls">
+                            <div class="settings-field">
+                                <label data-i18n="socialMedia.iconStyle">Icon style</label>
+                                <div class="radio-button-group">
+                                    <label class="radio-label">
+                                        <input type="radio" name="icon-style" value="solid" checked>
+                                        <span data-i18n="socialMedia.solid">Solid</span>
+                                    </label>
+                                    <label class="radio-label">
+                                        <input type="radio" name="icon-style" value="outline">
+                                        <span data-i18n="socialMedia.outline">Outline</span>
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <!-- Instagram -->
+                            <div class="social-platform-section">
+                                <label data-i18n="socialMedia.instagram">Instagram</label>
+                                <input type="text" class="shopify-input" placeholder="http://instagram.com" data-i18n-placeholder="socialMedia.instagramPlaceholder">
+                                <p class="social-help-text" data-i18n="socialMedia.instagramHelp">http://instagram.com/shopify</p>
+                            </div>
+                            
+                            <!-- Facebook -->
+                            <div class="social-platform-section">
+                                <label data-i18n="socialMedia.facebook">Facebook</label>
+                                <input type="text" class="shopify-input" placeholder="https://facebook.com" data-i18n-placeholder="socialMedia.facebookPlaceholder">
+                                <p class="social-help-text" data-i18n="socialMedia.facebookHelp">https://facebook.com/shopify</p>
+                            </div>
+                            
+                            <!-- Twitter -->
+                            <div class="social-platform-section">
+                                <label data-i18n="socialMedia.twitter">Twitter</label>
+                                <input type="text" class="shopify-input" placeholder="https://twitter.com/" data-i18n-placeholder="socialMedia.twitterPlaceholder">
+                                <p class="social-help-text" data-i18n="socialMedia.twitterHelp">https://twitter.com/shopify</p>
+                            </div>
+                            
+                            <!-- YouTube -->
+                            <div class="social-platform-section">
+                                <label data-i18n="socialMedia.youtube">YouTube</label>
+                                <input type="text" class="shopify-input" placeholder="" data-i18n-placeholder="socialMedia.youtubePlaceholder">
+                                <p class="social-help-text" data-i18n="socialMedia.youtubeHelp">https://www.youtube.com/shopify</p>
+                            </div>
+                            
+                            <!-- Pinterest -->
+                            <div class="social-platform-section">
+                                <label data-i18n="socialMedia.pinterest">Pinterest</label>
+                                <input type="text" class="shopify-input" placeholder="https://pinterest.com" data-i18n-placeholder="socialMedia.pinterestPlaceholder">
+                                <p class="social-help-text" data-i18n="socialMedia.pinterestHelp">https://pinterest.com/shopify</p>
+                            </div>
+                            
+                            <!-- TikTok -->
+                            <div class="social-platform-section">
+                                <label data-i18n="socialMedia.tiktok">TikTok</label>
+                                <input type="text" class="shopify-input" placeholder="" data-i18n-placeholder="socialMedia.tiktokPlaceholder">
+                                <p class="social-help-text" data-i18n="socialMedia.tiktokHelp">https://tiktok.com/@shopify</p>
+                            </div>
+                            
+                            <!-- Tumblr -->
+                            <div class="social-platform-section">
+                                <label data-i18n="socialMedia.tumblr">Tumblr</label>
+                                <input type="text" class="shopify-input" placeholder="" data-i18n-placeholder="socialMedia.tumblrPlaceholder">
+                                <p class="social-help-text" data-i18n="socialMedia.tumblrHelp">https://shopify.tumblr.com</p>
+                            </div>
+                            
+                            <!-- Snapchat -->
+                            <div class="social-platform-section">
+                                <label data-i18n="socialMedia.snapchat">Snapchat</label>
+                                <input type="text" class="shopify-input" placeholder="" data-i18n-placeholder="socialMedia.snapchatPlaceholder">
+                                <p class="social-help-text" data-i18n="socialMedia.snapchatHelp">https://www.snapchat.com/add/shopify</p>
+                            </div>
+                            
+                            <!-- LinkedIn -->
+                            <div class="social-platform-section">
+                                <label data-i18n="socialMedia.linkedin">LinkedIn</label>
+                                <input type="text" class="shopify-input" placeholder="" data-i18n-placeholder="socialMedia.linkedinPlaceholder">
+                                <p class="social-help-text" data-i18n="socialMedia.linkedinHelp">https://www.linkedin.com/company/shopify</p>
+                            </div>
+                            
+                            <!-- Vimeo -->
+                            <div class="social-platform-section">
+                                <label data-i18n="socialMedia.vimeo">Vimeo</label>
+                                <input type="text" class="shopify-input" placeholder="" data-i18n-placeholder="socialMedia.vimeoPlaceholder">
+                                <p class="social-help-text" data-i18n="socialMedia.vimeoHelp">https://vimeo.com/shopify</p>
+                            </div>
+                            
+                            <!-- Flickr -->
+                            <div class="social-platform-section">
+                                <label data-i18n="socialMedia.flickr">Flickr</label>
+                                <input type="text" class="shopify-input" placeholder="" data-i18n-placeholder="socialMedia.flickrPlaceholder">
+                                <p class="social-help-text" data-i18n="socialMedia.flickrHelp">https://www.flickr.com/photos/shopify</p>
+                            </div>
+                            
+                            <!-- Reddit -->
+                            <div class="social-platform-section">
+                                <label data-i18n="socialMedia.reddit">Reddit</label>
+                                <input type="text" class="shopify-input" placeholder="" data-i18n-placeholder="socialMedia.redditPlaceholder">
+                                <p class="social-help-text" data-i18n="socialMedia.redditHelp">https://www.reddit.com/user/shopify</p>
+                            </div>
+                            
+                            <!-- Email -->
+                            <div class="social-platform-section">
+                                <label data-i18n="socialMedia.email">Email</label>
+                                <input type="text" class="shopify-input" placeholder="" data-i18n-placeholder="socialMedia.emailPlaceholder">
+                                <p class="social-help-text" data-i18n="socialMedia.emailHelp">mailto:contact@shopify.com</p>
+                            </div>
+                            
+                            <!-- Behance -->
+                            <div class="social-platform-section">
+                                <label data-i18n="socialMedia.behance">Behance</label>
+                                <input type="text" class="shopify-input" placeholder="" data-i18n-placeholder="socialMedia.behancePlaceholder">
+                                <p class="social-help-text" data-i18n="socialMedia.behanceHelp">https://www.behance.net/shopify</p>
+                            </div>
+                            
+                            <!-- Discord -->
+                            <div class="social-platform-section">
+                                <label data-i18n="socialMedia.discord">Discord</label>
+                                <input type="text" class="shopify-input" placeholder="" data-i18n-placeholder="socialMedia.discordPlaceholder">
+                                <p class="social-help-text" data-i18n="socialMedia.discordHelp">https://discordapp.com/users/shopify</p>
+                            </div>
+                            
+                            <!-- Dribbble -->
+                            <div class="social-platform-section">
+                                <label data-i18n="socialMedia.dribbble">Dribbble</label>
+                                <input type="text" class="shopify-input" placeholder="" data-i18n-placeholder="socialMedia.dribbblePlaceholder">
+                                <p class="social-help-text" data-i18n="socialMedia.dribbbleHelp">https://dribbble.com</p>
+                            </div>
+                            
+                            <!-- Medium -->
+                            <div class="social-platform-section">
+                                <label data-i18n="socialMedia.medium">Medium</label>
+                                <input type="text" class="shopify-input" placeholder="" data-i18n-placeholder="socialMedia.mediumPlaceholder">
+                                <p class="social-help-text" data-i18n="socialMedia.mediumHelp">https://medium.com/@shopify</p>
+                            </div>
+                            
+                            <!-- Twitch -->
+                            <div class="social-platform-section">
+                                <label data-i18n="socialMedia.twitch">Twitch</label>
+                                <input type="text" class="shopify-input" placeholder="" data-i18n-placeholder="socialMedia.twitchPlaceholder">
+                                <p class="social-help-text" data-i18n="socialMedia.twitchHelp">https://twitch.tv/shopify</p>
+                            </div>
+                            
+                            <!-- WhatsApp -->
+                            <div class="social-platform-section">
+                                <label data-i18n="socialMedia.whatsapp">WhatsApp</label>
+                                <input type="text" class="shopify-input" placeholder="" data-i18n-placeholder="socialMedia.whatsappPlaceholder">
+                                <p class="social-help-text" data-i18n="socialMedia.whatsappHelp">https://wa.me/phone_number</p>
+                            </div>
+                            
+                            <!-- Viber -->
+                            <div class="social-platform-section">
+                                <label data-i18n="socialMedia.viber">Viber</label>
+                                <input type="text" class="shopify-input" placeholder="" data-i18n-placeholder="socialMedia.viberPlaceholder">
+                                <p class="social-help-text" data-i18n="socialMedia.viberHelp">viber://add?number=XXXXXXXXX</p>
+                            </div>
+                            
+                            <!-- Telegram -->
+                            <div class="social-platform-section">
+                                <label data-i18n="socialMedia.telegram">Telegram</label>
+                                <input type="text" class="shopify-input" placeholder="" data-i18n-placeholder="socialMedia.telegramPlaceholder">
+                                <p class="social-help-text" data-i18n="socialMedia.telegramHelp">https://t.me/username</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 
@@ -1440,7 +2457,160 @@ $(document).ready(function() {
                         <i class="material-icons section-chevron">keyboard_arrow_down</i>
                     </button>
                     <div class="theme-section-content" style="display: none;">
-                        <p style="padding: 12px 16px; color: #6d7175; font-size: 13px;">Muestras de color</p>
+                        <div class="theme-section-body" style="padding: 16px;">
+                            <!-- Learn about swatches link -->
+                            <p style="font-size: 13px; color: #333; margin-bottom: 16px;">
+                                <span data-i18n="swatches.learnAbout">Learn about</span> 
+                                <a href="#" style="color: #0066cc; text-decoration: underline;" data-i18n="swatches.title">swatches</a>
+                            </p>
+                            
+                            <!-- Primary swatch option section -->
+                            <div class="primary-swatch-section" style="background: #f4f4f4; padding: 16px; border-radius: 8px; margin-bottom: 20px;">
+                                <h4 style="font-size: 14px; font-weight: 600; margin-bottom: 8px;" data-i18n="swatches.primarySwatchOption">Primary swatch option</h4>
+                                <p style="font-size: 13px; color: #6d7175; margin-bottom: 16px;" data-i18n="swatches.showSwatchesInfo">Show swatches in product cards, product pages, and filters</p>
+                                
+                                <!-- Option name input -->
+                                <div style="margin-bottom: 16px;">
+                                    <label style="display: block; font-size: 13px; font-weight: 500; margin-bottom: 4px;" data-i18n="swatches.optionName">Option name</label>
+                                    <input type="text" class="shopify-input" value="Color" placeholder="Color" data-i18n-placeholder="swatches.optionNamePlaceholder">
+                                    <p style="font-size: 12px; color: #6d7175; margin-top: 4px;" data-i18n="swatches.optionNameHelp">Fill in the relevant option names from your admin to turn on swatches</p>
+                                </div>
+                                
+                                <!-- Shape for product cards -->
+                                <div style="margin-bottom: 12px;">
+                                    <label style="display: block; font-size: 13px; font-weight: 500; margin-bottom: 8px;" data-i18n="swatches.shapeForProductCards">Shape for product cards</label>
+                                    <select class="shopify-select" style="width: 100%;">
+                                        <option value="portrait" data-i18n="swatches.portrait">Portrait</option>
+                                        <option value="landscape" data-i18n="swatches.landscape">Landscape</option>
+                                    </select>
+                                </div>
+                                
+                                <!-- Size for product cards -->
+                                <div style="margin-bottom: 16px;">
+                                    <label style="display: flex; justify-content: space-between; align-items: center; font-size: 13px; font-weight: 500; margin-bottom: 8px;">
+                                        <span data-i18n="swatches.sizeForProductCards">Size for product cards</span>
+                                        <span class="range-value" style="font-weight: normal;">5</span>
+                                    </label>
+                                    <input type="range" min="3" max="7" value="5" class="shopify-range" data-value-display="product-cards-size" style="width: 100%;">
+                                </div>
+                                
+                                <!-- Shape for product pages -->
+                                <div style="margin-bottom: 12px;">
+                                    <label style="display: block; font-size: 13px; font-weight: 500; margin-bottom: 8px;" data-i18n="swatches.shapeForProductPages">Shape for product pages</label>
+                                    <select class="shopify-select" style="width: 100%;">
+                                        <option value="landscape" data-i18n="swatches.landscape">Landscape</option>
+                                        <option value="portrait" data-i18n="swatches.portrait">Portrait</option>
+                                    </select>
+                                </div>
+                                
+                                <!-- Size for product pages -->
+                                <div style="margin-bottom: 16px;">
+                                    <label style="display: flex; justify-content: space-between; align-items: center; font-size: 13px; font-weight: 500; margin-bottom: 8px;">
+                                        <span data-i18n="swatches.sizeForProductPages">Size for product pages</span>
+                                        <span class="range-value" style="font-weight: normal;">4</span>
+                                    </label>
+                                    <input type="range" min="3" max="7" value="4" class="shopify-range range-input" style="width: 100%;">
+                                </div>
+                                
+                                <!-- Shape for filters -->
+                                <div style="margin-bottom: 12px;">
+                                    <label style="display: block; font-size: 13px; font-weight: 500; margin-bottom: 8px;" data-i18n="swatches.shapeForFilters">Shape for filters</label>
+                                    <select class="shopify-select" style="width: 100%;">
+                                        <option value="square" data-i18n="swatches.square" selected>Square</option>
+                                        <option value="round" data-i18n="swatches.round">Round</option>
+                                        <option value="portrait" data-i18n="swatches.portrait">Portrait</option>
+                                        <option value="landscape" data-i18n="swatches.landscape">Landscape</option>
+                                    </select>
+                                </div>
+                                
+                                <!-- Size for filters -->
+                                <div style="margin-bottom: 16px;">
+                                    <label style="display: flex; justify-content: space-between; align-items: center; font-size: 13px; font-weight: 500; margin-bottom: 8px;">
+                                        <span data-i18n="swatches.sizeForFilters">Size for filters</span>
+                                        <span class="range-value" style="font-weight: normal;">1</span>
+                                    </label>
+                                    <input type="range" min="1" max="5" value="1" class="shopify-range range-input" style="width: 100%;">
+                                </div>
+                                
+                                <!-- Custom colors and patterns -->
+                                <div style="margin-bottom: 16px;">
+                                    <label style="display: block; font-size: 13px; font-weight: 500; margin-bottom: 4px;" data-i18n="swatches.customColorsAndPatterns">Custom colors and patterns</label>
+                                    <textarea class="shopify-textarea" rows="4" placeholder="Ultramarine::#0043F2&#10;Cherry blossom::#FFB7C5&#10;Sunny day::yellow/green/blue/&#10;Summertime::#F9AFB1/#0F9D5B/#4285F4" style="width: 100%; font-family: monospace; font-size: 13px;">Ultramarine::#0043F2
+Cherry blossom::#FFB7C5
+Sunny day::yellow/green/blue/
+Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
+                                    <p style="font-size: 12px; color: #6d7175; margin-top: 4px;">
+                                        <span data-i18n="swatches.customColorsHelp">Place each rule in a separate line.</span>
+                                        <a href="#" style="color: #0066cc; text-decoration: underline;" data-i18n="swatches.learnHowToAdd">Learn how to add color swatches</a>
+                                    </p>
+                                </div>
+                            </div>
+                            
+                            <!-- Secondary swatch options -->
+                            <div class="secondary-swatch-section">
+                                <h4 style="font-size: 14px; font-weight: 600; margin-bottom: 8px;" data-i18n="swatches.secondarySwatchOptions">Secondary swatch options</h4>
+                                <p style="font-size: 13px; color: #6d7175; margin-bottom: 16px;" data-i18n="swatches.showSwatchesForMore">Show swatches for more than one option in product pages and filters</p>
+                                
+                                <!-- Option names textarea -->
+                                <div style="margin-bottom: 16px;">
+                                    <label style="display: block; font-size: 13px; font-weight: 500; margin-bottom: 4px;" data-i18n="swatches.optionNames">Option names</label>
+                                    <textarea class="shopify-textarea" rows="3" placeholder="Material&#10;Frame" data-i18n-placeholder="swatches.optionNamesPlaceholder" style="width: 100%;">Material
+Frame</textarea>
+                                    <p style="font-size: 12px; color: #6d7175; margin-top: 4px;" data-i18n="swatches.optionNamesHelp">Fill in relevant option names from your admin, place each in a separate line</p>
+                                </div>
+                                
+                                <!-- Shape for product pages -->
+                                <div style="margin-bottom: 12px;">
+                                    <label style="display: block; font-size: 13px; font-weight: 500; margin-bottom: 8px;" data-i18n="swatches.shapeForProductPages">Shape for product pages</label>
+                                    <select class="shopify-select" style="width: 100%;">
+                                        <option value="square" data-i18n="swatches.square" selected>Square</option>
+                                        <option value="round" data-i18n="swatches.round">Round</option>
+                                    </select>
+                                </div>
+                                
+                                <!-- Size for product pages -->
+                                <div style="margin-bottom: 16px;">
+                                    <label style="display: flex; justify-content: space-between; align-items: center; font-size: 13px; font-weight: 500; margin-bottom: 8px;">
+                                        <span data-i18n="swatches.sizeForProductPages">Size for product pages</span>
+                                        <span class="range-value" style="font-weight: normal;">4</span>
+                                    </label>
+                                    <input type="range" min="3" max="7" value="4" class="shopify-range range-input" style="width: 100%;">
+                                </div>
+                                
+                                <!-- Shape for filters -->
+                                <div style="margin-bottom: 12px;">
+                                    <label style="display: block; font-size: 13px; font-weight: 500; margin-bottom: 8px;" data-i18n="swatches.shapeForFilters">Shape for filters</label>
+                                    <select class="shopify-select" style="width: 100%;">
+                                        <option value="square" data-i18n="swatches.square" selected>Square</option>
+                                        <option value="round" data-i18n="swatches.round">Round</option>
+                                        <option value="portrait" data-i18n="swatches.portrait">Portrait</option>
+                                        <option value="landscape" data-i18n="swatches.landscape">Landscape</option>
+                                    </select>
+                                </div>
+                                
+                                <!-- Size for filters -->
+                                <div style="margin-bottom: 16px;">
+                                    <label style="display: flex; justify-content: space-between; align-items: center; font-size: 13px; font-weight: 500; margin-bottom: 8px;">
+                                        <span data-i18n="swatches.sizeForFilters">Size for filters</span>
+                                        <span class="range-value" style="font-weight: normal;">1</span>
+                                    </label>
+                                    <input type="range" min="1" max="5" value="1" class="shopify-range range-input" style="width: 100%;">
+                                </div>
+                                
+                                <!-- Custom colors and patterns -->
+                                <div>
+                                    <label style="display: block; font-size: 13px; font-weight: 500; margin-bottom: 4px;" data-i18n="swatches.customColorsAndPatterns">Custom colors and patterns</label>
+                                    <textarea class="shopify-textarea" rows="4" placeholder="Ultramarine::#0043F2&#10;Cherry blossom::#FFB7C5&#10;Sunny day::yellow/green/blue/&#10;Summertime::#F9AFB1/#0F9D5B/#4285F4" style="width: 100%; font-family: monospace; font-size: 13px;">Ultramarine::#0043F2
+Cherry blossom::#FFB7C5
+Sunny day::yellow/green/blue/
+Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
+                                    <p style="font-size: 12px; color: #6d7175; margin-top: 4px;">
+                                        <span data-i18n="swatches.customColorsHelp">Place each rule in a separate line.</span>
+                                        <a href="#" style="color: #0066cc; text-decoration: underline;" data-i18n="swatches.learnHowToAdd">Learn how to add color swatches</a>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 
@@ -1455,9 +2625,11 @@ $(document).ready(function() {
             $(this).parent('.sidebar-section').toggleClass('expanded');
         });
         
-        // Add section button
-        $('#add-section-btn').on('click', function() {
-            switchSidebarView('addSectionView');
+        // Add section button - both in template and other groups
+        $('#add-section-btn, .add-section-button').on('click', function(e) {
+            e.stopPropagation();
+            const group = $(this).data('group') || 'template';
+            openAddSectionModal(group);
         });
         
         // Subsection clicks
@@ -1472,6 +2644,111 @@ $(document).ready(function() {
             console.log('Ver página clickeado');
             // TODO: Implement view page
         });
+    }
+    
+    // Function to open add section modal
+    function openAddSectionModal(group = 'template') {
+        // Create modal overlay
+        const modalOverlay = $('<div class="add-section-overlay"></div>');
+        const modalContent = renderAddSectionView(group);
+        
+        modalOverlay.html(modalContent);
+        $('body').append(modalOverlay);
+        
+        // Show modal with fade in
+        modalOverlay.css('display', 'block').hide().fadeIn(200);
+        
+        // Apply translations after a brief delay to ensure DOM is ready
+        setTimeout(() => {
+            applyTranslations();
+            
+            // Focus on search input
+            $('.search-sections-input').focus();
+            
+            // Force sections list to be scrollable
+            $('.sections-list').css({
+                'overflow-y': 'auto',
+                'max-height': 'calc(100% - 73px)'
+            });
+            
+            // Attach modal event handlers after translations are applied
+            attachAddSectionModalHandlers();
+        }, 50);
+    }
+    
+    // Function to attach event handlers for add section modal
+    function attachAddSectionModalHandlers() {
+        // Close modal with cancel button or overlay click
+        $('.cancel-button, .add-section-overlay').on('click', function(e) {
+            if (e.target === this || $(e.target).hasClass('cancel-button')) {
+                $('.add-section-overlay').fadeOut(200, function() {
+                    $(this).remove();
+                });
+            }
+        });
+        
+        // Prevent modal close when clicking inside
+        $('.add-section-modal').on('click', function(e) {
+            e.stopPropagation();
+        });
+        
+        // Search functionality
+        $('.search-sections-input').on('input', function() {
+            const searchTerm = $(this).val().toLowerCase();
+            $('.section-item').each(function() {
+                const text = $(this).text().toLowerCase();
+                $(this).toggle(text.includes(searchTerm));
+            });
+        });
+        
+        // Event handlers are now attached globally in the main initialization
+        // This prevents duplicate handlers and ensures they work properly
+        
+        // Add section on click
+        $('body').on('click', '.add-section-modal .section-item', function() {
+            const sectionId = $(this).data('section-id');
+            const sectionName = $(this).find('span').text();
+            
+            // Add section to page
+            console.log('Adding section:', sectionId, sectionName);
+            
+            // Close modal
+            $('.add-section-overlay').fadeOut(200, function() {
+                $(this).remove();
+            });
+            
+            // TODO: Actually add the section to the page
+        });
+    }
+    
+    // Function to update section preview
+    function updateSectionPreview(sectionId) {
+        const previews = {
+            'featured-collection': `
+                <div class="section-preview-content">
+                    <h4 class="preview-title">Featured collection</h4>
+                    <div class="preview-collection-grid">
+                        ${Array(8).fill().map((_, i) => `
+                            <div class="preview-product-card">
+                                <div class="preview-product-image"></div>
+                                <div class="preview-product-info">
+                                    <div class="preview-product-title"></div>
+                                    <div class="preview-product-price"></div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `,
+            'featured-product': '<div class="section-preview-image"><img src="/images/featured-product-preview.png" alt="Featured Product"></div>',
+            'collection-list': '<div class="section-preview-image"><img src="/images/collection-list-preview.png" alt="Collection List"></div>',
+            'slideshow': '<div class="section-preview-image"><img src="/images/slideshow-preview.png" alt="Slideshow"></div>',
+            // Add more previews as needed
+        };
+        
+        const previewContent = previews[sectionId] || `<div class="preview-placeholder"><p data-i18n="sections.noPreview">Vista previa no disponible</p></div>`;
+        $('.section-preview').html(previewContent);
+        applyTranslations();
     }
     
     // Event delegation for dynamic sidebar content
@@ -1516,6 +2793,24 @@ $(document).ready(function() {
     
     // Apply translations on initial load
     setTimeout(applyTranslations, 100);
+    
+    // Set up global event handlers for add section modal (outside of modal creation)
+    // This ensures they work even for dynamically created content
+    $(document).on('mouseenter', '.add-section-modal .section-item', function() {
+        const sectionId = $(this).data('section-id');
+        console.log('Hovering over section:', sectionId);
+        updateSectionPreview(sectionId);
+    });
+    
+    $(document).on('mouseleave', '.add-section-modal .sections-list', function(e) {
+        if (!$(e.relatedTarget).closest('.section-item').length) {
+            $('.section-preview').html(`
+                <div class="preview-placeholder">
+                    <p data-i18n="sections.selectToPreview">${translations[currentLanguage]['sections.selectToPreview'] || 'Select a section to preview'}</p>
+                </div>
+            `);
+        }
+    });
     
     // Function to apply translations to dynamic content
     function applyTranslations() {
@@ -1606,6 +2901,11 @@ $(document).ready(function() {
             // Initialize color schemes when Color schemes section is opened
             if ($(this).data('section') === 'color-schemes') {
                 setTimeout(initializeColorSchemes, 100);
+            }
+            
+            // Initialize swatches range inputs when Swatches section is opened
+            if ($(this).data('section') === 'swatches') {
+                setTimeout(initializeSwatchesRangeInputs, 100);
             }
             
             // Apply translations to the expanded content
@@ -2519,6 +3819,25 @@ $(document).ready(function() {
             }
         });
     }
+    
+    // Function to initialize swatches range inputs
+    function initializeSwatchesRangeInputs() {
+        console.log('Initializing swatches range inputs...');
+        
+        // Initialize all range inputs in the swatches section
+        $('.shopify-range').each(function() {
+            const rangeInput = $(this);
+            const valueDisplay = rangeInput.closest('div').find('.range-value');
+            
+            // Update display value when range changes
+            rangeInput.on('input', function() {
+                valueDisplay.text($(this).val());
+            });
+            
+            // Set initial value
+            valueDisplay.text(rangeInput.val());
+        });
+    }
 });
 
 // Additional styles for the builder
@@ -2986,7 +4305,14 @@ document.head.appendChild(style);
         // Color picker and text input sync
         $('.shopify-color-picker').on('input', function() {
             const value = $(this).val();
-            $(this).siblings('.shopify-color-text').val(value.toUpperCase());
+            const colorFor = $(this).attr('id');
+            
+            // Update the corresponding text input
+            if (colorFor) {
+                $(`input[data-color-for="${colorFor}"]`).val(value.toUpperCase());
+            } else {
+                $(this).siblings('.shopify-color-text').val(value.toUpperCase());
+            }
             
             // Save changes to the appropriate data structure
             const field = $(this).data('field');
@@ -2997,6 +4323,8 @@ document.head.appendChild(style);
         
         $('.shopify-color-text').on('input', function() {
             let value = $(this).val();
+            const colorFor = $(this).data('color-for');
+            
             // Ensure it's a valid hex color
             if (!value.startsWith('#')) {
                 value = '#' + value;
@@ -3011,7 +4339,11 @@ document.head.appendChild(style);
             
             // Update color picker if valid
             if (/^#[0-9A-F]{6}$/i.test(value)) {
-                $(this).siblings('.shopify-color-picker').val(value);
+                if (colorFor) {
+                    $(`#${colorFor}`).val(value);
+                } else {
+                    $(this).siblings('.shopify-color-picker').val(value);
+                }
                 
                 // Save changes to the appropriate data structure
                 const field = $(this).data('field');
@@ -3051,6 +4383,24 @@ document.head.appendChild(style);
         loadColorScheme('scheme1');
         // Load initial scheme configuration
         loadSchemeConfiguration('scheme1');
+    };
+    
+    // Initialize Swatches Range Inputs
+    window.initializeSwatchesRangeInputs = function() {
+        console.log('Initializing swatches range inputs...');
+        
+        // Handle range input changes
+        $('.shopify-range.range-input').on('input', function() {
+            const value = $(this).val();
+            // Find the closest parent div and then the range-value span
+            $(this).closest('div').find('.range-value').text(value);
+        });
+        
+        // Initialize all range values on load
+        $('.shopify-range.range-input').each(function() {
+            const value = $(this).val();
+            $(this).closest('div').find('.range-value').text(value);
+        });
     };
     
     // Load color scheme data
