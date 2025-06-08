@@ -687,10 +687,17 @@
     display: none;
     padding: 0 16px 0 16px;
     position: relative;
+    min-height: 50px;
 }
 
 .sidebar-section.expanded .sidebar-section-content {
     display: block;
+}
+
+/* Ensure sortable container has proper dimensions */
+.sidebar-section-content.ui-sortable {
+    overflow: visible !important;
+    min-height: 80px;
 }
 
 /* Dotted Lines for Hierarchy */
@@ -710,16 +717,31 @@
 
 /* Subsection Styles */
 .sidebar-subsection {
-    padding: 6px 8px 6px 28px;
+    padding: 8px 12px 8px 60px;
     cursor: pointer;
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
     color: #202223;
     font-size: 13px;
     position: relative;
     border-radius: 4px;
     transition: background-color 0.1s ease;
+    z-index: 1;
+    min-height: 36px;
+    overflow: visible;
+    margin: 2px 0;
+}
+
+/* Ensure subsections are draggable */
+.sidebar-subsection.ui-sortable-handle {
+    cursor: move;
+}
+
+.sidebar-subsection.ui-sortable-helper {
+    opacity: 0.8;
+    background: #f6f6f7;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
 .sidebar-subsection:hover {
@@ -784,7 +806,8 @@
     border-color: #404040;
 }
 
-.action-icon svg {
+.action-icon svg,
+.action-icon .material-icons {
     width: 18px;
     height: 18px;
     display: block;
@@ -792,6 +815,13 @@
     -webkit-backface-visibility: hidden;
     backface-visibility: hidden;
     transform: translateZ(0);
+}
+
+.action-icon .material-icons {
+    font-size: 16px !important;
+    line-height: 18px;
+    width: auto;
+    height: auto;
 }
 
 /* Visibility Toggle */
@@ -809,6 +839,125 @@
 
 .visibility-toggle.hidden .icon-hidden {
     display: block !important;
+}
+
+/* Drag and Drop Styles */
+.drag-handle {
+    cursor: grab !important;
+    color: #c1c7cd;
+    transition: all 0.2s ease;
+    opacity: 0.4;
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 10;
+    pointer-events: auto;
+    font-size: 18px !important;
+}
+
+/* Hide problematic menu icons */
+.sidebar-subsection > i.material-icons:not(.drag-handle):not(.collapse-indicator) {
+    display: none !important;
+}
+
+/* Specifically hide menu-like icons */
+i.material-icons[class*="drag_indicator"],
+i.material-icons[class*="more_horiz"],
+i.material-icons[class*="more_vert"],
+i.material-icons[class*="menu"],
+i.material-icons[class*="dehaze"],
+i.material-icons[class*="reorder"] {
+    display: none !important;
+}
+
+.sidebar-subsection:hover .drag-handle {
+    opacity: 1;
+    color: #8c9196;
+}
+
+.drag-handle:hover {
+    color: #202223;
+}
+
+.drag-handle:active {
+    cursor: grabbing !important;
+}
+
+.dark-mode .drag-handle {
+    color: #8c9196;
+}
+
+.dark-mode .drag-handle:hover {
+    color: #e3e3e3;
+}
+
+/* Durante el arrastre */
+.ui-sortable-helper .drag-handle {
+    opacity: 1 !important;
+    cursor: grabbing !important;
+}
+
+.sortable-placeholder {
+    visibility: visible !important;
+    background: #f0f0f0 !important;
+    border: 2px dashed #ccc !important;
+    margin: 4px 0 !important;
+    border-radius: 4px !important;
+}
+
+.dark-mode .sortable-placeholder {
+    background: #303030 !important;
+    border-color: #616161 !important;
+}
+
+/* Collapsible Indicator */
+.collapse-indicator {
+    transition: transform 0.3s ease;
+    cursor: pointer;
+    color: #8c9196;
+    font-size: 16px !important;
+    display: inline-flex !important;
+    align-items: center;
+    vertical-align: middle;
+    position: relative;
+    margin-left: -4px;
+    margin-right: 4px;
+}
+
+.dark-mode .collapse-indicator {
+    color: #8c9196;
+}
+
+/* Ensure proper icon ordering and visibility */
+.sidebar-subsection .subsection-text {
+    flex: 1;
+    padding-left: 0;
+}
+
+/* Smooth collapse animation states */
+.add-announcement-button.collapsing {
+    opacity: 0 !important;
+    transform: scaleY(0) !important;
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    max-height: 0 !important;
+    overflow: hidden !important;
+}
+
+/* Rotate animation for collapse indicator */
+.sidebar-subsection.collapsed .collapse-indicator {
+    transform: rotate(-90deg);
+}
+
+/* Fix icon alignment in subsections */
+.sidebar-subsection > i.material-icons {
+    font-size: 16px;
+    color: #637381;
+    display: inline-flex;
+    align-items: center;
 }
 
 .visibility-toggle.hidden {
@@ -923,6 +1072,34 @@
 
 .dark-mode .add-section-button::before {
     border-top-color: #616161;
+}
+
+/* Add Announcement Button */
+.add-announcement-button {
+    padding: 8px 16px 8px 32px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    color: #005bd3;
+    font-size: 13px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 4px;
+    margin: 4px 16px;
+    position: relative;
+    transform-origin: top;
+    opacity: 1;
+    max-height: 50px;
+    overflow: hidden;
+}
+
+.add-announcement-button:hover {
+    background-color: rgba(0, 91, 211, 0.04);
+}
+
+.add-announcement-button i {
+    font-size: 18px !important;
+    margin-right: 4px;
 }
 
 /* Footer Actions */

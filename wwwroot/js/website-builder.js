@@ -46,6 +46,8 @@ $(document).ready(function() {
             'sections.footer': 'Pie de página',
             'sections.footerSection': 'Pie de página',
             'sections.viewPage': 'Ver página',
+            'sections.addAnnouncement': 'Agregar anuncio',
+            'sections.addBlock': 'Agregar bloque',
             // Theme Settings translations
             'themeSettings.title': 'Configuración del tema',
             'themeSettings.appearance': 'Apariencia',
@@ -759,59 +761,38 @@ $(document).ready(function() {
             <div class="sidebar-section expanded">
                 <div class="sidebar-section-header">
                     <div class="section-title-wrapper">
-                        <div class="section-icon">
-                            <i class="material-icons">view_agenda</i>
-                        </div>
                         <span class="section-title" data-i18n="sections.header">Encabezado</span>
                     </div>
                     <i class="material-icons section-expand-icon">chevron_right</i>
                 </div>
                 <div class="sidebar-section-content">
                     <div class="sidebar-subsection" data-block-type="announcement">
-                        <i class="material-icons" style="font-size: 16px;">campaign</i>
-                        <span data-i18n="sections.announcementBar">Barra de anuncios</span>
+                        <span class="subsection-text" data-i18n="sections.announcementBar">Barra de anuncios</span>
                         <div class="subsection-actions">
                             <button class="action-icon visibility-toggle" data-section="announcement" title="Toggle visibility">
-                                <svg class="icon-visible" width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-                                    <path d="M8 2C4.5 2 1.5 4.5 0 8c1.5 3.5 4.5 6 8 6s6.5-2.5 8-6c-1.5-3.5-4.5-6-8-6zm0 10c-2.2 0-4-1.8-4-4s1.8-4 4-4 4 1.8 4 4-1.8 4-4 4z"/>
-                                    <circle cx="8" cy="8" r="2"/>
-                                </svg>
-                                <svg class="icon-hidden" width="16" height="16" viewBox="0 0 16 16" fill="currentColor" style="display: none;">
-                                    <path d="M8 2C4.5 2 1.5 4.5 0 8c0.7 1.6 1.8 3 3.2 4l1.4-1.4C3.6 9.8 3 8.9 3 8c0-2.2 1.8-4 4-4 0.4 0 0.8 0.1 1.2 0.2l1.6-1.6C9.2 2.2 8.6 2 8 2zm7.4 1.6l-1.4 1.4c1 0.8 1.6 1.7 2 2.6-1.5 3.5-4.5 6-8 6-0.6 0-1.2-0.1-1.8-0.2l-1.6 1.6c0.8 0.4 1.6 0.6 2.4 0.6 3.5 0 6.5-2.5 8-6-0.7-1.6-1.8-3-3.2-4zm-3.4 2l-4 4c0.2 0.1 0.4 0.2 0.6 0.2 1.1 0 2-0.9 2-2 0-0.2-0.1-0.4-0.2-0.6l1.6-1.6z"/>
-                                    <path d="M2 2L14 14" stroke="currentColor" stroke-width="1.5"/>
-                                </svg>
-                            </button>
-                            <button class="action-icon delete-icon" data-section="announcement" title="Delete">
-                                <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-                                    <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/>
-                                    <path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4 4v9a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4H4z"/>
-                                </svg>
+                                <i class="material-icons icon-visible">visibility</i>
+                                <i class="material-icons icon-hidden" style="display: none;">visibility_off</i>
                             </button>
                         </div>
                     </div>
+                    <div class="add-announcement-button">
+                        <i class="material-icons">add_circle</i>
+                        <span data-i18n="sections.addAnnouncement">Agregar anuncio</span>
+                    </div>
                     <div class="sidebar-subsection" data-block-type="header">
-                        <i class="material-icons" style="font-size: 16px;">view_day</i>
-                        <span data-i18n="sections.headerSection">Encabezado</span>
+                        <span class="subsection-text" data-i18n="sections.headerSection">Encabezado</span>
                         <div class="subsection-actions">
                             <button class="action-icon visibility-toggle" data-section="header" title="Toggle visibility">
-                                <svg class="icon-visible" width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-                                    <path d="M8 2C4.5 2 1.5 4.5 0 8c1.5 3.5 4.5 6 8 6s6.5-2.5 8-6c-1.5-3.5-4.5-6-8-6zm0 10c-2.2 0-4-1.8-4-4s1.8-4 4-4 4 1.8 4 4-1.8 4-4 4z"/>
-                                    <circle cx="8" cy="8" r="2"/>
-                                </svg>
-                                <svg class="icon-hidden" width="16" height="16" viewBox="0 0 16 16" fill="currentColor" style="display: none;">
-                                    <path d="M8 2C4.5 2 1.5 4.5 0 8c0.7 1.6 1.8 3 3.2 4l1.4-1.4C3.6 9.8 3 8.9 3 8c0-2.2 1.8-4 4-4 0.4 0 0.8 0.1 1.2 0.2l1.6-1.6C9.2 2.2 8.6 2 8 2zm7.4 1.6l-1.4 1.4c1 0.8 1.6 1.7 2 2.6-1.5 3.5-4.5 6-8 6-0.6 0-1.2-0.1-1.8-0.2l-1.6 1.6c0.8 0.4 1.6 0.6 2.4 0.6 3.5 0 6.5-2.5 8-6-0.7-1.6-1.8-3-3.2-4zm-3.4 2l-4 4c0.2 0.1 0.4 0.2 0.6 0.2 1.1 0 2-0.9 2-2 0-0.2-0.1-0.4-0.2-0.6l1.6-1.6z"/>
-                                    <path d="M2 2L14 14" stroke="currentColor" stroke-width="1.5"/>
-                                </svg>
+                                <i class="material-icons icon-visible">visibility</i>
+                                <i class="material-icons icon-hidden" style="display: none;">visibility_off</i>
                             </button>
                             <button class="action-icon add-icon" data-section="header" title="Add">
-                                <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-                                    <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
-                                </svg>
+                                <i class="material-icons">add</i>
                             </button>
                         </div>
                     </div>
                     <div class="add-section-button add-header-section" data-group="header">
-                        <i class="material-icons" style="font-size: 18px;">add_circle</i>
+                        <i class="material-icons">add_circle</i>
                         <span data-i18n="sections.addSection">Agregar sección</span>
                     </div>
                 </div>
@@ -872,9 +853,6 @@ $(document).ready(function() {
             <div class="sidebar-section">
                 <div class="sidebar-section-header">
                     <div class="section-title-wrapper">
-                        <div class="section-icon">
-                            <i class="material-icons">view_agenda</i>
-                        </div>
                         <span class="section-title" data-i18n="sections.footer">Pie de página</span>
                     </div>
                     <i class="material-icons section-expand-icon">chevron_right</i>
@@ -2727,6 +2705,209 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
             console.log('Ver página clickeado');
             // TODO: Implement view page
         });
+        
+        // Add announcement button
+        $(document).on('click', '.add-announcement-button', function(e) {
+            e.stopPropagation();
+            console.log('Agregar anuncio clickeado');
+            // TODO: Implement add announcement functionality
+            alert('Funcionalidad de agregar anuncio próximamente');
+        });
+        
+        // Add block button in header
+        $(document).on('click', '.add-icon', function(e) {
+            e.stopPropagation();
+            const section = $(this).data('section');
+            console.log(`Agregar bloque clickeado para ${section}`);
+            // TODO: Implement add block functionality
+            alert('Funcionalidad de agregar bloque próximamente');
+        });
+        
+        // Initialize collapsible subsections
+        makeSubsectionsCollapsible();
+        
+        // Initialize drag and drop directly
+        initializeDragAndDropSimple();
+        
+        // Diagnóstico y limpieza final
+        setTimeout(() => {
+            console.log('[DIAGNÓSTICO] Buscando y eliminando iconos problemáticos...');
+            
+            // Buscar TODOS los iconos Material Icons en la sección
+            $('.sidebar-section-content').first().find('i.material-icons').each(function() {
+                const $icon = $(this);
+                const iconText = $icon.text().trim();
+                const parent = $icon.parent();
+                
+                // Lista de iconos problemáticos conocidos
+                const problemIcons = ['drag_indicator', 'more_horiz', 'more_vert', 'menu', 'dehaze', 'reorder'];
+                
+                // Si es un icono problemático, eliminarlo
+                if (problemIcons.includes(iconText)) {
+                    console.log(`[CLEANUP FINAL] Eliminando icono problemático: "${iconText}"`);
+                    $icon.remove();
+                }
+                
+                // Log para diagnóstico
+                if ($icon.parent('.sidebar-subsection').length && 
+                    !$icon.hasClass('drag-handle') && 
+                    !$icon.hasClass('collapse-indicator') &&
+                    !$icon.closest('.subsection-actions').length) {
+                    console.log(`[DIAGNÓSTICO] Icono sospechoso encontrado: "${iconText}" (parent: ${parent.attr('class')})`);
+                }
+            });
+            
+            // Verificar estructura final
+            $('.sidebar-subsection[data-block-type="announcement"], .sidebar-subsection[data-block-type="header"]').each(function() {
+                const $this = $(this);
+                console.log(`\n[${$this.data('block-type')}] Estructura final:`);
+                $this.children().each(function(index) {
+                    const $child = $(this);
+                    if ($child.is('i.material-icons')) {
+                        console.log(`  - Icon ${index}: "${$child.text()}" (class: ${$child.attr('class')})`);
+                    }
+                });
+            });
+        }, 600);
+    }
+    
+    // Simple drag and drop initialization that works immediately
+    function initializeDragAndDropSimple() {
+        console.log('[DRAG&DROP] Inicialización simple y directa');
+        
+        // Wait a bit for the DOM to settle
+        setTimeout(() => {
+            const $container = $('.sidebar-section-content').first();
+            
+            if (!$container.length) {
+                console.error('[DRAG&DROP] No se encontró el contenedor');
+                return;
+            }
+            
+            // Add drag handles and collapse indicators
+            const $subsections = $container.find('.sidebar-subsection[data-block-type="announcement"], .sidebar-subsection[data-block-type="header"]');
+            $subsections.each(function() {
+                const $this = $(this);
+                
+                // Remove any existing drag handles and collapse indicators
+                $this.find('.drag-handle, .collapse-indicator').remove();
+                
+                // Remove ALL existing Material Icons at the beginning (likely the three dots menu)
+                $this.children('i.material-icons').each(function() {
+                    const $icon = $(this);
+                    const iconText = $icon.text().trim();
+                    // Remove any icon that's not inside subsection-actions or subsection-text
+                    // Also specifically remove drag_indicator, more_horiz, more_vert icons
+                    if ((!$icon.closest('.subsection-actions').length && 
+                         !$icon.closest('.subsection-text').length) ||
+                        iconText === 'drag_indicator' ||
+                        iconText === 'more_horiz' ||
+                        iconText === 'more_vert' ||
+                        iconText === 'menu') {
+                        console.log('[CLEANUP] Removing icon:', iconText);
+                        $icon.remove();
+                    }
+                });
+                
+                // Add drag handle at the beginning
+                $this.prepend('<i class="material-icons drag-handle">drag_handle</i>');
+                
+                // Add collapse indicator after drag handle
+                $this.find('.drag-handle').after('<i class="material-icons collapse-indicator">keyboard_arrow_down</i>');
+            });
+            
+            // Apply sortable
+            if (typeof $.fn.sortable === 'function') {
+                $container.sortable({
+                    items: '.sidebar-subsection[data-block-type="announcement"], .sidebar-subsection[data-block-type="header"]',
+                    handle: '.drag-handle',
+                    axis: 'y',
+                    tolerance: 'pointer',
+                    start: function(e, ui) {
+                        console.log('[DRAG&DROP] Arrastrando...');
+                    },
+                    stop: function(e, ui) {
+                        console.log('[DRAG&DROP] Terminado');
+                        // Reposition add announcement button
+                        const $addBtn = $('.add-announcement-button');
+                        const $announcement = $('.sidebar-subsection[data-block-type="announcement"]');
+                        if ($addBtn.length && $announcement.length) {
+                            $addBtn.insertAfter($announcement);
+                        }
+                    }
+                });
+                console.log('[DRAG&DROP] ✓ Sortable aplicado exitosamente');
+            } else {
+                console.error('[DRAG&DROP] jQuery UI sortable no está disponible');
+            }
+        }, 300);
+    }
+    
+    // Function to make subsections collapsible without changing the design
+    function makeSubsectionsCollapsible() {
+        console.log('[COLLAPSIBLE] Iniciando función makeSubsectionsCollapsible');
+        
+        // Verificar que los elementos existen
+        const announcementSection = $('.sidebar-subsection[data-block-type="announcement"]');
+        const headerSection = $('.sidebar-subsection[data-block-type="header"]');
+        
+        console.log('[COLLAPSIBLE] Elementos encontrados:', {
+            announcement: announcementSection.length,
+            header: headerSection.length
+        });
+        
+        // Para visualizar que es colapsable, agregar un pequeño icono chevron
+        [announcementSection, headerSection].forEach($section => {
+            if ($section.length > 0) {
+                // Agregar icono de chevron después del drag handle si no existe
+                const dragHandle = $section.find('.drag-handle');
+                if (dragHandle.length && !$section.find('.collapse-indicator').length) {
+                    dragHandle.after('<i class="material-icons collapse-indicator">keyboard_arrow_down</i>');
+                }
+                
+                // Hacer clickeable
+                $section.css('cursor', 'pointer');
+                
+                // Click handler
+                $section.off('click.collapse').on('click.collapse', function(e) {
+                    // No colapsar si se hace clic en los botones de acción
+                    if ($(e.target).closest('.subsection-actions').length) {
+                        return;
+                    }
+                    
+                    const $this = $(this);
+                    const $indicator = $this.find('.collapse-indicator');
+                    
+                    // Verificar el estado actual basado en una clase o data attribute
+                    const isCurrentlyCollapsed = $this.hasClass('collapsed');
+                    
+                    if (!isCurrentlyCollapsed) {
+                        // Colapsar con animación suave
+                        $this.addClass('collapsed');
+                        
+                        // Si es barra de anuncios, ocultar el botón de agregar anuncio con animación
+                        if ($this.data('block-type') === 'announcement') {
+                            const $addBtn = $('.add-announcement-button');
+                            $addBtn.addClass('collapsing');
+                            setTimeout(() => {
+                                $addBtn.hide();
+                            }, 300);
+                        }
+                    } else {
+                        // Expandir con animación suave
+                        $this.removeClass('collapsed');
+                        
+                        // Si es barra de anuncios, mostrar el botón de agregar anuncio con animación
+                        if ($this.data('block-type') === 'announcement') {
+                            const $addBtn = $('.add-announcement-button');
+                            $addBtn.show().removeClass('collapsing');
+                        }
+                    }
+                    
+                    console.log('[COLLAPSIBLE] Click en:', $this.data('block-type'), 'Ahora está colapsado:', !isCurrentlyCollapsed);
+                });
+            }
+        });
     }
     
     // Function to open add section modal
@@ -3102,6 +3283,18 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
     
     // Apply translations on initial load
     setTimeout(applyTranslations, 100);
+    
+    // Ensure drag and drop is initialized after everything is ready
+    setTimeout(() => {
+        console.log('[INIT] Verificación final de drag and drop...');
+        const $container = $('.sidebar-section-content').first();
+        if ($container.length && !$container.hasClass('ui-sortable')) {
+            console.log('[INIT] Drag and drop no se inicializó, aplicando ahora...');
+            initializeDragAndDrop();
+        } else if ($container.hasClass('ui-sortable')) {
+            console.log('[INIT] ✓ Drag and drop ya está inicializado');
+        }
+    }, 5000);
     
     // Set up global event handlers for add section modal (outside of modal creation)
     // This ensures they work even for dynamically created content
@@ -4147,6 +4340,208 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
             valueDisplay.text(rangeInput.val());
         });
     }
+    
+    // Expose functions globally for debugging
+    window.initializeDragAndDrop = initializeDragAndDrop;
+    window.makeSubsectionsCollapsible = makeSubsectionsCollapsible;
+    
+    // Manual drag and drop initialization
+    window.manualDragDrop = function() {
+        console.log('=== MANUAL DRAG AND DROP ===');
+        
+        const $container = $('.sidebar-section-content').first();
+        console.log('Container:', $container.length, $container.is(':visible'));
+        
+        // Make sure drag handles exist
+        const $subsections = $container.find('.sidebar-subsection[data-block-type="announcement"], .sidebar-subsection[data-block-type="header"]');
+        console.log('Subsections to make draggable:', $subsections.length);
+        
+        $subsections.each(function() {
+            const $this = $(this);
+            if (!$this.find('.drag-handle').length) {
+                $this.prepend('<i class="material-icons drag-handle" style="position: absolute; left: 8px; top: 50%; transform: translateY(-50%); cursor: grab; font-size: 20px; color: #8c9196;">drag_handle</i>');
+            }
+        });
+        
+        // Apply sortable
+        $container.sortable({
+            items: '.sidebar-subsection[data-block-type="announcement"], .sidebar-subsection[data-block-type="header"]',
+            handle: '.drag-handle',
+            axis: 'y',
+            start: function(e, ui) {
+                console.log('DRAGGING!');
+            },
+            stop: function(e, ui) {
+                console.log('DROPPED!');
+            }
+        });
+        
+        console.log('Sortable applied. Try dragging now.');
+    };
+    
+    // Simple drag and drop test
+    window.testDragDrop = function() {
+        console.log('=== DIAGNÓSTICO COMPLETO DE DRAG AND DROP ===');
+        
+        // 1. Verificar estructura
+        const $firstSection = $('.sidebar-section').first();
+        const $sectionContent = $firstSection.find('.sidebar-section-content');
+        const $subsections = $sectionContent.find('.sidebar-subsection');
+        const $dragHandles = $sectionContent.find('.drag-handle');
+        
+        console.log('1. ESTRUCTURA:');
+        console.log('  - Primera sección:', $firstSection.length);
+        console.log('  - Contenido de sección:', $sectionContent.length);
+        console.log('  - Subsecciones:', $subsections.length);
+        console.log('  - Drag handles:', $dragHandles.length);
+        
+        // 2. Verificar jQuery UI
+        console.log('\n2. JQUERY UI:');
+        console.log('  - jQuery version:', $.fn.jquery);
+        console.log('  - jQuery UI loaded:', typeof $.ui !== 'undefined');
+        console.log('  - Sortable disponible:', typeof $.fn.sortable !== 'undefined');
+        
+        // 3. Verificar CSS y posicionamiento
+        console.log('\n3. CSS Y POSICIONAMIENTO:');
+        $dragHandles.each(function(i) {
+            const $handle = $(this);
+            const position = $handle.position();
+            const css = {
+                position: $handle.css('position'),
+                opacity: $handle.css('opacity'),
+                cursor: $handle.css('cursor'),
+                display: $handle.css('display'),
+                visibility: $handle.css('visibility'),
+                pointerEvents: $handle.css('pointer-events')
+            };
+            console.log(`  Drag handle ${i}:`, css, 'Position:', position);
+        });
+        
+        // 4. Probar sortable
+        console.log('\n4. PRUEBA DE SORTABLE:');
+        if ($sectionContent.length > 0) {
+            // Destruir sortable existente
+            if ($sectionContent.hasClass('ui-sortable')) {
+                console.log('  - Destruyendo sortable existente...');
+                $sectionContent.sortable('destroy');
+            }
+            
+            // Aplicar sortable nuevo
+            try {
+                $sectionContent.sortable({
+                    items: '.sidebar-subsection',
+                    handle: '.drag-handle',
+                    axis: 'y',
+                    tolerance: 'pointer',
+                    start: function(e, ui) {
+                        console.log('  ✓ EVENTO START DISPARADO');
+                        console.log('    - Elemento:', ui.item.data('block-type'));
+                        console.log('    - Handle usado:', ui.helper.find('.drag-handle').length);
+                    },
+                    sort: function(e, ui) {
+                        console.log('  ✓ SORTING...');
+                    },
+                    stop: function(e, ui) {
+                        console.log('  ✓ EVENTO STOP DISPARADO');
+                    }
+                });
+                
+                console.log('  - Sortable aplicado');
+                console.log('  - Es sortable:', $sectionContent.hasClass('ui-sortable'));
+                
+                // Verificar opciones
+                const options = $sectionContent.sortable('option');
+                console.log('  - Opciones del sortable:', {
+                    handle: options.handle,
+                    items: options.items,
+                    axis: options.axis
+                });
+                
+            } catch (e) {
+                console.error('  Error:', e);
+            }
+        }
+        
+        // 5. Test de eventos
+        console.log('\n5. TEST DE EVENTOS:');
+        console.log('  - Prueba hacer clic y arrastrar un drag handle');
+        console.log('  - Los eventos deberían aparecer arriba');
+        
+        console.log('\n=== FIN DEL DIAGNÓSTICO ===');
+    };
+    
+    // Test function to verify everything is working
+    window.testWebsiteBuilder = function() {
+        console.log('=== TESTING WEBSITE BUILDER ===');
+        
+        // Test 1: Check if subsections exist
+        const $announcement = $('.sidebar-subsection[data-block-type="announcement"]');
+        const $header = $('.sidebar-subsection[data-block-type="header"]');
+        console.log('Announcement section exists:', $announcement.length > 0);
+        console.log('Header section exists:', $header.length > 0);
+        
+        // Test 2: Check collapse indicators
+        const $collapseIndicators = $('.collapse-indicator');
+        console.log('Collapse indicators found:', $collapseIndicators.length);
+        $collapseIndicators.each(function(i) {
+            console.log(`  Indicator ${i}:`, $(this).parent().data('block-type'));
+        });
+        
+        // Test 3: Check drag handles
+        const $dragHandles = $('.drag-handle');
+        console.log('Drag handles found:', $dragHandles.length);
+        $dragHandles.each(function(i) {
+            console.log(`  Drag handle ${i}:`, $(this).parent().data('block-type'));
+        });
+        
+        // Test 4: Check if sortable is applied
+        const $container = $announcement.parent();
+        console.log('Container is sortable:', $container.hasClass('ui-sortable'));
+        
+        // Test 5: Check add announcement button
+        const $addButton = $('.add-announcement-button');
+        console.log('Add announcement button exists:', $addButton.length > 0);
+        console.log('Add announcement button visible:', $addButton.is(':visible'));
+        
+        console.log('=== END OF TEST ===');
+    };
+    
+    // Diagnose icons issue
+    window.diagnoseIcons = function() {
+        console.log('=== DIAGNÓSTICO DE ICONOS ===');
+        
+        // Buscar todos los iconos en las subsecciones
+        $('.sidebar-subsection').each(function(index) {
+            const $sub = $(this);
+            const type = $sub.data('block-type');
+            console.log(`\nSubsección ${index} (${type}):`);
+            
+            // Listar todos los iconos
+            $sub.find('i.material-icons').each(function(i) {
+                const $icon = $(this);
+                console.log(`  Icon ${i}:`, {
+                    text: $icon.text(),
+                    classes: $icon.attr('class'),
+                    display: $icon.css('display'),
+                    visibility: $icon.css('visibility'),
+                    opacity: $icon.css('opacity'),
+                    position: $icon.css('position'),
+                    parent: $icon.parent().prop('tagName')
+                });
+            });
+            
+            // Ver el HTML completo
+            console.log('  HTML:', $sub.html().substring(0, 200) + '...');
+        });
+        
+        // Buscar iconos view_agenda específicamente
+        const $viewAgenda = $('i.material-icons:contains("view_agenda")');
+        console.log('\nIconos view_agenda encontrados:', $viewAgenda.length);
+        
+        // Buscar sección de header completa
+        const $headerSection = $('.sidebar-section').first();
+        console.log('\nPrimera sección HTML:', $headerSection.html().substring(0, 300) + '...');
+    };
 });
 
 // Additional styles for the builder
@@ -4760,5 +5155,137 @@ document.head.appendChild(style);
         if (colorSchemeSettings[currentScheme]) {
             colorSchemeSettings[currentScheme][field] = value.toUpperCase();
             console.log(`Updated ${currentScheme}.${field} to ${value}`);
+        }
+    }
+    
+    // Initialize drag and drop functionality without changing design
+    function initializeDragAndDrop() {
+        console.log('[DRAG&DROP] === INICIANDO DRAG AND DROP ===');
+        console.log('[DRAG&DROP] jQuery loaded:', typeof $ !== 'undefined');
+        console.log('[DRAG&DROP] jQuery UI loaded:', typeof $.ui !== 'undefined');
+        console.log('[DRAG&DROP] Sortable available:', typeof $.fn.sortable);
+        
+        // Verificar jQuery UI
+        if (typeof $.fn.sortable === 'undefined') {
+            console.error('[DRAG&DROP] ERROR: jQuery UI sortable NO está disponible');
+            console.log('[DRAG&DROP] Reintentando en 1 segundo...');
+            setTimeout(initializeDragAndDrop, 1000);
+            return;
+        }
+        
+        // Encontrar el contenedor correcto
+        const $container = $('.sidebar-section').first().find('.sidebar-section-content');
+        console.log('[DRAG&DROP] Buscando contenedor...');
+        console.log('[DRAG&DROP] Sidebar sections encontradas:', $('.sidebar-section').length);
+        console.log('[DRAG&DROP] Contenedor encontrado:', $container.length);
+        
+        if ($container.length === 0) {
+            console.error('[DRAG&DROP] ERROR: No se encontró el contenedor .sidebar-section-content');
+            console.log('[DRAG&DROP] Reintentando en 1 segundo...');
+            setTimeout(initializeDragAndDrop, 1000);
+            return;
+        }
+        
+        console.log('[DRAG&DROP] Contenedor clases:', $container.attr('class'));
+        console.log('[DRAG&DROP] Contenedor visible:', $container.is(':visible'));
+        
+        // Buscar las subsecciones
+        const $announcementSection = $container.find('.sidebar-subsection[data-block-type="announcement"]');
+        const $headerSection = $container.find('.sidebar-subsection[data-block-type="header"]');
+        
+        console.log('[DRAG&DROP] Subsecciones encontradas:', {
+            announcement: $announcementSection.length,
+            header: $headerSection.length
+        });
+        
+        if ($announcementSection.length === 0 || $headerSection.length === 0) {
+            console.error('[DRAG&DROP] ERROR: No se encontraron las subsecciones necesarias');
+            console.log('[DRAG&DROP] HTML del contenedor:', $container.html().substring(0, 200) + '...');
+            return;
+        }
+        
+        // Agregar drag handles a ambas subsecciones
+        [$announcementSection, $headerSection].forEach($section => {
+            if (!$section.find('.drag-handle').length) {
+                // Agregar el icono de drag al principio con estilo moderno
+                const dragIcon = $('<i class="material-icons drag-handle" title="Arrastra para reordenar">drag_handle</i>');
+                dragIcon.css({
+                    'font-size': '20px',
+                    'cursor': 'grab',
+                    'color': '#8c9196',
+                    'position': 'absolute',
+                    'left': '8px',
+                    'top': '50%',
+                    'transform': 'translateY(-50%)',
+                    'opacity': '0',
+                    'transition': 'opacity 0.2s ease',
+                    'user-select': 'none',
+                    '-webkit-user-select': 'none',
+                    '-moz-user-select': 'none'
+                });
+                $section.prepend(dragIcon);
+                console.log('[DRAG&DROP] Drag handle agregado a:', $section.data('block-type'));
+            }
+        });
+        
+        // Hacer el contenedor sortable
+        try {
+            console.log('[DRAG&DROP] Intentando aplicar sortable...');
+            console.log('[DRAG&DROP] Contenedor es jQuery object:', $container instanceof jQuery);
+            console.log('[DRAG&DROP] Sortable method exists:', typeof $container.sortable === 'function');
+            
+            // Destruir sortable existente si existe
+            if ($container.data('ui-sortable')) {
+                console.log('[DRAG&DROP] Destruyendo sortable existente...');
+                $container.sortable('destroy');
+            }
+            
+            // Aplicar sortable de forma simple
+            console.log('[DRAG&DROP] Aplicando sortable con opciones...');
+            $container.sortable({
+                items: '.sidebar-subsection[data-block-type="announcement"], .sidebar-subsection[data-block-type="header"]',
+                handle: '.drag-handle',
+                axis: 'y',
+                containment: 'parent',
+                tolerance: 'pointer',
+                placeholder: 'sortable-placeholder',
+                forcePlaceholderSize: true,
+                revert: 200,
+                start: function(event, ui) {
+                    console.log('[DRAG&DROP] ¡ARRASTRANDO!');
+                    ui.placeholder.height(ui.item.height());
+                },
+                stop: function(event, ui) {
+                    console.log('[DRAG&DROP] Arrastre terminado');
+                    
+                    // Reposicionar el botón de agregar anuncio
+                    const $addBtn = $('.add-announcement-button');
+                    const $announcement = $('.sidebar-subsection[data-block-type="announcement"]');
+                    if ($addBtn.length && $announcement.length) {
+                        $addBtn.insertAfter($announcement);
+                    }
+                }
+            });
+            
+            console.log('[DRAG&DROP] ✓ Sortable aplicado exitosamente');
+            console.log('[DRAG&DROP] Clases del contenedor después:', $container.attr('class'));
+            console.log('[DRAG&DROP] Es sortable:', $container.hasClass('ui-sortable'));
+            
+            // Verificar
+            const sortableInstance = $container.data('ui-sortable');
+            console.log('[DRAG&DROP] Instancia sortable existe:', sortableInstance !== undefined);
+            if (sortableInstance) {
+                console.log('[DRAG&DROP] Items configurados:', sortableInstance.options.items);
+                console.log('[DRAG&DROP] Handle configurado:', sortableInstance.options.handle);
+                console.log('[DRAG&DROP] Sortable habilitado:', !sortableInstance.options.disabled);
+            } else {
+                console.error('[DRAG&DROP] ERROR: No se creó la instancia de sortable');
+            }
+            
+            console.log('[DRAG&DROP] === FIN DE INICIALIZACIÓN ===');
+            
+        } catch (error) {
+            console.error('[DRAG&DROP] ERROR CRÍTICO:', error);
+            console.error('[DRAG&DROP] Stack:', error.stack);
         }
     }
