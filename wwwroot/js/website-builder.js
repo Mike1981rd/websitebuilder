@@ -770,10 +770,45 @@ $(document).ready(function() {
                     <div class="sidebar-subsection" data-block-type="announcement">
                         <i class="material-icons" style="font-size: 16px;">campaign</i>
                         <span data-i18n="sections.announcementBar">Barra de anuncios</span>
+                        <div class="subsection-actions">
+                            <button class="action-icon visibility-toggle" data-section="announcement" title="Toggle visibility">
+                                <svg class="icon-visible" width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                                    <path d="M8 2C4.5 2 1.5 4.5 0 8c1.5 3.5 4.5 6 8 6s6.5-2.5 8-6c-1.5-3.5-4.5-6-8-6zm0 10c-2.2 0-4-1.8-4-4s1.8-4 4-4 4 1.8 4 4-1.8 4-4 4z"/>
+                                    <circle cx="8" cy="8" r="2"/>
+                                </svg>
+                                <svg class="icon-hidden" width="16" height="16" viewBox="0 0 16 16" fill="currentColor" style="display: none;">
+                                    <path d="M8 2C4.5 2 1.5 4.5 0 8c0.7 1.6 1.8 3 3.2 4l1.4-1.4C3.6 9.8 3 8.9 3 8c0-2.2 1.8-4 4-4 0.4 0 0.8 0.1 1.2 0.2l1.6-1.6C9.2 2.2 8.6 2 8 2zm7.4 1.6l-1.4 1.4c1 0.8 1.6 1.7 2 2.6-1.5 3.5-4.5 6-8 6-0.6 0-1.2-0.1-1.8-0.2l-1.6 1.6c0.8 0.4 1.6 0.6 2.4 0.6 3.5 0 6.5-2.5 8-6-0.7-1.6-1.8-3-3.2-4zm-3.4 2l-4 4c0.2 0.1 0.4 0.2 0.6 0.2 1.1 0 2-0.9 2-2 0-0.2-0.1-0.4-0.2-0.6l1.6-1.6z"/>
+                                    <path d="M2 2L14 14" stroke="currentColor" stroke-width="1.5"/>
+                                </svg>
+                            </button>
+                            <button class="action-icon delete-icon" data-section="announcement" title="Delete">
+                                <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                                    <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/>
+                                    <path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4 4v9a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4H4z"/>
+                                </svg>
+                            </button>
+                        </div>
                     </div>
                     <div class="sidebar-subsection" data-block-type="header">
                         <i class="material-icons" style="font-size: 16px;">view_day</i>
                         <span data-i18n="sections.headerSection">Encabezado</span>
+                        <div class="subsection-actions">
+                            <button class="action-icon visibility-toggle" data-section="header" title="Toggle visibility">
+                                <svg class="icon-visible" width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                                    <path d="M8 2C4.5 2 1.5 4.5 0 8c1.5 3.5 4.5 6 8 6s6.5-2.5 8-6c-1.5-3.5-4.5-6-8-6zm0 10c-2.2 0-4-1.8-4-4s1.8-4 4-4 4 1.8 4 4-1.8 4-4 4z"/>
+                                    <circle cx="8" cy="8" r="2"/>
+                                </svg>
+                                <svg class="icon-hidden" width="16" height="16" viewBox="0 0 16 16" fill="currentColor" style="display: none;">
+                                    <path d="M8 2C4.5 2 1.5 4.5 0 8c0.7 1.6 1.8 3 3.2 4l1.4-1.4C3.6 9.8 3 8.9 3 8c0-2.2 1.8-4 4-4 0.4 0 0.8 0.1 1.2 0.2l1.6-1.6C9.2 2.2 8.6 2 8 2zm7.4 1.6l-1.4 1.4c1 0.8 1.6 1.7 2 2.6-1.5 3.5-4.5 6-8 6-0.6 0-1.2-0.1-1.8-0.2l-1.6 1.6c0.8 0.4 1.6 0.6 2.4 0.6 3.5 0 6.5-2.5 8-6-0.7-1.6-1.8-3-3.2-4zm-3.4 2l-4 4c0.2 0.1 0.4 0.2 0.6 0.2 1.1 0 2-0.9 2-2 0-0.2-0.1-0.4-0.2-0.6l1.6-1.6z"/>
+                                    <path d="M2 2L14 14" stroke="currentColor" stroke-width="1.5"/>
+                                </svg>
+                            </button>
+                            <button class="action-icon add-icon" data-section="header" title="Add">
+                                <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                                    <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
+                                </svg>
+                            </button>
+                        </div>
                     </div>
                     <div class="add-section-button add-header-section" data-group="header">
                         <i class="material-icons" style="font-size: 18px;">add_circle</i>
@@ -2633,10 +2668,58 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
         });
         
         // Subsection clicks
-        $('.sidebar-subsection').on('click', function() {
+        $('.sidebar-subsection').on('click', function(e) {
+            // Don't trigger if clicking on action buttons
+            if ($(e.target).closest('.subsection-actions').length) {
+                return;
+            }
             const blockType = $(this).data('block-type');
             console.log('Subsección clickeada:', blockType);
             // TODO: Handle subsection clicks
+        });
+        
+        // Visibility toggle button
+        $(document).on('click', '.visibility-toggle', function(e) {
+            e.stopPropagation();
+            const $button = $(this);
+            const $visibleIcon = $button.find('.icon-visible');
+            const $hiddenIcon = $button.find('.icon-hidden');
+            
+            $button.toggleClass('hidden');
+            const isHidden = $button.hasClass('hidden');
+            
+            if (isHidden) {
+                $visibleIcon.hide();
+                $hiddenIcon.show();
+            } else {
+                $visibleIcon.show();
+                $hiddenIcon.hide();
+            }
+            
+            const section = $button.data('section');
+            console.log(`Visibility toggled for ${section}: ${isHidden ? 'hidden' : 'visible'}`);
+            // TODO: Actually hide/show the section in the preview
+        });
+        
+        // Delete button for announcement
+        $(document).on('click', '.delete-icon', function(e) {
+            e.stopPropagation();
+            const section = $(this).data('section');
+            if (confirm(`¿Estás seguro de que quieres eliminar la ${section === 'announcement' ? 'barra de anuncios' : 'sección'}?`)) {
+                console.log(`Deleting ${section}`);
+                // TODO: Actually delete the section
+                $(this).closest('.sidebar-subsection').fadeOut(300, function() {
+                    $(this).remove();
+                });
+            }
+        });
+        
+        // More options button
+        $(document).on('click', '.more-options', function(e) {
+            e.stopPropagation();
+            const section = $(this).data('section');
+            console.log(`More options clicked for ${section}`);
+            // TODO: Show more options menu
         });
         
         // Footer link
@@ -2725,23 +2808,249 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
     function updateSectionPreview(sectionId) {
         const previews = {
             'featured-collection': `
-                <div class="section-preview-content">
-                    <h4 class="preview-title">Featured collection</h4>
-                    <div class="preview-collection-grid">
-                        ${Array(8).fill().map((_, i) => `
-                            <div class="preview-product-card">
-                                <div class="preview-product-image"></div>
-                                <div class="preview-product-info">
-                                    <div class="preview-product-title"></div>
-                                    <div class="preview-product-price"></div>
+                <div class="featured-collection-preview-new">
+                    <div class="preview-container">
+                        <div class="preview-title-bar">
+                            <span class="preview-title-text">Featured collection</span>
+                        </div>
+                        <div class="preview-products-row">
+                            ${Array(10).fill().map((_, i) => `
+                                <div class="preview-product-item">
+                                    <div class="preview-product-image-box">
+                                        <div class="preview-image-icon">
+                                            <i class="material-icons">image</i>
+                                        </div>
+                                    </div>
+                                    <div class="preview-product-info">
+                                        <div class="preview-line vendor-line"></div>
+                                        <div class="preview-line title-line"></div>
+                                        <div class="preview-price-row">
+                                            <div class="preview-line price-line"></div>
+                                            <div class="preview-line price-line short"></div>
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
-                        `).join('')}
+                            `).join('')}
+                        </div>
                     </div>
                 </div>
             `,
-            'featured-product': '<div class="section-preview-image"><img src="/images/featured-product-preview.png" alt="Featured Product"></div>',
-            'collection-list': '<div class="section-preview-image"><img src="/images/collection-list-preview.png" alt="Collection List"></div>',
+            'featured-product': `
+                <div class="featured-product-preview">
+                    <div class="preview-container">
+                        <div class="featured-product-layout">
+                            <div class="product-images-section">
+                                <div class="main-product-image">
+                                    <i class="material-icons">image</i>
+                                </div>
+                                <div class="product-thumbnails">
+                                    <div class="thumbnail-item">
+                                        <i class="material-icons">image</i>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="product-info-section">
+                                <h2 class="product-title">Nombre del producto</h2>
+                                <div class="product-price">$0.00</div>
+                                <div class="product-description">
+                                    <div class="description-line"></div>
+                                    <div class="description-line"></div>
+                                    <div class="description-line short"></div>
+                                </div>
+                                <div class="product-actions">
+                                    <button class="btn-add-to-cart">Agregar</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `,
+            'collection-list': `
+                <div class="collection-list-preview">
+                    <div class="preview-container">
+                        <div class="preview-title-bar">
+                            <span class="preview-title-text">Collection list</span>
+                        </div>
+                        <div class="collections-grid">
+                            ${Array(3).fill().map(() => `
+                                <div class="collection-item">
+                                    <div class="collection-image">
+                                        <div class="collection-icon">
+                                            <i class="material-icons">shopping_bag</i>
+                                            <i class="material-icons">local_florist</i>
+                                        </div>
+                                    </div>
+                                    <div class="collection-name">
+                                        <div class="name-line"></div>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+            `,
+            'image-banner': `
+                <div class="image-banner-preview">
+                    <div class="preview-container">
+                        <div class="banner-content">
+                            <div class="banner-icons">
+                                <i class="material-icons">photo_camera</i>
+                                <i class="material-icons">videocam</i>
+                                <i class="material-icons">music_note</i>
+                                <i class="material-icons">palette</i>
+                            </div>
+                            <h2 class="banner-title">Image with text</h2>
+                            <p class="banner-description">Fill in the text to tell customers by what your products are inspired.</p>
+                            <div class="banner-buttons">
+                                <button class="banner-btn">Button label</button>
+                                <button class="banner-btn">Button label</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `,
+            'multicolumn': `
+                <div class="multicolumn-preview">
+                    <div class="preview-container">
+                        <div class="preview-title-bar">
+                            <span class="preview-title-text">Multicolumn</span>
+                        </div>
+                        <div class="multicolumn-description">
+                            Share multiple columns of text paired with images or icons to share useful information about your store: shipping and return conditions, special offers and upcoming sales.
+                        </div>
+                        <div class="columns-grid">
+                            ${Array(3).fill().map(() => `
+                                <div class="column-item">
+                                    <div class="column-icon">
+                                        <i class="material-icons">stars</i>
+                                    </div>
+                                    <h3 class="column-title">Icon column</h3>
+                                    <p class="column-text">Pair text with an icon to draw attention to your chosen product, collection or store of news. Add details on shipping or return conditions, product availability, care instructions, charting specs and standards.</p>
+                                    <a href="#" class="column-link">Learn more</a>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+            `,
+            'accordion': `
+                <div class="accordion-preview">
+                    <div class="preview-container">
+                        <div class="preview-title-bar">
+                            <span class="preview-title-text">FAQ</span>
+                        </div>
+                        <div class="accordion-content">
+                            <p class="accordion-description">Answers to most common questions about products, orders, shipments, and payments.</p>
+                            <div class="accordion-section">
+                                <h4 class="accordion-category">Category</h4>
+                                <div class="accordion-item">
+                                    <span>Frequently asked question</span>
+                                    <i class="material-icons">add</i>
+                                </div>
+                                <div class="accordion-item">
+                                    <span>Frequently asked question</span>
+                                    <i class="material-icons">add</i>
+                                </div>
+                            </div>
+                            <div class="accordion-section">
+                                <h4 class="accordion-category">Category</h4>
+                                <div class="accordion-item">
+                                    <span>Frequently asked question</span>
+                                    <i class="material-icons">add</i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `,
+            'contact-form': `
+                <div class="contact-form-preview">
+                    <div class="preview-container">
+                        <div class="preview-title-bar">
+                            <span class="preview-title-text">Contact us</span>
+                        </div>
+                        <div class="contact-form-content">
+                            <p class="form-description">Fill in the text to remind customers to fill in the form correctly so that your support team could contact them to help with the issues and answer all the questions.</p>
+                            <div class="form-fields">
+                                <div class="form-row">
+                                    <div class="form-field">Name</div>
+                                    <div class="form-field">Email Address</div>
+                                </div>
+                                <div class="form-field large">Message</div>
+                                <button class="form-submit">Send</button>
+                            </div>
+                            <p class="form-disclaimer">This contact form is for demo purposes only and will not send or save any data. To use a contact form feature, you will need to integrate with a third-party service.</p>
+                        </div>
+                    </div>
+                </div>
+            `,
+            'countdown-banner': `
+                <div class="countdown-banner-preview">
+                    <div class="preview-container">
+                        <div class="countdown-content">
+                            <h4 class="countdown-label">COUNTDOWN BANNER</h4>
+                            <h2 class="countdown-title">Limited time promotion</h2>
+                            <p class="countdown-description">Create urgency around sales and special offers</p>
+                            <div class="countdown-timer">
+                                <div class="timer-block">
+                                    <span class="timer-value">0</span>
+                                    <span class="timer-label">DAYS</span>
+                                </div>
+                                <span class="timer-separator">:</span>
+                                <div class="timer-block">
+                                    <span class="timer-value">0</span>
+                                    <span class="timer-label">HOURS</span>
+                                </div>
+                                <span class="timer-separator">:</span>
+                                <div class="timer-block">
+                                    <span class="timer-value">0</span>
+                                    <span class="timer-label">MINS</span>
+                                </div>
+                                <span class="timer-separator">:</span>
+                                <div class="timer-block">
+                                    <span class="timer-value">0</span>
+                                    <span class="timer-label">SECS</span>
+                                </div>
+                            </div>
+                            <button class="countdown-button">Button label</button>
+                        </div>
+                    </div>
+                </div>
+            `,
+            'gallery': `
+                <div class="gallery-preview">
+                    <div class="preview-container">
+                        <div class="preview-title-bar">
+                            <span class="preview-title-text">Gallery</span>
+                        </div>
+                        <div class="gallery-content">
+                            <p class="gallery-description">Show your products, collections, and social media posts in tall about recent events.</p>
+                            <div class="gallery-grid">
+                                ${Array(5).fill().map(() => `
+                                    <div class="gallery-item">
+                                        <i class="material-icons">photo_camera</i>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `,
+            'newsletter': `
+                <div class="newsletter-preview">
+                    <div class="preview-container">
+                        <div class="newsletter-content">
+                            <h3 class="newsletter-label">NEWSLETTER</h3>
+                            <h2 class="newsletter-title">Subscribe</h2>
+                            <p class="newsletter-description">Invite customers to subscribe for timely sale access, new in, promotions, and more.</p>
+                            <div class="newsletter-form">
+                                <input type="email" class="newsletter-input" placeholder="Email Address">
+                                <button class="newsletter-button">Subscribe</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `,
             'slideshow': '<div class="section-preview-image"><img src="/images/slideshow-preview.png" alt="Slideshow"></div>',
             // Add more previews as needed
         };

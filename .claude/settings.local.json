@@ -10,7 +10,8 @@
       "Bash(dotnet build)",
       "Bash(ls:*)",
       "Bash(awk:*)",
-      "Bash(dotnet build:*)"
+      "Bash(dotnet build:*)",
+      "Bash(rg:*)"
     ],
     "deny": []
   }
