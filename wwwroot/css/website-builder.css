@@ -883,7 +883,8 @@
 /* Drag and Drop Styles */
 .drag-handle {
     cursor: grab !important;
-    color: #c1c7cd;
+    color: red;
+    font-size: 40px !important;
     transition: all 0.2s ease;
     opacity: 0.4;
     position: absolute;
@@ -892,7 +893,6 @@
     transform: translateY(-50%);
     z-index: 10;
     pointer-events: auto;
-    font-size: 18px !important;
 }
 
 /* Hide ALL menu icons that are direct children of subsections except drag and collapse */
@@ -4625,6 +4625,10 @@
 .sidebar-subsection[data-block-type="announcement-item"] {
     font-size: 13px;
     color: #6d7175;
+}
+
+.sidebar-subsection[data-block-type="announcement-item"] .subsection-text {
+    margin-left: 30%;
 }
 
 .subsection-child {

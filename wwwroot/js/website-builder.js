@@ -3435,7 +3435,8 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
             
             // Create unique ID
             const announcementId = 'anuncio-' + Date.now();
-            const announcementName = `Announcement - Nuevo ${announcementNumber}`;
+            const announcementText = translations[currentLanguage]['announcementBar.makeAnnouncement'] || 'Make an announcement';
+            const announcementName = `${announcementText} ${announcementNumber}`;
             
             // Create new announcement (same level as announcement bar but indented)
             const newAnnouncement = $(`
