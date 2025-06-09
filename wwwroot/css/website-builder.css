@@ -4585,14 +4585,20 @@
     position: relative;
 }
 
+.collapse-toggle {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+}
+
 .collapsible-parent .collapse-indicator {
-    display: inline-block;
-    margin-right: 8px;
     font-size: 20px;
     color: #666;
     cursor: pointer;
-    transition: transform 0.2s;
-    vertical-align: middle;
+    transition: transform 0.3s ease-in-out;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .collapsible-parent.collapsed .collapse-indicator {

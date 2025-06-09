@@ -78,3 +78,25 @@
 2. **Render**: Cada vista tiene su función render (renderBlockListView, renderThemeSettingsView)
 3. **Post-Render**: Siempre `setTimeout(applyTranslations, 0)` después de innerHTML
 4. **Eventos**: Attachar event listeners específicos después de renderizar
+
+## Patrones Críticos Website Builder
+
+### Event Handlers
+1. **Prevenir duplicados**: Usar `.off('click.namespace').on('click.namespace')` 
+2. **Handlers globales**: Para elementos dinámicos usar `$(document).on()` FUERA de funciones
+3. **Funciones globales**: `window.functionName = function()` para acceso desde cualquier contexto
+
+### Jerarquía y Drag & Drop
+1. **Estructura**: Elementos hijos como hermanos DOM con data attributes para relación
+2. **Sortable padre-hijo**: En `start` ocultar hijos, en `stop` reinsertar después del padre
+3. **Reinicializar**: Después de drag, reinicializar colapsadores y handlers en `setTimeout`
+
+### Traducciones Dinámicas
+1. **HTML**: `data-i18n="key"`, `data-i18n-placeholder="key"`, `data-i18n-title="key"`
+2. **Aplicar**: `setTimeout(applyTranslations, 0)` después de cada `innerHTML`
+3. **Texto dinámico**: `translations[currentLanguage]['key'] || 'Default'`
+
+### CSS y Animaciones
+1. **Centrado**: Usar flexbox no position absolute
+2. **Toggle visibility**: `.css('display', 'value')` no `.show()/.hide()`
+3. **Animaciones suaves**: Combinar fade+slide con delays escalonados (index * 40ms)

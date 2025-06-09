@@ -98,6 +98,45 @@ $(document).ready(function() {
             'appearance.edgeRoundingMedium': 'Tamaño 3 - Mediano',
             'appearance.edgeRoundingLarge': 'Tamaño 4 - Grande',
             'appearance.edgeRoundingDescription': 'Se aplica a tarjetas, botones, esquinas de sección y otros elementos',
+            // Header Settings translations
+            'headerSettings.title': 'Encabezado',
+            'headerSettings.colorScheme': 'Esquema de color',
+            'headerSettings.learnAboutColorSchemes': 'Aprende sobre esquemas de color',
+            'headerSettings.width': 'Ancho',
+            'headerSettings.widthScreen': 'Pantalla',
+            'headerSettings.widthPage': 'Página',
+            'headerSettings.widthLarge': 'Grande',
+            'headerSettings.widthMedium': 'Mediano',
+            'headerSettings.layout': 'Diseño',
+            'headerSettings.layoutDrawer': 'Cajón',
+            'headerSettings.layoutLogoLeftMenuCenter': 'Logo izquierda, menú centro en línea',
+            'headerSettings.layoutLogoLeftMenuLeft': 'Logo izquierda, menú izquierda en línea',
+            'headerSettings.layoutLogoCenterMenuLeft': 'Logo centro, menú izquierda en línea',
+            'headerSettings.mobileLayout': 'Diseño móvil',
+            'headerSettings.enableStickyHeader': 'Habilitar encabezado fijo',
+            'headerSettings.showDivider': 'Mostrar divisor',
+            'headerSettings.default': 'Por defecto',
+            'headerSettings.primary': 'Primario',
+            'headerSettings.secondary': 'Secundario',
+            'headerSettings.contrasting': 'Contrastante',
+            'headerSettings.scheme': 'Esquema',
+            // Announcement Item Settings translations
+            'announcementItem.title': 'Anuncio',
+            'announcementItem.announcement': 'Anuncio',
+            'announcementItem.link': 'Enlace',
+            'announcementItem.linkPlaceholder': 'Pega un enlace o busca',
+            'announcementItem.icon': 'Icono',
+            'announcementItem.select': 'Seleccionar',
+            'announcementItem.selectPlaceholder': 'Seleccionar',
+            'announcementItem.browseFreeImages': 'Explorar imágenes gratuitas',
+            'announcementItem.deleteBlock': 'Eliminar bloque',
+            'announcementItem.makeAnnouncement': 'Hacer un anuncio',
+            'announcementItem.fontTitle': 'Fuente',
+            'announcementItem.boldTitle': 'Negrita',
+            'announcementItem.italicTitle': 'Cursiva',
+            'announcementItem.linkTitle': 'Enlace',
+            'announcementItem.bulletListTitle': 'Lista con viñetas',
+            'announcementItem.numberedListTitle': 'Lista numerada',
             // Typography translations
             'typography.title': 'Tipografía',
             'typography.description': 'Te recomendamos que no uses más de dos familias de fuentes para tu tienda.',
@@ -778,6 +817,14 @@ $(document).ready(function() {
                 element.setAttribute('placeholder', lang[key]);
             }
         });
+        
+        // Update titles
+        document.querySelectorAll('[data-i18n-title]').forEach(element => {
+            const key = element.getAttribute('data-i18n-title');
+            if (lang[key]) {
+                element.setAttribute('title', lang[key]);
+            }
+        });
     };
     
     // Mock data for demonstration
@@ -879,7 +926,6 @@ $(document).ready(function() {
                 </div>
                 <div class="sidebar-section-content">
                     <div class="sidebar-subsection collapsible-parent" data-block-type="announcement" data-element-id="barra-anuncios">
-                        <i class="material-icons collapse-indicator">expand_more</i>
                         <span class="subsection-text" data-i18n="sections.announcementBar">Barra de anuncios</span>
                         <div class="subsection-actions">
                             <button class="action-icon visibility-toggle" data-section="announcement" title="Toggle visibility">
@@ -888,6 +934,9 @@ $(document).ready(function() {
                             </button>
                             <button class="action-icon add-icon" data-section="announcement" title="Add">
                                 <i class="material-icons">add</i>
+                            </button>
+                            <button class="action-icon collapse-toggle" title="Collapse/Expand">
+                                <i class="material-icons collapse-indicator">expand_more</i>
                             </button>
                         </div>
                     </div>
@@ -1161,7 +1210,7 @@ $(document).ready(function() {
                     <button class="back-to-sections-btn">
                         <i class="material-icons">arrow_back</i>
                     </button>
-                    <h3>Header</h3>
+                    <h3 data-i18n="headerSettings.title">Encabezado</h3>
                     <button class="btn-icon section-menu">
                         <i class="material-icons">more_vert</i>
                     </button>
@@ -1171,40 +1220,40 @@ $(document).ready(function() {
                 <div style="padding: 20px; overflow-y: auto; flex: 1;">
                     <!-- Color scheme -->
                     <div class="settings-field">
-                        <label>Color scheme</label>
+                        <label data-i18n="headerSettings.colorScheme">Esquema de color</label>
                         <select class="shopify-select" id="header-color-scheme">
-                            <option value="default">Default</option>
-                            <option value="primary" selected>Primary</option>
-                            <option value="secondary">Secondary</option>
-                            <option value="contrasting">Contrasting</option>
-                            <option value="scheme1">Scheme 1</option>
-                            <option value="scheme2">Scheme 2</option>
-                            <option value="scheme3">Scheme 3</option>
-                            <option value="scheme4">Scheme 4</option>
-                            <option value="scheme5">Scheme 5</option>
+                            <option value="default" data-i18n="headerSettings.default">Por defecto</option>
+                            <option value="primary" selected data-i18n="headerSettings.primary">Primario</option>
+                            <option value="secondary" data-i18n="headerSettings.secondary">Secundario</option>
+                            <option value="contrasting" data-i18n="headerSettings.contrasting">Contrastante</option>
+                            <option value="scheme1">Esquema 1</option>
+                            <option value="scheme2">Esquema 2</option>
+                            <option value="scheme3">Esquema 3</option>
+                            <option value="scheme4">Esquema 4</option>
+                            <option value="scheme5">Esquema 5</option>
                         </select>
-                        <a href="#" class="settings-link">Learn about <span style="text-decoration: underline;">color schemes</span></a>
+                        <a href="#" class="settings-link" data-i18n="headerSettings.learnAboutColorSchemes">Aprende sobre esquemas de color</a>
                     </div>
                     
                     <!-- Width -->
                     <div class="settings-field">
-                        <label>Width</label>
+                        <label data-i18n="headerSettings.width">Ancho</label>
                         <select class="shopify-select" id="header-width">
-                            <option value="screen">Screen</option>
-                            <option value="page">Page</option>
-                            <option value="large" selected>Large</option>
-                            <option value="medium">Medium</option>
+                            <option value="screen" data-i18n="headerSettings.widthScreen">Pantalla</option>
+                            <option value="page" data-i18n="headerSettings.widthPage">Página</option>
+                            <option value="large" selected data-i18n="headerSettings.widthLarge">Grande</option>
+                            <option value="medium" data-i18n="headerSettings.widthMedium">Mediano</option>
                         </select>
                     </div>
                     
                     <!-- Layout -->
                     <div class="settings-field">
-                        <label>Layout</label>
+                        <label data-i18n="headerSettings.layout">Diseño</label>
                         <select class="shopify-select" id="header-layout">
-                            <option value="drawer">Drawer</option>
-                            <option value="logo-left-menu-center-inline">Logo left, menu center inline</option>
-                            <option value="logo-left-menu-left-inline">Logo left, menu left inline</option>
-                            <option value="logo-center-menu-left-inline" selected>Logo center, menu left inline</option>
+                            <option value="drawer" data-i18n="headerSettings.layoutDrawer">Cajón</option>
+                            <option value="logo-left-menu-center-inline" data-i18n="headerSettings.layoutLogoLeftMenuCenter">Logo izquierda, menú centro en línea</option>
+                            <option value="logo-left-menu-left-inline" data-i18n="headerSettings.layoutLogoLeftMenuLeft">Logo izquierda, menú izquierda en línea</option>
+                            <option value="logo-center-menu-left-inline" selected data-i18n="headerSettings.layoutLogoCenterMenuLeft">Logo centro, menú izquierda en línea</option>
                             <option value="logo-center-menu-center-below">Logo center, menu center below</option>
                             <option value="logo-left-menu-left-below">Logo left, menu left below</option>
                         </select>
@@ -1216,7 +1265,7 @@ $(document).ready(function() {
                     <!-- Show separator -->
                     <div class="settings-field">
                         <label class="toggle-field">
-                            <span>Show separator</span>
+                            <span data-i18n="headerSettings.showDivider">Mostrar divisor</span>
                             <input type="checkbox" class="shopify-toggle" id="show-separator" checked>
                             <label for="show-separator" class="toggle-slider"></label>
                         </label>
@@ -1225,7 +1274,7 @@ $(document).ready(function() {
                     <!-- Enable sticky header -->
                     <div class="settings-field">
                         <label class="toggle-field">
-                            <span>Enable sticky header</span>
+                            <span data-i18n="headerSettings.enableStickyHeader">Habilitar encabezado fijo</span>
                             <input type="checkbox" class="shopify-toggle" id="enable-sticky">
                             <label for="enable-sticky" class="toggle-slider"></label>
                         </label>
@@ -1383,6 +1432,7 @@ $(document).ready(function() {
     // Function to render announcement item settings view
     function renderAnnouncementItemSettingsView(data) {
         const announcementId = data?.id || 1;
+        const announcementText = translations[currentLanguage]['announcementItem.makeAnnouncement'] || 'Make an announcement';
         
         return `
             <div style="display: flex; flex-direction: column; height: 100%; position: relative;">
@@ -1390,7 +1440,7 @@ $(document).ready(function() {
                     <button class="back-to-sections-btn">
                         <i class="material-icons">arrow_back</i>
                     </button>
-                    <h3>Announcement</h3>
+                    <h3 data-i18n="announcementItem.title">Anuncio</h3>
                     <button class="btn-icon section-menu">
                         <i class="material-icons">more_vert</i>
                     </button>
@@ -1400,39 +1450,39 @@ $(document).ready(function() {
                 <div style="padding: 20px; overflow-y: auto; flex: 1;">
                     <!-- Announcement text -->
                     <div class="settings-field">
-                        <label>Announcement</label>
+                        <label data-i18n="announcementItem.announcement">Anuncio</label>
                         <div class="rich-text-toolbar" style="border: 1px solid #c9cccf; border-radius: 4px 4px 0 0; padding: 8px; background: #f7f7f7; display: flex; gap: 4px;">
-                            <button class="toolbar-btn" title="Fuente">
+                            <button class="toolbar-btn" data-i18n-title="announcementItem.fontTitle" title="Fuente">
                                 <span style="font-size: 14px;">Aa</span>
                                 <i class="material-icons" style="font-size: 16px;">arrow_drop_down</i>
                             </button>
                             <div style="width: 1px; background: #c9cccf; margin: 0 4px;"></div>
-                            <button class="toolbar-btn" title="Negrita"><strong>B</strong></button>
-                            <button class="toolbar-btn" title="Cursiva"><em>I</em></button>
+                            <button class="toolbar-btn" data-i18n-title="announcementItem.boldTitle" title="Negrita"><strong>B</strong></button>
+                            <button class="toolbar-btn" data-i18n-title="announcementItem.italicTitle" title="Cursiva"><em>I</em></button>
                             <div style="width: 1px; background: #c9cccf; margin: 0 4px;"></div>
-                            <button class="toolbar-btn" title="Enlace">
+                            <button class="toolbar-btn" data-i18n-title="announcementItem.linkTitle" title="Enlace">
                                 <i class="material-icons" style="font-size: 18px;">link</i>
                             </button>
                             <div style="width: 1px; background: #c9cccf; margin: 0 4px;"></div>
-                            <button class="toolbar-btn" title="Lista con viñetas">
+                            <button class="toolbar-btn" data-i18n-title="announcementItem.bulletListTitle" title="Lista con viñetas">
                                 <i class="material-icons" style="font-size: 18px;">format_list_bulleted</i>
                             </button>
-                            <button class="toolbar-btn" title="Lista numerada">
+                            <button class="toolbar-btn" data-i18n-title="announcementItem.numberedListTitle" title="Lista numerada">
                                 <i class="material-icons" style="font-size: 18px;">format_list_numbered</i>
                             </button>
                         </div>
-                        <textarea class="rich-text-input" style="width: 100%; min-height: 80px; border: 1px solid #c9cccf; border-top: none; border-radius: 0 0 4px 4px; padding: 12px; font-size: 14px; resize: vertical;">Make an announcement</textarea>
+                        <textarea class="rich-text-input" style="width: 100%; min-height: 80px; border: 1px solid #c9cccf; border-top: none; border-radius: 0 0 4px 4px; padding: 12px; font-size: 14px; resize: vertical;">${announcementText}</textarea>
                     </div>
                     
                     <!-- Link -->
                     <div class="settings-field">
-                        <label>Link</label>
-                        <input type="text" class="shopify-input" placeholder="Pega un enlace o busca" style="width: 100%; padding: 8px 12px; border: 1px solid #c9cccf; border-radius: 4px;">
+                        <label data-i18n="announcementItem.link">Enlace</label>
+                        <input type="text" class="shopify-input" data-i18n-placeholder="announcementItem.linkPlaceholder" placeholder="Pega un enlace o busca" style="width: 100%; padding: 8px 12px; border: 1px solid #c9cccf; border-radius: 4px;">
                     </div>
                     
                     <!-- Icon Section -->
                     <div class="settings-field">
-                        <label>Icon</label>
+                        <label data-i18n="announcementItem.icon">Icono</label>
                         <select class="shopify-select" id="announcement-icon">
                             <option value="none" selected>None</option>
                             <option value="shipping">Shipping</option>
@@ -1447,10 +1497,10 @@ $(document).ready(function() {
                     <div class="settings-field">
                         <label>Custom icon</label>
                         <div style="border: 1px dashed #c9cccf; border-radius: 4px; padding: 16px; background: #f9f9f9;">
-                            <button class="btn-secondary" style="width: 100%; padding: 8px 16px; background: white; border: 1px solid #c9cccf; border-radius: 4px; cursor: pointer;">
+                            <button class="btn-secondary" style="width: 100%; padding: 8px 16px; background: white; border: 1px solid #c9cccf; border-radius: 4px; cursor: pointer;" data-i18n="announcementItem.select">
                                 Seleccionar
                             </button>
-                            <p style="font-size: 11px; color: #6d7175; margin: 8px 0 0 0; text-align: center;">
+                            <p style="font-size: 11px; color: #6d7175; margin: 8px 0 0 0; text-align: center;" data-i18n="announcementItem.browseFreeImages">
                                 Explorar imágenes gratuitas
                             </p>
                         </div>
@@ -1460,7 +1510,7 @@ $(document).ready(function() {
                     <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #e3e3e3;">
                         <button class="delete-block-btn" style="display: flex; align-items: center; gap: 8px; color: #d72c0d; background: none; border: none; padding: 8px 12px; cursor: pointer; font-size: 14px; width: 100%; justify-content: center; border-radius: 4px; transition: background 0.1s;">
                             <i class="material-icons" style="font-size: 20px;">delete</i>
-                            <span>Eliminar bloque</span>
+                            <span data-i18n="announcementItem.deleteBlock">Eliminar bloque</span>
                         </button>
                     </div>
                 </div>
@@ -3468,30 +3518,6 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
             }, 100);
         });
         
-        // Collapse/expand announcement bar
-        $(document).on('click', '.collapsible-parent .collapse-indicator', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            
-            const $parent = $(this).closest('.collapsible-parent');
-            const elementId = $parent.data('element-id');
-            
-            if ($parent.hasClass('collapsed')) {
-                // Expand - show all announcement items
-                $parent.removeClass('collapsed');
-                $(this).text('expand_more');
-                const $items = $('.sidebar-subsection[data-block-type="announcement-item"]');
-                console.log('Expanding, found items:', $items.length);
-                $items.slideDown(200);
-            } else {
-                // Collapse - hide all announcement items
-                $parent.addClass('collapsed');
-                $(this).text('chevron_right');
-                const $items = $('.sidebar-subsection[data-block-type="announcement-item"]');
-                console.log('Collapsing, found items:', $items.length);
-                $items.slideUp(200);
-            }
-        });
         
         // Click on announcement bar to configure
         $(document).on('click', '.sidebar-subsection[data-element-id="barra-anuncios"]', function(e) {
@@ -3524,6 +3550,28 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
             
             if (confirm('¿Estás seguro de que quieres eliminar este anuncio?')) {
                 $announcement.remove();
+            }
+        });
+        
+        // Visibility toggle for all elements
+        $(document).on('click', '.visibility-toggle', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const $button = $(this);
+            const $visibleIcon = $button.find('.icon-visible');
+            const $hiddenIcon = $button.find('.icon-hidden');
+            
+            if ($button.hasClass('is-hidden')) {
+                // Show element - show visibility icon
+                $button.removeClass('is-hidden');
+                $visibleIcon.css('display', 'inline-block');
+                $hiddenIcon.css('display', 'none');
+            } else {
+                // Hide element - show visibility_off icon
+                $button.addClass('is-hidden');
+                $visibleIcon.css('display', 'none');
+                $hiddenIcon.css('display', 'inline-block');
             }
         });
         
@@ -3573,6 +3621,24 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                 });
             });
         }, 600);
+        
+        // Ensure collapse functionality is properly initialized
+        setTimeout(() => {
+            const $announcementBar = $('.sidebar-subsection[data-element-id="barra-anuncios"]');
+            if ($announcementBar.length) {
+                // Check if the element is already collapsed and has children
+                const hasAnnouncements = $('.sidebar-subsection[data-block-type="announcement-item"]').length > 0;
+                
+                if (hasAnnouncements && $announcementBar.hasClass('collapsed')) {
+                    // Keep items hidden if parent was collapsed
+                    $('.sidebar-subsection[data-block-type="announcement-item"]').hide();
+                    const $collapseIcon = $announcementBar.find('.collapse-indicator');
+                    if ($collapseIcon.length) {
+                        $collapseIcon.text('chevron_right');
+                    }
+                }
+            }
+        }, 100);
     }
     
     // Simple drag and drop initialization that works immediately
@@ -3597,16 +3663,17 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                 }
             });
             
-            // The announcement bar already has collapse indicator in HTML, but let's make sure it stays
+            // Ensure announcement bar has proper collapse functionality after drag init
             const $announcementBar = $('.sidebar-subsection[data-element-id="barra-anuncios"]');
-            if ($announcementBar.length && !$announcementBar.find('.collapse-indicator').length) {
-                $announcementBar.find('.drag-handle').after('<i class="material-icons collapse-indicator">expand_more</i>');
+            if ($announcementBar.length) {
+                $announcementBar.addClass('collapsible-parent');
             }
             
             // Apply sortable with parent-child logic
             if (typeof $.fn.sortable === 'function') {
+                // Main sortable for announcement bar and header only
                 $container.sortable({
-                    items: '.sidebar-subsection',
+                    items: '.sidebar-subsection[data-block-type="announcement"], .sidebar-subsection[data-block-type="header"]',
                     handle: '.drag-handle',
                     axis: 'y',
                     tolerance: 'pointer',
@@ -3632,9 +3699,65 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                             }
                             ui.item.removeData('announcement-children');
                         }
+                        
+                        // Re-ensure the collapse button is present
+                        setTimeout(() => {
+                            const $announcementBar = $('.sidebar-subsection[data-element-id="barra-anuncios"]');
+                            if ($announcementBar.length) {
+                                // Ensure it's still marked as collapsible parent
+                                $announcementBar.addClass('collapsible-parent');
+                                
+                                // Make sure collapse button exists
+                                if (!$announcementBar.find('.collapse-toggle').length) {
+                                    $announcementBar.find('.subsection-actions').append(`
+                                        <button class="action-icon collapse-toggle" title="Collapse/Expand">
+                                            <i class="material-icons collapse-indicator">expand_more</i>
+                                        </button>
+                                    `);
+                                }
+                            }
+                        }, 100);
                     }
                 });
-                console.log('[DRAG&DROP] ✓ Sortable aplicado con lógica padre-hijo');
+                
+                // Create a separate sortable for announcement items only
+                // They can only sort within their own group
+                const createAnnouncementSortable = () => {
+                    const $announcementBar = $('.sidebar-subsection[data-element-id="barra-anuncios"]');
+                    const $announcements = $('.sidebar-subsection[data-block-type="announcement-item"]');
+                    
+                    if ($announcements.length > 1) {
+                        // Get positions
+                        const barPos = $announcementBar.index();
+                        const firstAnnouncementPos = $announcements.first().index();
+                        const lastAnnouncementPos = $announcements.last().index();
+                        
+                        $announcements.parent().sortable({
+                            items: '.sidebar-subsection[data-block-type="announcement-item"]',
+                            handle: '.drag-handle',
+                            axis: 'y',
+                            tolerance: 'pointer',
+                            containment: 'parent',
+                            // Restrict movement to only between first and last announcement
+                            start: function(e, ui) {
+                                ui.item.data('min-index', firstAnnouncementPos);
+                                ui.item.data('max-index', lastAnnouncementPos);
+                            },
+                            sort: function(e, ui) {
+                                // Prevent moving above announcement bar or below last announcement
+                                const currentIndex = ui.placeholder.index();
+                                if (currentIndex <= barPos) {
+                                    return false;
+                                }
+                            }
+                        });
+                    }
+                };
+                
+                // Initialize announcement sortable
+                createAnnouncementSortable();
+                
+                console.log('[DRAG&DROP] ✓ Sortable aplicado con restricciones');
             } else {
                 console.error('[DRAG&DROP] jQuery UI sortable no está disponible');
             }
@@ -6064,3 +6187,42 @@ document.head.appendChild(style);
             console.error('[DRAG&DROP] Stack:', error.stack);
         }
     }
+    
+    // Global event handler for collapse/expand - MUST be at document level
+    $(document).off('click.collapseToggle').on('click.collapseToggle', '.collapse-toggle', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        console.log('[COLLAPSE] Click detected on collapse toggle');
+        
+        const $button = $(this);
+        const $icon = $button.find('.collapse-indicator');
+        const $parent = $button.closest('.collapsible-parent');
+        const elementId = $parent.data('element-id');
+        
+        if ($parent.hasClass('collapsed')) {
+            // Expand - show all announcement items
+            console.log('[COLLAPSE] Expanding announcements');
+            $parent.removeClass('collapsed');
+            $icon.text('expand_more');
+            const $items = $('.sidebar-subsection[data-block-type="announcement-item"]');
+            console.log('[COLLAPSE] Found items to expand:', $items.length);
+            
+            // Smooth animation with stagger
+            $items.stop(true, false).each(function(index) {
+                $(this).delay(index * 40).fadeIn(200).slideDown(200);
+            });
+        } else {
+            // Collapse - hide all announcement items
+            console.log('[COLLAPSE] Collapsing announcements');
+            $parent.addClass('collapsed');
+            $icon.text('chevron_right');
+            const $items = $('.sidebar-subsection[data-block-type="announcement-item"]');
+            console.log('[COLLAPSE] Found items to collapse:', $items.length);
+            
+            // Smooth animation in reverse order
+            $($items.get().reverse()).stop(true, false).each(function(index) {
+                $(this).delay(index * 40).slideUp(200).fadeOut(200);
+            });
+        }
+    });
