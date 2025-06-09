@@ -48,6 +48,32 @@ $(document).ready(function() {
             'sections.viewPage': 'Ver página',
             'sections.addAnnouncement': 'Agregar anuncio',
             'sections.addBlock': 'Agregar bloque',
+            // Announcement Bar translations
+            'announcementBar.showOnlyHomePage': 'Mostrar solo en página de inicio',
+            'announcementBar.colorScheme': 'Esquema de color',
+            'announcementBar.learnAboutColorSchemes': 'Aprende sobre esquemas de color',
+            'announcementBar.width': 'Ancho',
+            'announcementBar.showNavigationArrows': 'Mostrar flechas de navegación',
+            'announcementBar.autoplay': 'Reproducción automática',
+            'announcementBar.autoplayMode': 'Modo de reproducción automática',
+            'announcementBar.none': 'Ninguno',
+            'announcementBar.oneAtATime': 'Uno a la vez',
+            'announcementBar.autoplaySpeed': 'Velocidad de reproducción automática',
+            'announcementBar.languageSelector': 'Selector de idioma',
+            'announcementBar.languageSelectorDesc': 'Muestra selector en escritorio. Para agregar un idioma, ve a tu configuración de idioma',
+            'announcementBar.showLanguageSelector': 'Mostrar selector de idioma',
+            'announcementBar.currencySelector': 'Selector de moneda',
+            'announcementBar.currencySelectorDesc': 'Muestra selector en escritorio. Para agregar una moneda, ve a tu configuración de pagos',
+            'announcementBar.showCurrencySelector': 'Mostrar selector de moneda',
+            'announcementBar.socialMediaIcons': 'Iconos de redes sociales',
+            'announcementBar.socialMediaDesc': 'Muestra iconos en escritorio. Agrega enlaces a tus cuentas de redes sociales en Configuración del tema>Redes sociales',
+            'announcementBar.showSocialMediaIcons': 'Mostrar iconos de redes sociales',
+            'announcementBar.rename': 'Renombrar',
+            'announcementBar.show': 'Mostrar',
+            'announcementBar.locate': 'Localizar',
+            'announcementBar.announcements': 'Anuncios',
+            'announcementBar.makeAnnouncement': 'Hacer un anuncio',
+            'announcementBar.addAnnouncement': 'Agregar anuncio',
             // Theme Settings translations
             'themeSettings.title': 'Configuración del tema',
             'themeSettings.appearance': 'Apariencia',
@@ -458,6 +484,32 @@ $(document).ready(function() {
             'sections.footer': 'Footer',
             'sections.footerSection': 'Footer',
             'sections.viewPage': 'View page',
+            // Announcement Bar translations
+            'announcementBar.showOnlyHomePage': 'Show only on home page',
+            'announcementBar.colorScheme': 'Color scheme',
+            'announcementBar.learnAboutColorSchemes': 'Learn about color schemes',
+            'announcementBar.width': 'Width',
+            'announcementBar.showNavigationArrows': 'Show navigation arrows',
+            'announcementBar.autoplay': 'Autoplay',
+            'announcementBar.autoplayMode': 'Autoplay mode',
+            'announcementBar.none': 'None',
+            'announcementBar.oneAtATime': 'One-at-a-time',
+            'announcementBar.autoplaySpeed': 'Autoplay speed',
+            'announcementBar.languageSelector': 'Language selector',
+            'announcementBar.languageSelectorDesc': 'Shows selector on desktop. To add a language, go to your language settings',
+            'announcementBar.showLanguageSelector': 'Show language selector',
+            'announcementBar.currencySelector': 'Currency selector',
+            'announcementBar.currencySelectorDesc': 'Shows selector on desktop. To add a currency, go to your payment settings',
+            'announcementBar.showCurrencySelector': 'Show currency selector',
+            'announcementBar.socialMediaIcons': 'Social media icons',
+            'announcementBar.socialMediaDesc': 'Shows icons on desktop. Add links to your social media accounts in Theme settings>Social media',
+            'announcementBar.showSocialMediaIcons': 'Show social media icons',
+            'announcementBar.rename': 'Rename',
+            'announcementBar.show': 'Show',
+            'announcementBar.locate': 'Locate',
+            'announcementBar.announcements': 'Announcements',
+            'announcementBar.makeAnnouncement': 'Make an announcement',
+            'announcementBar.addAnnouncement': 'Add announcement',
             // Theme Settings translations
             'themeSettings.title': 'Theme Settings',
             'themeSettings.appearance': 'Appearance',
@@ -699,6 +751,35 @@ $(document).ready(function() {
     let currentSidebarView = 'blockList';
     let currentPageData = { name: lang.homePageLabel || "Página de inicio", blocks: [] };
     
+    // Global announcement counter to maintain unique IDs
+    let globalAnnouncementCounter = 1;
+    
+    // Function to apply translations to dynamic content
+    window.applyTranslations = function() {
+        document.querySelectorAll('[data-i18n]').forEach(element => {
+            const key = element.getAttribute('data-i18n');
+            if (lang[key]) {
+                element.textContent = lang[key];
+            }
+        });
+        
+        // Update option elements with translations
+        document.querySelectorAll('option[data-i18n]').forEach(option => {
+            const key = option.getAttribute('data-i18n');
+            if (lang[key]) {
+                option.textContent = lang[key];
+            }
+        });
+        
+        // Update placeholders
+        document.querySelectorAll('[data-i18n-placeholder]').forEach(element => {
+            const key = element.getAttribute('data-i18n-placeholder');
+            if (lang[key]) {
+                element.setAttribute('placeholder', lang[key]);
+            }
+        });
+    };
+    
     // Mock data for demonstration
     const blockSettingsSchemas = {
         header: { title: "Configuración del Encabezado", fields: ["logo", "menuStyle", "backgroundColor"] },
@@ -721,11 +802,14 @@ $(document).ready(function() {
         headerHeight: "60px"
     };
     
-    // Function to switch sidebar view
-    function switchSidebarView(viewName, data = null) {
+    // Function to switch sidebar view - Make it global for delegated events
+    window.switchSidebarView = function(viewName, data = null) {
         currentSidebarView = viewName;
         const dynamicContentArea = document.getElementById('sidebar-dynamic-content');
         if (!dynamicContentArea) return;
+        
+        // Limpiar completamente el contenido anterior
+        dynamicContentArea.innerHTML = '';
         
         console.log(`[SIDEBAR] Cambiando a vista: ${viewName}`, data);
         
@@ -742,6 +826,34 @@ $(document).ready(function() {
             dynamicContentArea.innerHTML = renderThemeSettingsView();
             // Apply translations after rendering
             setTimeout(applyTranslations, 0);
+        } else if (viewName === 'announcementBar') {
+            const announcementHTML = renderAnnouncementBarView();
+            console.log('[DEBUG] Announcement Bar HTML length:', announcementHTML.length);
+            dynamicContentArea.innerHTML = announcementHTML;
+            
+            // Verificar que el header existe
+            setTimeout(() => {
+                const header = dynamicContentArea.querySelector('.sidebar-view-header');
+                if (header) {
+                    console.log('[DEBUG] Header encontrado y visible');
+                } else {
+                    console.error('[DEBUG] Header NO encontrado!');
+                }
+            }, 100);
+            
+            attachAnnouncementBarEventListeners();
+            // Apply translations after rendering
+            setTimeout(applyTranslations, 0);
+        } else if (viewName === 'headerSettings') {
+            dynamicContentArea.innerHTML = renderHeaderSettingsView();
+            attachHeaderSettingsEventListeners();
+            // Apply translations after rendering
+            setTimeout(applyTranslations, 0);
+        } else if (viewName === 'announcementItemSettings') {
+            dynamicContentArea.innerHTML = renderAnnouncementItemSettingsView(data);
+            attachAnnouncementItemEventListeners();
+            // Apply translations after rendering
+            setTimeout(applyTranslations, 0);
         } else {
             dynamicContentArea.innerHTML = `<p class="sidebar-loading-text">${lang.sidebarLoadingText}</p>`;
         }
@@ -753,7 +865,7 @@ $(document).ready(function() {
         
         return `
             <!-- Page Title -->
-            <div style="padding: 12px 16px 16px; font-size: 16px; font-weight: 600; color: #202223;">
+            <div style="padding: 16px 16px 20px; font-size: 16px; font-weight: 600; color: #202223; line-height: 1.3;">
                 ${pageName}
             </div>
             
@@ -766,18 +878,18 @@ $(document).ready(function() {
                     <i class="material-icons section-expand-icon">chevron_right</i>
                 </div>
                 <div class="sidebar-section-content">
-                    <div class="sidebar-subsection" data-block-type="announcement">
+                    <div class="sidebar-subsection collapsible-parent" data-block-type="announcement" data-element-id="barra-anuncios">
+                        <i class="material-icons collapse-indicator">expand_more</i>
                         <span class="subsection-text" data-i18n="sections.announcementBar">Barra de anuncios</span>
                         <div class="subsection-actions">
                             <button class="action-icon visibility-toggle" data-section="announcement" title="Toggle visibility">
                                 <i class="material-icons icon-visible">visibility</i>
                                 <i class="material-icons icon-hidden" style="display: none;">visibility_off</i>
                             </button>
+                            <button class="action-icon add-icon" data-section="announcement" title="Add">
+                                <i class="material-icons">add</i>
+                            </button>
                         </div>
-                    </div>
-                    <div class="add-announcement-button">
-                        <i class="material-icons">add_circle</i>
-                        <span data-i18n="sections.addAnnouncement">Agregar anuncio</span>
                     </div>
                     <div class="sidebar-subsection" data-block-type="header">
                         <span class="subsection-text" data-i18n="sections.headerSection">Encabezado</span>
@@ -875,7 +987,510 @@ $(document).ready(function() {
         `;
     }
     
-    // Function to render block settings view
+    // Function to render announcement bar settings view
+    function renderAnnouncementBarView() {
+        // Get the current translation for the announcement text
+        const makeAnnouncementText = translations[currentLanguage]['announcementBar.makeAnnouncement'] || 'Make an announcement';
+        const addAnnouncementText = translations[currentLanguage]['announcementBar.addAnnouncement'] || 'Add announcement';
+        
+        return `
+            <div style="display: flex; flex-direction: column; height: 100%; position: relative;">
+                <div class="sidebar-view-header" style="position: relative; z-index: 10;">
+                    <button class="back-to-sections-btn">
+                        <i class="material-icons">arrow_back</i>
+                    </button>
+                    <h3 data-i18n="sections.announcementBar">Barra de anuncios</h3>
+                    <div class="section-menu-wrapper" style="position: relative;">
+                        <button class="btn-icon section-menu">
+                            <i class="material-icons">more_vert</i>
+                        </button>
+                        <div class="section-menu-dropdown">
+                            <a href="#" class="menu-item" data-action="rename">
+                                <i class="material-icons">edit</i>
+                                <span data-i18n="announcementBar.rename">Renombrar</span>
+                            </a>
+                            <a href="#" class="menu-item" data-action="show">
+                                <i class="material-icons">visibility</i>
+                                <span data-i18n="announcementBar.show">Mostrar</span>
+                            </a>
+                            <a href="#" class="menu-item" data-action="locate">
+                                <i class="material-icons">my_location</i>
+                                <span data-i18n="announcementBar.locate">Localizar</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Settings Content -->
+                <div style="padding: 20px; overflow-y: auto; flex: 1;">
+                    <!-- Show only on home page -->
+                    <div class="settings-field">
+                        <label class="toggle-field">
+                            <span data-i18n="announcementBar.showOnlyHomePage">Mostrar solo en página de inicio</span>
+                            <input type="checkbox" class="shopify-toggle" id="show-only-home">
+                            <label for="show-only-home" class="toggle-slider"></label>
+                        </label>
+                    </div>
+                    
+                    <!-- Color scheme -->
+                    <div class="settings-field">
+                        <label data-i18n="announcementBar.colorScheme">Esquema de color</label>
+                        <select class="shopify-select" id="color-scheme-select">
+                            <option value="default">Default</option>
+                            <option value="primary">Primary</option>
+                            <option value="secondary" selected>Secondary</option>
+                            <option value="contrasting">Contrasting</option>
+                            <option value="scheme1">Scheme 1</option>
+                            <option value="scheme2">Scheme 2</option>
+                            <option value="scheme3">Scheme 3</option>
+                            <option value="scheme4">Scheme 4</option>
+                            <option value="scheme5">Scheme 5</option>
+                        </select>
+                        <a href="#" class="settings-link" data-i18n="announcementBar.learnAboutColorSchemes">Aprende sobre esquemas de color</a>
+                    </div>
+                    
+                    <!-- Width -->
+                    <div class="settings-field">
+                        <label data-i18n="announcementBar.width">Ancho</label>
+                        <select class="shopify-select" id="width-select">
+                            <option value="screen" selected>Screen</option>
+                            <option value="page">Page</option>
+                            <option value="large">Large</option>
+                            <option value="medium">Medium</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Show navigation arrows -->
+                    <div class="settings-field">
+                        <label class="toggle-field">
+                            <span data-i18n="announcementBar.showNavigationArrows">Mostrar flechas de navegación</span>
+                            <input type="checkbox" class="shopify-toggle" id="show-nav-arrows" checked>
+                            <label for="show-nav-arrows" class="toggle-slider"></label>
+                        </label>
+                    </div>
+                    
+                    <!-- Autoplay Section -->
+                    <div class="settings-section">
+                        <h4 data-i18n="announcementBar.autoplay">Reproducción automática</h4>
+                        
+                        <!-- Autoplay mode -->
+                        <div class="settings-field">
+                            <label data-i18n="announcementBar.autoplayMode">Modo de reproducción automática</label>
+                            <div class="radio-group">
+                                <label class="radio-label">
+                                    <input type="radio" name="autoplay-mode" value="none" checked>
+                                    <span data-i18n="announcementBar.none">Ninguno</span>
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="autoplay-mode" value="one-at-a-time">
+                                    <span data-i18n="announcementBar.oneAtATime">Uno a la vez</span>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <!-- Autoplay speed -->
+                        <div class="settings-field">
+                            <label data-i18n="announcementBar.autoplaySpeed">Velocidad de reproducción automática</label>
+                            <div class="range-with-inputs">
+                                <input type="range" class="shopify-range" min="3" max="10" value="6" id="autoplay-speed">
+                                <div class="range-inputs">
+                                    <input type="number" class="shopify-number-input" value="6" min="3" max="10">
+                                    <span class="unit">s</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Language selector -->
+                    <div class="settings-section">
+                        <h4 data-i18n="announcementBar.languageSelector">Selector de idioma</h4>
+                        <p class="section-description" data-i18n="announcementBar.languageSelectorDesc">
+                            Muestra selector en escritorio. Para agregar un idioma, ve a tu <a href="#" class="settings-link">configuración de idioma</a>
+                        </p>
+                        
+                        <div class="settings-field">
+                            <label class="toggle-field">
+                                <span data-i18n="announcementBar.showLanguageSelector">Mostrar selector de idioma</span>
+                                <input type="checkbox" class="shopify-toggle" id="show-language-selector">
+                                <label for="show-language-selector" class="toggle-slider"></label>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <!-- Currency selector -->
+                    <div class="settings-section">
+                        <h4 data-i18n="announcementBar.currencySelector">Selector de moneda</h4>
+                        <p class="section-description" data-i18n="announcementBar.currencySelectorDesc">
+                            Muestra selector en escritorio. Para agregar una moneda, ve a tu <a href="#" class="settings-link">configuración de pagos</a>
+                        </p>
+                        
+                        <div class="settings-field">
+                            <label class="toggle-field">
+                                <span data-i18n="announcementBar.showCurrencySelector">Mostrar selector de moneda</span>
+                                <input type="checkbox" class="shopify-toggle" id="show-currency-selector">
+                                <label for="show-currency-selector" class="toggle-slider"></label>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <!-- Social media icons -->
+                    <div class="settings-section">
+                        <h4 data-i18n="announcementBar.socialMediaIcons">Iconos de redes sociales</h4>
+                        <p class="section-description" data-i18n="announcementBar.socialMediaDesc">
+                            Muestra iconos en escritorio. Agrega enlaces a tus cuentas de redes sociales en Configuración del tema > Redes sociales
+                        </p>
+                        
+                        <div class="settings-field">
+                            <label class="toggle-field">
+                                <span data-i18n="announcementBar.showSocialMediaIcons">Mostrar iconos de redes sociales</span>
+                                <input type="checkbox" class="shopify-toggle" id="show-social-icons">
+                                <label for="show-social-icons" class="toggle-slider"></label>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    
+    // Function to render header settings view
+    function renderHeaderSettingsView() {
+        return `
+            <div style="display: flex; flex-direction: column; height: 100%; position: relative;">
+                <div class="sidebar-view-header" style="position: relative; z-index: 10;">
+                    <button class="back-to-sections-btn">
+                        <i class="material-icons">arrow_back</i>
+                    </button>
+                    <h3>Header</h3>
+                    <button class="btn-icon section-menu">
+                        <i class="material-icons">more_vert</i>
+                    </button>
+                </div>
+                
+                <!-- Settings Content -->
+                <div style="padding: 20px; overflow-y: auto; flex: 1;">
+                    <!-- Color scheme -->
+                    <div class="settings-field">
+                        <label>Color scheme</label>
+                        <select class="shopify-select" id="header-color-scheme">
+                            <option value="default">Default</option>
+                            <option value="primary" selected>Primary</option>
+                            <option value="secondary">Secondary</option>
+                            <option value="contrasting">Contrasting</option>
+                            <option value="scheme1">Scheme 1</option>
+                            <option value="scheme2">Scheme 2</option>
+                            <option value="scheme3">Scheme 3</option>
+                            <option value="scheme4">Scheme 4</option>
+                            <option value="scheme5">Scheme 5</option>
+                        </select>
+                        <a href="#" class="settings-link">Learn about <span style="text-decoration: underline;">color schemes</span></a>
+                    </div>
+                    
+                    <!-- Width -->
+                    <div class="settings-field">
+                        <label>Width</label>
+                        <select class="shopify-select" id="header-width">
+                            <option value="screen">Screen</option>
+                            <option value="page">Page</option>
+                            <option value="large" selected>Large</option>
+                            <option value="medium">Medium</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Layout -->
+                    <div class="settings-field">
+                        <label>Layout</label>
+                        <select class="shopify-select" id="header-layout">
+                            <option value="drawer">Drawer</option>
+                            <option value="logo-left-menu-center-inline">Logo left, menu center inline</option>
+                            <option value="logo-left-menu-left-inline">Logo left, menu left inline</option>
+                            <option value="logo-center-menu-left-inline" selected>Logo center, menu left inline</option>
+                            <option value="logo-center-menu-center-below">Logo center, menu center below</option>
+                            <option value="logo-left-menu-left-below">Logo left, menu left below</option>
+                        </select>
+                        <p class="field-description" style="font-size: 12px; color: #6d7175; margin-top: 4px;">
+                            Layout is auto-optimized for mobile
+                        </p>
+                    </div>
+                    
+                    <!-- Show separator -->
+                    <div class="settings-field">
+                        <label class="toggle-field">
+                            <span>Show separator</span>
+                            <input type="checkbox" class="shopify-toggle" id="show-separator" checked>
+                            <label for="show-separator" class="toggle-slider"></label>
+                        </label>
+                    </div>
+                    
+                    <!-- Enable sticky header -->
+                    <div class="settings-field">
+                        <label class="toggle-field">
+                            <span>Enable sticky header</span>
+                            <input type="checkbox" class="shopify-toggle" id="enable-sticky">
+                            <label for="enable-sticky" class="toggle-slider"></label>
+                        </label>
+                    </div>
+                    
+                    <!-- Menu Section -->
+                    <div class="settings-section">
+                        <h4>Menu</h4>
+                        
+                        <!-- Open menu dropdown -->
+                        <div class="settings-field">
+                            <label>Open menu dropdown</label>
+                            <div class="radio-group">
+                                <label class="radio-label">
+                                    <input type="radio" name="open-menu" value="hover" checked>
+                                    <span>On hover</span>
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="open-menu" value="click">
+                                    <span>On click</span>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <!-- Choose navigation menu -->
+                        <div class="settings-field">
+                            <label>Choose navigation menu</label>
+                            <select class="shopify-select" id="navigation-menu">
+                                <option value="main-menu" selected>Main menu</option>
+                                <option value="footer-menu">Footer menu</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <!-- Logo Section -->
+                    <div class="settings-section">
+                        <h4>Logo</h4>
+                        
+                        <!-- Desktop logo -->
+                        <div class="settings-field">
+                            <label>Desktop logo</label>
+                            <div class="image-upload-field" style="position: relative; border: 1px dashed #c9cccf; border-radius: 4px; padding: 20px; text-align: center; cursor: pointer; background: #020711;">
+                                <div style="background: white; border-radius: 50%; width: 120px; height: 120px; margin: 0 auto 10px; display: flex; align-items: center; justify-content: center;">
+                                    <span style="color: #020711; font-size: 48px; font-weight: bold;">A</span>
+                                </div>
+                                <p style="font-size: 12px; color: rgba(255,255,255,0.7); margin: 0;">26 pages</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Desktop logo size -->
+                        <div class="settings-field">
+                            <label>Desktop logo size</label>
+                            <div class="range-with-inputs">
+                                <input type="range" class="shopify-range" min="50" max="300" value="190" id="desktop-logo-size">
+                                <div class="range-inputs">
+                                    <input type="number" class="shopify-number-input" value="190" min="50" max="300">
+                                    <span class="unit">px</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Mobile logo -->
+                        <div class="settings-field">
+                            <label>Mobile logo</label>
+                            <div style="position: relative; border: 1px dashed #c9cccf; border-radius: 4px; padding: 16px; background: #f9f9f9;">
+                                <!-- Preview del logo móvil -->
+                                <div style="background: #020711; border-radius: 4px; padding: 15px; margin-bottom: 12px; text-align: center;">
+                                    <div style="background: white; border-radius: 50%; width: 80px; height: 80px; margin: 0 auto; display: flex; align-items: center; justify-content: center;">
+                                        <span style="color: #020711; font-size: 32px; font-weight: bold;">A</span>
+                                    </div>
+                                </div>
+                                <button class="btn-secondary" style="width: 100%; padding: 8px 16px; background: white; border: 1px solid #c9cccf; border-radius: 4px; cursor: pointer;">
+                                    Seleccionar
+                                </button>
+                                <p style="font-size: 11px; color: #6d7175; margin: 8px 0 0 0; text-align: center;">
+                                    Explorar imágenes gratuitas
+                                </p>
+                            </div>
+                        </div>
+                        
+                        <!-- Mobile logo size -->
+                        <div class="settings-field">
+                            <label>Mobile logo size</label>
+                            <div class="range-with-inputs">
+                                <input type="range" class="shopify-range" min="50" max="250" value="120" id="mobile-logo-size">
+                                <div class="range-inputs">
+                                    <input type="number" class="shopify-number-input" value="120" min="50" max="250">
+                                    <span class="unit">px</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Icons Section -->
+                    <div class="settings-section">
+                        <h4>Icons</h4>
+                        
+                        <!-- Icon style -->
+                        <div class="settings-field">
+                            <label>Icon style</label>
+                            <select class="shopify-select" id="icon-style">
+                                <option value="style-1-solid">Style 1 - solid</option>
+                                <option value="style-1-outline" selected>Style 1 - outline</option>
+                                <option value="style-2-solid">Style 2 - solid</option>
+                                <option value="style-2-outline">Style 2 - outline</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Cart type -->
+                        <div class="settings-field">
+                            <label>Cart type</label>
+                            <div class="radio-group">
+                                <label class="radio-label">
+                                    <input type="radio" name="cart-type" value="bag" checked>
+                                    <span>Bag</span>
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="cart-type" value="cart">
+                                    <span>Cart</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    
+    // Function to attach event listeners for header settings view
+    function attachHeaderSettingsEventListeners() {
+        // Back button
+        $('.back-to-sections-btn').on('click', function() {
+            switchSidebarView('blockList', currentPageData);
+        });
+        
+        // Sync range slider with number input
+        $('#desktop-logo-size').on('input', function() {
+            const value = $(this).val();
+            $(this).closest('.range-with-inputs').find('.shopify-number-input').val(value);
+        });
+        
+        $('#mobile-logo-size').on('input', function() {
+            const value = $(this).val();
+            $(this).closest('.range-with-inputs').find('.shopify-number-input').val(value);
+        });
+        
+        // Sync number input with range slider
+        $('.shopify-number-input').on('input', function() {
+            const value = $(this).val();
+            const $rangeInput = $(this).closest('.range-with-inputs').find('.shopify-range');
+            $rangeInput.val(value);
+        });
+    }
+    
+    // Function to render announcement item settings view
+    function renderAnnouncementItemSettingsView(data) {
+        const announcementId = data?.id || 1;
+        
+        return `
+            <div style="display: flex; flex-direction: column; height: 100%; position: relative;">
+                <div class="sidebar-view-header" style="position: relative; z-index: 10;">
+                    <button class="back-to-sections-btn">
+                        <i class="material-icons">arrow_back</i>
+                    </button>
+                    <h3>Announcement</h3>
+                    <button class="btn-icon section-menu">
+                        <i class="material-icons">more_vert</i>
+                    </button>
+                </div>
+                
+                <!-- Settings Content -->
+                <div style="padding: 20px; overflow-y: auto; flex: 1;">
+                    <!-- Announcement text -->
+                    <div class="settings-field">
+                        <label>Announcement</label>
+                        <div class="rich-text-toolbar" style="border: 1px solid #c9cccf; border-radius: 4px 4px 0 0; padding: 8px; background: #f7f7f7; display: flex; gap: 4px;">
+                            <button class="toolbar-btn" title="Fuente">
+                                <span style="font-size: 14px;">Aa</span>
+                                <i class="material-icons" style="font-size: 16px;">arrow_drop_down</i>
+                            </button>
+                            <div style="width: 1px; background: #c9cccf; margin: 0 4px;"></div>
+                            <button class="toolbar-btn" title="Negrita"><strong>B</strong></button>
+                            <button class="toolbar-btn" title="Cursiva"><em>I</em></button>
+                            <div style="width: 1px; background: #c9cccf; margin: 0 4px;"></div>
+                            <button class="toolbar-btn" title="Enlace">
+                                <i class="material-icons" style="font-size: 18px;">link</i>
+                            </button>
+                            <div style="width: 1px; background: #c9cccf; margin: 0 4px;"></div>
+                            <button class="toolbar-btn" title="Lista con viñetas">
+                                <i class="material-icons" style="font-size: 18px;">format_list_bulleted</i>
+                            </button>
+                            <button class="toolbar-btn" title="Lista numerada">
+                                <i class="material-icons" style="font-size: 18px;">format_list_numbered</i>
+                            </button>
+                        </div>
+                        <textarea class="rich-text-input" style="width: 100%; min-height: 80px; border: 1px solid #c9cccf; border-top: none; border-radius: 0 0 4px 4px; padding: 12px; font-size: 14px; resize: vertical;">Make an announcement</textarea>
+                    </div>
+                    
+                    <!-- Link -->
+                    <div class="settings-field">
+                        <label>Link</label>
+                        <input type="text" class="shopify-input" placeholder="Pega un enlace o busca" style="width: 100%; padding: 8px 12px; border: 1px solid #c9cccf; border-radius: 4px;">
+                    </div>
+                    
+                    <!-- Icon Section -->
+                    <div class="settings-field">
+                        <label>Icon</label>
+                        <select class="shopify-select" id="announcement-icon">
+                            <option value="none" selected>None</option>
+                            <option value="shipping">Shipping</option>
+                            <option value="discount">Discount</option>
+                            <option value="info">Info</option>
+                            <option value="star">Star</option>
+                        </select>
+                        <a href="#" class="settings-link" style="display: block; margin-top: 8px;">See what icon stands for each label</a>
+                    </div>
+                    
+                    <!-- Custom icon -->
+                    <div class="settings-field">
+                        <label>Custom icon</label>
+                        <div style="border: 1px dashed #c9cccf; border-radius: 4px; padding: 16px; background: #f9f9f9;">
+                            <button class="btn-secondary" style="width: 100%; padding: 8px 16px; background: white; border: 1px solid #c9cccf; border-radius: 4px; cursor: pointer;">
+                                Seleccionar
+                            </button>
+                            <p style="font-size: 11px; color: #6d7175; margin: 8px 0 0 0; text-align: center;">
+                                Explorar imágenes gratuitas
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <!-- Eliminar bloque button -->
+                    <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #e3e3e3;">
+                        <button class="delete-block-btn" style="display: flex; align-items: center; gap: 8px; color: #d72c0d; background: none; border: none; padding: 8px 12px; cursor: pointer; font-size: 14px; width: 100%; justify-content: center; border-radius: 4px; transition: background 0.1s;">
+                            <i class="material-icons" style="font-size: 20px;">delete</i>
+                            <span>Eliminar bloque</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    
+    // Function to attach event listeners for announcement item settings view
+    function attachAnnouncementItemEventListeners() {
+        // Back button
+        $('.back-to-sections-btn').on('click', function() {
+            switchSidebarView('blockList', currentPageData);
+        });
+        
+        // Delete block button
+        $('.delete-block-btn').on('click', function() {
+            if (confirm('¿Estás seguro de que quieres eliminar este bloque?')) {
+                // TODO: Implement delete functionality
+                switchSidebarView('blockList', currentPageData);
+            }
+        });
+        
+        // Toolbar buttons
+        $('.toolbar-btn').on('click', function(e) {
+            e.preventDefault();
+            // TODO: Implement rich text formatting
+        });
+    }
+    
+    // Function to render block settings view  
     function renderBlockSettingsView(blockData) {
         if (!blockData) return '';
         
@@ -2631,6 +3246,78 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
         `;
     }
     
+    // Attach event listeners for announcement bar view
+    function attachAnnouncementBarEventListeners() {
+        // Back button
+        $('.back-to-sections-btn').on('click', function() {
+            switchSidebarView('blockList', currentPageData);
+        });
+        
+        // Menu dropdown toggle
+        $('.section-menu').on('click', function(e) {
+            e.stopPropagation();
+            const $dropdown = $(this).siblings('.section-menu-dropdown');
+            $dropdown.toggleClass('show');
+        });
+        
+        // Close dropdown when clicking outside
+        $(document).on('click', function() {
+            $('.section-menu-dropdown').removeClass('show');
+        });
+        
+        // Menu item actions
+        $('.section-menu-dropdown .menu-item').on('click', function(e) {
+            e.preventDefault();
+            const action = $(this).data('action');
+            console.log('Menu action:', action);
+            $('.section-menu-dropdown').removeClass('show');
+            
+            switch(action) {
+                case 'rename':
+                    // TODO: Implement rename functionality
+                    console.log('Rename announcement bar');
+                    break;
+                case 'show':
+                    // TODO: Navigate to preview
+                    console.log('Show announcement bar');
+                    break;
+                case 'locate':
+                    // TODO: Highlight in preview
+                    console.log('Locate announcement bar');
+                    break;
+            }
+        });
+        
+        // Sync range slider with number input
+        $('#autoplay-speed').on('input', function() {
+            const value = $(this).val();
+            $(this).closest('.range-with-inputs').find('.shopify-number-input').val(value);
+        });
+        
+        $('.shopify-number-input').on('input', function() {
+            const value = $(this).val();
+            $(this).closest('.range-with-inputs').find('#autoplay-speed').val(value);
+        });
+        
+        // Toggle handlers
+        $('.shopify-toggle').on('change', function() {
+            console.log('Toggle changed:', $(this).attr('id'), $(this).prop('checked'));
+        });
+        
+        // Radio button handlers
+        $('input[name="autoplay-mode"]').on('change', function() {
+            const isAutoplay = $(this).val() !== 'none';
+            $('#autoplay-speed').closest('.settings-field').toggle(isAutoplay);
+        });
+        
+        // Links handlers
+        $('.settings-link').on('click', function(e) {
+            e.preventDefault();
+            console.log('Settings link clicked');
+        });
+        
+    }
+    
     // Function to attach event listeners for block list view
     function attachBlockListEventListeners() {
         // Section expand/collapse
@@ -2651,9 +3338,34 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
             if ($(e.target).closest('.subsection-actions').length) {
                 return;
             }
+            
+            // Don't trigger if clicking on collapse indicator
+            if ($(e.target).hasClass('collapse-indicator') || $(e.target).closest('.collapse-indicator').length) {
+                return;
+            }
+            
+            // Don't trigger if clicking on drag handle
+            if ($(e.target).hasClass('drag-handle') || $(e.target).closest('.drag-handle').length) {
+                return;
+            }
+            
             const blockType = $(this).data('block-type');
             console.log('Subsección clickeada:', blockType);
-            // TODO: Handle subsection clicks
+            
+            // Handle announcement bar click
+            if (blockType === 'announcement') {
+                switchSidebarView('announcementBar');
+            }
+            // Handle header click
+            else if (blockType === 'header') {
+                switchSidebarView('headerSettings');
+            }
+            // Handle announcement item click
+            else if (blockType === 'announcement-item') {
+                const announcementId = $(this).data('announcement-id');
+                switchSidebarView('announcementItemSettings', { id: announcementId });
+            }
+            // TODO: Handle other block types
         });
         
         // Visibility toggle button
@@ -2706,25 +3418,116 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
             // TODO: Implement view page
         });
         
-        // Add announcement button
-        $(document).on('click', '.add-announcement-button', function(e) {
+        
+        // Add block button - for announcement bar from main view
+        $('.add-icon[data-section="announcement"]').off('click').on('click', function(e) {
+            e.preventDefault();
             e.stopPropagation();
-            console.log('Agregar anuncio clickeado');
-            // TODO: Implement add announcement functionality
-            alert('Funcionalidad de agregar anuncio próximamente');
+            
+            console.log('Add announcement clicked');
+            
+            const $announcementBar = $('.sidebar-subsection[data-element-id="barra-anuncios"]');
+            const $headerContent = $('.sidebar-section-content').first();
+            
+            // Count existing announcements
+            const existingAnnouncements = $headerContent.find('.sidebar-subsection[data-block-type="announcement-item"]').length;
+            const announcementNumber = existingAnnouncements + 1;
+            
+            // Create unique ID
+            const announcementId = 'anuncio-' + Date.now();
+            const announcementName = `Announcement - Nuevo ${announcementNumber}`;
+            
+            // Create new announcement (same level as announcement bar but indented)
+            const newAnnouncement = $(`
+                <div class="sidebar-subsection" data-block-type="announcement-item" data-element-id="${announcementId}" style="padding-left: 30px;">
+                    <span class="subsection-text">${announcementName}</span>
+                    <div class="subsection-actions">
+                        <button class="action-icon visibility-toggle" title="Toggle visibility">
+                            <i class="material-icons icon-visible">visibility</i>
+                            <i class="material-icons icon-hidden" style="display: none;">visibility_off</i>
+                        </button>
+                        <button class="action-icon delete-announcement" data-element-id="${announcementId}" title="Delete">
+                            <i class="material-icons">delete</i>
+                        </button>
+                    </div>
+                </div>
+            `);
+            
+            // Insert after last announcement or after announcement bar
+            const $lastAnnouncement = $headerContent.find('.sidebar-subsection[data-block-type="announcement-item"]').last();
+            if ($lastAnnouncement.length) {
+                $lastAnnouncement.after(newAnnouncement);
+            } else {
+                $announcementBar.after(newAnnouncement);
+            }
+            
+            // Reinitialize drag and drop to include new element
+            setTimeout(() => {
+                initializeDragAndDropSimple();
+            }, 100);
         });
         
-        // Add block button in header
-        $(document).on('click', '.add-icon', function(e) {
+        // Collapse/expand announcement bar
+        $(document).on('click', '.collapsible-parent .collapse-indicator', function(e) {
+            e.preventDefault();
             e.stopPropagation();
-            const section = $(this).data('section');
-            console.log(`Agregar bloque clickeado para ${section}`);
-            // TODO: Implement add block functionality
-            alert('Funcionalidad de agregar bloque próximamente');
+            
+            const $parent = $(this).closest('.collapsible-parent');
+            const elementId = $parent.data('element-id');
+            
+            if ($parent.hasClass('collapsed')) {
+                // Expand - show all announcement items
+                $parent.removeClass('collapsed');
+                $(this).text('expand_more');
+                const $items = $('.sidebar-subsection[data-block-type="announcement-item"]');
+                console.log('Expanding, found items:', $items.length);
+                $items.slideDown(200);
+            } else {
+                // Collapse - hide all announcement items
+                $parent.addClass('collapsed');
+                $(this).text('chevron_right');
+                const $items = $('.sidebar-subsection[data-block-type="announcement-item"]');
+                console.log('Collapsing, found items:', $items.length);
+                $items.slideUp(200);
+            }
+        });
+        
+        // Click on announcement bar to configure
+        $(document).on('click', '.sidebar-subsection[data-element-id="barra-anuncios"]', function(e) {
+            if (!$(e.target).closest('.subsection-actions, .collapse-indicator').length) {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('Navigate to announcement bar config');
+                window.switchSidebarView('announcementBar');
+            }
+        });
+        
+        // Click on announcement item to edit
+        $(document).on('click', '.sidebar-subsection[data-block-type="announcement-item"]', function(e) {
+            if (!$(e.target).closest('.subsection-actions').length) {
+                e.preventDefault();
+                e.stopPropagation();
+                const elementId = $(this).data('element-id');
+                console.log('Navigate to announcement config:', elementId);
+                // Navigate to the specific announcement item settings
+                window.switchSidebarView('announcementItemSettings', { id: elementId });
+            }
+        });
+        
+        // Delete announcement item
+        $(document).on('click', '.delete-announcement', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            const elementId = $(this).data('element-id');
+            const $announcement = $(`.sidebar-subsection[data-element-id="${elementId}"]`);
+            
+            if (confirm('¿Estás seguro de que quieres eliminar este anuncio?')) {
+                $announcement.remove();
+            }
         });
         
         // Initialize collapsible subsections
-        makeSubsectionsCollapsible();
+        // makeSubsectionsCollapsible(); // Not needed, collapsing is handled by specific click handlers
         
         // Initialize drag and drop directly
         initializeDragAndDropSimple();
@@ -2784,59 +3587,53 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                 return;
             }
             
-            // Add drag handles and collapse indicators
-            const $subsections = $container.find('.sidebar-subsection[data-block-type="announcement"], .sidebar-subsection[data-block-type="header"]');
+            // Add drag handles to ALL subsections
+            const $subsections = $container.find('.sidebar-subsection');
             $subsections.each(function() {
                 const $this = $(this);
-                
-                // Remove any existing drag handles and collapse indicators
-                $this.find('.drag-handle, .collapse-indicator').remove();
-                
-                // Remove ALL existing Material Icons at the beginning (likely the three dots menu)
-                $this.children('i.material-icons').each(function() {
-                    const $icon = $(this);
-                    const iconText = $icon.text().trim();
-                    // Remove any icon that's not inside subsection-actions or subsection-text
-                    // Also specifically remove drag_indicator, more_horiz, more_vert icons
-                    if ((!$icon.closest('.subsection-actions').length && 
-                         !$icon.closest('.subsection-text').length) ||
-                        iconText === 'drag_indicator' ||
-                        iconText === 'more_horiz' ||
-                        iconText === 'more_vert' ||
-                        iconText === 'menu') {
-                        console.log('[CLEANUP] Removing icon:', iconText);
-                        $icon.remove();
-                    }
-                });
-                
-                // Add drag handle at the beginning
-                $this.prepend('<i class="material-icons drag-handle">drag_handle</i>');
-                
-                // Add collapse indicator after drag handle
-                $this.find('.drag-handle').after('<i class="material-icons collapse-indicator">keyboard_arrow_down</i>');
+                if (!$this.find('.drag-handle').length) {
+                    $this.prepend('<i class="material-icons drag-handle">drag_handle</i>');
+                }
             });
             
-            // Apply sortable
+            // The announcement bar already has collapse indicator in HTML, but let's make sure it stays
+            const $announcementBar = $('.sidebar-subsection[data-element-id="barra-anuncios"]');
+            if ($announcementBar.length && !$announcementBar.find('.collapse-indicator').length) {
+                $announcementBar.find('.drag-handle').after('<i class="material-icons collapse-indicator">expand_more</i>');
+            }
+            
+            // Apply sortable with parent-child logic
             if (typeof $.fn.sortable === 'function') {
                 $container.sortable({
-                    items: '.sidebar-subsection[data-block-type="announcement"], .sidebar-subsection[data-block-type="header"]',
+                    items: '.sidebar-subsection',
                     handle: '.drag-handle',
                     axis: 'y',
                     tolerance: 'pointer',
                     start: function(e, ui) {
-                        console.log('[DRAG&DROP] Arrastrando...');
+                        // If dragging announcement bar, collect all its children
+                        if (ui.item.attr('data-element-id') === 'barra-anuncios') {
+                            const $children = $('.sidebar-subsection[data-block-type="announcement-item"]');
+                            ui.item.data('announcement-children', $children);
+                            $children.hide();
+                        }
                     },
                     stop: function(e, ui) {
-                        console.log('[DRAG&DROP] Terminado');
-                        // Reposition add announcement button
-                        const $addBtn = $('.add-announcement-button');
-                        const $announcement = $('.sidebar-subsection[data-block-type="announcement"]');
-                        if ($addBtn.length && $announcement.length) {
-                            $addBtn.insertAfter($announcement);
+                        // If we moved announcement bar, move its children after it
+                        if (ui.item.attr('data-element-id') === 'barra-anuncios') {
+                            const $children = ui.item.data('announcement-children');
+                            if ($children && $children.length > 0) {
+                                // Insert all children after the announcement bar
+                                let $insertAfter = ui.item;
+                                $children.each(function() {
+                                    $(this).insertAfter($insertAfter).show();
+                                    $insertAfter = $(this);
+                                });
+                            }
+                            ui.item.removeData('announcement-children');
                         }
                     }
                 });
-                console.log('[DRAG&DROP] ✓ Sortable aplicado exitosamente');
+                console.log('[DRAG&DROP] ✓ Sortable aplicado con lógica padre-hijo');
             } else {
                 console.error('[DRAG&DROP] jQuery UI sortable no está disponible');
             }
@@ -2875,6 +3672,13 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                         return;
                     }
                     
+                    // IMPORTANTE: Solo colapsar si se hace clic en el indicador de colapso
+                    if (!$(e.target).hasClass('collapse-indicator') && !$(e.target).closest('.collapse-indicator').length) {
+                        return;
+                    }
+                    
+                    e.stopPropagation(); // Prevenir que se dispare el otro click handler
+                    
                     const $this = $(this);
                     const $indicator = $this.find('.collapse-indicator');
                     
@@ -2885,23 +3689,10 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                         // Colapsar con animación suave
                         $this.addClass('collapsed');
                         
-                        // Si es barra de anuncios, ocultar el botón de agregar anuncio con animación
-                        if ($this.data('block-type') === 'announcement') {
-                            const $addBtn = $('.add-announcement-button');
-                            $addBtn.addClass('collapsing');
-                            setTimeout(() => {
-                                $addBtn.hide();
-                            }, 300);
-                        }
                     } else {
                         // Expandir con animación suave
                         $this.removeClass('collapsed');
                         
-                        // Si es barra de anuncios, mostrar el botón de agregar anuncio con animación
-                        if ($this.data('block-type') === 'announcement') {
-                            const $addBtn = $('.add-announcement-button');
-                            $addBtn.show().removeClass('collapsing');
-                        }
                     }
                     
                     console.log('[COLLAPSIBLE] Click en:', $this.data('block-type'), 'Ahora está colapsado:', !isCurrentlyCollapsed);
@@ -3314,23 +4105,6 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
         }
     });
     
-    // Function to apply translations to dynamic content
-    function applyTranslations() {
-        document.querySelectorAll('[data-i18n]').forEach(element => {
-            const key = element.getAttribute('data-i18n');
-            if (lang[key]) {
-                element.textContent = lang[key];
-            }
-        });
-        
-        // Update option elements with translations
-        document.querySelectorAll('option[data-i18n]').forEach(option => {
-            const key = option.getAttribute('data-i18n');
-            if (lang[key]) {
-                option.textContent = lang[key];
-            }
-        });
-    }
     
     // Listen for language changes from the main layout
     document.addEventListener('languageChanged', function(e) {

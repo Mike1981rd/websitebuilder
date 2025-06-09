@@ -12,7 +12,8 @@
       "Bash(awk:*)",
       "Bash(dotnet build:*)",
       "Bash(rg:*)",
-      "Bash(git checkout:*)"
+      "Bash(git checkout:*)",
+      "Bash(sed:*)"
     ],
     "deny": []
   }
