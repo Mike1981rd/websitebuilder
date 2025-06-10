@@ -100,3 +100,65 @@
 1. **Centrado**: Usar flexbox no position absolute
 2. **Toggle visibility**: `.css('display', 'value')` no `.show()/.hide()`
 3. **Animaciones suaves**: Combinar fade+slide con delays escalonados (index * 40ms)
+
+## Arquitectura Crítica Website Builder - Settings y Guardado
+
+### Variables Globales JavaScript (CRÍTICO)
+```javascript
+// DEBEN estar fuera de $(document).ready() para acceso global
+let hasPendingGlobalSettingsChanges = false;
+let hasPendingPageStructureChanges = false;
+let currentWebsiteId = null;
+let currentGlobalThemeSettings = {};
+```
+
+### Patrón de Guardado Unificado
+1. **Botón único**: `#save-builder-btn-topbar` maneja TODOS los cambios
+2. **Verificar flags**: Siempre revisar ambas: `hasPendingGlobalSettingsChanges` y `hasPendingPageStructureChanges`
+3. **Guardado paralelo**: Usar `Promise.all()` para múltiples endpoints
+
+### Patrón de Event Handlers para Settings
+```javascript
+function handleGlobalSettingChange(settingName, value) {
+    hasPendingGlobalSettingsChanges = true;
+    applyGlobalStylesToPreview(currentGlobalThemeSettings);
+    updateSaveButtonState();
+}
+```
+
+### API Endpoints Website Builder
+- `GET /api/builder/websites/current` → Obtiene sitio con GlobalThemeSettingsJson
+- `PUT /api/builder/websites/current/global-settings` → Actualiza settings globales
+- `PUT /api/builder/websites/{id}/pages/{pageId}` → Actualiza estructura de página
+
+### Verificación Preview Iframe
+```javascript
+// SIEMPRE verificar antes de aplicar estilos
+if (!previewFrame) {
+    console.log('[DEBUG] Preview iframe not found. Skipping...');
+    return;
+}
+```
+
+### Modelo WebSite
+- **GlobalThemeSettingsJson**: string → jsonb PostgreSQL
+- **Default**: `"{}"` para evitar nulls
+- **Backend**: Sin validación de campos (flexibilidad máxima)
+
+## Lecciones Críticas - Evitar Problemas Comunes
+
+### Formularios Dinámicos
+1. **Event Listeners**: Usar `data-field` no `name`. Escuchar `input`, `change`, `blur`
+2. **Delegación**: `$(document).on('event', 'selector')` para elementos creados dinámicamente
+
+### Validación de Inputs
+3. **Color Hex**: Validar con `/^#[0-9A-F]{6}$/i` antes de asignar a `input[type="color"]`
+4. **Campos RGBA**: Usar solo `input[type="text"]` para valores rgba()
+
+### Backend JSON
+5. **Deserialización**: Agregar `[JsonPropertyName("camelCase")]` si frontend envía camelCase
+6. **Debug**: Leer request body manualmente si hay problemas de deserialización
+
+### Estado y Carga de Datos
+7. **NO reinicializar**: Al abrir secciones, NO llamar funciones que sobrescriban valores DB
+8. **Populate**: Incluir TODOS los campos (appearance Y colors) en función de carga

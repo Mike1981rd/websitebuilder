@@ -323,7 +323,9 @@
     background-color: #f7f7f7;
     border-right: 1px solid #dfe0e1;
     display: flex;
-    overflow: visible;
+    flex-direction: row;
+    height: 100%;
+    overflow: hidden;
 }
 
 .dark-mode #editor-sidebar-panel {
@@ -438,8 +440,9 @@
 
 #sidebar-dynamic-content {
     flex: 1;
-    overflow: hidden; /* Cambiar a hidden para evitar scroll doble */
-    padding: 0 !important;
+    overflow-y: auto; /* Habilita el scroll vertical cuando es necesario */
+    overflow-x: hidden;
+    padding: 20px;
     margin: 0 !important;
     display: flex;
     flex-direction: column;
@@ -4733,5 +4736,17 @@
 }
 
 .sidebar-subsection.has-children.collapsed .subsection-children {
-    display: none !important;
+    display: none;
+}
+
+/* Ocultar completamente la barra de scroll pero mantener funcionalidad */
+#sidebar-dynamic-content::-webkit-scrollbar {
+    width: 0px;
+    display: none;
+}
+
+/* Firefox - ocultar scrollbar */
+#sidebar-dynamic-content {
+    scrollbar-width: none;
+    -ms-overflow-style: none; /* IE and Edge */
 }

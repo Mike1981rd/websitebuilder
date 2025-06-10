@@ -1,1 +1,48 @@
-[]
+[
+  {
+    "ContainingType": "Hotel.Controllers.WebSitesController",
+    "Method": "GetCurrentWebSite",
+    "RelativePath": "api/builder/websites/current",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": [
+      {
+        "Type": "Hotel.Models.WebSite",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "Hotel.Controllers.WebSitesController",
+    "Method": "UpdateWebSite",
+    "RelativePath": "api/builder/websites/current",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "dto",
+        "Type": "Hotel.Controllers.UpdateWebSiteDto",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Hotel.Controllers.WebSitesController",
+    "Method": "UpdateGlobalThemeSettings",
+    "RelativePath": "api/builder/websites/current/global-settings",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  }
+]

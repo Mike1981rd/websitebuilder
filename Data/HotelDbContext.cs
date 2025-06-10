@@ -21,6 +21,7 @@ namespace Hotel.Data
         public DbSet<Permission> Permissions { get; set; }
         public DbSet<RolePermission> RolePermissions { get; set; }
         public DbSet<User> Users { get; set; }
+        public DbSet<WebSite> WebSites { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -91,6 +92,39 @@ namespace Hotel.Data
                 .WithMany()
                 .HasForeignKey(u => u.RoleId)
                 .OnDelete(DeleteBehavior.SetNull);
+
+            // Configuración de WebSite
+            modelBuilder.Entity<WebSite>()
+                .HasIndex(w => w.Subdomain)
+                .IsUnique();
+
+            modelBuilder.Entity<WebSite>()
+                .HasIndex(w => w.CustomDomain)
+                .IsUnique()
+                .HasFilter("\"CustomDomain\" IS NOT NULL");
+
+            modelBuilder.Entity<WebSite>()
+                .HasOne(w => w.Company)
+                .WithMany()
+                .HasForeignKey(w => w.CompanyId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Configurar propiedades JSON como jsonb en PostgreSQL
+            modelBuilder.Entity<WebSite>()
+                .Property(w => w.GlobalThemeSettingsJson)
+                .HasColumnType("jsonb");
+
+            modelBuilder.Entity<WebSite>()
+                .Property(w => w.PagesJson)
+                .HasColumnType("jsonb");
+
+            modelBuilder.Entity<WebSite>()
+                .Property(w => w.NavigationJson)
+                .HasColumnType("jsonb");
+
+            modelBuilder.Entity<WebSite>()
+                .Property(w => w.SeoSettingsJson)
+                .HasColumnType("jsonb");
 
             // Datos semilla para RoomTypes
             modelBuilder.Entity<RoomType>().HasData(

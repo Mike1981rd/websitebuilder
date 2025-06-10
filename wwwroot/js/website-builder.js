@@ -1,5 +1,272 @@
 // Website Builder JavaScript
-$(document).ready(function() {
+
+// Global state variables - must be accessible from all functions
+let hasPendingGlobalSettingsChanges = false;
+let hasPendingPageStructureChanges = false;
+let currentWebsiteId = null;
+let currentPageId = 1; // Default to home page
+let currentPageBlocks = [];
+let currentGlobalThemeSettings = {
+    primaryColor: "#1976d2",
+    secondaryColor: "#424242",
+    fontFamily: "Roboto",
+    headerHeight: "60px"
+};
+
+// Estructura de datos COMPLETA y CORRECTA para los esquemas de color.
+const colorSchemes = {
+    'scheme1': { // Coincide con el value="scheme1" del <option>
+        primary: {
+            text: '#121212', background: '#FFFFFF', foreground: '#F0F0F0', border: '#DDDDDD',
+            'solid-button': '#121212', 'solid-button-text': '#FFFFFF',
+            'outline-button': '#DDDDDD', 'outline-button-text': '#121212',
+            'image-overlay': 'rgba(0, 0, 0, 0.1)'
+        },
+        secondary: {
+            text: '#FFFFFF', background: '#121212', foreground: '#333333', border: '#555555',
+            'solid-button': '#FFFFFF', 'solid-button-text': '#121212',
+            'outline-button': '#555555', 'outline-button-text': '#FFFFFF',
+            'image-overlay': 'rgba(255, 255, 255, 0.1)'
+        },
+        contrasting: {
+            text: '#FFFFFF', background: '#005B99', foreground: '#004C80', border: '#003D66',
+            'solid-button': '#FFFFFF', 'solid-button-text': '#005B99',
+            'outline-button': '#FFFFFF', 'outline-button-text': '#FFFFFF',
+            'image-overlay': 'rgba(0, 0, 0, 0.3)'
+        }
+    },
+    'scheme2': { // GRIS CLARO
+        primary: {
+            text: '#121212', background: '#F3F3F3', foreground: '#E8E8E8', border: '#CCCCCC',
+            'solid-button': '#333333', 'solid-button-text': '#FFFFFF',
+            'outline-button': '#CCCCCC', 'outline-button-text': '#333333',
+            'image-overlay': 'rgba(0, 0, 0, 0.1)'
+        },
+        secondary: {
+            text: '#333333', background: '#FFFFFF', foreground: '#F5F5F5', border: '#E0E0E0',
+            'solid-button': '#666666', 'solid-button-text': '#FFFFFF',
+            'outline-button': '#999999', 'outline-button-text': '#333333',
+            'image-overlay': 'rgba(0, 0, 0, 0.05)'
+        },
+        contrasting: {
+            text: '#FFFFFF', background: '#333333', foreground: '#444444', border: '#555555',
+            'solid-button': '#F3F3F3', 'solid-button-text': '#333333',
+            'outline-button': '#CCCCCC', 'outline-button-text': '#CCCCCC',
+            'image-overlay': 'rgba(255, 255, 255, 0.1)'
+        }
+    },
+    'scheme3': { // OSCURO
+        primary: {
+            text: '#FFFFFF', background: '#121212', foreground: '#1E1E1E', border: '#333333',
+            'solid-button': '#FFFFFF', 'solid-button-text': '#121212',
+            'outline-button': '#666666', 'outline-button-text': '#FFFFFF',
+            'image-overlay': 'rgba(255, 255, 255, 0.1)'
+        },
+        secondary: {
+            text: '#121212', background: '#FFFFFF', foreground: '#F8F8F8', border: '#E0E0E0',
+            'solid-button': '#121212', 'solid-button-text': '#FFFFFF',
+            'outline-button': '#333333', 'outline-button-text': '#121212',
+            'image-overlay': 'rgba(0, 0, 0, 0.1)'
+        },
+        contrasting: {
+            text: '#000000', background: '#FFC107', foreground: '#FFB300', border: '#FFA000',
+            'solid-button': '#000000', 'solid-button-text': '#FFC107',
+            'outline-button': '#000000', 'outline-button-text': '#000000',
+            'image-overlay': 'rgba(0, 0, 0, 0.2)'
+        }
+    },
+    'scheme4': { // AZUL GRISÁCEO
+        primary: {
+            text: '#EAEAEA', background: '#36454F', foreground: '#2C3A44', border: '#5A6B75',
+            'solid-button': '#AEC6CF', 'solid-button-text': '#121212',
+            'outline-button': '#8FA9B5', 'outline-button-text': '#EAEAEA',
+            'image-overlay': 'rgba(0, 0, 0, 0.3)'
+        },
+        secondary: {
+            text: '#36454F', background: '#F5F5F5', foreground: '#E8E8E8', border: '#C0C0C0',
+            'solid-button': '#36454F', 'solid-button-text': '#FFFFFF',
+            'outline-button': '#5A6B75', 'outline-button-text': '#36454F',
+            'image-overlay': 'rgba(54, 69, 79, 0.1)'
+        },
+        contrasting: {
+            text: '#FFFFFF', background: '#1E3A5F', foreground: '#15304E', border: '#0C243D',
+            'solid-button': '#AEC6CF', 'solid-button-text': '#1E3A5F',
+            'outline-button': '#AEC6CF', 'outline-button-text': '#AEC6CF',
+            'image-overlay': 'rgba(255, 255, 255, 0.1)'
+        }
+    },
+    'scheme5': { // BEIGE/MARRÓN
+        primary: {
+            text: '#4B3F35', background: '#EADDCA', foreground: '#E5D4BD', border: '#D4B896',
+            'solid-button': '#8B4513', 'solid-button-text': '#FFFFFF',
+            'outline-button': '#A0826D', 'outline-button-text': '#4B3F35',
+            'image-overlay': 'rgba(75, 63, 53, 0.1)'
+        },
+        secondary: {
+            text: '#EADDCA', background: '#4B3F35', foreground: '#5D4E41', border: '#6F5D4F',
+            'solid-button': '#EADDCA', 'solid-button-text': '#4B3F35',
+            'outline-button': '#A0826D', 'outline-button-text': '#EADDCA',
+            'image-overlay': 'rgba(234, 221, 202, 0.1)'
+        },
+        contrasting: {
+            text: '#FFFFFF', background: '#2C1810', foreground: '#3D241A', border: '#4E3024',
+            'solid-button': '#D2691E', 'solid-button-text': '#FFFFFF',
+            'outline-button': '#D2691E', 'outline-button-text': '#D2691E',
+            'image-overlay': 'rgba(255, 255, 255, 0.15)'
+        }
+    }
+};
+
+// Function to load current website data from the backend - moved outside document.ready
+async function loadCurrentWebsite() {
+    try {
+        const response = await fetch('/api/builder/websites/current', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        if (!response.ok) {
+            throw new Error('Failed to load website data');
+        }
+        
+        const website = await response.json();
+        currentWebsiteId = website.id;
+        
+        // Parse and load global theme settings
+        if (website.globalThemeSettingsJson) {
+            try {
+                currentGlobalThemeSettings = JSON.parse(website.globalThemeSettingsJson);
+                console.log('[DEBUG] Loaded theme settings from DB:', currentGlobalThemeSettings);
+            } catch (e) {
+                console.error('Error parsing global theme settings:', e);
+                currentGlobalThemeSettings = {};
+            }
+        }
+        
+        // Apply global styles to preview
+        applyGlobalStylesToPreview(currentGlobalThemeSettings);
+        
+        return website;
+    } catch (error) {
+        console.error('Error loading website:', error);
+        return null;
+    }
+}
+
+// Function to apply global styles to preview - moved outside document.ready
+function applyGlobalStylesToPreview(settings) {
+    console.log('[DEBUG] Attempting to apply global styles to preview...');
+    
+    const previewFrame = document.getElementById('preview-iframe');
+    
+    if (!previewFrame) {
+        console.log('[DEBUG] Preview iframe not found. Skipping style application.');
+        return; // Detiene la ejecución de la función si no hay iframe
+    }
+    
+    // Check if iframe content is accessible and ready
+    try {
+        if (!previewFrame.contentWindow || !previewFrame.contentWindow.document) {
+            console.warn('[DEBUG] Preview iframe contentWindow not accessible');
+            return;
+        }
+        
+        const previewDoc = previewFrame.contentWindow.document;
+        
+        // Check if document is ready
+        if (previewDoc.readyState !== 'complete') {
+            console.warn('[DEBUG] Preview iframe document not ready. State:', previewDoc.readyState);
+            // Retry after a short delay
+            setTimeout(() => applyGlobalStylesToPreview(settings), 100);
+            return;
+        }
+        
+        const previewRoot = previewDoc.documentElement;
+        const previewBody = previewDoc.body;
+        
+        if (!previewRoot || !previewBody) {
+            console.warn('[DEBUG] Preview iframe documentElement or body not found');
+            return;
+        }
+        
+        console.log('[DEBUG] Preview iframe is ready. Applying styles.');
+        
+        // Apply appearance settings
+        if (settings.appearance) {
+            if (settings.appearance.pageWidth) {
+                previewRoot.style.setProperty('--page-width', settings.appearance.pageWidth);
+            }
+            if (settings.appearance.sidePadding) {
+                previewRoot.style.setProperty('--side-padding', settings.appearance.sidePadding);
+            }
+            if (settings.appearance.edgeRounding) {
+                const roundingMap = {
+                    'size0': '0px',
+                    'size1': '4px',
+                    'size2': '8px',
+                    'size3': '12px',
+                    'size4': '16px'
+                };
+                previewRoot.style.setProperty('--edge-rounding', roundingMap[settings.appearance.edgeRounding] || '0px');
+            }
+        }
+        
+        // Apply typography settings
+        if (settings.typography) {
+            if (settings.typography.heading) {
+                if (settings.typography.heading.font) {
+                    previewRoot.style.setProperty('--heading-font', settings.typography.heading.font);
+                }
+                if (settings.typography.heading.uppercase) {
+                    previewRoot.style.setProperty('--heading-text-transform', 'uppercase');
+                } else {
+                    previewRoot.style.setProperty('--heading-text-transform', 'none');
+                }
+                if (settings.typography.heading.letterSpacing !== undefined) {
+                    previewRoot.style.setProperty('--heading-letter-spacing', settings.typography.heading.letterSpacing + 'px');
+                }
+            }
+            
+            if (settings.typography.body) {
+                if (settings.typography.body.font) {
+                    previewRoot.style.setProperty('--body-font', settings.typography.body.font);
+                }
+                if (settings.typography.body.fontSize) {
+                    previewRoot.style.setProperty('--body-font-size', settings.typography.body.fontSize);
+                }
+            }
+        }
+        
+        // Apply color scheme settings
+        if (settings.colorSchemes && settings.colorSchemes.default) {
+            const scheme = settings.colorSchemes.default;
+            if (scheme.background) previewRoot.style.setProperty('--color-background', scheme.background);
+            if (scheme.text) previewRoot.style.setProperty('--color-text', scheme.text);
+            if (scheme.primary) previewRoot.style.setProperty('--color-primary', scheme.primary);
+            if (scheme.secondary) previewRoot.style.setProperty('--color-secondary', scheme.secondary);
+        }
+        
+    } catch (error) {
+        console.error('[DEBUG] Error accessing iframe content:', error);
+        // This might happen due to cross-origin restrictions or timing issues
+    }
+}
+
+$(document).ready(async function() {
+    // Load current website data first
+    await loadCurrentWebsite();
+    
+    // Wait for preview iframe to be ready before applying styles
+    const previewFrame = document.getElementById('preview-iframe');
+    if (previewFrame) {
+        previewFrame.addEventListener('load', () => {
+            console.log('[DEBUG] Preview iframe loaded, applying initial styles');
+            applyGlobalStylesToPreview(currentGlobalThemeSettings);
+        });
+    }
+    
     // Get current language from localStorage or default to Spanish
     let currentLanguage = localStorage.getItem('preferredLanguage') || 'es';
     
@@ -842,12 +1109,6 @@ $(document).ready(function() {
         fields: ["primaryColor", "secondaryColor", "fontFamily", "headerHeight"]
     };
     
-    let currentGlobalThemeSettings = {
-        primaryColor: "#1976d2",
-        secondaryColor: "#424242",
-        fontFamily: "Roboto",
-        headerHeight: "60px"
-    };
     
     // Function to switch sidebar view - Make it global for delegated events
     window.switchSidebarView = function(viewName, data = null) {
@@ -873,6 +1134,35 @@ $(document).ready(function() {
             dynamicContentArea.innerHTML = renderThemeSettingsView();
             // Apply translations after rendering
             setTimeout(applyTranslations, 0);
+            // Reload current website data to get fresh settings from DB
+            loadCurrentWebsite().then(() => {
+                // Populate theme settings fields with fresh data and attach event listeners
+                setTimeout(() => {
+                    console.log('[DEBUG] About to populate fields. Checking if color inputs exist...');
+                    console.log('[DEBUG] Primary text input exists?', $('[data-field="primary-text"]').length > 0);
+                    console.log('[DEBUG] Color inputs found:', $('[data-field*="-"]').length);
+                    
+                    populateThemeSettingsFields();
+                    attachThemeSettingsEventListeners();
+                    
+                    // Try populating again after a longer delay in case DOM isn't ready
+                    setTimeout(() => {
+                        console.log('[DEBUG] Second attempt to populate color fields...');
+                        if (currentGlobalThemeSettings.colors) {
+                            const colors = currentGlobalThemeSettings.colors;
+                            for (const group in colors) {
+                                if (typeof colors[group] === 'object' && colors[group] !== null) {
+                                    for (const property in colors[group]) {
+                                        const value = colors[group][property];
+                                        const dataField = `${group}-${property}`;
+                                        $(`[data-field="${dataField}"]`).val(value);
+                                    }
+                                }
+                            }
+                        }
+                    }, 500);
+                }, 50);
+            });
         } else if (viewName === 'announcementBar') {
             const announcementHTML = renderAnnouncementBarView();
             console.log('[DEBUG] Announcement Bar HTML length:', announcementHTML.length);
@@ -1998,8 +2288,7 @@ $(document).ready(function() {
                                     <div class="color-field">
                                         <label data-i18n="colorSchemes.imageOverlay">Image overlay</label>
                                         <div class="shopify-color-input-wrapper">
-                                            <input type="color" value="#000000" class="shopify-color-picker" data-field="primary-image-overlay">
-                                            <input type="text" value="#000000" class="shopify-color-text" data-field="primary-image-overlay">
+                                            <input type="text" value="rgba(0, 0, 0, 0.1)" class="shopify-color-text" data-field="primary-image-overlay">
                                             <button class="shopify-color-copy" data-field="primary-image-overlay">
                                                 <i class="material-icons">content_copy</i>
                                             </button>
@@ -2102,8 +2391,7 @@ $(document).ready(function() {
                                     <div class="color-field">
                                         <label data-i18n="colorSchemes.imageOverlay">Image overlay</label>
                                         <div class="shopify-color-input-wrapper">
-                                            <input type="color" value="#3B3933" class="shopify-color-picker" data-field="secondary-image-overlay">
-                                            <input type="text" value="#3B3933" class="shopify-color-text" data-field="secondary-image-overlay">
+                                            <input type="text" value="rgba(255, 255, 255, 0.1)" class="shopify-color-text" data-field="secondary-image-overlay">
                                             <button class="shopify-color-copy" data-field="secondary-image-overlay">
                                                 <i class="material-icons">content_copy</i>
                                             </button>
@@ -2206,8 +2494,7 @@ $(document).ready(function() {
                                     <div class="color-field">
                                         <label data-i18n="colorSchemes.imageOverlay">Image overlay</label>
                                         <div class="shopify-color-input-wrapper">
-                                            <input type="color" value="#222222" class="shopify-color-picker" data-field="contrasting-image-overlay">
-                                            <input type="text" value="#222222" class="shopify-color-text" data-field="contrasting-image-overlay">
+                                            <input type="text" value="rgba(0, 0, 0, 0.3)" class="shopify-color-text" data-field="contrasting-image-overlay">
                                             <button class="shopify-color-copy" data-field="contrasting-image-overlay">
                                                 <i class="material-icons">content_copy</i>
                                             </button>
@@ -2322,8 +2609,7 @@ $(document).ready(function() {
                                     <div class="color-field">
                                         <label data-i18n="colorSchemes.imageOverlay">Image overlay</label>
                                         <div class="shopify-color-input-wrapper">
-                                            <input type="color" value="#FFFFFF" class="shopify-color-picker" data-field="scheme-image-overlay">
-                                            <input type="text" value="#FFFFFF" class="shopify-color-text" data-field="scheme-image-overlay">
+                                            <input type="text" value="rgba(0, 0, 0, 0.1)" class="shopify-color-text" data-field="scheme-image-overlay">
                                             <button class="shopify-color-copy" data-field="scheme-image-overlay">
                                                 <i class="material-icons">content_copy</i>
                                             </button>
@@ -4300,7 +4586,9 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
             
             // Initialize color schemes when Color schemes section is opened
             if ($(this).data('section') === 'color-schemes') {
-                setTimeout(initializeColorSchemes, 100);
+                // COMENTADO: Esta función estaba sobrescribiendo los valores cargados de la BD
+                // setTimeout(initializeColorSchemes, 100);
+                console.log('[DEBUG] Color schemes section opened - NOT calling initializeColorSchemes to preserve DB values');
             }
             
             // Initialize swatches range inputs when Swatches section is opened
@@ -5662,243 +5950,7 @@ style.textContent = `
 `;
 document.head.appendChild(style);
 
-    // Color Schemes Data
-    const colorSchemes = {
-        scheme1: {
-            primary: {
-                text: '#FFFFFF',
-                background: '#020711',
-                foreground: '#020711',
-                border: '#000000',
-                solidButton: '#2F3349',
-                solidButtonText: '#FFFFFF',
-                outlineButton: '#473C63',
-                outlineButtonText: '#FFFFFF',
-                imageOverlay: '#000000'
-            },
-            secondary: {
-                text: '#000000',
-                background: '#FFFFFF',
-                foreground: '#FDF48B',
-                border: '#FFFFFF',
-                solidButton: '#2F3349',
-                solidButtonText: '#FFFFFF',
-                outlineButton: '#000000',
-                outlineButtonText: '#000000',
-                imageOverlay: '#3B3933'
-            },
-            contrasting: {
-                text: '#FFFFFF',
-                background: '#000000',
-                foreground: '#000000',
-                border: '#FFFFFF',
-                solidButton: '#F0FF2E',
-                solidButtonText: '#FFFFFF',
-                outlineButton: '#F0FF2E',
-                outlineButtonText: '#F0FF2E',
-                imageOverlay: '#222222'
-            }
-        },
-        scheme2: {
-            primary: {
-                text: '#FFFFFF',
-                background: '#1A1A1A',
-                foreground: '#000000',
-                border: '#333333',
-                solidButton: '#FFFFFF',
-                solidButtonText: '#1A1A1A',
-                outlineButton: '#FFFFFF',
-                outlineButtonText: '#FFFFFF',
-                imageOverlay: '#1A1A1A'
-            },
-            secondary: {
-                text: '#1A1A1A',
-                background: '#FFFFFF',
-                foreground: '#F6F6F6',
-                border: '#E1E1E1',
-                solidButton: '#1A1A1A',
-                solidButtonText: '#FFFFFF',
-                outlineButton: '#1A1A1A',
-                outlineButtonText: '#1A1A1A',
-                imageOverlay: '#1A1A1A'
-            },
-            contrasting: {
-                text: '#FFFFFF',
-                background: '#FF6B6B',
-                foreground: '#FF5252',
-                border: '#FFFFFF',
-                solidButton: '#FFFFFF',
-                solidButtonText: '#FF6B6B',
-                outlineButton: '#FFFFFF',
-                outlineButtonText: '#FFFFFF',
-                imageOverlay: '#FF6B6B'
-            }
-        },
-        scheme3: {
-            primary: {
-                text: '#FFFFFF',
-                background: '#2A475E',
-                foreground: '#1A3A52',
-                border: '#122E42',
-                solidButton: '#FFB800',
-                solidButtonText: '#2A475E',
-                outlineButton: '#FFB800',
-                outlineButtonText: '#FFB800',
-                imageOverlay: '#2A475E'
-            },
-            secondary: {
-                text: '#2A475E',
-                background: '#FFFFFF',
-                foreground: '#F3F5F7',
-                border: '#CCCCCC',
-                solidButton: '#2A475E',
-                solidButtonText: '#FFFFFF',
-                outlineButton: '#2A475E',
-                outlineButtonText: '#2A475E',
-                imageOverlay: '#2A475E'
-            },
-            contrasting: {
-                text: '#2A475E',
-                background: '#FFB800',
-                foreground: '#FFC933',
-                border: '#2A475E',
-                solidButton: '#2A475E',
-                solidButtonText: '#FFFFFF',
-                outlineButton: '#2A475E',
-                outlineButtonText: '#2A475E',
-                imageOverlay: '#2A475E'
-            }
-        },
-        scheme4: {
-            primary: {
-                text: '#FFFFFF',
-                background: '#004145',
-                foreground: '#003135',
-                border: '#00262A',
-                solidButton: '#52DCE6',
-                solidButtonText: '#004145',
-                outlineButton: '#52DCE6',
-                outlineButtonText: '#52DCE6',
-                imageOverlay: '#004145'
-            },
-            secondary: {
-                text: '#004145',
-                background: '#FFFFFF',
-                foreground: '#F0FEFF',
-                border: '#B3E5E8',
-                solidButton: '#004145',
-                solidButtonText: '#FFFFFF',
-                outlineButton: '#004145',
-                outlineButtonText: '#004145',
-                imageOverlay: '#004145'
-            },
-            contrasting: {
-                text: '#FFFFFF',
-                background: '#FF7F50',
-                foreground: '#FF6347',
-                border: '#FFFFFF',
-                solidButton: '#FFFFFF',
-                solidButtonText: '#FF7F50',
-                outlineButton: '#FFFFFF',
-                outlineButtonText: '#FFFFFF',
-                imageOverlay: '#FF7F50'
-            }
-        },
-        scheme5: {
-            primary: {
-                text: '#FFFFFF',
-                background: '#6B5B95',
-                foreground: '#5A4A7F',
-                border: '#493969',
-                solidButton: '#FF6F61',
-                solidButtonText: '#FFFFFF',
-                outlineButton: '#FF6F61',
-                outlineButtonText: '#FF6F61',
-                imageOverlay: '#6B5B95'
-            },
-            secondary: {
-                text: '#6B5B95',
-                background: '#FFFFFF',
-                foreground: '#F5F3F9',
-                border: '#D8D0E8',
-                solidButton: '#6B5B95',
-                solidButtonText: '#FFFFFF',
-                outlineButton: '#6B5B95',
-                outlineButtonText: '#6B5B95',
-                imageOverlay: '#6B5B95'
-            },
-            contrasting: {
-                text: '#FFFFFF',
-                background: '#88D8B0',
-                foreground: '#6FC99B',
-                border: '#FFFFFF',
-                solidButton: '#6B5B95',
-                solidButtonText: '#FFFFFF',
-                outlineButton: '#6B5B95',
-                outlineButtonText: '#6B5B95',
-                imageOverlay: '#88D8B0'
-            }
-        }
-    };
     
-    // Color Scheme Settings Configuration (Additional settings for each scheme)
-    const colorSchemeSettings = {
-        scheme1: {
-            text: '#FFFFFF',
-            background: '#473C63',
-            foreground: '#FFFFFF',
-            border: '#FFFFFF',
-            solidButton: '#EA7A84',
-            solidButtonText: '#FFFFFF',
-            outlineButton: '#473C63',
-            outlineButtonText: '#FFFFFF',
-            imageOverlay: '#FFFFFF'
-        },
-        scheme2: {
-            text: '#121212',
-            background: '#FFFFFF',
-            foreground: '#F6F6F7',
-            border: '#E1E3E5',
-            solidButton: '#121212',
-            solidButtonText: '#FFFFFF',
-            outlineButton: '#121212',
-            outlineButtonText: '#121212',
-            imageOverlay: '#121212'
-        },
-        scheme3: {
-            text: '#FFFFFF',
-            background: '#2A475E',
-            foreground: '#1A3A52',
-            border: '#122E42',
-            solidButton: '#FFB800',
-            solidButtonText: '#2A475E',
-            outlineButton: '#FFB800',
-            outlineButtonText: '#FFB800',
-            imageOverlay: '#2A475E'
-        },
-        scheme4: {
-            text: '#FFFFFF',
-            background: '#000000',
-            foreground: '#242424',
-            border: '#FFFFFF',
-            solidButton: '#FFFFFF',
-            solidButtonText: '#000000',
-            outlineButton: '#FFFFFF',
-            outlineButtonText: '#FFFFFF',
-            imageOverlay: '#000000'
-        },
-        scheme5: {
-            text: '#FFFFFF',
-            background: '#9B5925',
-            foreground: '#7C4420',
-            border: '#5D2E18',
-            solidButton: '#FFFFFF',
-            solidButtonText: '#9B5925',
-            outlineButton: '#FFFFFF',
-            outlineButtonText: '#FFFFFF',
-            imageOverlay: '#9B5925'
-        }
-    };
 
     // Initialize Color Schemes
     window.initializeColorSchemes = function() {
@@ -6025,35 +6077,17 @@ document.head.appendChild(style);
     }
     
     // Load scheme configuration data
+    // [REMOVED - This function referenced the removed colorSchemeSettings]
     function loadSchemeConfiguration(schemeName) {
-        const schemeSettings = colorSchemeSettings[schemeName];
-        
-        if (!schemeSettings) return;
-        
-        // Update additional color scheme configuration
-        Object.keys(schemeSettings).forEach(field => {
-            const value = schemeSettings[field];
-            const fieldName = `scheme-${field.replace(/([A-Z])/g, '-$1').toLowerCase()}`;
-            
-            // Update both picker and text input
-            $(`.shopify-color-picker[data-field="${fieldName}"]`).val(value);
-            $(`.shopify-color-text[data-field="${fieldName}"]`).val(value.toUpperCase());
-        });
-        
-        console.log(`Loaded configuration for ${schemeName}:`, schemeSettings);
+        console.log(`loadSchemeConfiguration called for ${schemeName} - function disabled after removing duplicate colorSchemes`);
+        // This function previously loaded from colorSchemeSettings which has been removed
     }
     
     // Save changes to scheme configuration
+    // [REMOVED - This function referenced the removed colorSchemeSettings]
     function saveSchemeConfigurationChange(fieldName, value) {
-        const currentScheme = $('#schemeConfigSelect').val();
-        
-        // Extract the field name (e.g., "scheme-text" -> "text")
-        const field = fieldName.replace('scheme-', '').replace(/-([a-z])/g, (match, letter) => letter.toUpperCase());
-        
-        if (colorSchemeSettings[currentScheme]) {
-            colorSchemeSettings[currentScheme][field] = value.toUpperCase();
-            console.log(`Updated ${currentScheme}.${field} to ${value}`);
-        }
+        console.log(`saveSchemeConfigurationChange called for ${fieldName} - function disabled after removing duplicate colorSchemes`);
+        // This function previously saved to colorSchemeSettings which has been removed
     }
     
     // Initialize drag and drop functionality without changing design
@@ -6187,6 +6221,438 @@ document.head.appendChild(style);
             console.error('[DRAG&DROP] Stack:', error.stack);
         }
     }
+    
+    // Function to populate theme settings fields with current values
+    function populateThemeSettingsFields() {
+        console.log('Populating theme settings fields with:', currentGlobalThemeSettings);
+        
+        // NUEVO: Populate color scheme fields
+        if (currentGlobalThemeSettings.colors) {
+            console.log('[DEBUG] Populating color fields...');
+            const colors = currentGlobalThemeSettings.colors;
+            
+            // Iterate through color groups (primary, secondary, contrasting)
+            for (const group in colors) {
+                if (typeof colors[group] === 'object' && colors[group] !== null) {
+                    // Iterate through properties (text, background, etc.)
+                    for (const property in colors[group]) {
+                        const value = colors[group][property];
+                        const dataField = `${group}-${property}`;
+                        
+                        // Find and update all inputs with this data-field
+                        const inputs = $(`[data-field="${dataField}"]`);
+                        if (inputs.length > 0) {
+                            inputs.val(value);
+                            console.log(`[DEBUG] Set ${dataField} to ${value}`);
+                        }
+                    }
+                }
+            }
+        }
+        
+        // Appearance settings
+        if (currentGlobalThemeSettings.appearance) {
+            const appearance = currentGlobalThemeSettings.appearance;
+            
+            // Page Width
+            if (appearance.pageWidth) {
+                const pageWidth = parseInt(appearance.pageWidth);
+                $('#pageWidth').val(pageWidth);
+                $('#pageWidthValue').val(pageWidth);
+            }
+            
+            // Side Padding
+            if (appearance.sidePadding) {
+                const sidePadding = parseInt(appearance.sidePadding);
+                $('#sidePaddingSize').val(sidePadding);
+                $('#sidePaddingSizeValue').val(sidePadding);
+            }
+            
+            // Edge Rounding
+            if (appearance.edgeRounding) {
+                $('#edgeRounding').val(appearance.edgeRounding);
+            }
+        }
+        
+        // Typography settings
+        if (currentGlobalThemeSettings.typography) {
+            const typography = currentGlobalThemeSettings.typography;
+            
+            // Heading settings
+            if (typography.heading) {
+                if (typography.heading.font) {
+                    $('.font-search-input[data-font-type="heading"]').val(typography.heading.font);
+                    $('.font-search-input[data-font-type="heading"]').data('font-value', typography.heading.font);
+                }
+                $('#headingUppercase').prop('checked', typography.heading.uppercase || false);
+                if (typography.heading.letterSpacing !== undefined) {
+                    $('#headingLetterSpacing').val(typography.heading.letterSpacing);
+                    $('#headingLetterSpacingValue').val(typography.heading.letterSpacing);
+                }
+            }
+            
+            // Body settings
+            if (typography.body) {
+                if (typography.body.font) {
+                    $('.font-search-input[data-font-type="body"]').val(typography.body.font);
+                    $('.font-search-input[data-font-type="body"]').data('font-value', typography.body.font);
+                }
+                if (typography.body.fontSize) {
+                    $('#bodyFontSize').val(parseInt(typography.body.fontSize));
+                    $('#bodyFontSizeValue').val(parseInt(typography.body.fontSize));
+                }
+            }
+        }
+        
+        // Color schemes
+        if (currentGlobalThemeSettings.colorSchemes) {
+            // This would populate color scheme fields
+            // Implementation depends on the specific UI structure
+        }
+        
+        // Product cards
+        if (currentGlobalThemeSettings.productCards) {
+            const productCards = currentGlobalThemeSettings.productCards;
+            
+            if (productCards.imageRatio) {
+                $('#productImageRatio').val(productCards.imageRatio);
+            }
+            if (productCards.showVendor !== undefined) {
+                $('#showVendor').prop('checked', productCards.showVendor);
+            }
+            if (productCards.showSecondImage !== undefined) {
+                $('#showSecondImage').prop('checked', productCards.showSecondImage);
+            }
+        }
+    }
+    
+    // Helper function to handle global theme settings changes
+    function handleGlobalSettingChange(settingName, value) {
+        hasPendingGlobalSettingsChanges = true;
+        console.log(`[DEBUG] Global setting '${settingName}' changed. Pending save: ${hasPendingGlobalSettingsChanges}`);
+        applyGlobalStylesToPreview(currentGlobalThemeSettings);
+        updateSaveButtonState();
+    }
+    
+    // Function to attach event listeners to theme settings fields
+    function attachThemeSettingsEventListeners() {
+        console.log('Attaching theme settings event listeners');
+        
+        // Ensure currentGlobalThemeSettings has proper structure
+        if (!currentGlobalThemeSettings.appearance) currentGlobalThemeSettings.appearance = {};
+        if (!currentGlobalThemeSettings.typography) currentGlobalThemeSettings.typography = {};
+        if (!currentGlobalThemeSettings.typography.heading) currentGlobalThemeSettings.typography.heading = {};
+        if (!currentGlobalThemeSettings.typography.body) currentGlobalThemeSettings.typography.body = {};
+        if (!currentGlobalThemeSettings.colorSchemes) currentGlobalThemeSettings.colorSchemes = {};
+        if (!currentGlobalThemeSettings.productCards) currentGlobalThemeSettings.productCards = {};
+        
+        // Listener genérico para la mayoría de campos del formulario de configuración del tema.
+        $(document).on('input change', '#theme-settings-form-content [name]', function() {
+            const input = $(this);
+            const key = input.attr('name');
+            const value = input.val();
+
+            // La lógica del selector de esquemas es especial y se manejará por separado.
+            // Lo ignoramos aquí para evitar conflictos.
+            if (key === 'color_scheme_selector') {
+                return;
+            }
+
+            console.log(`[DEBUG] Change detected on field: ${key}, New value: ${value}`);
+
+            // Asumimos que los 'name' de los inputs siguen el formato 'categoria.propiedad'
+            // Ejemplo: 'colors.background' o 'typography.font_body'
+            const keys = key.split('.');
+            if (keys.length === 2) {
+                if (!currentGlobalThemeSettings[keys[0]]) {
+                    currentGlobalThemeSettings[keys[0]] = {};
+                }
+                currentGlobalThemeSettings[keys[0]][keys[1]] = value;
+                
+                // Activamos la bandera para indicar que hay cambios sin guardar.
+                hasPendingGlobalSettingsChanges = true;
+                console.log('[DEBUG] Global theme settings updated in memory.', currentGlobalThemeSettings);
+            }
+        });
+        
+        // Appearance event listeners
+        $('#pageWidth, #pageWidthValue').on('input change', function() {
+            const value = $(this).val();
+            $('#pageWidth').val(value);
+            $('#pageWidthValue').val(value);
+            currentGlobalThemeSettings.appearance.pageWidth = value + 'px';
+            handleGlobalSettingChange('pageWidth', value + 'px');
+        });
+        
+        $('#sidePaddingSize, #sidePaddingSizeValue').on('input change', function() {
+            const value = $(this).val();
+            $('#sidePaddingSize').val(value);
+            $('#sidePaddingSizeValue').val(value);
+            currentGlobalThemeSettings.appearance.sidePadding = value + 'px';
+            handleGlobalSettingChange('sidePadding', value + 'px');
+        });
+        
+        $('#edgeRounding').on('change', function() {
+            currentGlobalThemeSettings.appearance.edgeRounding = $(this).val();
+            handleGlobalSettingChange('edgeRounding', $(this).val());
+        });
+        
+        // Typography event listeners
+        $('.font-search-input[data-font-type="heading"]').on('change', function() {
+            currentGlobalThemeSettings.typography.heading.font = $(this).data('font-value') || $(this).val();
+            handleGlobalSettingChange('typography.heading.font', currentGlobalThemeSettings.typography.heading.font);
+        });
+        
+        $('#headingUppercase').on('change', function() {
+            currentGlobalThemeSettings.typography.heading.uppercase = $(this).is(':checked');
+            handleGlobalSettingChange('typography.heading.uppercase', currentGlobalThemeSettings.typography.heading.uppercase);
+        });
+        
+        $('#headingLetterSpacing, #headingLetterSpacingValue').on('input change', function() {
+            const value = $(this).val();
+            $('#headingLetterSpacing').val(value);
+            $('#headingLetterSpacingValue').val(value);
+            currentGlobalThemeSettings.typography.heading.letterSpacing = parseFloat(value);
+            handleGlobalSettingChange('typography.heading.letterSpacing', value);
+        });
+        
+        $('.font-search-input[data-font-type="body"]').on('change', function() {
+            currentGlobalThemeSettings.typography.body.font = $(this).data('font-value') || $(this).val();
+            handleGlobalSettingChange('typography.body.font', currentGlobalThemeSettings.typography.body.font);
+        });
+        
+        $('#bodyFontSize, #bodyFontSizeValue').on('input change', function() {
+            const value = $(this).val();
+            $('#bodyFontSize').val(value);
+            $('#bodyFontSizeValue').val(value);
+            currentGlobalThemeSettings.typography.body.fontSize = value + 'px';
+            handleGlobalSettingChange('typography.body.fontSize', value + 'px');
+        });
+        
+        // Product cards event listeners
+        $('#productImageRatio').on('change', function() {
+            currentGlobalThemeSettings.productCards.imageRatio = $(this).val();
+            handleGlobalSettingChange('productCards.imageRatio', $(this).val());
+        });
+        
+        $('#showVendor').on('change', function() {
+            currentGlobalThemeSettings.productCards.showVendor = $(this).is(':checked');
+            handleGlobalSettingChange('productCards.showVendor', $(this).is(':checked'));
+        });
+        
+        $('#showSecondImage').on('change', function() {
+            currentGlobalThemeSettings.productCards.showSecondImage = $(this).is(':checked');
+            handleGlobalSettingChange('productCards.showSecondImage', $(this).is(':checked'));
+        });
+        
+        // Listener para el selector de esquemas de color (ID: #colorSchemeSelect) - VERSIÓN ACTUALIZADA
+        $(document).on('change', '#colorSchemeSelect', function() {
+            const selectedSchemeId = $(this).val();
+            const schemeData = colorSchemes[selectedSchemeId];
+            if (!schemeData) return;
+
+            for (const group in schemeData) {
+                for (const property in schemeData[group]) {
+                    const value = schemeData[group][property];
+                    const dataField = `${group}-${property}`;
+
+                    // Actualiza la UI: el input de texto (y el de color si existe)
+                    $(`[data-field="${dataField}"]`).val(value);
+                    
+                    // Actualiza los datos en memoria
+                    if (!currentGlobalThemeSettings.colors) currentGlobalThemeSettings.colors = {};
+                    if (!currentGlobalThemeSettings.colors[group]) currentGlobalThemeSettings.colors[group] = {};
+                    currentGlobalThemeSettings.colors[group][property] = value;
+                }
+            }
+            hasPendingGlobalSettingsChanges = true;
+            applyGlobalStylesToPreview(currentGlobalThemeSettings);
+        });
+
+        // Listener para cambios manuales en CUALQUIER campo de color de la sección - VERSIÓN ACTUALIZADA
+        $(document).on('input change', '.color-scheme-settings [data-field]', function() {
+            const input = $(this);
+            const dataField = input.data('field');
+            const value = input.val();
+
+            // Si el campo NO es 'image-overlay', sincroniza el input gemelo.
+            if (!dataField.endsWith('-image-overlay')) {
+                if (input.is('input[type="text"]')) {
+                    // Si el usuario está escribiendo en el campo de texto...
+                    // Solo actualizamos el círculo de color si el formato es un hex completo.
+                    const hexColorRegex = /^#[0-9a-fA-F]{6}$/;
+                    if (hexColorRegex.test(value)) {
+                        // El valor es válido, actualiza el input de color.
+                        $(`input[type="color"][data-field="${dataField}"]`).val(value);
+                    }
+                } else if (input.is('input[type="color"]')) {
+                    // Si el usuario usó el selector de color, actualizamos el campo de texto.
+                    $(`input[type="text"][data-field="${dataField}"]`).val(value);
+                }
+            }
+
+            // Actualiza los datos en memoria (esto funciona para todos los campos)
+            const parts = dataField.split('-');
+            const group = parts[0];
+            const property = parts.slice(1).join('-');
+            
+            if (!currentGlobalThemeSettings.colors) currentGlobalThemeSettings.colors = {};
+            if (!currentGlobalThemeSettings.colors[group]) currentGlobalThemeSettings.colors[group] = {};
+            currentGlobalThemeSettings.colors[group][property] = value;
+
+            hasPendingGlobalSettingsChanges = true;
+            updateSaveButtonState();
+        });
+        
+        // Update save button state
+        updateSaveButtonState();
+    }
+    
+    // Function to update save button state
+    function updateSaveButtonState() {
+        const hasChanges = hasPendingGlobalSettingsChanges || hasPendingPageStructureChanges;
+        const $saveButton = $('#save-builder-btn-topbar');
+        
+        if (hasChanges) {
+            $saveButton.removeClass('disabled').prop('disabled', false);
+            $saveButton.find('.btn-text').text('Guardar cambios');
+        } else {
+            $saveButton.addClass('disabled').prop('disabled', true);
+            $saveButton.find('.btn-text').text('Guardado');
+        }
+    }
+    
+    // Modify the save button click handler
+    $('#save-builder-btn-topbar').on('click', async function() {
+        console.log('[DEBUG] Save button clicked.');
+        console.log(`[DEBUG] Checking for pending changes... Global: ${hasPendingGlobalSettingsChanges}, Page: ${hasPendingPageStructureChanges}`);
+        
+        const $button = $(this);
+        if ($button.hasClass('disabled')) return;
+        
+        if (!hasPendingGlobalSettingsChanges && !hasPendingPageStructureChanges) {
+            console.log('[INFO] No pending changes to save.');
+            // Aquí se podría mostrar una notificación al usuario tipo "Nada que guardar"
+            return;
+        }
+        
+        $button.addClass('loading').prop('disabled', true);
+        $button.find('.btn-text').text('Guardando...');
+        
+        let savePromises = [];
+        
+        // Save page structure changes if any
+        if (hasPendingPageStructureChanges && currentPageBlocks) {
+            console.log('[INFO] Saving page structure...');
+            const pagePayload = {
+                pageStructureJson: JSON.stringify(currentPageBlocks)
+            };
+            savePromises.push(
+                fetch(`/api/builder/websites/${currentWebsiteId}/pages/${currentPageId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(pagePayload)
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response;
+                })
+                .catch(error => {
+                    console.error('[ERROR] Failed to save page structure:', error);
+                    throw error;
+                })
+            );
+        }
+        
+        // Save global settings changes if any
+        console.log('[DEBUG] hasPendingGlobalSettingsChanges:', hasPendingGlobalSettingsChanges);
+        console.log('[DEBUG] hasPendingPageStructureChanges:', hasPendingPageStructureChanges);
+        if (hasPendingGlobalSettingsChanges) {
+            console.log('[INFO] Saving global settings...');
+            console.log('[DEBUG] currentGlobalThemeSettings:', JSON.stringify(currentGlobalThemeSettings, null, 2));
+            const globalPayload = {
+                globalSettings: currentGlobalThemeSettings
+            };
+            console.log('[DEBUG] globalPayload to send:', JSON.stringify(globalPayload, null, 2));
+            savePromises.push(
+                fetch('/api/builder/websites/current/global-settings', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(globalPayload)
+                })
+                .then(response => {
+                    console.log('[DEBUG] Global settings response status:', response.status);
+                    if (!response.ok && response.status !== 204) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response;
+                })
+                .catch(error => {
+                    console.error('[ERROR] Failed to save global settings:', error);
+                    throw error;
+                })
+            );
+        }
+        
+        if (savePromises.length > 0) {
+            try {
+                console.log(`[DEBUG] Attempting to save ${savePromises.length} items...`);
+                const responses = await Promise.all(savePromises);
+                
+                console.log('[DEBUG] All promises resolved. Checking responses...');
+                console.log('[DEBUG] Responses:', responses);
+                
+                // Check if all responses are ok
+                const allOk = responses.every(response => response && response.ok);
+                
+                if (allOk) {
+                    console.log('[SUCCESS] All changes saved successfully!');
+                    hasPendingPageStructureChanges = false;
+                    hasPendingGlobalSettingsChanges = false;
+                    
+                    $button.find('.btn-text').text('Guardado');
+                    $button.removeClass('loading');
+                    // Aquí podrías mostrar una notificación de éxito al usuario
+                    
+                    setTimeout(() => {
+                        updateSaveButtonState();
+                    }, 2000);
+                } else {
+                    console.error('[ERROR] One or more save operations failed.', responses);
+                    throw new Error('Some saves failed');
+                }
+            } catch (error) {
+                console.error('[ERROR] A critical error occurred during save:', error);
+                $button.find('.btn-text').text('Error al guardar');
+                $button.removeClass('loading');
+                // Aquí podrías mostrar una notificación de error al usuario
+                
+                setTimeout(() => {
+                    updateSaveButtonState();
+                }, 2000);
+            } finally {
+                // Ensure loading state is removed and button is re-enabled
+                console.log('[DEBUG] Save operation finished (success or error)');
+                $button.removeClass('loading');
+                // Re-enable button if there are still pending changes
+                const stillHasChanges = hasPendingGlobalSettingsChanges || hasPendingPageStructureChanges;
+                if (stillHasChanges) {
+                    $button.prop('disabled', false);
+                }
+            }
+        } else {
+            console.log('[DEBUG] No changes to save');
+            $button.removeClass('loading');
+            updateSaveButtonState();
+        }
+    });
+    
     
     // Global event handler for collapse/expand - MUST be at document level
     $(document).off('click.collapseToggle').on('click.collapseToggle', '.collapse-toggle', function(e) {
