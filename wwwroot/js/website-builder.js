@@ -6,6 +6,7 @@ let hasPendingPageStructureChanges = false;
 let currentWebsiteId = null;
 let currentPageId = 1; // Default to home page
 let currentPageBlocks = [];
+let currentSelectedColorScheme = 'scheme1'; // Track which color scheme is being edited
 let currentGlobalThemeSettings = {
     primaryColor: "#1976d2",
     secondaryColor: "#424242",
@@ -13,107 +14,62 @@ let currentGlobalThemeSettings = {
     headerHeight: "60px"
 };
 
-// Estructura de datos COMPLETA y CORRECTA para los esquemas de color.
+// Estructura de datos para los esquemas de color - estructura plana para los campos de configuración
 const colorSchemes = {
-    'scheme1': { // Coincide con el value="scheme1" del <option>
-        primary: {
-            text: '#121212', background: '#FFFFFF', foreground: '#F0F0F0', border: '#DDDDDD',
-            'solid-button': '#121212', 'solid-button-text': '#FFFFFF',
-            'outline-button': '#DDDDDD', 'outline-button-text': '#121212',
-            'image-overlay': 'rgba(0, 0, 0, 0.1)'
-        },
-        secondary: {
-            text: '#FFFFFF', background: '#121212', foreground: '#333333', border: '#555555',
-            'solid-button': '#FFFFFF', 'solid-button-text': '#121212',
-            'outline-button': '#555555', 'outline-button-text': '#FFFFFF',
-            'image-overlay': 'rgba(255, 255, 255, 0.1)'
-        },
-        contrasting: {
-            text: '#FFFFFF', background: '#005B99', foreground: '#004C80', border: '#003D66',
-            'solid-button': '#FFFFFF', 'solid-button-text': '#005B99',
-            'outline-button': '#FFFFFF', 'outline-button-text': '#FFFFFF',
-            'image-overlay': 'rgba(0, 0, 0, 0.3)'
-        }
+    'scheme1': { // Default/Classic scheme
+        text: '#121212',
+        background: '#FFFFFF', 
+        foreground: '#F0F0F0',
+        border: '#DDDDDD',
+        'solid-button': '#121212',
+        'solid-button-text': '#FFFFFF',
+        'outline-button': '#DDDDDD',
+        'outline-button-text': '#121212',
+        'image-overlay': 'rgba(0, 0, 0, 0.1)'
     },
-    'scheme2': { // GRIS CLARO
-        primary: {
-            text: '#121212', background: '#F3F3F3', foreground: '#E8E8E8', border: '#CCCCCC',
-            'solid-button': '#333333', 'solid-button-text': '#FFFFFF',
-            'outline-button': '#CCCCCC', 'outline-button-text': '#333333',
-            'image-overlay': 'rgba(0, 0, 0, 0.1)'
-        },
-        secondary: {
-            text: '#333333', background: '#FFFFFF', foreground: '#F5F5F5', border: '#E0E0E0',
-            'solid-button': '#666666', 'solid-button-text': '#FFFFFF',
-            'outline-button': '#999999', 'outline-button-text': '#333333',
-            'image-overlay': 'rgba(0, 0, 0, 0.05)'
-        },
-        contrasting: {
-            text: '#FFFFFF', background: '#333333', foreground: '#444444', border: '#555555',
-            'solid-button': '#F3F3F3', 'solid-button-text': '#333333',
-            'outline-button': '#CCCCCC', 'outline-button-text': '#CCCCCC',
-            'image-overlay': 'rgba(255, 255, 255, 0.1)'
-        }
+    'scheme2': { // Light Gray scheme
+        text: '#333333',
+        background: '#F3F3F3',
+        foreground: '#E8E8E8',
+        border: '#CCCCCC',
+        'solid-button': '#666666',
+        'solid-button-text': '#FFFFFF',
+        'outline-button': '#999999',
+        'outline-button-text': '#333333',
+        'image-overlay': 'rgba(0, 0, 0, 0.05)'
     },
-    'scheme3': { // OSCURO
-        primary: {
-            text: '#FFFFFF', background: '#121212', foreground: '#1E1E1E', border: '#333333',
-            'solid-button': '#FFFFFF', 'solid-button-text': '#121212',
-            'outline-button': '#666666', 'outline-button-text': '#FFFFFF',
-            'image-overlay': 'rgba(255, 255, 255, 0.1)'
-        },
-        secondary: {
-            text: '#121212', background: '#FFFFFF', foreground: '#F8F8F8', border: '#E0E0E0',
-            'solid-button': '#121212', 'solid-button-text': '#FFFFFF',
-            'outline-button': '#333333', 'outline-button-text': '#121212',
-            'image-overlay': 'rgba(0, 0, 0, 0.1)'
-        },
-        contrasting: {
-            text: '#000000', background: '#FFC107', foreground: '#FFB300', border: '#FFA000',
-            'solid-button': '#000000', 'solid-button-text': '#FFC107',
-            'outline-button': '#000000', 'outline-button-text': '#000000',
-            'image-overlay': 'rgba(0, 0, 0, 0.2)'
-        }
+    'scheme3': { // Dark scheme
+        text: '#FFFFFF',
+        background: '#121212',
+        foreground: '#1E1E1E',
+        border: '#333333',
+        'solid-button': '#FFFFFF',
+        'solid-button-text': '#121212',
+        'outline-button': '#666666',
+        'outline-button-text': '#FFFFFF',
+        'image-overlay': 'rgba(255, 255, 255, 0.1)'
     },
-    'scheme4': { // AZUL GRISÁCEO
-        primary: {
-            text: '#EAEAEA', background: '#36454F', foreground: '#2C3A44', border: '#5A6B75',
-            'solid-button': '#AEC6CF', 'solid-button-text': '#121212',
-            'outline-button': '#8FA9B5', 'outline-button-text': '#EAEAEA',
-            'image-overlay': 'rgba(0, 0, 0, 0.3)'
-        },
-        secondary: {
-            text: '#36454F', background: '#F5F5F5', foreground: '#E8E8E8', border: '#C0C0C0',
-            'solid-button': '#36454F', 'solid-button-text': '#FFFFFF',
-            'outline-button': '#5A6B75', 'outline-button-text': '#36454F',
-            'image-overlay': 'rgba(54, 69, 79, 0.1)'
-        },
-        contrasting: {
-            text: '#FFFFFF', background: '#1E3A5F', foreground: '#15304E', border: '#0C243D',
-            'solid-button': '#AEC6CF', 'solid-button-text': '#1E3A5F',
-            'outline-button': '#AEC6CF', 'outline-button-text': '#AEC6CF',
-            'image-overlay': 'rgba(255, 255, 255, 0.1)'
-        }
+    'scheme4': { // Blue-Gray scheme
+        text: '#EAEAEA',
+        background: '#36454F',
+        foreground: '#2C3A44',
+        border: '#5A6B75',
+        'solid-button': '#AEC6CF',
+        'solid-button-text': '#121212',
+        'outline-button': '#8FA9B5',
+        'outline-button-text': '#EAEAEA',
+        'image-overlay': 'rgba(0, 0, 0, 0.3)'
     },
-    'scheme5': { // BEIGE/MARRÓN
-        primary: {
-            text: '#4B3F35', background: '#EADDCA', foreground: '#E5D4BD', border: '#D4B896',
-            'solid-button': '#8B4513', 'solid-button-text': '#FFFFFF',
-            'outline-button': '#A0826D', 'outline-button-text': '#4B3F35',
-            'image-overlay': 'rgba(75, 63, 53, 0.1)'
-        },
-        secondary: {
-            text: '#EADDCA', background: '#4B3F35', foreground: '#5D4E41', border: '#6F5D4F',
-            'solid-button': '#EADDCA', 'solid-button-text': '#4B3F35',
-            'outline-button': '#A0826D', 'outline-button-text': '#EADDCA',
-            'image-overlay': 'rgba(234, 221, 202, 0.1)'
-        },
-        contrasting: {
-            text: '#FFFFFF', background: '#2C1810', foreground: '#3D241A', border: '#4E3024',
-            'solid-button': '#D2691E', 'solid-button-text': '#FFFFFF',
-            'outline-button': '#D2691E', 'outline-button-text': '#D2691E',
-            'image-overlay': 'rgba(255, 255, 255, 0.15)'
-        }
+    'scheme5': { // Beige/Brown scheme
+        text: '#4B3F35',
+        background: '#EADDCA',
+        foreground: '#E5D4BD',
+        border: '#D4B896',
+        'solid-button': '#8B4513',
+        'solid-button-text': '#FFFFFF',
+        'outline-button': '#A0826D',
+        'outline-button-text': '#4B3F35',
+        'image-overlay': 'rgba(75, 63, 53, 0.1)'
     }
 };
 
@@ -142,6 +98,25 @@ async function loadCurrentWebsite() {
             } catch (e) {
                 console.error('Error parsing global theme settings:', e);
                 currentGlobalThemeSettings = {};
+            }
+        }
+        
+        // Clean up any old colors structure
+        if (currentGlobalThemeSettings.colors) {
+            // Remove old nested structure if it exists
+            delete currentGlobalThemeSettings.colors.primary;
+            delete currentGlobalThemeSettings.colors.secondary;
+            delete currentGlobalThemeSettings.colors.contrasting;
+            delete currentGlobalThemeSettings.colors.scheme;
+            
+            // Remove empty scheme objects
+            for (let i = 1; i <= 5; i++) {
+                delete currentGlobalThemeSettings.colors[`scheme${i}`];
+            }
+            
+            // If colors object is now empty, remove it entirely
+            if (Object.keys(currentGlobalThemeSettings.colors).length === 0) {
+                delete currentGlobalThemeSettings.colors;
             }
         }
         
@@ -246,6 +221,52 @@ function applyGlobalStylesToPreview(settings) {
             if (scheme.text) previewRoot.style.setProperty('--color-text', scheme.text);
             if (scheme.primary) previewRoot.style.setProperty('--color-primary', scheme.primary);
             if (scheme.secondary) previewRoot.style.setProperty('--color-secondary', scheme.secondary);
+        }
+        
+        // Apply primary, secondary, and contrasting color settings
+        if (settings.colors) {
+            console.log('[DEBUG] Applying colors:', settings.colors);
+            // Apply Primary colors
+            if (settings.colors.primary) {
+                const primary = settings.colors.primary;
+                if (primary.text) previewRoot.style.setProperty('--color-primary-text', primary.text);
+                if (primary.background) previewRoot.style.setProperty('--color-primary-background', primary.background);
+                if (primary.foreground) previewRoot.style.setProperty('--color-primary-foreground', primary.foreground);
+                if (primary.border) previewRoot.style.setProperty('--color-primary-border', primary.border);
+                if (primary['solid-button']) previewRoot.style.setProperty('--color-primary-solid-button', primary['solid-button']);
+                if (primary['solid-button-text']) previewRoot.style.setProperty('--color-primary-solid-button-text', primary['solid-button-text']);
+                if (primary['outline-button']) previewRoot.style.setProperty('--color-primary-outline-button', primary['outline-button']);
+                if (primary['outline-button-text']) previewRoot.style.setProperty('--color-primary-outline-button-text', primary['outline-button-text']);
+                if (primary['image-overlay']) previewRoot.style.setProperty('--color-primary-image-overlay', primary['image-overlay']);
+            }
+            
+            // Apply Secondary colors
+            if (settings.colors.secondary) {
+                const secondary = settings.colors.secondary;
+                if (secondary.text) previewRoot.style.setProperty('--color-secondary-text', secondary.text);
+                if (secondary.background) previewRoot.style.setProperty('--color-secondary-background', secondary.background);
+                if (secondary.foreground) previewRoot.style.setProperty('--color-secondary-foreground', secondary.foreground);
+                if (secondary.border) previewRoot.style.setProperty('--color-secondary-border', secondary.border);
+                if (secondary['solid-button']) previewRoot.style.setProperty('--color-secondary-solid-button', secondary['solid-button']);
+                if (secondary['solid-button-text']) previewRoot.style.setProperty('--color-secondary-solid-button-text', secondary['solid-button-text']);
+                if (secondary['outline-button']) previewRoot.style.setProperty('--color-secondary-outline-button', secondary['outline-button']);
+                if (secondary['outline-button-text']) previewRoot.style.setProperty('--color-secondary-outline-button-text', secondary['outline-button-text']);
+                if (secondary['image-overlay']) previewRoot.style.setProperty('--color-secondary-image-overlay', secondary['image-overlay']);
+            }
+            
+            // Apply Contrasting colors
+            if (settings.colors.contrasting) {
+                const contrasting = settings.colors.contrasting;
+                if (contrasting.text) previewRoot.style.setProperty('--color-contrasting-text', contrasting.text);
+                if (contrasting.background) previewRoot.style.setProperty('--color-contrasting-background', contrasting.background);
+                if (contrasting.foreground) previewRoot.style.setProperty('--color-contrasting-foreground', contrasting.foreground);
+                if (contrasting.border) previewRoot.style.setProperty('--color-contrasting-border', contrasting.border);
+                if (contrasting['solid-button']) previewRoot.style.setProperty('--color-contrasting-solid-button', contrasting['solid-button']);
+                if (contrasting['solid-button-text']) previewRoot.style.setProperty('--color-contrasting-solid-button-text', contrasting['solid-button-text']);
+                if (contrasting['outline-button']) previewRoot.style.setProperty('--color-contrasting-outline-button', contrasting['outline-button']);
+                if (contrasting['outline-button-text']) previewRoot.style.setProperty('--color-contrasting-outline-button-text', contrasting['outline-button-text']);
+                if (contrasting['image-overlay']) previewRoot.style.setProperty('--color-contrasting-image-overlay', contrasting['image-overlay']);
+            }
         }
         
     } catch (error) {
@@ -1144,6 +1165,23 @@ $(document).ready(async function() {
                     
                     populateThemeSettingsFields();
                     attachThemeSettingsEventListeners();
+                    
+                    // Initialize the color scheme fields
+                    const $schemeSelect = $('#schemeConfigSelect');
+                    console.log(`[DEBUG] Scheme selector found:`, $schemeSelect.length > 0);
+                    
+                    if ($schemeSelect.length > 0) {
+                        loadSchemeConfiguration('scheme1');
+                        
+                        // Attach the scheme selector change handler here where we know the DOM is ready
+                        $schemeSelect.off('change.schemeConfig').on('change.schemeConfig', function() {
+                            const selectedScheme = $(this).val();
+                            console.log(`[DEBUG] Scheme selector changed to: ${selectedScheme}`);
+                            loadSchemeConfiguration(selectedScheme);
+                        });
+                    } else {
+                        console.error('[ERROR] schemeConfigSelect not found in DOM!');
+                    }
                     
                     // Try populating again after a longer delay in case DOM isn't ready
                     setTimeout(() => {
@@ -2196,6 +2234,9 @@ $(document).ready(async function() {
                             
                             <!-- Color Scheme Settings -->
                             <div class="color-scheme-settings" data-scheme="scheme1">
+                                <!-- Primary Section -->
+                                <div class="color-section">
+                                    <h4 class="color-section-title" data-i18n="colorSchemes.primary">Primary</h4>
                                     
                                     <div class="color-field">
                                         <label data-i18n="colorSchemes.text">Text</label>
@@ -2518,103 +2559,8 @@ $(document).ready(async function() {
                                         </select>
                                     </div>
                                     
-                                    <div class="color-field">
-                                        <label data-i18n="colorSchemes.text">Text</label>
-                                        <div class="shopify-color-input-wrapper">
-                                            <input type="color" value="#FFFFFF" class="shopify-color-picker" data-field="scheme-text">
-                                            <input type="text" value="#FFFFFF" class="shopify-color-text" data-field="scheme-text">
-                                            <button class="shopify-color-copy" data-field="scheme-text">
-                                                <i class="material-icons">content_copy</i>
-                                            </button>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="color-field">
-                                        <label data-i18n="colorSchemes.background">Background</label>
-                                        <div class="shopify-color-input-wrapper">
-                                            <input type="color" value="#473C63" class="shopify-color-picker" data-field="scheme-background">
-                                            <input type="text" value="#473C63" class="shopify-color-text" data-field="scheme-background">
-                                            <button class="shopify-color-copy" data-field="scheme-background">
-                                                <i class="material-icons">content_copy</i>
-                                            </button>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="color-field">
-                                        <label data-i18n="colorSchemes.foreground">Foreground</label>
-                                        <div class="shopify-color-input-wrapper">
-                                            <input type="color" value="#FFFFFF" class="shopify-color-picker" data-field="scheme-foreground">
-                                            <input type="text" value="#FFFFFF" class="shopify-color-text" data-field="scheme-foreground">
-                                            <button class="shopify-color-copy" data-field="scheme-foreground">
-                                                <i class="material-icons">content_copy</i>
-                                            </button>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="color-field">
-                                        <label data-i18n="colorSchemes.border">Border</label>
-                                        <div class="shopify-color-input-wrapper">
-                                            <input type="color" value="#FFFFFF" class="shopify-color-picker" data-field="scheme-border">
-                                            <input type="text" value="#FFFFFF" class="shopify-color-text" data-field="scheme-border">
-                                            <button class="shopify-color-copy" data-field="scheme-border">
-                                                <i class="material-icons">content_copy</i>
-                                            </button>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="color-field">
-                                        <label data-i18n="colorSchemes.solidButton">Solid button</label>
-                                        <div class="shopify-color-input-wrapper">
-                                            <input type="color" value="#EA7A84" class="shopify-color-picker" data-field="scheme-solid-button">
-                                            <input type="text" value="#EA7A84" class="shopify-color-text" data-field="scheme-solid-button">
-                                            <button class="shopify-color-copy" data-field="scheme-solid-button">
-                                                <i class="material-icons">content_copy</i>
-                                            </button>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="color-field">
-                                        <label data-i18n="colorSchemes.solidButtonText">Solid button text</label>
-                                        <div class="shopify-color-input-wrapper">
-                                            <input type="color" value="#FFFFFF" class="shopify-color-picker" data-field="scheme-solid-button-text">
-                                            <input type="text" value="#FFFFFF" class="shopify-color-text" data-field="scheme-solid-button-text">
-                                            <button class="shopify-color-copy" data-field="scheme-solid-button-text">
-                                                <i class="material-icons">content_copy</i>
-                                            </button>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="color-field">
-                                        <label data-i18n="colorSchemes.outlineButton">Outline button</label>
-                                        <div class="shopify-color-input-wrapper">
-                                            <input type="color" value="#473C63" class="shopify-color-picker" data-field="scheme-outline-button">
-                                            <input type="text" value="#473C63" class="shopify-color-text" data-field="scheme-outline-button">
-                                            <button class="shopify-color-copy" data-field="scheme-outline-button">
-                                                <i class="material-icons">content_copy</i>
-                                            </button>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="color-field">
-                                        <label data-i18n="colorSchemes.outlineButtonText">Outline button text</label>
-                                        <div class="shopify-color-input-wrapper">
-                                            <input type="color" value="#FFFFFF" class="shopify-color-picker" data-field="scheme-outline-button-text">
-                                            <input type="text" value="#FFFFFF" class="shopify-color-text" data-field="scheme-outline-button-text">
-                                            <button class="shopify-color-copy" data-field="scheme-outline-button-text">
-                                                <i class="material-icons">content_copy</i>
-                                            </button>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="color-field">
-                                        <label data-i18n="colorSchemes.imageOverlay">Image overlay</label>
-                                        <div class="shopify-color-input-wrapper">
-                                            <input type="text" value="rgba(0, 0, 0, 0.1)" class="shopify-color-text" data-field="scheme-image-overlay">
-                                            <button class="shopify-color-copy" data-field="scheme-image-overlay">
-                                                <i class="material-icons">content_copy</i>
-                                            </button>
-                                        </div>
-                                    </div>
+                                    <!-- Dynamic scheme fields container -->
+                                    <div id="scheme-fields-container"></div>
                                 </div>
                             </div>
                         </div>
@@ -6030,6 +5976,7 @@ document.head.appendChild(style);
         // Scheme configuration dropdown change
         $('#schemeConfigSelect').on('change', function() {
             const selectedScheme = $(this).val();
+            console.log(`[DEBUG] Scheme selector changed to: ${selectedScheme}`);
             loadSchemeConfiguration(selectedScheme);
         });
         
@@ -6076,11 +6023,172 @@ document.head.appendChild(style);
         });
     }
     
+    // Generate HTML for scheme fields with unique names
+    function generateSchemeFieldsHTML(schemeName) {
+        console.log(`[DEBUG] Generating fields for ${schemeName}`);
+        const fields = [
+            { name: 'text', label: 'Text', type: 'color' },
+            { name: 'background', label: 'Background', type: 'color' },
+            { name: 'foreground', label: 'Foreground', type: 'color' },
+            { name: 'border', label: 'Border', type: 'color' },
+            { name: 'solid-button', label: 'Solid button', type: 'color' },
+            { name: 'solid-button-text', label: 'Solid button text', type: 'color' },
+            { name: 'outline-button', label: 'Outline button', type: 'color' },
+            { name: 'outline-button-text', label: 'Outline button text', type: 'color' },
+            { name: 'image-overlay', label: 'Image overlay', type: 'text' }
+        ];
+        
+        let html = `<div class="scheme-fields-section" data-scheme="${schemeName}">`;
+        fields.forEach(field => {
+            const fieldId = `${schemeName}-${field.name}`;
+            html += `
+                <div class="color-field">
+                    <label>${field.label}</label>
+                    <div class="shopify-color-input-wrapper">`;
+            
+            if (field.type === 'color') {
+                html += `
+                        <input type="color" value="#000000" class="shopify-color-picker" data-field="${fieldId}" data-scheme="${schemeName}">
+                        <input type="text" value="#000000" class="shopify-color-text" data-field="${fieldId}" data-scheme="${schemeName}">`;
+            } else {
+                html += `
+                        <input type="text" value="rgba(0, 0, 0, 0.1)" class="shopify-color-text" data-field="${fieldId}" data-scheme="${schemeName}">`;
+            }
+            
+            html += `
+                        <button class="shopify-color-copy" data-field="${fieldId}">
+                            <i class="material-icons">content_copy</i>
+                        </button>
+                    </div>
+                </div>`;
+        });
+        html += '</div>';
+        
+        console.log(`[DEBUG] Generated HTML for ${schemeName} with fields like ${schemeName}-text, ${schemeName}-background, etc.`);
+        return html;
+    }
+    
     // Load scheme configuration data
-    // [REMOVED - This function referenced the removed colorSchemeSettings]
     function loadSchemeConfiguration(schemeName) {
-        console.log(`loadSchemeConfiguration called for ${schemeName} - function disabled after removing duplicate colorSchemes`);
-        // This function previously loaded from colorSchemeSettings which has been removed
+        console.log(`[DEBUG] Loading configuration for ${schemeName}`);
+        currentSelectedColorScheme = schemeName;
+        
+        // Generate and display fields for this scheme
+        const container = document.getElementById('scheme-fields-container');
+        console.log(`[DEBUG] Container found:`, container);
+        if (container) {
+            // Clear previous content
+            container.innerHTML = '';
+            // Generate new fields
+            container.innerHTML = generateSchemeFieldsHTML(schemeName);
+            console.log(`[DEBUG] Fields generated for ${schemeName}`);
+            
+            // Verify the fields were created correctly
+            const newFields = container.querySelectorAll('[data-field]');
+            console.log(`[DEBUG] Created ${newFields.length} input fields for ${schemeName}`);
+        } else {
+            console.error(`[ERROR] scheme-fields-container not found!`);
+        }
+        
+        // Ensure colorSchemes exists in currentGlobalThemeSettings
+        if (!currentGlobalThemeSettings.colorSchemes) {
+            currentGlobalThemeSettings.colorSchemes = {};
+        }
+        
+        let schemeData;
+        
+        // Check if scheme exists and handle both old (nested) and new (flat) structures
+        if (currentGlobalThemeSettings.colorSchemes[schemeName]) {
+            const existingScheme = currentGlobalThemeSettings.colorSchemes[schemeName];
+            
+            // Check if it's the old structure (has primary/secondary/contrasting)
+            if (existingScheme.primary || existingScheme.secondary || existingScheme.contrasting) {
+                console.log(`[DEBUG] Found old nested structure for ${schemeName}, converting to flat structure`);
+                
+                // Convert old structure to new flat structure - taking primary values as default
+                schemeData = {
+                    text: existingScheme.primary?.text || existingScheme.text || '#000000',
+                    background: existingScheme.primary?.background || existingScheme.background || '#FFFFFF',
+                    foreground: existingScheme.primary?.foreground || existingScheme.foreground || '#F0F0F0',
+                    border: existingScheme.primary?.border || existingScheme.border || '#DDDDDD',
+                    'solid-button': existingScheme.primary?.['solid-button'] || existingScheme['solid-button'] || '#000000',
+                    'solid-button-text': existingScheme.primary?.['solid-button-text'] || existingScheme['solid-button-text'] || '#FFFFFF',
+                    'outline-button': existingScheme.primary?.['outline-button'] || existingScheme['outline-button'] || '#DDDDDD',
+                    'outline-button-text': existingScheme.primary?.['outline-button-text'] || existingScheme['outline-button-text'] || '#000000',
+                    'image-overlay': existingScheme.primary?.['image-overlay'] || existingScheme['image-overlay'] || 'rgba(0, 0, 0, 0.1)'
+                };
+                
+                // Update the structure to be flat - completely replace the old structure
+                currentGlobalThemeSettings.colorSchemes[schemeName] = schemeData;
+                
+                // IMPORTANT: Force clean structure by removing old nested objects
+                delete currentGlobalThemeSettings.colorSchemes[schemeName].primary;
+                delete currentGlobalThemeSettings.colorSchemes[schemeName].secondary;
+                delete currentGlobalThemeSettings.colorSchemes[schemeName].contrasting;
+                
+                hasPendingGlobalSettingsChanges = true; // Mark as changed to save the new structure
+            } else {
+                // It's already flat structure
+                schemeData = existingScheme;
+            }
+        } else {
+            // Initialize with default values
+            if (colorSchemes[schemeName]) {
+                schemeData = JSON.parse(JSON.stringify(colorSchemes[schemeName]));
+            } else {
+                schemeData = {
+                    text: '#000000',
+                    background: '#FFFFFF',
+                    foreground: '#F0F0F0',
+                    border: '#DDDDDD',
+                    'solid-button': '#000000',
+                    'solid-button-text': '#FFFFFF',
+                    'outline-button': '#DDDDDD',
+                    'outline-button-text': '#000000',
+                    'image-overlay': 'rgba(0, 0, 0, 0.1)'
+                };
+            }
+            currentGlobalThemeSettings.colorSchemes[schemeName] = schemeData;
+        }
+        
+        console.log(`[DEBUG] Loading scheme data:`, schemeData);
+        
+        // Update each field with the scheme's values using the new naming convention
+        Object.keys(schemeData).forEach(property => {
+            // Skip nested objects (primary/secondary/contrasting) if they still exist
+            if (typeof schemeData[property] === 'object' && property !== 'image-overlay') {
+                return;
+            }
+            
+            const value = schemeData[property];
+            // Use the new field naming: scheme1-text, scheme2-background, etc.
+            const $inputs = $(`[data-field="${schemeName}-${property}"]`);
+            
+            if ($inputs.length > 0) {
+                $inputs.val(value);
+                console.log(`[DEBUG] Set ${schemeName}-${property} to ${value}`);
+            }
+        });
+        
+        // Apply translations to the newly generated fields and re-attach event listeners
+        setTimeout(() => {
+            if (typeof applyTranslations === 'function') {
+                applyTranslations();
+            }
+            
+            // Re-attach event listeners to the new fields
+            console.log(`[DEBUG] Re-attaching event listeners for scheme fields`);
+            // The event handler is already attached with delegation, so it should work automatically
+            
+            // Log the current fields to verify
+            const schemeFields = $(`[data-field^="${schemeName}-"]`);
+            console.log(`[DEBUG] Found ${schemeFields.length} fields for ${schemeName}`);
+            schemeFields.each(function() {
+                console.log(`[DEBUG] Field: ${$(this).data('field')}`);
+            });
+        }, 50);
+        
+        updateSaveButtonState();
     }
     
     // Save changes to scheme configuration
@@ -6346,6 +6454,11 @@ document.head.appendChild(style);
         if (!currentGlobalThemeSettings.colorSchemes) currentGlobalThemeSettings.colorSchemes = {};
         if (!currentGlobalThemeSettings.productCards) currentGlobalThemeSettings.productCards = {};
         
+        // Clean up any old colors structure
+        if (currentGlobalThemeSettings.colors) {
+            delete currentGlobalThemeSettings.colors;
+        }
+        
         // Listener genérico para la mayoría de campos del formulario de configuración del tema.
         $(document).on('input change', '#theme-settings-form-content [name]', function() {
             const input = $(this);
@@ -6448,25 +6561,9 @@ document.head.appendChild(style);
         // Listener para el selector de esquemas de color (ID: #colorSchemeSelect) - VERSIÓN ACTUALIZADA
         $(document).on('change', '#colorSchemeSelect', function() {
             const selectedSchemeId = $(this).val();
-            const schemeData = colorSchemes[selectedSchemeId];
-            if (!schemeData) return;
-
-            for (const group in schemeData) {
-                for (const property in schemeData[group]) {
-                    const value = schemeData[group][property];
-                    const dataField = `${group}-${property}`;
-
-                    // Actualiza la UI: el input de texto (y el de color si existe)
-                    $(`[data-field="${dataField}"]`).val(value);
-                    
-                    // Actualiza los datos en memoria
-                    if (!currentGlobalThemeSettings.colors) currentGlobalThemeSettings.colors = {};
-                    if (!currentGlobalThemeSettings.colors[group]) currentGlobalThemeSettings.colors[group] = {};
-                    currentGlobalThemeSettings.colors[group][property] = value;
-                }
-            }
-            hasPendingGlobalSettingsChanges = true;
-            applyGlobalStylesToPreview(currentGlobalThemeSettings);
+            
+            // Load the selected scheme configuration
+            loadSchemeConfiguration(selectedSchemeId);
         });
 
         // Listener para cambios manuales en CUALQUIER campo de color de la sección - VERSIÓN ACTUALIZADA
@@ -6474,6 +6571,8 @@ document.head.appendChild(style);
             const input = $(this);
             const dataField = input.data('field');
             const value = input.val();
+            
+            console.log(`[DEBUG] Color input changed: ${dataField} = ${value}`);
 
             // Si el campo NO es 'image-overlay', sincroniza el input gemelo.
             if (!dataField.endsWith('-image-overlay')) {
@@ -6491,17 +6590,61 @@ document.head.appendChild(style);
                 }
             }
 
-            // Actualiza los datos en memoria (esto funciona para todos los campos)
+            // Actualiza los datos en memoria
             const parts = dataField.split('-');
             const group = parts[0];
             const property = parts.slice(1).join('-');
             
-            if (!currentGlobalThemeSettings.colors) currentGlobalThemeSettings.colors = {};
-            if (!currentGlobalThemeSettings.colors[group]) currentGlobalThemeSettings.colors[group] = {};
-            currentGlobalThemeSettings.colors[group][property] = value;
+            // Check if this is a color scheme field (starts with "scheme1-", "scheme2-", etc.)
+            if (group.startsWith('scheme')) {
+                // Extract the scheme name (scheme1, scheme2, etc.) and property
+                const schemeName = group; // e.g., "scheme1"
+                console.log(`[DEBUG] Field: ${dataField}, Scheme: ${schemeName}, Property: ${property}, Value: ${value}`);
+                console.log(`[DEBUG] Current selected scheme: ${currentSelectedColorScheme}`);
+                console.log(`[DEBUG] Updating colorSchemes.${schemeName}.${property} = ${value}`);
+                
+                if (!currentGlobalThemeSettings.colorSchemes) currentGlobalThemeSettings.colorSchemes = {};
+                if (!currentGlobalThemeSettings.colorSchemes[schemeName]) {
+                    currentGlobalThemeSettings.colorSchemes[schemeName] = {};
+                }
+                currentGlobalThemeSettings.colorSchemes[schemeName][property] = value;
+                
+                // Clean up any wrong structures
+                if (currentGlobalThemeSettings.colors && currentGlobalThemeSettings.colors.scheme) {
+                    delete currentGlobalThemeSettings.colors.scheme;
+                }
+                // Remove empty scheme objects from colors
+                for (let i = 1; i <= 5; i++) {
+                    if (currentGlobalThemeSettings.colors && currentGlobalThemeSettings.colors[`scheme${i}`]) {
+                        delete currentGlobalThemeSettings.colors[`scheme${i}`];
+                    }
+                }
+                
+                // IMPORTANT: Also remove any nested primary/secondary/contrasting from the current scheme
+                if (currentGlobalThemeSettings.colorSchemes[schemeName].primary) {
+                    delete currentGlobalThemeSettings.colorSchemes[schemeName].primary;
+                }
+                if (currentGlobalThemeSettings.colorSchemes[schemeName].secondary) {
+                    delete currentGlobalThemeSettings.colorSchemes[schemeName].secondary;
+                }
+                if (currentGlobalThemeSettings.colorSchemes[schemeName].contrasting) {
+                    delete currentGlobalThemeSettings.colorSchemes[schemeName].contrasting;
+                }
+            } else if (group === 'primary' || group === 'secondary' || group === 'contrasting') {
+                // This is for primary/secondary/contrasting colors
+                console.log(`[DEBUG] Updating colors.${group}.${property} = ${value}`);
+                
+                if (!currentGlobalThemeSettings.colors) currentGlobalThemeSettings.colors = {};
+                if (!currentGlobalThemeSettings.colors[group]) currentGlobalThemeSettings.colors[group] = {};
+                currentGlobalThemeSettings.colors[group][property] = value;
+            }
 
+            console.log(`[DEBUG] hasPendingGlobalSettingsChanges set to true`);
             hasPendingGlobalSettingsChanges = true;
             updateSaveButtonState();
+            
+            // Apply styles to preview immediately
+            applyGlobalStylesToPreview(currentGlobalThemeSettings);
         });
         
         // Update save button state
