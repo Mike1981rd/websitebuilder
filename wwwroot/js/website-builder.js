@@ -2578,7 +2578,7 @@ $(document).ready(async function() {
                             <!-- Main Product Cards Settings -->
                             <div class="settings-field">
                                 <label data-i18n="productCards.defaultImageRatio">Default image ratio</label>
-                                <select class="shopify-select">
+                                <select class="shopify-select" id="productCardsImageRatio">
                                     <option value="portrait-large-2-3" data-i18n="productCards.portraitLarge23">Portrait large (2:3) - Fill</option>
                                     <option value="square-1-1" data-i18n="productCards.square11">Square (1:1) - Fill</option>
                                     <option value="portrait-3-4" data-i18n="productCards.portrait34">Portrait (3:4) - Fill</option>
@@ -2635,7 +2635,7 @@ $(document).ready(async function() {
                             
                             <div class="settings-field">
                                 <label data-i18n="productCards.productRating">Product rating</label>
-                                <select class="shopify-select">
+                                <select class="shopify-select" id="productCardsRating">
                                     <option value="none" data-i18n="productCards.none">None</option>
                                     <option value="stars-only" data-i18n="productCards.starsOnly">Stars only</option>
                                     <option value="review-count-only" data-i18n="productCards.reviewCountOnly">Review count only</option>
@@ -2649,7 +2649,7 @@ $(document).ready(async function() {
                             
                             <div class="settings-field">
                                 <label data-i18n="productCards.priceLabelSize">Price label size</label>
-                                <select class="shopify-select">
+                                <select class="shopify-select" id="productCardsPriceSize">
                                     <option value="extra-small" data-i18n="productCards.extraSmall">Extra small</option>
                                     <option value="small" data-i18n="productCards.small">Small</option>
                                     <option value="medium" data-i18n="productCards.medium">Medium</option>
@@ -2659,7 +2659,7 @@ $(document).ready(async function() {
                             
                             <div class="settings-field">
                                 <label data-i18n="productCards.imageHoverEffect">Image hover effect</label>
-                                <select class="shopify-select">
+                                <select class="shopify-select" id="productCardsHoverEffect">
                                     <option value="zoom" data-i18n="productCards.zoom">Zoom</option>
                                     <option value="none" data-i18n="productCards.none">None</option>
                                     <option value="show-all-media" data-i18n="productCards.showAllMedia">Show all media</option>
@@ -2676,7 +2676,7 @@ $(document).ready(async function() {
                             
                             <div class="settings-field">
                                 <label data-i18n="productCards.whatToShow">What to show</label>
-                                <select class="shopify-select">
+                                <select class="shopify-select" id="productCardsSwatchesShow">
                                     <option value="variant-images" data-i18n="productCards.variantImages">Variant images</option>
                                     <option value="color-swatches" data-i18n="productCards.colorSwatches">Color swatches</option>
                                     <option value="both" data-i18n="productCards.both">Both</option>
@@ -2685,7 +2685,7 @@ $(document).ready(async function() {
                             
                             <div class="settings-field">
                                 <label data-i18n="productCards.showOnDesktop">Show on desktop</label>
-                                <select class="shopify-select">
+                                <select class="shopify-select" id="productCardsSwatchesDesktop">
                                     <option value="on-hover" data-i18n="productCards.onHover">On hover</option>
                                     <option value="always" data-i18n="productCards.always">Always</option>
                                     <option value="never" data-i18n="productCards.never">Never</option>
@@ -2766,7 +2766,7 @@ $(document).ready(async function() {
                             
                             <div class="settings-field">
                                 <label data-i18n="productCards.badgesDesktopPosition">Desktop position</label>
-                                <select class="shopify-select">
+                                <select class="shopify-select" id="productCardsBadgesDesktop">
                                     <option value="on-image" data-i18n="productCards.badgesOnImage">On image</option>
                                     <option value="below-image" data-i18n="productCards.badgesBelowImage">Below image</option>
                                     <option value="above-title" data-i18n="productCards.badgesAboveTitle">Above title</option>
@@ -2965,12 +2965,12 @@ $(document).ready(async function() {
                                 
                                 <div class="settings-field">
                                     <label data-i18n="productBadges.text">Text</label>
-                                    <input type="text" class="shopify-input" placeholder="Best seller" data-i18n-placeholder="productBadges.textPlaceholder" value="Best seller">
+                                    <input type="text" class="shopify-input" id="custom1-badge-text" placeholder="Best seller" data-i18n-placeholder="productBadges.textPlaceholder" value="Best seller">
                                 </div>
                                 
                                 <div class="settings-field">
                                     <label data-i18n="productBadges.tag">Tag</label>
-                                    <input type="text" class="shopify-input" placeholder="Best Sellers" data-i18n-placeholder="productBadges.tagPlaceholder" value="Best Sellers">
+                                    <input type="text" class="shopify-input" id="custom1-badge-tag" placeholder="Best Sellers" data-i18n-placeholder="productBadges.tagPlaceholder" value="Best Sellers">
                                 </div>
                                 
                                 <div class="settings-field">
@@ -3065,7 +3065,7 @@ $(document).ready(async function() {
                                 
                                 <div class="settings-field">
                                     <label data-i18n="cart.freeShippingThreshold">Free shipping threshold</label>
-                                    <input type="number" class="shopify-input" placeholder="0" value="0" min="0">
+                                    <input type="number" class="shopify-input" id="free-shipping-threshold" placeholder="0" value="0" min="0">
                                     <p class="shopify-description" data-i18n="cart.thresholdDescription">
                                         Fill in the value in your store's main currency. Set up your 
                                         <a href="#" data-i18n="cart.shippingRate">shipping rate</a> or 
@@ -3120,10 +3120,12 @@ $(document).ready(async function() {
                             <p class="section-info" data-i18n="favicon.description">Favicons are small icons that appear in browser tabs.</p>
                             
                             <div class="image-upload-container">
-                                <div class="image-preview">
+                                <div class="image-preview" id="favicon-preview">
                                     <span class="no-image-text" data-i18n="favicon.noImageSelected">No image selected</span>
                                 </div>
-                                <button class="shopify-button" data-i18n="favicon.selectImage">Select image</button>
+                                <input type="file" id="favicon-upload" accept="image/*" style="display: none;">
+                                <button class="shopify-button" id="favicon-select-btn" data-i18n="favicon.selectImage">Select image</button>
+                                <button class="shopify-button" id="favicon-remove-btn" style="display: none;" data-i18n="favicon.removeImage">Remove image</button>
                             </div>
                         </div>
                     </div>
@@ -3213,70 +3215,70 @@ $(document).ready(async function() {
                             <!-- Instagram -->
                             <div class="social-platform-section">
                                 <label data-i18n="socialMedia.instagram">Instagram</label>
-                                <input type="text" class="shopify-input" placeholder="http://instagram.com" data-i18n-placeholder="socialMedia.instagramPlaceholder">
+                                <input type="text" class="shopify-input" id="social-instagram" placeholder="http://instagram.com" data-i18n-placeholder="socialMedia.instagramPlaceholder">
                                 <p class="social-help-text" data-i18n="socialMedia.instagramHelp">http://instagram.com/shopify</p>
                             </div>
                             
                             <!-- Facebook -->
                             <div class="social-platform-section">
                                 <label data-i18n="socialMedia.facebook">Facebook</label>
-                                <input type="text" class="shopify-input" placeholder="https://facebook.com" data-i18n-placeholder="socialMedia.facebookPlaceholder">
+                                <input type="text" class="shopify-input" id="social-facebook" placeholder="https://facebook.com" data-i18n-placeholder="socialMedia.facebookPlaceholder">
                                 <p class="social-help-text" data-i18n="socialMedia.facebookHelp">https://facebook.com/shopify</p>
                             </div>
                             
                             <!-- Twitter -->
                             <div class="social-platform-section">
                                 <label data-i18n="socialMedia.twitter">Twitter</label>
-                                <input type="text" class="shopify-input" placeholder="https://twitter.com/" data-i18n-placeholder="socialMedia.twitterPlaceholder">
+                                <input type="text" class="shopify-input" id="social-twitter" placeholder="https://twitter.com/" data-i18n-placeholder="socialMedia.twitterPlaceholder">
                                 <p class="social-help-text" data-i18n="socialMedia.twitterHelp">https://twitter.com/shopify</p>
                             </div>
                             
                             <!-- YouTube -->
                             <div class="social-platform-section">
                                 <label data-i18n="socialMedia.youtube">YouTube</label>
-                                <input type="text" class="shopify-input" placeholder="" data-i18n-placeholder="socialMedia.youtubePlaceholder">
+                                <input type="text" class="shopify-input" id="social-youtube" placeholder="" data-i18n-placeholder="socialMedia.youtubePlaceholder">
                                 <p class="social-help-text" data-i18n="socialMedia.youtubeHelp">https://www.youtube.com/shopify</p>
                             </div>
                             
                             <!-- Pinterest -->
                             <div class="social-platform-section">
                                 <label data-i18n="socialMedia.pinterest">Pinterest</label>
-                                <input type="text" class="shopify-input" placeholder="https://pinterest.com" data-i18n-placeholder="socialMedia.pinterestPlaceholder">
+                                <input type="text" class="shopify-input" id="social-pinterest" placeholder="https://pinterest.com" data-i18n-placeholder="socialMedia.pinterestPlaceholder">
                                 <p class="social-help-text" data-i18n="socialMedia.pinterestHelp">https://pinterest.com/shopify</p>
                             </div>
                             
                             <!-- TikTok -->
                             <div class="social-platform-section">
                                 <label data-i18n="socialMedia.tiktok">TikTok</label>
-                                <input type="text" class="shopify-input" placeholder="" data-i18n-placeholder="socialMedia.tiktokPlaceholder">
+                                <input type="text" class="shopify-input" id="social-tiktok" placeholder="" data-i18n-placeholder="socialMedia.tiktokPlaceholder">
                                 <p class="social-help-text" data-i18n="socialMedia.tiktokHelp">https://tiktok.com/@shopify</p>
                             </div>
                             
                             <!-- Tumblr -->
                             <div class="social-platform-section">
                                 <label data-i18n="socialMedia.tumblr">Tumblr</label>
-                                <input type="text" class="shopify-input" placeholder="" data-i18n-placeholder="socialMedia.tumblrPlaceholder">
+                                <input type="text" class="shopify-input" id="social-tumblr" placeholder="" data-i18n-placeholder="socialMedia.tumblrPlaceholder">
                                 <p class="social-help-text" data-i18n="socialMedia.tumblrHelp">https://shopify.tumblr.com</p>
                             </div>
                             
                             <!-- Snapchat -->
                             <div class="social-platform-section">
                                 <label data-i18n="socialMedia.snapchat">Snapchat</label>
-                                <input type="text" class="shopify-input" placeholder="" data-i18n-placeholder="socialMedia.snapchatPlaceholder">
+                                <input type="text" class="shopify-input" id="social-snapchat" placeholder="" data-i18n-placeholder="socialMedia.snapchatPlaceholder">
                                 <p class="social-help-text" data-i18n="socialMedia.snapchatHelp">https://www.snapchat.com/add/shopify</p>
                             </div>
                             
                             <!-- LinkedIn -->
                             <div class="social-platform-section">
                                 <label data-i18n="socialMedia.linkedin">LinkedIn</label>
-                                <input type="text" class="shopify-input" placeholder="" data-i18n-placeholder="socialMedia.linkedinPlaceholder">
+                                <input type="text" class="shopify-input" id="social-linkedin" placeholder="" data-i18n-placeholder="socialMedia.linkedinPlaceholder">
                                 <p class="social-help-text" data-i18n="socialMedia.linkedinHelp">https://www.linkedin.com/company/shopify</p>
                             </div>
                             
                             <!-- Vimeo -->
                             <div class="social-platform-section">
                                 <label data-i18n="socialMedia.vimeo">Vimeo</label>
-                                <input type="text" class="shopify-input" placeholder="" data-i18n-placeholder="socialMedia.vimeoPlaceholder">
+                                <input type="text" class="shopify-input" id="social-vimeo" placeholder="" data-i18n-placeholder="socialMedia.vimeoPlaceholder">
                                 <p class="social-help-text" data-i18n="socialMedia.vimeoHelp">https://vimeo.com/shopify</p>
                             </div>
                             
@@ -3382,14 +3384,14 @@ $(document).ready(async function() {
                                 <!-- Option name input -->
                                 <div style="margin-bottom: 16px;">
                                     <label style="display: block; font-size: 13px; font-weight: 500; margin-bottom: 4px;" data-i18n="swatches.optionName">Option name</label>
-                                    <input type="text" class="shopify-input" value="Color" placeholder="Color" data-i18n-placeholder="swatches.optionNamePlaceholder">
+                                    <input type="text" class="shopify-input" value="Color" placeholder="Color" data-i18n-placeholder="swatches.optionNamePlaceholder" id="swatchesPrimaryOptionName">
                                     <p style="font-size: 12px; color: #6d7175; margin-top: 4px;" data-i18n="swatches.optionNameHelp">Fill in the relevant option names from your admin to turn on swatches</p>
                                 </div>
                                 
                                 <!-- Shape for product cards -->
                                 <div style="margin-bottom: 12px;">
                                     <label style="display: block; font-size: 13px; font-weight: 500; margin-bottom: 8px;" data-i18n="swatches.shapeForProductCards">Shape for product cards</label>
-                                    <select class="shopify-select" style="width: 100%;">
+                                    <select class="shopify-select" id="swatchesPrimaryProductCardsShape" style="width: 100%;">
                                         <option value="portrait" data-i18n="swatches.portrait">Portrait</option>
                                         <option value="landscape" data-i18n="swatches.landscape">Landscape</option>
                                     </select>
@@ -3401,13 +3403,13 @@ $(document).ready(async function() {
                                         <span data-i18n="swatches.sizeForProductCards">Size for product cards</span>
                                         <span class="range-value" style="font-weight: normal;">5</span>
                                     </label>
-                                    <input type="range" min="3" max="7" value="5" class="shopify-range" data-value-display="product-cards-size" style="width: 100%;">
+                                    <input type="range" min="3" max="7" value="5" class="shopify-range" data-value-display="product-cards-size" id="swatchesPrimaryProductCardsSize" style="width: 100%;">
                                 </div>
                                 
                                 <!-- Shape for product pages -->
                                 <div style="margin-bottom: 12px;">
                                     <label style="display: block; font-size: 13px; font-weight: 500; margin-bottom: 8px;" data-i18n="swatches.shapeForProductPages">Shape for product pages</label>
-                                    <select class="shopify-select" style="width: 100%;">
+                                    <select class="shopify-select" id="swatchesPrimaryProductPagesShape" style="width: 100%;">
                                         <option value="landscape" data-i18n="swatches.landscape">Landscape</option>
                                         <option value="portrait" data-i18n="swatches.portrait">Portrait</option>
                                     </select>
@@ -3419,13 +3421,13 @@ $(document).ready(async function() {
                                         <span data-i18n="swatches.sizeForProductPages">Size for product pages</span>
                                         <span class="range-value" style="font-weight: normal;">4</span>
                                     </label>
-                                    <input type="range" min="3" max="7" value="4" class="shopify-range range-input" style="width: 100%;">
+                                    <input type="range" min="3" max="7" value="4" class="shopify-range range-input" id="swatchesPrimaryProductPagesSize" style="width: 100%;">
                                 </div>
                                 
                                 <!-- Shape for filters -->
                                 <div style="margin-bottom: 12px;">
                                     <label style="display: block; font-size: 13px; font-weight: 500; margin-bottom: 8px;" data-i18n="swatches.shapeForFilters">Shape for filters</label>
-                                    <select class="shopify-select" style="width: 100%;">
+                                    <select class="shopify-select" id="swatchesPrimaryFiltersShape" style="width: 100%;">
                                         <option value="square" data-i18n="swatches.square" selected>Square</option>
                                         <option value="round" data-i18n="swatches.round">Round</option>
                                         <option value="portrait" data-i18n="swatches.portrait">Portrait</option>
@@ -3439,13 +3441,13 @@ $(document).ready(async function() {
                                         <span data-i18n="swatches.sizeForFilters">Size for filters</span>
                                         <span class="range-value" style="font-weight: normal;">1</span>
                                     </label>
-                                    <input type="range" min="1" max="5" value="1" class="shopify-range range-input" style="width: 100%;">
+                                    <input type="range" min="1" max="5" value="1" class="shopify-range range-input" id="swatchesPrimaryFiltersSize" style="width: 100%;">
                                 </div>
                                 
                                 <!-- Custom colors and patterns -->
                                 <div style="margin-bottom: 16px;">
                                     <label style="display: block; font-size: 13px; font-weight: 500; margin-bottom: 4px;" data-i18n="swatches.customColorsAndPatterns">Custom colors and patterns</label>
-                                    <textarea class="shopify-textarea" rows="4" placeholder="Ultramarine::#0043F2&#10;Cherry blossom::#FFB7C5&#10;Sunny day::yellow/green/blue/&#10;Summertime::#F9AFB1/#0F9D5B/#4285F4" style="width: 100%; font-family: monospace; font-size: 13px;">Ultramarine::#0043F2
+                                    <textarea class="shopify-textarea" rows="4" placeholder="Ultramarine::#0043F2&#10;Cherry blossom::#FFB7C5&#10;Sunny day::yellow/green/blue/&#10;Summertime::#F9AFB1/#0F9D5B/#4285F4" id="swatchesPrimaryCustomColors" style="width: 100%; font-family: monospace; font-size: 13px;">Ultramarine::#0043F2
 Cherry blossom::#FFB7C5
 Sunny day::yellow/green/blue/
 Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
@@ -3464,7 +3466,7 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                                 <!-- Option names textarea -->
                                 <div style="margin-bottom: 16px;">
                                     <label style="display: block; font-size: 13px; font-weight: 500; margin-bottom: 4px;" data-i18n="swatches.optionNames">Option names</label>
-                                    <textarea class="shopify-textarea" rows="3" placeholder="Material&#10;Frame" data-i18n-placeholder="swatches.optionNamesPlaceholder" style="width: 100%;">Material
+                                    <textarea class="shopify-textarea" rows="3" placeholder="Material&#10;Frame" data-i18n-placeholder="swatches.optionNamesPlaceholder" id="swatchesSecondaryOptionNames" style="width: 100%;">Material
 Frame</textarea>
                                     <p style="font-size: 12px; color: #6d7175; margin-top: 4px;" data-i18n="swatches.optionNamesHelp">Fill in relevant option names from your admin, place each in a separate line</p>
                                 </div>
@@ -3472,7 +3474,7 @@ Frame</textarea>
                                 <!-- Shape for product pages -->
                                 <div style="margin-bottom: 12px;">
                                     <label style="display: block; font-size: 13px; font-weight: 500; margin-bottom: 8px;" data-i18n="swatches.shapeForProductPages">Shape for product pages</label>
-                                    <select class="shopify-select" style="width: 100%;">
+                                    <select class="shopify-select" id="swatchesSecondaryProductPagesShape" style="width: 100%;">
                                         <option value="square" data-i18n="swatches.square" selected>Square</option>
                                         <option value="round" data-i18n="swatches.round">Round</option>
                                     </select>
@@ -3484,13 +3486,13 @@ Frame</textarea>
                                         <span data-i18n="swatches.sizeForProductPages">Size for product pages</span>
                                         <span class="range-value" style="font-weight: normal;">4</span>
                                     </label>
-                                    <input type="range" min="3" max="7" value="4" class="shopify-range range-input" style="width: 100%;">
+                                    <input type="range" min="3" max="7" value="4" class="shopify-range range-input" id="swatchesSecondaryProductPagesSize" style="width: 100%;">
                                 </div>
                                 
                                 <!-- Shape for filters -->
                                 <div style="margin-bottom: 12px;">
                                     <label style="display: block; font-size: 13px; font-weight: 500; margin-bottom: 8px;" data-i18n="swatches.shapeForFilters">Shape for filters</label>
-                                    <select class="shopify-select" style="width: 100%;">
+                                    <select class="shopify-select" id="swatchesSecondaryFiltersShape" style="width: 100%;">
                                         <option value="square" data-i18n="swatches.square" selected>Square</option>
                                         <option value="round" data-i18n="swatches.round">Round</option>
                                         <option value="portrait" data-i18n="swatches.portrait">Portrait</option>
@@ -3504,13 +3506,13 @@ Frame</textarea>
                                         <span data-i18n="swatches.sizeForFilters">Size for filters</span>
                                         <span class="range-value" style="font-weight: normal;">1</span>
                                     </label>
-                                    <input type="range" min="1" max="5" value="1" class="shopify-range range-input" style="width: 100%;">
+                                    <input type="range" min="1" max="5" value="1" class="shopify-range range-input" id="swatchesSecondaryFiltersSize" style="width: 100%;">
                                 </div>
                                 
                                 <!-- Custom colors and patterns -->
                                 <div>
                                     <label style="display: block; font-size: 13px; font-weight: 500; margin-bottom: 4px;" data-i18n="swatches.customColorsAndPatterns">Custom colors and patterns</label>
-                                    <textarea class="shopify-textarea" rows="4" placeholder="Ultramarine::#0043F2&#10;Cherry blossom::#FFB7C5&#10;Sunny day::yellow/green/blue/&#10;Summertime::#F9AFB1/#0F9D5B/#4285F4" style="width: 100%; font-family: monospace; font-size: 13px;">Ultramarine::#0043F2
+                                    <textarea class="shopify-textarea" rows="4" placeholder="Ultramarine::#0043F2&#10;Cherry blossom::#FFB7C5&#10;Sunny day::yellow/green/blue/&#10;Summertime::#F9AFB1/#0F9D5B/#4285F4" id="swatchesSecondaryCustomColors" style="width: 100%; font-family: monospace; font-size: 13px;">Ultramarine::#0043F2
 Cherry blossom::#FFB7C5
 Sunny day::yellow/green/blue/
 Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
@@ -6423,13 +6425,311 @@ document.head.appendChild(style);
             const productCards = currentGlobalThemeSettings.productCards;
             
             if (productCards.imageRatio) {
-                $('#productImageRatio').val(productCards.imageRatio);
+                $('#productCardsImageRatio').val(productCards.imageRatio);
             }
             if (productCards.showVendor !== undefined) {
-                $('#showVendor').prop('checked', productCards.showVendor);
+                $('#show-vendor-toggle').prop('checked', productCards.showVendor);
+            }
+            if (productCards.showCurrencyCode !== undefined) {
+                $('#show-currency-code-toggle').prop('checked', productCards.showCurrencyCode);
+            }
+            if (productCards.showColorCount !== undefined) {
+                $('#show-color-count-toggle').prop('checked', productCards.showColorCount);
+            }
+            if (productCards.colorCardBackground !== undefined) {
+                $('#color-card-background-toggle').prop('checked', productCards.colorCardBackground);
+            }
+            if (productCards.darkenImageBackground !== undefined) {
+                $('#darken-image-background-toggle').prop('checked', productCards.darkenImageBackground);
+            }
+            if (productCards.productRating) {
+                $('#productCardsRating').val(productCards.productRating);
+            }
+            if (productCards.priceLabelSize) {
+                $('#productCardsPriceSize').val(productCards.priceLabelSize);
+            }
+            if (productCards.imageHoverEffect) {
+                $('#productCardsHoverEffect').val(productCards.imageHoverEffect);
+            }
+            
+            // Swatches settings
+            if (productCards.swatchesShow) {
+                $('#productCardsSwatchesShow').val(productCards.swatchesShow);
+            }
+            if (productCards.swatchesDesktop) {
+                $('#productCardsSwatchesDesktop').val(productCards.swatchesDesktop);
+            }
+            if (productCards.swatchesMobile) {
+                $(`input[name="show-on-mobile"][value="${productCards.swatchesMobile}"]`).prop('checked', true);
+            }
+            if (productCards.hideSingleValueSwatches !== undefined) {
+                $('#hide-single-value-toggle').prop('checked', productCards.hideSingleValueSwatches);
+            }
+            
+            // Quick buy buttons
+            if (productCards.showQuickView !== undefined) {
+                $('#show-quick-view-toggle').prop('checked', productCards.showQuickView);
+            }
+            if (productCards.showAddToCart !== undefined) {
+                $('#show-add-to-cart-toggle').prop('checked', productCards.showAddToCart);
+            }
+            if (productCards.desktopButtonStyle) {
+                $(`input[name="desktop-button-style"][value="${productCards.desktopButtonStyle}"]`).prop('checked', true);
+            }
+            if (productCards.showButtonsOnHover !== undefined) {
+                $('#show-buttons-on-hover-toggle').prop('checked', productCards.showButtonsOnHover);
+            }
+            
+            // Product badges
+            if (productCards.badgesDesktopPosition) {
+                $('#productCardsBadgesDesktop').val(productCards.badgesDesktopPosition);
+            }
+            if (productCards.showSoldOutBadge !== undefined) {
+                $('#pc-show-sold-out-badge-toggle').prop('checked', productCards.showSoldOutBadge);
+            }
+            if (productCards.showSaleBadge !== undefined) {
+                $('#pc-show-sale-badge-toggle').prop('checked', productCards.showSaleBadge);
+            }
+            if (productCards.showSaleBadgeNextToPrice !== undefined) {
+                $('#pc-show-sale-badge-next-to-price-toggle').prop('checked', productCards.showSaleBadgeNextToPrice);
+            }
+            if (productCards.highlightSalePrice !== undefined) {
+                $('#pc-highlight-sale-price-toggle').prop('checked', productCards.highlightSalePrice);
+            }
+            if (productCards.showCustom1Badge !== undefined) {
+                $('#pc-show-custom-1-badge-toggle').prop('checked', productCards.showCustom1Badge);
+            }
+            if (productCards.showCustom2Badge !== undefined) {
+                $('#pc-show-custom-2-badge-toggle').prop('checked', productCards.showCustom2Badge);
+            }
+            if (productCards.showCustom3Badge !== undefined) {
+                $('#pc-show-custom-3-badge-toggle').prop('checked', productCards.showCustom3Badge);
             }
             if (productCards.showSecondImage !== undefined) {
                 $('#showSecondImage').prop('checked', productCards.showSecondImage);
+            }
+        }
+        
+        // Product badges (independent section)
+        if (currentGlobalThemeSettings.productBadges) {
+            const productBadges = currentGlobalThemeSettings.productBadges;
+            
+            // Sold out badge
+            if (productBadges.soldOut) {
+                if (productBadges.soldOut.background) {
+                    $('#sold-out-bg-color').val(productBadges.soldOut.background);
+                    $('input[data-color-for="sold-out-bg-color"]').val(productBadges.soldOut.background);
+                }
+                if (productBadges.soldOut.text) {
+                    $('#sold-out-text-color').val(productBadges.soldOut.text);
+                    $('input[data-color-for="sold-out-text-color"]').val(productBadges.soldOut.text);
+                }
+            }
+            
+            // Sale badge
+            if (productBadges.sale) {
+                if (productBadges.sale.showAs) {
+                    $('#sale-badge-show-as').val(productBadges.sale.showAs);
+                }
+                if (productBadges.sale.background) {
+                    $('#sale-bg-color').val(productBadges.sale.background);
+                    $('input[data-color-for="sale-bg-color"]').val(productBadges.sale.background);
+                }
+                if (productBadges.sale.text) {
+                    $('#sale-text-color').val(productBadges.sale.text);
+                    $('input[data-color-for="sale-text-color"]').val(productBadges.sale.text);
+                }
+            }
+            
+            // Sale price badge
+            if (productBadges.salePriceNext) {
+                if (productBadges.salePriceNext.showAs) {
+                    $('#sale-price-badge-show-as').val(productBadges.salePriceNext.showAs);
+                }
+                if (productBadges.salePriceNext.background) {
+                    $('#sale-price-bg-color').val(productBadges.salePriceNext.background);
+                    $('input[data-color-for="sale-price-bg-color"]').val(productBadges.salePriceNext.background);
+                }
+                if (productBadges.salePriceNext.text) {
+                    $('#sale-price-text-color').val(productBadges.salePriceNext.text);
+                    $('input[data-color-for="sale-price-text-color"]').val(productBadges.salePriceNext.text);
+                }
+            }
+            
+            // Sale highlight
+            if (productBadges.saleHighlight) {
+                if (productBadges.saleHighlight.text) {
+                    $('#sale-highlight-text-color').val(productBadges.saleHighlight.text);
+                    $('input[data-color-for="sale-highlight-text-color"]').val(productBadges.saleHighlight.text);
+                }
+            }
+            
+            // Custom 1 badge
+            if (productBadges.custom1) {
+                if (productBadges.custom1.text) {
+                    $('#custom1-badge-text').val(productBadges.custom1.text);
+                }
+                if (productBadges.custom1.tag) {
+                    $('#custom1-badge-tag').val(productBadges.custom1.tag);
+                }
+                if (productBadges.custom1.background) {
+                    $('#custom1-bg-color').val(productBadges.custom1.background);
+                    $('input[data-color-for="custom1-bg-color"]').val(productBadges.custom1.background);
+                }
+                if (productBadges.custom1.textColor) {
+                    $('#custom1-text-color').val(productBadges.custom1.textColor);
+                    $('input[data-color-for="custom1-text-color"]').val(productBadges.custom1.textColor);
+                }
+            }
+        }
+        
+        // Cart settings
+        if (currentGlobalThemeSettings.cart) {
+            const cart = currentGlobalThemeSettings.cart;
+            
+            if (cart.showAs) {
+                $('#cart-show-as').val(cart.showAs);
+            }
+            if (cart.showStickyCart !== undefined) {
+                $('#show-sticky-cart-toggle').prop('checked', cart.showStickyCart);
+            }
+            
+            // Cart status colors
+            if (cart.cartStatus) {
+                if (cart.cartStatus.background) {
+                    $('#cart-status-bg-color').val(cart.cartStatus.background);
+                    $('input[data-color-for="cart-status-bg-color"]').val(cart.cartStatus.background);
+                }
+                if (cart.cartStatus.text) {
+                    $('#cart-status-text-color').val(cart.cartStatus.text);
+                    $('input[data-color-for="cart-status-text-color"]').val(cart.cartStatus.text);
+                }
+            }
+            
+            // Free shipping bar
+            if (cart.freeShipping) {
+                if (cart.freeShipping.showProgressBar !== undefined) {
+                    $('#show-progress-bar-toggle').prop('checked', cart.freeShipping.showProgressBar);
+                }
+                if (cart.freeShipping.threshold !== undefined) {
+                    $('#free-shipping-threshold').val(cart.freeShipping.threshold);
+                }
+                if (cart.freeShipping.progressBarColor) {
+                    $('#progress-bar-color').val(cart.freeShipping.progressBarColor);
+                    $('input[data-color-for="progress-bar-color"]').val(cart.freeShipping.progressBarColor);
+                }
+                if (cart.freeShipping.progressBarTrack) {
+                    $('#progress-bar-track').val(cart.freeShipping.progressBarTrack);
+                }
+                if (cart.freeShipping.messageColor) {
+                    $('#message-color').val(cart.freeShipping.messageColor);
+                    $('input[data-color-for="message-color"]').val(cart.freeShipping.messageColor);
+                }
+            }
+        }
+        
+        // Favicon settings
+        if (currentGlobalThemeSettings.favicon) {
+            if (currentGlobalThemeSettings.favicon.url) {
+                const preview = $('#favicon-preview');
+                preview.html(`<img src="${currentGlobalThemeSettings.favicon.url}" alt="Favicon preview" style="max-width: 100%; height: auto;">`);
+                $('#favicon-select-btn').hide();
+                $('#favicon-remove-btn').show();
+            }
+        }
+        
+        // Navigation settings
+        if (currentGlobalThemeSettings.navigation) {
+            // Search settings
+            if (currentGlobalThemeSettings.navigation.search) {
+                if (currentGlobalThemeSettings.navigation.search.showAs) {
+                    $('#search-show-as').val(currentGlobalThemeSettings.navigation.search.showAs);
+                }
+            }
+            
+            // Back to top settings
+            if (currentGlobalThemeSettings.navigation.backToTop) {
+                if (currentGlobalThemeSettings.navigation.backToTop.showButton !== undefined) {
+                    $('#show-back-to-top-toggle').prop('checked', currentGlobalThemeSettings.navigation.backToTop.showButton);
+                }
+                if (currentGlobalThemeSettings.navigation.backToTop.position) {
+                    $('#back-to-top-position').val(currentGlobalThemeSettings.navigation.backToTop.position);
+                }
+            }
+        }
+        
+        // Social Media settings
+        if (currentGlobalThemeSettings.socialMedia) {
+            // Icon style
+            if (currentGlobalThemeSettings.socialMedia.iconStyle) {
+                $(`input[name="icon-style"][value="${currentGlobalThemeSettings.socialMedia.iconStyle}"]`).prop('checked', true);
+            }
+            
+            // Social platform URLs
+            const socialPlatforms = ['instagram', 'facebook', 'twitter', 'youtube', 'pinterest', 'tiktok', 'tumblr', 'snapchat', 'linkedin', 'vimeo'];
+            
+            socialPlatforms.forEach(platform => {
+                if (currentGlobalThemeSettings.socialMedia[platform]) {
+                    $(`#social-${platform}`).val(currentGlobalThemeSettings.socialMedia[platform]);
+                }
+            });
+        }
+        
+        // Swatches settings
+        if (currentGlobalThemeSettings.swatches) {
+            // Primary swatch settings
+            if (currentGlobalThemeSettings.swatches.primary) {
+                if (currentGlobalThemeSettings.swatches.primary.optionName) {
+                    $('#swatchesPrimaryOptionName').val(currentGlobalThemeSettings.swatches.primary.optionName);
+                }
+                if (currentGlobalThemeSettings.swatches.primary.productCardsShape) {
+                    $('#swatchesPrimaryProductCardsShape').val(currentGlobalThemeSettings.swatches.primary.productCardsShape);
+                }
+                if (currentGlobalThemeSettings.swatches.primary.productCardsSize) {
+                    $('#swatchesPrimaryProductCardsSize').val(currentGlobalThemeSettings.swatches.primary.productCardsSize);
+                    $('#swatchesPrimaryProductCardsSize').closest('div').find('.range-value').text(currentGlobalThemeSettings.swatches.primary.productCardsSize);
+                }
+                if (currentGlobalThemeSettings.swatches.primary.productPagesShape) {
+                    $('#swatchesPrimaryProductPagesShape').val(currentGlobalThemeSettings.swatches.primary.productPagesShape);
+                }
+                if (currentGlobalThemeSettings.swatches.primary.productPagesSize) {
+                    $('#swatchesPrimaryProductPagesSize').val(currentGlobalThemeSettings.swatches.primary.productPagesSize);
+                    $('#swatchesPrimaryProductPagesSize').closest('div').find('.range-value').text(currentGlobalThemeSettings.swatches.primary.productPagesSize);
+                }
+                if (currentGlobalThemeSettings.swatches.primary.filtersShape) {
+                    $('#swatchesPrimaryFiltersShape').val(currentGlobalThemeSettings.swatches.primary.filtersShape);
+                }
+                if (currentGlobalThemeSettings.swatches.primary.filtersSize) {
+                    $('#swatchesPrimaryFiltersSize').val(currentGlobalThemeSettings.swatches.primary.filtersSize);
+                    $('#swatchesPrimaryFiltersSize').closest('div').find('.range-value').text(currentGlobalThemeSettings.swatches.primary.filtersSize);
+                }
+                if (currentGlobalThemeSettings.swatches.primary.customColors) {
+                    $('#swatchesPrimaryCustomColors').val(currentGlobalThemeSettings.swatches.primary.customColors);
+                }
+            }
+            
+            // Secondary swatch settings
+            if (currentGlobalThemeSettings.swatches.secondary) {
+                if (currentGlobalThemeSettings.swatches.secondary.optionNames) {
+                    $('#swatchesSecondaryOptionNames').val(currentGlobalThemeSettings.swatches.secondary.optionNames);
+                }
+                if (currentGlobalThemeSettings.swatches.secondary.productPagesShape) {
+                    $('#swatchesSecondaryProductPagesShape').val(currentGlobalThemeSettings.swatches.secondary.productPagesShape);
+                }
+                if (currentGlobalThemeSettings.swatches.secondary.productPagesSize) {
+                    $('#swatchesSecondaryProductPagesSize').val(currentGlobalThemeSettings.swatches.secondary.productPagesSize);
+                    $('#swatchesSecondaryProductPagesSize').closest('div').find('.range-value').text(currentGlobalThemeSettings.swatches.secondary.productPagesSize);
+                }
+                if (currentGlobalThemeSettings.swatches.secondary.filtersShape) {
+                    $('#swatchesSecondaryFiltersShape').val(currentGlobalThemeSettings.swatches.secondary.filtersShape);
+                }
+                if (currentGlobalThemeSettings.swatches.secondary.filtersSize) {
+                    $('#swatchesSecondaryFiltersSize').val(currentGlobalThemeSettings.swatches.secondary.filtersSize);
+                    $('#swatchesSecondaryFiltersSize').closest('div').find('.range-value').text(currentGlobalThemeSettings.swatches.secondary.filtersSize);
+                }
+                if (currentGlobalThemeSettings.swatches.secondary.customColors) {
+                    $('#swatchesSecondaryCustomColors').val(currentGlobalThemeSettings.swatches.secondary.customColors);
+                }
             }
         }
     }
@@ -6453,6 +6753,223 @@ document.head.appendChild(style);
         if (!currentGlobalThemeSettings.typography.body) currentGlobalThemeSettings.typography.body = {};
         if (!currentGlobalThemeSettings.colorSchemes) currentGlobalThemeSettings.colorSchemes = {};
         if (!currentGlobalThemeSettings.productCards) currentGlobalThemeSettings.productCards = {};
+        if (!currentGlobalThemeSettings.productBadges) currentGlobalThemeSettings.productBadges = {};
+        if (!currentGlobalThemeSettings.cart) currentGlobalThemeSettings.cart = {};
+        if (!currentGlobalThemeSettings.favicon) currentGlobalThemeSettings.favicon = {};
+        if (!currentGlobalThemeSettings.navigation) currentGlobalThemeSettings.navigation = {};
+        if (!currentGlobalThemeSettings.socialMedia) currentGlobalThemeSettings.socialMedia = {};
+        if (!currentGlobalThemeSettings.swatches) currentGlobalThemeSettings.swatches = {};
+        if (!currentGlobalThemeSettings.swatches.primary) currentGlobalThemeSettings.swatches.primary = {};
+        if (!currentGlobalThemeSettings.swatches.secondary) currentGlobalThemeSettings.swatches.secondary = {};
+        
+        // Set default values for swatches if not present
+        const swatchesPrimaryDefaults = {
+            optionName: 'Color',
+            productCardsShape: 'portrait',
+            productCardsSize: '5',
+            productPagesShape: 'landscape',
+            productPagesSize: '4',
+            filtersShape: 'square',
+            filtersSize: '1',
+            customColors: 'Ultramarine::#0043F2\nCherry blossom::#FFB7C5\nSunny day::yellow/green/blue/\nSummertime::#F9AFB1/#0F9D5B/#4285F4'
+        };
+        
+        const swatchesSecondaryDefaults = {
+            optionNames: 'Material\nFrame',
+            productPagesShape: 'square',
+            productPagesSize: '4',
+            filtersShape: 'square',
+            filtersSize: '1',
+            customColors: 'Ultramarine::#0043F2\nCherry blossom::#FFB7C5\nSunny day::yellow/green/blue/\nSummertime::#F9AFB1/#0F9D5B/#4285F4'
+        };
+        
+        // Apply defaults for swatches
+        Object.keys(swatchesPrimaryDefaults).forEach(key => {
+            if (currentGlobalThemeSettings.swatches.primary[key] === undefined) {
+                currentGlobalThemeSettings.swatches.primary[key] = swatchesPrimaryDefaults[key];
+            }
+        });
+        
+        Object.keys(swatchesSecondaryDefaults).forEach(key => {
+            if (currentGlobalThemeSettings.swatches.secondary[key] === undefined) {
+                currentGlobalThemeSettings.swatches.secondary[key] = swatchesSecondaryDefaults[key];
+            }
+        });
+        
+        // Set default values for productCards if not present
+        const productCardsDefaults = {
+            imageRatio: 'square-1-1',
+            showVendor: false,
+            showCurrencyCode: false,
+            showColorCount: false,
+            colorCardBackground: false,
+            darkenImageBackground: false,
+            productRating: 'none',
+            priceLabelSize: 'medium',
+            imageHoverEffect: 'zoom',
+            swatchesShow: 'variant-images',
+            swatchesDesktop: 'on-hover',
+            swatchesMobile: 'never',
+            hideSingleValueSwatches: false,
+            showQuickView: false,
+            showAddToCart: false,
+            desktopButtonStyle: 'labels',
+            showButtonsOnHover: true,
+            badgesDesktopPosition: 'on-image',
+            showSoldOutBadge: true,
+            showSaleBadge: true,
+            showSaleBadgeNextToPrice: false,
+            highlightSalePrice: false,
+            showCustom1Badge: false,
+            showCustom2Badge: false,
+            showCustom3Badge: false
+        };
+        
+        // Apply defaults only if values don't exist
+        for (const [key, defaultValue] of Object.entries(productCardsDefaults)) {
+            if (currentGlobalThemeSettings.productCards[key] === undefined) {
+                currentGlobalThemeSettings.productCards[key] = defaultValue;
+            }
+        }
+        
+        // Set default values for productBadges if not present
+        const productBadgesDefaults = {
+            soldOut: {
+                background: '#FFEDF5',
+                text: '#000000'
+            },
+            sale: {
+                showAs: 'sale',
+                background: '#473C63',
+                text: '#FFFFFF'
+            },
+            salePriceNext: {
+                showAs: '-10%',
+                background: '#DB0007',
+                text: '#FFFFFF'
+            },
+            saleHighlight: {
+                text: '#000000'
+            },
+            custom1: {
+                text: 'Best seller',
+                tag: 'Best Sellers',
+                background: '#FFEDF5',
+                textColor: '#000000'
+            }
+        };
+        
+        // Apply defaults for productBadges
+        for (const [badgeType, badgeDefaults] of Object.entries(productBadgesDefaults)) {
+            if (!currentGlobalThemeSettings.productBadges[badgeType]) {
+                currentGlobalThemeSettings.productBadges[badgeType] = {};
+            }
+            for (const [key, defaultValue] of Object.entries(badgeDefaults)) {
+                if (currentGlobalThemeSettings.productBadges[badgeType][key] === undefined) {
+                    currentGlobalThemeSettings.productBadges[badgeType][key] = defaultValue;
+                }
+            }
+        }
+        
+        // Set default values for cart if not present
+        const cartDefaults = {
+            showAs: 'drawer-and-page',
+            showStickyCart: false,
+            cartStatus: {
+                background: '#F0FF2E',
+                text: '#3B3933'
+            },
+            freeShipping: {
+                showProgressBar: false,
+                threshold: 0,
+                progressBarColor: '#3B3933',
+                progressBarTrack: 'degradado-in',
+                messageColor: '#3B3933'
+            }
+        };
+        
+        // Apply defaults for cart
+        if (!currentGlobalThemeSettings.cart.showAs) {
+            currentGlobalThemeSettings.cart.showAs = cartDefaults.showAs;
+        }
+        if (currentGlobalThemeSettings.cart.showStickyCart === undefined) {
+            currentGlobalThemeSettings.cart.showStickyCart = cartDefaults.showStickyCart;
+        }
+        if (!currentGlobalThemeSettings.cart.cartStatus) {
+            currentGlobalThemeSettings.cart.cartStatus = {};
+        }
+        if (!currentGlobalThemeSettings.cart.freeShipping) {
+            currentGlobalThemeSettings.cart.freeShipping = {};
+        }
+        
+        // Apply nested defaults
+        for (const [key, value] of Object.entries(cartDefaults.cartStatus)) {
+            if (currentGlobalThemeSettings.cart.cartStatus[key] === undefined) {
+                currentGlobalThemeSettings.cart.cartStatus[key] = value;
+            }
+        }
+        for (const [key, value] of Object.entries(cartDefaults.freeShipping)) {
+            if (currentGlobalThemeSettings.cart.freeShipping[key] === undefined) {
+                currentGlobalThemeSettings.cart.freeShipping[key] = value;
+            }
+        }
+        
+        // Set default values for favicon if not present
+        if (!currentGlobalThemeSettings.favicon.url) {
+            currentGlobalThemeSettings.favicon.url = '';
+        }
+        
+        // Set default values for navigation if not present
+        const navigationDefaults = {
+            search: {
+                showAs: 'drawer-and-page'
+            },
+            backToTop: {
+                showButton: false,
+                position: 'bottom-right'
+            }
+        };
+        
+        // Apply defaults for navigation
+        if (!currentGlobalThemeSettings.navigation.search) {
+            currentGlobalThemeSettings.navigation.search = {};
+        }
+        if (!currentGlobalThemeSettings.navigation.backToTop) {
+            currentGlobalThemeSettings.navigation.backToTop = {};
+        }
+        
+        for (const [key, value] of Object.entries(navigationDefaults.search)) {
+            if (currentGlobalThemeSettings.navigation.search[key] === undefined) {
+                currentGlobalThemeSettings.navigation.search[key] = value;
+            }
+        }
+        for (const [key, value] of Object.entries(navigationDefaults.backToTop)) {
+            if (currentGlobalThemeSettings.navigation.backToTop[key] === undefined) {
+                currentGlobalThemeSettings.navigation.backToTop[key] = value;
+            }
+        }
+        
+        // Set default values for socialMedia if not present
+        const socialMediaDefaults = {
+            iconStyle: 'solid',
+            instagram: '',
+            facebook: '',
+            twitter: '',
+            youtube: '',
+            pinterest: '',
+            tiktok: '',
+            tumblr: '',
+            snapchat: '',
+            linkedin: '',
+            vimeo: ''
+        };
+        
+        // Apply defaults for socialMedia
+        for (const [key, value] of Object.entries(socialMediaDefaults)) {
+            if (currentGlobalThemeSettings.socialMedia[key] === undefined) {
+                currentGlobalThemeSettings.socialMedia[key] = value;
+            }
+        }
         
         // Clean up any old colors structure
         if (currentGlobalThemeSettings.colors) {
@@ -6543,19 +7060,463 @@ document.head.appendChild(style);
         });
         
         // Product cards event listeners
-        $('#productImageRatio').on('change', function() {
+        $('#productCardsImageRatio').on('change', function() {
             currentGlobalThemeSettings.productCards.imageRatio = $(this).val();
             handleGlobalSettingChange('productCards.imageRatio', $(this).val());
         });
         
-        $('#showVendor').on('change', function() {
+        $('#show-vendor-toggle').on('change', function() {
             currentGlobalThemeSettings.productCards.showVendor = $(this).is(':checked');
             handleGlobalSettingChange('productCards.showVendor', $(this).is(':checked'));
         });
         
-        $('#showSecondImage').on('change', function() {
-            currentGlobalThemeSettings.productCards.showSecondImage = $(this).is(':checked');
-            handleGlobalSettingChange('productCards.showSecondImage', $(this).is(':checked'));
+        $('#show-currency-code-toggle').on('change', function() {
+            currentGlobalThemeSettings.productCards.showCurrencyCode = $(this).is(':checked');
+            handleGlobalSettingChange('productCards.showCurrencyCode', $(this).is(':checked'));
+        });
+        
+        $('#show-color-count-toggle').on('change', function() {
+            currentGlobalThemeSettings.productCards.showColorCount = $(this).is(':checked');
+            handleGlobalSettingChange('productCards.showColorCount', $(this).is(':checked'));
+        });
+        
+        $('#color-card-background-toggle').on('change', function() {
+            currentGlobalThemeSettings.productCards.colorCardBackground = $(this).is(':checked');
+            handleGlobalSettingChange('productCards.colorCardBackground', $(this).is(':checked'));
+        });
+        
+        $('#darken-image-background-toggle').on('change', function() {
+            currentGlobalThemeSettings.productCards.darkenImageBackground = $(this).is(':checked');
+            handleGlobalSettingChange('productCards.darkenImageBackground', $(this).is(':checked'));
+        });
+        
+        $('#productCardsRating').on('change', function() {
+            currentGlobalThemeSettings.productCards.productRating = $(this).val();
+            handleGlobalSettingChange('productCards.productRating', $(this).val());
+        });
+        
+        $('#productCardsPriceSize').on('change', function() {
+            currentGlobalThemeSettings.productCards.priceLabelSize = $(this).val();
+            handleGlobalSettingChange('productCards.priceLabelSize', $(this).val());
+        });
+        
+        $('#productCardsHoverEffect').on('change', function() {
+            currentGlobalThemeSettings.productCards.imageHoverEffect = $(this).val();
+            handleGlobalSettingChange('productCards.imageHoverEffect', $(this).val());
+        });
+        
+        // Swatches settings
+        $('#productCardsSwatchesShow').on('change', function() {
+            currentGlobalThemeSettings.productCards.swatchesShow = $(this).val();
+            handleGlobalSettingChange('productCards.swatchesShow', $(this).val());
+        });
+        
+        $('#productCardsSwatchesDesktop').on('change', function() {
+            currentGlobalThemeSettings.productCards.swatchesDesktop = $(this).val();
+            handleGlobalSettingChange('productCards.swatchesDesktop', $(this).val());
+        });
+        
+        $('input[name="show-on-mobile"]').on('change', function() {
+            currentGlobalThemeSettings.productCards.swatchesMobile = $(this).val();
+            handleGlobalSettingChange('productCards.swatchesMobile', $(this).val());
+        });
+        
+        $('#hide-single-value-toggle').on('change', function() {
+            currentGlobalThemeSettings.productCards.hideSingleValueSwatches = $(this).is(':checked');
+            handleGlobalSettingChange('productCards.hideSingleValueSwatches', $(this).is(':checked'));
+        });
+        
+        // Quick buy buttons
+        $('#show-quick-view-toggle').on('change', function() {
+            currentGlobalThemeSettings.productCards.showQuickView = $(this).is(':checked');
+            handleGlobalSettingChange('productCards.showQuickView', $(this).is(':checked'));
+        });
+        
+        $('#show-add-to-cart-toggle').on('change', function() {
+            currentGlobalThemeSettings.productCards.showAddToCart = $(this).is(':checked');
+            handleGlobalSettingChange('productCards.showAddToCart', $(this).is(':checked'));
+        });
+        
+        $('input[name="desktop-button-style"]').on('change', function() {
+            currentGlobalThemeSettings.productCards.desktopButtonStyle = $(this).val();
+            handleGlobalSettingChange('productCards.desktopButtonStyle', $(this).val());
+        });
+        
+        $('#show-buttons-on-hover-toggle').on('change', function() {
+            currentGlobalThemeSettings.productCards.showButtonsOnHover = $(this).is(':checked');
+            handleGlobalSettingChange('productCards.showButtonsOnHover', $(this).is(':checked'));
+        });
+        
+        // Product badges settings
+        $('#productCardsBadgesDesktop').on('change', function() {
+            currentGlobalThemeSettings.productCards.badgesDesktopPosition = $(this).val();
+            handleGlobalSettingChange('productCards.badgesDesktopPosition', $(this).val());
+        });
+        
+        $('#pc-show-sold-out-badge-toggle').on('change', function() {
+            currentGlobalThemeSettings.productCards.showSoldOutBadge = $(this).is(':checked');
+            handleGlobalSettingChange('productCards.showSoldOutBadge', $(this).is(':checked'));
+        });
+        
+        $('#pc-show-sale-badge-toggle').on('change', function() {
+            currentGlobalThemeSettings.productCards.showSaleBadge = $(this).is(':checked');
+            handleGlobalSettingChange('productCards.showSaleBadge', $(this).is(':checked'));
+        });
+        
+        $('#pc-show-sale-badge-next-to-price-toggle').on('change', function() {
+            currentGlobalThemeSettings.productCards.showSaleBadgeNextToPrice = $(this).is(':checked');
+            handleGlobalSettingChange('productCards.showSaleBadgeNextToPrice', $(this).is(':checked'));
+        });
+        
+        $('#pc-highlight-sale-price-toggle').on('change', function() {
+            currentGlobalThemeSettings.productCards.highlightSalePrice = $(this).is(':checked');
+            handleGlobalSettingChange('productCards.highlightSalePrice', $(this).is(':checked'));
+        });
+        
+        $('#pc-show-custom-1-badge-toggle').on('change', function() {
+            currentGlobalThemeSettings.productCards.showCustom1Badge = $(this).is(':checked');
+            handleGlobalSettingChange('productCards.showCustom1Badge', $(this).is(':checked'));
+        });
+        
+        $('#pc-show-custom-2-badge-toggle').on('change', function() {
+            currentGlobalThemeSettings.productCards.showCustom2Badge = $(this).is(':checked');
+            handleGlobalSettingChange('productCards.showCustom2Badge', $(this).is(':checked'));
+        });
+        
+        $('#pc-show-custom-3-badge-toggle').on('change', function() {
+            currentGlobalThemeSettings.productCards.showCustom3Badge = $(this).is(':checked');
+            handleGlobalSettingChange('productCards.showCustom3Badge', $(this).is(':checked'));
+        });
+        
+        // Product Badges (independent section) event listeners
+        // Sold out badge
+        $('#sold-out-bg-color, input[data-color-for="sold-out-bg-color"]').on('input change', function() {
+            const value = $(this).val();
+            $('#sold-out-bg-color').val(value);
+            $('input[data-color-for="sold-out-bg-color"]').val(value);
+            currentGlobalThemeSettings.productBadges.soldOut.background = value;
+            handleGlobalSettingChange('productBadges.soldOut.background', value);
+        });
+        
+        $('#sold-out-text-color, input[data-color-for="sold-out-text-color"]').on('input change', function() {
+            const value = $(this).val();
+            $('#sold-out-text-color').val(value);
+            $('input[data-color-for="sold-out-text-color"]').val(value);
+            currentGlobalThemeSettings.productBadges.soldOut.text = value;
+            handleGlobalSettingChange('productBadges.soldOut.text', value);
+        });
+        
+        // Sale badge
+        $('#sale-badge-show-as').on('change', function() {
+            currentGlobalThemeSettings.productBadges.sale.showAs = $(this).val();
+            handleGlobalSettingChange('productBadges.sale.showAs', $(this).val());
+        });
+        
+        $('#sale-bg-color, input[data-color-for="sale-bg-color"]').on('input change', function() {
+            const value = $(this).val();
+            $('#sale-bg-color').val(value);
+            $('input[data-color-for="sale-bg-color"]').val(value);
+            currentGlobalThemeSettings.productBadges.sale.background = value;
+            handleGlobalSettingChange('productBadges.sale.background', value);
+        });
+        
+        $('#sale-text-color, input[data-color-for="sale-text-color"]').on('input change', function() {
+            const value = $(this).val();
+            $('#sale-text-color').val(value);
+            $('input[data-color-for="sale-text-color"]').val(value);
+            currentGlobalThemeSettings.productBadges.sale.text = value;
+            handleGlobalSettingChange('productBadges.sale.text', value);
+        });
+        
+        // Sale price badge
+        $('#sale-price-badge-show-as').on('change', function() {
+            currentGlobalThemeSettings.productBadges.salePriceNext.showAs = $(this).val();
+            handleGlobalSettingChange('productBadges.salePriceNext.showAs', $(this).val());
+        });
+        
+        $('#sale-price-bg-color, input[data-color-for="sale-price-bg-color"]').on('input change', function() {
+            const value = $(this).val();
+            $('#sale-price-bg-color').val(value);
+            $('input[data-color-for="sale-price-bg-color"]').val(value);
+            currentGlobalThemeSettings.productBadges.salePriceNext.background = value;
+            handleGlobalSettingChange('productBadges.salePriceNext.background', value);
+        });
+        
+        $('#sale-price-text-color, input[data-color-for="sale-price-text-color"]').on('input change', function() {
+            const value = $(this).val();
+            $('#sale-price-text-color').val(value);
+            $('input[data-color-for="sale-price-text-color"]').val(value);
+            currentGlobalThemeSettings.productBadges.salePriceNext.text = value;
+            handleGlobalSettingChange('productBadges.salePriceNext.text', value);
+        });
+        
+        // Sale highlight
+        $('#sale-highlight-text-color, input[data-color-for="sale-highlight-text-color"]').on('input change', function() {
+            const value = $(this).val();
+            $('#sale-highlight-text-color').val(value);
+            $('input[data-color-for="sale-highlight-text-color"]').val(value);
+            currentGlobalThemeSettings.productBadges.saleHighlight.text = value;
+            handleGlobalSettingChange('productBadges.saleHighlight.text', value);
+        });
+        
+        // Custom 1 badge
+        $('#custom1-badge-text').on('input change', function() {
+            currentGlobalThemeSettings.productBadges.custom1.text = $(this).val();
+            handleGlobalSettingChange('productBadges.custom1.text', $(this).val());
+        });
+        
+        $('#custom1-badge-tag').on('input change', function() {
+            currentGlobalThemeSettings.productBadges.custom1.tag = $(this).val();
+            handleGlobalSettingChange('productBadges.custom1.tag', $(this).val());
+        });
+        
+        $('#custom1-bg-color, input[data-color-for="custom1-bg-color"]').on('input change', function() {
+            const value = $(this).val();
+            $('#custom1-bg-color').val(value);
+            $('input[data-color-for="custom1-bg-color"]').val(value);
+            currentGlobalThemeSettings.productBadges.custom1.background = value;
+            handleGlobalSettingChange('productBadges.custom1.background', value);
+        });
+        
+        $('#custom1-text-color, input[data-color-for="custom1-text-color"]').on('input change', function() {
+            const value = $(this).val();
+            $('#custom1-text-color').val(value);
+            $('input[data-color-for="custom1-text-color"]').val(value);
+            currentGlobalThemeSettings.productBadges.custom1.textColor = value;
+            handleGlobalSettingChange('productBadges.custom1.textColor', value);
+        });
+        
+        // Cart event listeners
+        $('#cart-show-as').on('change', function() {
+            currentGlobalThemeSettings.cart.showAs = $(this).val();
+            handleGlobalSettingChange('cart.showAs', $(this).val());
+        });
+        
+        $('#show-sticky-cart-toggle').on('change', function() {
+            currentGlobalThemeSettings.cart.showStickyCart = $(this).is(':checked');
+            handleGlobalSettingChange('cart.showStickyCart', $(this).is(':checked'));
+        });
+        
+        // Cart status colors
+        $('#cart-status-bg-color, input[data-color-for="cart-status-bg-color"]').on('input change', function() {
+            const value = $(this).val();
+            $('#cart-status-bg-color').val(value);
+            $('input[data-color-for="cart-status-bg-color"]').val(value);
+            currentGlobalThemeSettings.cart.cartStatus.background = value;
+            handleGlobalSettingChange('cart.cartStatus.background', value);
+        });
+        
+        $('#cart-status-text-color, input[data-color-for="cart-status-text-color"]').on('input change', function() {
+            const value = $(this).val();
+            $('#cart-status-text-color').val(value);
+            $('input[data-color-for="cart-status-text-color"]').val(value);
+            currentGlobalThemeSettings.cart.cartStatus.text = value;
+            handleGlobalSettingChange('cart.cartStatus.text', value);
+        });
+        
+        // Free shipping bar
+        $('#show-progress-bar-toggle').on('change', function() {
+            currentGlobalThemeSettings.cart.freeShipping.showProgressBar = $(this).is(':checked');
+            handleGlobalSettingChange('cart.freeShipping.showProgressBar', $(this).is(':checked'));
+        });
+        
+        $('#free-shipping-threshold').on('input change', function() {
+            currentGlobalThemeSettings.cart.freeShipping.threshold = parseFloat($(this).val()) || 0;
+            handleGlobalSettingChange('cart.freeShipping.threshold', currentGlobalThemeSettings.cart.freeShipping.threshold);
+        });
+        
+        $('#progress-bar-color, input[data-color-for="progress-bar-color"]').on('input change', function() {
+            const value = $(this).val();
+            $('#progress-bar-color').val(value);
+            $('input[data-color-for="progress-bar-color"]').val(value);
+            currentGlobalThemeSettings.cart.freeShipping.progressBarColor = value;
+            handleGlobalSettingChange('cart.freeShipping.progressBarColor', value);
+        });
+        
+        $('#progress-bar-track').on('change', function() {
+            currentGlobalThemeSettings.cart.freeShipping.progressBarTrack = $(this).val();
+            handleGlobalSettingChange('cart.freeShipping.progressBarTrack', $(this).val());
+        });
+        
+        $('#message-color, input[data-color-for="message-color"]').on('input change', function() {
+            const value = $(this).val();
+            $('#message-color').val(value);
+            $('input[data-color-for="message-color"]').val(value);
+            currentGlobalThemeSettings.cart.freeShipping.messageColor = value;
+            handleGlobalSettingChange('cart.freeShipping.messageColor', value);
+        });
+        
+        // Favicon event listeners
+        $('#favicon-select-btn').on('click', function() {
+            $('#favicon-upload').click();
+        });
+        
+        $('#favicon-upload').on('change', async function() {
+            const file = this.files[0];
+            if (file) {
+                // Validate file type
+                if (!file.type.startsWith('image/')) {
+                    alert('Please select an image file');
+                    return;
+                }
+                
+                // Create form data for upload
+                const formData = new FormData();
+                formData.append('favicon', file);
+                
+                try {
+                    // For now, we'll create a local preview
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const preview = $('#favicon-preview');
+                        preview.html(`<img src="${e.target.result}" alt="Favicon preview" style="max-width: 100%; height: auto;">`);
+                        $('#favicon-select-btn').hide();
+                        $('#favicon-remove-btn').show();
+                        
+                        // Store the data URL temporarily
+                        currentGlobalThemeSettings.favicon.url = e.target.result;
+                        currentGlobalThemeSettings.favicon.fileName = file.name;
+                        handleGlobalSettingChange('favicon.url', e.target.result);
+                    };
+                    reader.readAsDataURL(file);
+                    
+                    // TODO: In production, upload to server and get URL
+                    // const response = await fetch('/api/builder/upload/favicon', {
+                    //     method: 'POST',
+                    //     body: formData
+                    // });
+                    // const { url } = await response.json();
+                    // currentGlobalThemeSettings.favicon.url = url;
+                    
+                } catch (error) {
+                    console.error('Error uploading favicon:', error);
+                    alert('Error uploading favicon. Please try again.');
+                }
+            }
+        });
+        
+        $('#favicon-remove-btn').on('click', function() {
+            $('#favicon-preview').html('<span class="no-image-text" data-i18n="favicon.noImageSelected">No image selected</span>');
+            $('#favicon-upload').val('');
+            $('#favicon-select-btn').show();
+            $('#favicon-remove-btn').hide();
+            
+            currentGlobalThemeSettings.favicon.url = '';
+            currentGlobalThemeSettings.favicon.fileName = '';
+            handleGlobalSettingChange('favicon.url', '');
+            
+            // Apply translations to the new text
+            setTimeout(applyTranslations, 0);
+        });
+        
+        // Navigation event listeners
+        $('#search-show-as').on('change', function() {
+            currentGlobalThemeSettings.navigation.search.showAs = $(this).val();
+            handleGlobalSettingChange('navigation.search.showAs', $(this).val());
+        });
+        
+        $('#show-back-to-top-toggle').on('change', function() {
+            currentGlobalThemeSettings.navigation.backToTop.showButton = $(this).is(':checked');
+            handleGlobalSettingChange('navigation.backToTop.showButton', $(this).is(':checked'));
+        });
+        
+        $('#back-to-top-position').on('change', function() {
+            currentGlobalThemeSettings.navigation.backToTop.position = $(this).val();
+            handleGlobalSettingChange('navigation.backToTop.position', $(this).val());
+        });
+        
+        // Social Media event listeners
+        $('input[name="icon-style"]').on('change', function() {
+            currentGlobalThemeSettings.socialMedia.iconStyle = $(this).val();
+            handleGlobalSettingChange('socialMedia.iconStyle', $(this).val());
+        });
+        
+        // Social platform inputs
+        const socialPlatforms = ['instagram', 'facebook', 'twitter', 'youtube', 'pinterest', 'tiktok', 'tumblr', 'snapchat', 'linkedin', 'vimeo'];
+        
+        socialPlatforms.forEach(platform => {
+            $(`#social-${platform}`).on('input change', function() {
+                currentGlobalThemeSettings.socialMedia[platform] = $(this).val();
+                handleGlobalSettingChange(`socialMedia.${platform}`, $(this).val());
+            });
+        });
+        
+        // Swatches event listeners
+        // Primary swatch settings
+        $('#swatchesPrimaryOptionName').on('input change', function() {
+            currentGlobalThemeSettings.swatches.primary.optionName = $(this).val();
+            handleGlobalSettingChange('swatches.primary.optionName', $(this).val());
+        });
+        
+        $('#swatchesPrimaryProductCardsShape').on('change', function() {
+            currentGlobalThemeSettings.swatches.primary.productCardsShape = $(this).val();
+            handleGlobalSettingChange('swatches.primary.productCardsShape', $(this).val());
+        });
+        
+        $('#swatchesPrimaryProductCardsSize').on('input', function() {
+            currentGlobalThemeSettings.swatches.primary.productCardsSize = $(this).val();
+            handleGlobalSettingChange('swatches.primary.productCardsSize', $(this).val());
+            $(this).closest('div').find('.range-value').text($(this).val());
+        });
+        
+        $('#swatchesPrimaryProductPagesShape').on('change', function() {
+            currentGlobalThemeSettings.swatches.primary.productPagesShape = $(this).val();
+            handleGlobalSettingChange('swatches.primary.productPagesShape', $(this).val());
+        });
+        
+        $('#swatchesPrimaryProductPagesSize').on('input', function() {
+            currentGlobalThemeSettings.swatches.primary.productPagesSize = $(this).val();
+            handleGlobalSettingChange('swatches.primary.productPagesSize', $(this).val());
+            $(this).closest('div').find('.range-value').text($(this).val());
+        });
+        
+        $('#swatchesPrimaryFiltersShape').on('change', function() {
+            currentGlobalThemeSettings.swatches.primary.filtersShape = $(this).val();
+            handleGlobalSettingChange('swatches.primary.filtersShape', $(this).val());
+        });
+        
+        $('#swatchesPrimaryFiltersSize').on('input', function() {
+            currentGlobalThemeSettings.swatches.primary.filtersSize = $(this).val();
+            handleGlobalSettingChange('swatches.primary.filtersSize', $(this).val());
+            $(this).closest('div').find('.range-value').text($(this).val());
+        });
+        
+        $('#swatchesPrimaryCustomColors').on('input change', function() {
+            currentGlobalThemeSettings.swatches.primary.customColors = $(this).val();
+            handleGlobalSettingChange('swatches.primary.customColors', $(this).val());
+        });
+        
+        // Secondary swatch settings
+        $('#swatchesSecondaryOptionNames').on('input change', function() {
+            currentGlobalThemeSettings.swatches.secondary.optionNames = $(this).val();
+            handleGlobalSettingChange('swatches.secondary.optionNames', $(this).val());
+        });
+        
+        $('#swatchesSecondaryProductPagesShape').on('change', function() {
+            currentGlobalThemeSettings.swatches.secondary.productPagesShape = $(this).val();
+            handleGlobalSettingChange('swatches.secondary.productPagesShape', $(this).val());
+        });
+        
+        $('#swatchesSecondaryProductPagesSize').on('input', function() {
+            currentGlobalThemeSettings.swatches.secondary.productPagesSize = $(this).val();
+            handleGlobalSettingChange('swatches.secondary.productPagesSize', $(this).val());
+            $(this).closest('div').find('.range-value').text($(this).val());
+        });
+        
+        $('#swatchesSecondaryFiltersShape').on('change', function() {
+            currentGlobalThemeSettings.swatches.secondary.filtersShape = $(this).val();
+            handleGlobalSettingChange('swatches.secondary.filtersShape', $(this).val());
+        });
+        
+        $('#swatchesSecondaryFiltersSize').on('input', function() {
+            currentGlobalThemeSettings.swatches.secondary.filtersSize = $(this).val();
+            handleGlobalSettingChange('swatches.secondary.filtersSize', $(this).val());
+            $(this).closest('div').find('.range-value').text($(this).val());
+        });
+        
+        $('#swatchesSecondaryCustomColors').on('input change', function() {
+            currentGlobalThemeSettings.swatches.secondary.customColors = $(this).val();
+            handleGlobalSettingChange('swatches.secondary.customColors', $(this).val());
         });
         
         // Listener para el selector de esquemas de color (ID: #colorSchemeSelect) - VERSIÓN ACTUALIZADA

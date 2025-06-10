@@ -162,3 +162,17 @@ if (!previewFrame) {
 ### Estado y Carga de Datos
 7. **NO reinicializar**: Al abrir secciones, NO llamar funciones que sobrescriban valores DB
 8. **Populate**: Incluir TODOS los campos (appearance Y colors) en función de carga
+
+## Patrón de Guardado Website Builder - Guía Rápida
+
+### Para agregar nueva sección de settings:
+1. **HTML**: Agregar IDs únicos a todos los inputs/selects/checkboxes
+2. **Estructura JS** (~línea 6650): `if (!currentGlobalThemeSettings.newSection) currentGlobalThemeSettings.newSection = {};`
+3. **Defaults** (~línea 6700): Crear objeto con valores por defecto y aplicar con loop
+4. **Event Listeners** (~línea 7000+):
+   - Select/Input: `.on('change')` → actualizar objeto → `handleGlobalSettingChange()`
+   - Checkbox: `.on('change')` → `$(this).is(':checked')` → guardar
+   - Color: sincronizar picker y text input
+5. **Inicializar desde BD** (~línea 6400+): Llenar campos con valores guardados
+
+**CRÍTICO**: Todo se guarda automáticamente en `globalThemeSettingsJson` al hacer click en botón guardar. NO crear endpoints adicionales.
