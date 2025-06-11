@@ -251,6 +251,70 @@ namespace Hotel.Controllers
             // Plantilla por defecto mínima
             return "{}";
         }
+
+        // PUT: api/builder/websites/{id}/pages/{pageId}
+        [HttpPut("{id}/pages/{pageId}")]
+        public async Task<IActionResult> UpdatePageStructure(int id, int pageId)
+        {
+            try
+            {
+                // Read the request body
+                string requestBody;
+                using (var reader = new StreamReader(Request.Body, Encoding.UTF8))
+                {
+                    requestBody = await reader.ReadToEndAsync();
+                }
+
+                if (string.IsNullOrEmpty(requestBody))
+                {
+                    return BadRequest(new { message = "Request body is empty." });
+                }
+
+                // Deserialize the request
+                UpdatePageStructureDto dto;
+                try
+                {
+                    var options = new JsonSerializerOptions
+                    {
+                        PropertyNameCaseInsensitive = true
+                    };
+                    dto = JsonSerializer.Deserialize<UpdatePageStructureDto>(requestBody, options);
+                }
+                catch (JsonException ex)
+                {
+                    _logger.LogError(ex, "Error deserializing request body: {RequestBody}", requestBody);
+                    return BadRequest(new { message = "Invalid JSON format." });
+                }
+
+                if (dto == null)
+                {
+                    return BadRequest(new { message = "Deserialized DTO is null." });
+                }
+
+                var website = await _context.WebSites.FindAsync(id);
+                if (website == null)
+                {
+                    return NotFound(new { message = "Website not found" });
+                }
+
+                // For now, store the page structure in the PagesJson field
+                // In a real implementation, you would have a separate Pages table
+                website.PagesJson = dto.PageStructureJson;
+                website.UpdatedAt = DateTime.UtcNow;
+
+                _context.Entry(website).State = EntityState.Modified;
+                await _context.SaveChangesAsync();
+
+                _logger.LogInformation("Successfully saved page structure for website {WebsiteId}, page {PageId}", id, pageId);
+
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating page structure");
+                return StatusCode(500, new { message = "An error occurred while updating the page structure" });
+            }
+        }
     }
 
     public class UpdateGlobalThemeSettingsDto
@@ -267,5 +331,11 @@ namespace Hotel.Controllers
         public string? CustomDomain { get; set; }
         public bool? IsActive { get; set; }
         public bool? IsPublished { get; set; }
+    }
+
+    public class UpdatePageStructureDto
+    {
+        [JsonPropertyName("pageStructureJson")]
+        public string PageStructureJson { get; set; } = string.Empty;
     }
 }

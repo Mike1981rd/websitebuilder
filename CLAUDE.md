@@ -176,3 +176,66 @@ if (!previewFrame) {
 5. **Inicializar desde BD** (~línea 6400+): Llenar campos con valores guardados
 
 **CRÍTICO**: Todo se guarda automáticamente en `globalThemeSettingsJson` al hacer click en botón guardar. NO crear endpoints adicionales.
+
+## Patrones Críticos - Módulo de Secciones Website Builder
+
+### Variables y Estructuras de Datos
+1. **Variables globales necesarias**: Declarar SIEMPRE fuera de `$(document).ready()`:
+   ```javascript
+   let currentSidebarView = 'blockList'; // Track vista actual
+   let currentSectionsConfig = {
+       sectionOrder: [], // Orden de secciones principales
+       announcementOrder: [] // Orden de anuncios
+   };
+   ```
+
+2. **Datos actualizados**: NUNCA usar `window.currentPageData` directamente
+   - Crear función helper: `window.getUpdatedPageData()` que devuelva datos actuales
+   - Usar en todos los back buttons y recargas de vista
+
+### Persistencia y Guardado de Secciones
+1. **Drag & Drop**: SIEMPRE actualizar arrays de orden en stop handler:
+   ```javascript
+   stop: function(e, ui) {
+       const newOrder = [];
+       $('.sidebar-subsection[data-block-type]').each(function() {
+           newOrder.push($(this).data('element-id'));
+       });
+       currentSectionsConfig.sectionOrder = newOrder;
+       hasPendingPageStructureChanges = true;
+   }
+   ```
+
+2. **Eliminar elementos**: Actualizar TANTO DOM como estructura de datos:
+   ```javascript
+   $element.remove(); // Remover del DOM
+   delete currentSectionsConfig.announcements[elementId]; // Remover de datos
+   // Actualizar array de orden si existe
+   ```
+
+3. **Renderizado con orden**: Funciones render deben respetar orden guardado:
+   - Usar arrays `sectionOrder` y `announcementOrder`
+   - Si no existe orden, usar orden por defecto
+
+### Problemas Comunes y Soluciones
+1. **Vista se corta/colapsa**: 
+   - EVITAR radio buttons en formularios dinámicos
+   - Preferir select dropdowns para evitar problemas de altura
+   - NO usar `overflow: hidden` en contenedores flex dinámicos
+
+2. **Funciones duplicadas**: SIEMPRE buscar antes de crear:
+   ```bash
+   grep -n "functionName" website-builder.js
+   ```
+
+3. **Recargar vista después de guardar**: Agregar casos para cada vista:
+   ```javascript
+   if (currentSidebarView === 'headerSettings') {
+       window.switchSidebarView('headerSettings');
+   }
+   ```
+
+### Debugging Tips
+1. **Variables undefined**: Verificar declaración global
+2. **Cambios no persisten**: Verificar actualización de `currentSectionsConfig`
+3. **Vista cortada**: Revisar CSS del contenedor padre (`#sidebar-dynamic-content`)
