@@ -868,19 +868,30 @@
 }
 
 /* Visibility Toggle */
-.visibility-toggle .icon-visible {
-    display: block;
+.visibility-toggle {
+    position: relative;
 }
 
-.visibility-toggle .icon-hidden {
+.visibility-toggle .material-icons {
+    font-size: 18px;
+    line-height: 1;
+    display: none; /* Hide by default */
+}
+
+/* Show/hide based on button state */
+.visibility-toggle:not(.is-hidden) .icon-visible {
+    display: block !important;
+}
+
+.visibility-toggle:not(.is-hidden) .icon-hidden {
     display: none !important;
 }
 
-.visibility-toggle.hidden .icon-visible {
+.visibility-toggle.is-hidden .icon-visible {
     display: none !important;
 }
 
-.visibility-toggle.hidden .icon-hidden {
+.visibility-toggle.is-hidden .icon-hidden {
     display: block !important;
 }
 

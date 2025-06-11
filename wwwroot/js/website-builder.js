@@ -153,14 +153,37 @@ async function loadCurrentWebsite() {
                 if (pageData && typeof pageData === 'object') {
                     currentPageBlocks = pageData.blocks || [];
                     if (pageData.sectionsConfig) {
-                        currentSectionsConfig = pageData.sectionsConfig;
-                        // Ensure required properties exist for backward compatibility
-                        if (!currentSectionsConfig.announcementOrder) {
-                            currentSectionsConfig.announcementOrder = [];
-                        }
-                        if (!currentSectionsConfig.sectionOrder) {
-                            currentSectionsConfig.sectionOrder = ['announcement', 'header'];
-                        }
+                        // Merge with defaults instead of replacing completely
+                        const defaultConfig = {
+                            announcementBar: {
+                                showOnlyHomePage: false,
+                                colorScheme: 'secondary',
+                                width: 'screen',
+                                showNavigationArrows: true,
+                                autoplayMode: 'none',
+                                autoplaySpeed: 6,
+                                showLanguageSelector: false,
+                                showCurrencySelector: false,
+                                showSocialMediaIcons: false,
+                                isHidden: false
+                            },
+                            header: {
+                                colorScheme: 'primary',
+                                width: 'large',
+                                layout: 'logo-center-menu-left-inline',
+                                showDivider: true,
+                                stickyHeader: 'on-scroll-up',
+                                isHidden: false
+                            },
+                            announcements: {},
+                            announcementOrder: [],
+                            sectionOrder: ['announcement', 'header']
+                        };
+                        
+                        // Deep merge saved config with defaults
+                        currentSectionsConfig = $.extend(true, {}, defaultConfig, pageData.sectionsConfig);
+                        
+                        console.log('[DEBUG] Merged sections config:', currentSectionsConfig);
                         // Ensure header has logo URL properties and section visibility
                         if (currentSectionsConfig.header) {
                             if (!currentSectionsConfig.header.hasOwnProperty('desktopLogoUrl')) {
@@ -1452,8 +1475,8 @@ $(document).ready(async function() {
                         <span class="subsection-text" data-i18n="sections.announcementBar">Barra de anuncios</span>
                         <div class="subsection-actions">
                             <button class="action-icon visibility-toggle ${currentSectionsConfig.announcementBar.isHidden ? 'is-hidden' : ''}" data-section="announcement" title="Toggle visibility">
-                                <i class="material-icons icon-visible" style="${currentSectionsConfig.announcementBar.isHidden ? 'display: none;' : ''}">visibility</i>
-                                <i class="material-icons icon-hidden" style="${currentSectionsConfig.announcementBar.isHidden ? '' : 'display: none;'}">visibility_off</i>
+                                <i class="material-icons icon-visible">visibility</i>
+                                <i class="material-icons icon-hidden">visibility_off</i>
                             </button>
                             <button class="action-icon add-icon" data-section="announcement" title="Add">
                                 <i class="material-icons">add</i>
@@ -1472,8 +1495,8 @@ $(document).ready(async function() {
                         <span class="subsection-text" data-i18n="sections.headerSection">Encabezado</span>
                         <div class="subsection-actions">
                             <button class="action-icon visibility-toggle ${currentSectionsConfig.header.isHidden ? 'is-hidden' : ''}" data-section="header" title="Toggle visibility">
-                                <i class="material-icons icon-visible" style="${currentSectionsConfig.header.isHidden ? 'display: none;' : ''}">visibility</i>
-                                <i class="material-icons icon-hidden" style="${currentSectionsConfig.header.isHidden ? '' : 'display: none;'}">visibility_off</i>
+                                <i class="material-icons icon-visible">visibility</i>
+                                <i class="material-icons icon-hidden">visibility_off</i>
                             </button>
                             <button class="action-icon add-icon" data-section="header" title="Add">
                                 <i class="material-icons">add</i>
@@ -1516,8 +1539,8 @@ $(document).ready(async function() {
                             <span class="subsection-text">${text}</span>
                             <div class="subsection-actions">
                                 <button class="action-icon visibility-toggle ${config.isHidden ? 'is-hidden' : ''}" title="Toggle visibility">
-                                    <i class="material-icons icon-visible" style="${config.isHidden ? 'display: none;' : ''}">visibility</i>
-                                    <i class="material-icons icon-hidden" style="${config.isHidden ? '' : 'display: none;'}">visibility_off</i>
+                                    <i class="material-icons icon-visible">visibility</i>
+                                    <i class="material-icons icon-hidden">visibility_off</i>
                                 </button>
                                 <button class="action-icon delete-announcement" data-element-id="${announcementId}" title="Delete">
                                     <i class="material-icons">delete</i>
@@ -1535,9 +1558,9 @@ $(document).ready(async function() {
                     <div class="sidebar-subsection" data-block-type="announcement-item" data-element-id="${announcementId}" style="padding-left: 30px;">
                         <span class="subsection-text">${text}</span>
                         <div class="subsection-actions">
-                            <button class="action-icon visibility-toggle" title="Toggle visibility">
+                            <button class="action-icon visibility-toggle ${config.isHidden ? 'is-hidden' : ''}" title="Toggle visibility">
                                 <i class="material-icons icon-visible">visibility</i>
-                                <i class="material-icons icon-hidden" style="display: none;">visibility_off</i>
+                                <i class="material-icons icon-hidden">visibility_off</i>
                             </button>
                             <button class="action-icon delete-announcement" data-element-id="${announcementId}" title="Delete">
                                 <i class="material-icons">delete</i>
@@ -3989,7 +4012,7 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                     <div class="subsection-actions">
                         <button class="action-icon visibility-toggle" title="Toggle visibility">
                             <i class="material-icons icon-visible">visibility</i>
-                            <i class="material-icons icon-hidden" style="display: none;">visibility_off</i>
+                            <i class="material-icons icon-hidden">visibility_off</i>
                         </button>
                         <button class="action-icon delete-announcement" data-element-id="${announcementId}" title="Delete">
                             <i class="material-icons">delete</i>
@@ -4034,23 +4057,38 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
         
         // Click on announcement bar to configure
         $(document).on('click', '.sidebar-subsection[data-element-id="barra-anuncios"]', function(e) {
-            if (!$(e.target).closest('.subsection-actions, .collapse-indicator').length) {
-                e.preventDefault();
-                e.stopPropagation();
-                console.log('Navigate to announcement bar config');
-                window.switchSidebarView('announcementBar');
+            try {
+                const $target = $(e.target);
+                const isActionButton = $target.closest('.subsection-actions').length > 0;
+                const isCollapseIndicator = $target.closest('.collapse-indicator').length > 0;
+                
+                if (!isActionButton && !isCollapseIndicator) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('Navigate to announcement bar config');
+                    window.switchSidebarView('announcementBar');
+                }
+            } catch (error) {
+                console.error('[ERROR] Problem with announcement bar click:', error);
             }
         });
         
         // Click on announcement item to edit
         $(document).on('click', '.sidebar-subsection[data-block-type="announcement-item"]', function(e) {
-            if (!$(e.target).closest('.subsection-actions').length) {
-                e.preventDefault();
-                e.stopPropagation();
-                const elementId = $(this).data('element-id');
-                console.log('Navigate to announcement config:', elementId);
-                // Navigate to the specific announcement item settings
-                window.switchSidebarView('announcementItemSettings', { id: elementId });
+            try {
+                const $target = $(e.target);
+                const isActionButton = $target.closest('.subsection-actions').length > 0;
+                
+                if (!isActionButton) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const elementId = $(this).data('element-id');
+                    console.log('Navigate to announcement config:', elementId);
+                    // Navigate to the specific announcement item settings
+                    window.switchSidebarView('announcementItemSettings', { id: elementId });
+                }
+            } catch (error) {
+                console.error('[ERROR] Problem with announcement item click:', error);
             }
         });
         
@@ -4090,7 +4128,21 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
             e.preventDefault();
             e.stopPropagation();
             
+            console.log('[DEBUG] ========== VISIBILITY TOGGLE CLICKED ==========');
+            
             const $button = $(this);
+            
+            // Check if button is disabled or in transition
+            if ($button.data('transitioning')) {
+                console.log('[DEBUG] Toggle ignored - button in transition');
+                return;
+            }
+            
+            // Mark as transitioning
+            $button.data('transitioning', true);
+            setTimeout(() => {
+                $button.data('transitioning', false);
+            }, 300);
             const $visibleIcon = $button.find('.icon-visible');
             const $hiddenIcon = $button.find('.icon-hidden');
             const section = $button.data('section');
@@ -4098,34 +4150,70 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
             const elementId = $subsection.data('element-id');
             const blockType = $subsection.data('block-type');
             
-            // Toggle visibility state
-            const isCurrentlyHidden = $hiddenIcon.is(':visible');
+            // Log current state before any changes
+            console.log('[DEBUG] BEFORE toggle - Button state:', {
+                hasIsHiddenClass: $button.hasClass('is-hidden'),
+                visibleIconComputed: window.getComputedStyle($visibleIcon[0]).display,
+                hiddenIconComputed: window.getComputedStyle($hiddenIcon[0]).display,
+                buttonElement: $button[0],
+                section: section,
+                savedStateInConfig: section === 'header' ? currentSectionsConfig.header?.isHidden : 
+                                   section === 'announcement' ? currentSectionsConfig.announcementBar?.isHidden : 
+                                   'unknown'
+            });
             
-            if (isCurrentlyHidden) {
-                // Show element - show visibility icon
-                $visibleIcon.show();
-                $hiddenIcon.hide();
-                $button.removeClass('is-hidden');
-            } else {
+            console.log('[DEBUG] Toggle elements:', {
+                button: $button.length,
+                visibleIcon: $visibleIcon.length,
+                hiddenIcon: $hiddenIcon.length,
+                section,
+                elementId,
+                blockType
+            });
+            
+            // Toggle visibility state
+            const isCurrentlyHidden = $button.hasClass('is-hidden');
+            const newHiddenState = !isCurrentlyHidden;
+            
+            console.log('[DEBUG] Toggle state change:', {
+                wasHidden: isCurrentlyHidden,
+                willBeHidden: newHiddenState
+            });
+            
+            // Remove all classes first to ensure clean state
+            $button.removeClass('is-hidden');
+            
+            // Then apply the new state
+            if (newHiddenState) {
                 // Hide element - show visibility_off icon
-                $visibleIcon.hide();
-                $hiddenIcon.show();
                 $button.addClass('is-hidden');
             }
+            
+            // Force remove all inline styles
+            $visibleIcon.removeAttr('style');
+            $hiddenIcon.removeAttr('style');
+            
+            // Log state after toggle
+            console.log('[DEBUG] AFTER toggle - Button state:', {
+                hasIsHiddenClass: $button.hasClass('is-hidden'),
+                newHiddenState: newHiddenState,
+                visibleIconComputed: window.getComputedStyle($visibleIcon[0]).display,
+                hiddenIconComputed: window.getComputedStyle($hiddenIcon[0]).display
+            });
             
             // Save visibility state based on element type
             if (blockType === 'announcement-item' && elementId) {
                 if (!currentSectionsConfig.announcements[elementId]) {
                     currentSectionsConfig.announcements[elementId] = {};
                 }
-                currentSectionsConfig.announcements[elementId].isHidden = !isCurrentlyHidden;
-                console.log(`[DEBUG] Announcement ${elementId} visibility: ${!isCurrentlyHidden ? 'hidden' : 'visible'}`);
+                currentSectionsConfig.announcements[elementId].isHidden = newHiddenState;
+                console.log(`[DEBUG] Announcement ${elementId} saved as: ${newHiddenState ? 'hidden' : 'visible'}`);
             } else if (section === 'announcement') {
-                currentSectionsConfig.announcementBar.isHidden = !isCurrentlyHidden;
-                console.log(`[DEBUG] Announcement bar visibility: ${!isCurrentlyHidden ? 'hidden' : 'visible'}`);
+                currentSectionsConfig.announcementBar.isHidden = newHiddenState;
+                console.log(`[DEBUG] Announcement bar saved as: ${newHiddenState ? 'hidden' : 'visible'}`);
             } else if (section === 'header' || blockType === 'header') {
-                currentSectionsConfig.header.isHidden = !isCurrentlyHidden;
-                console.log(`[DEBUG] Header visibility: ${!isCurrentlyHidden ? 'hidden' : 'visible'}`);
+                currentSectionsConfig.header.isHidden = newHiddenState;
+                console.log(`[DEBUG] Header saved as: ${newHiddenState ? 'hidden' : 'visible'}`);
             }
             
             // Activar bandera de cambios pendientes
@@ -4139,6 +4227,77 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
         
         // Initialize drag and drop directly
         initializeDragAndDropSimple();
+        
+        // Initialize visibility toggle states
+        setTimeout(() => {
+            console.log('[DEBUG] Initializing visibility toggle states');
+            console.log('[DEBUG] Current sectionsConfig at init:', JSON.stringify(currentSectionsConfig, null, 2));
+            
+            $('.visibility-toggle').each(function() {
+                const $button = $(this);
+                const $visibleIcon = $button.find('.icon-visible');
+                const $hiddenIcon = $button.find('.icon-hidden');
+                const $subsection = $button.closest('.sidebar-subsection');
+                const elementId = $subsection.data('element-id');
+                const blockType = $subsection.data('block-type');
+                const section = $button.data('section');
+                
+                // Ensure CSS classes control the display, not inline styles
+                $visibleIcon.css('display', '');
+                $hiddenIcon.css('display', '');
+                
+                // Get the actual saved state
+                let savedIsHidden = false;
+                if (blockType === 'announcement-item' && elementId && currentSectionsConfig.announcements[elementId]) {
+                    savedIsHidden = currentSectionsConfig.announcements[elementId].isHidden || false;
+                } else if (section === 'announcement') {
+                    savedIsHidden = currentSectionsConfig.announcementBar.isHidden || false;
+                } else if (section === 'header' || blockType === 'header') {
+                    savedIsHidden = currentSectionsConfig.header.isHidden || false;
+                }
+                
+                console.log('[DEBUG] Toggle initialized:', {
+                    element: elementId || section || blockType,
+                    hasIsHiddenClass: $button.hasClass('is-hidden'),
+                    savedIsHidden: savedIsHidden,
+                    visibleIconDisplay: $visibleIcon.css('display'),
+                    hiddenIconDisplay: $hiddenIcon.css('display')
+                });
+                
+                // Verify CSS is working
+                if ($button.hasClass('is-hidden')) {
+                    console.log('[DEBUG] Button has is-hidden class, checking icon visibility');
+                    console.log('  - Visible icon should be hidden:', window.getComputedStyle($visibleIcon[0]).display);
+                    console.log('  - Hidden icon should be visible:', window.getComputedStyle($hiddenIcon[0]).display);
+                }
+                
+                // Force sync the visual state with the saved state
+                if (savedIsHidden && !$button.hasClass('is-hidden')) {
+                    console.log('[DEBUG] Syncing: Adding is-hidden class');
+                    $button.addClass('is-hidden');
+                } else if (!savedIsHidden && $button.hasClass('is-hidden')) {
+                    console.log('[DEBUG] Syncing: Removing is-hidden class');
+                    $button.removeClass('is-hidden');
+                }
+                
+                // Double check the computed styles are correct
+                setTimeout(() => {
+                    const finalVisibleDisplay = window.getComputedStyle($visibleIcon[0]).display;
+                    const finalHiddenDisplay = window.getComputedStyle($hiddenIcon[0]).display;
+                    const shouldShowHidden = $button.hasClass('is-hidden');
+                    
+                    console.log('[DEBUG] Final state check:', {
+                        element: elementId || section || blockType,
+                        hasIsHiddenClass: shouldShowHidden,
+                        visibleIconDisplay: finalVisibleDisplay,
+                        hiddenIconDisplay: finalHiddenDisplay,
+                        isCorrect: shouldShowHidden ? 
+                            (finalVisibleDisplay === 'none' && finalHiddenDisplay !== 'none') :
+                            (finalVisibleDisplay !== 'none' && finalHiddenDisplay === 'none')
+                    });
+                }, 200);
+            });
+        }, 100);
         
         // Diagnóstico y limpieza final
         setTimeout(() => {
@@ -4261,9 +4420,12 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                         
                         // Update section order based on DOM
                         const newOrder = [];
-                        $('.sidebar-subsection[data-block-type="announcement"], .sidebar-subsection[data-block-type="header"]').each(function() {
-                            const blockType = $(this).data('block-type');
-                            if (blockType && !newOrder.includes(blockType)) {
+                        $('.sidebar-section-content').first().find('> .sidebar-subsection').each(function() {
+                            const $this = $(this);
+                            const blockType = $this.data('block-type');
+                            
+                            // Solo agregar announcement y header al orden principal
+                            if ((blockType === 'announcement' || blockType === 'header') && !newOrder.includes(blockType)) {
                                 newOrder.push(blockType);
                             }
                         });
@@ -8627,8 +8789,15 @@ document.head.appendChild(style);
                     
                     // Recargar la vista actual para mostrar los cambios guardados
                     if (currentSidebarView === 'blockList') {
-                        // Si estamos en la vista de lista, refrescarla con los datos actualizados
-                        window.switchSidebarView('blockList', window.getUpdatedPageData());
+                        // Esperar un poco antes de recargar para asegurar que todo se haya guardado
+                        setTimeout(() => {
+                            console.log('[DEBUG] Reloading data from server after save...');
+                            loadCurrentWebsite().then(() => {
+                                console.log('[DEBUG] Data reloaded, refreshing blockList view');
+                                console.log('[DEBUG] Current sections config after reload:', JSON.stringify(currentSectionsConfig, null, 2));
+                                window.switchSidebarView('blockList', window.getUpdatedPageData());
+                            });
+                        }, 500);
                     } else if (currentSidebarView === 'headerSettings') {
                         // Recargar la vista de header settings
                         console.log('[DEBUG] Reloading header settings view after save');
