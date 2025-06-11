@@ -4,6 +4,7 @@ using Hotel.Data;
 using Hotel.Models;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Text.Json.Nodes;
 using Microsoft.AspNetCore.Authorization;
 using System.Text;
 using System.IO;
@@ -313,6 +314,121 @@ namespace Hotel.Controllers
             {
                 _logger.LogError(ex, "Error updating page structure");
                 return StatusCode(500, new { message = "An error occurred while updating the page structure" });
+            }
+        }
+
+        // POST: api/builder/websites/current/upload-logo
+        [HttpPost("current/upload-logo")]
+        [DisableRequestSizeLimit]
+        public async Task<IActionResult> UploadLogo([FromForm] IFormFile logoFile, [FromForm] string logoType)
+        {
+            try
+            {
+                if (logoFile == null || logoFile.Length == 0)
+                {
+                    return BadRequest(new { message = "No file uploaded" });
+                }
+
+                // Validar tipo de archivo
+                var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".svg", ".webp" };
+                var extension = Path.GetExtension(logoFile.FileName).ToLowerInvariant();
+                
+                if (!allowedExtensions.Contains(extension))
+                {
+                    return BadRequest(new { message = "Invalid file type. Allowed types: jpg, jpeg, png, gif, svg, webp" });
+                }
+
+                // Validar tamaño del archivo (5MB máximo)
+                if (logoFile.Length > 5 * 1024 * 1024)
+                {
+                    return BadRequest(new { message = "File size exceeds 5MB limit" });
+                }
+
+                // Validar logoType
+                if (logoType != "desktop" && logoType != "mobile")
+                {
+                    return BadRequest(new { message = "Invalid logo type. Must be 'desktop' or 'mobile'" });
+                }
+
+                // Obtener el sitio web actual
+                var company = await _context.Companies.FirstOrDefaultAsync();
+                if (company == null)
+                {
+                    return NotFound(new { message = "No company found" });
+                }
+
+                var website = await _context.WebSites
+                    .FirstOrDefaultAsync(w => w.CompanyId == company.Id);
+
+                if (website == null)
+                {
+                    return NotFound(new { message = "Website not found" });
+                }
+
+                // Crear directorio si no existe
+                var uploadsPath = Path.Combine("wwwroot", "uploads", "website-logos");
+                if (!Directory.Exists(uploadsPath))
+                {
+                    Directory.CreateDirectory(uploadsPath);
+                }
+
+                // Generar nombre único para el archivo
+                var uniqueFileName = $"{website.Id}_{logoType}_{Guid.NewGuid()}{extension}";
+                var filePath = Path.Combine(uploadsPath, uniqueFileName);
+
+                // Guardar el archivo
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await logoFile.CopyToAsync(stream);
+                }
+
+                // URL relativa del archivo
+                var logoUrl = $"/uploads/website-logos/{uniqueFileName}";
+
+                // Actualizar la configuración del sitio web
+                var currentSettings = string.IsNullOrEmpty(website.GlobalThemeSettingsJson) 
+                    ? new JsonObject() 
+                    : JsonSerializer.Deserialize<JsonObject>(website.GlobalThemeSettingsJson) ?? new JsonObject();
+
+                // Asegurarse de que existe la sección header
+                if (!currentSettings.ContainsKey("header"))
+                {
+                    currentSettings["header"] = new JsonObject();
+                }
+
+                var headerSettings = currentSettings["header"] as JsonObject ?? new JsonObject();
+                
+                // Guardar la URL del logo según el tipo
+                if (logoType == "desktop")
+                {
+                    headerSettings["desktopLogoUrl"] = JsonValue.Create(logoUrl);
+                }
+                else
+                {
+                    headerSettings["mobileLogoUrl"] = JsonValue.Create(logoUrl);
+                }
+
+                currentSettings["header"] = headerSettings;
+
+                // Guardar cambios
+                website.GlobalThemeSettingsJson = JsonSerializer.Serialize(currentSettings);
+                website.UpdatedAt = DateTime.UtcNow;
+
+                _context.Entry(website).State = EntityState.Modified;
+                await _context.SaveChangesAsync();
+
+                _logger.LogInformation("Successfully uploaded {LogoType} logo for website {WebsiteId}", logoType, website.Id);
+
+                return Ok(new { 
+                    message = "Logo uploaded successfully", 
+                    logoUrl = logoUrl,
+                    logoType = logoType
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error uploading logo");
+                return StatusCode(500, new { message = "An error occurred while uploading the logo" });
             }
         }
     }

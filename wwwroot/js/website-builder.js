@@ -7,6 +7,48 @@ let currentWebsiteId = null;
 let currentPageId = 1; // Default to home page
 let currentPageBlocks = [];
 let currentSelectedColorScheme = 'scheme1'; // Track which color scheme is being edited
+let currentSidebarView = 'blockList'; // Track the current sidebar view
+// Estructura para almacenar configuración de secciones
+let currentSectionsConfig = {
+    announcementBar: {
+        showOnlyHomePage: false,
+        colorScheme: 'secondary',
+        width: 'screen',
+        showNavigationArrows: true,
+        autoplayMode: 'none',
+        autoplaySpeed: 6,
+        showLanguageSelector: false,
+        showCurrencySelector: false,
+        showSocialMediaIcons: false,
+        isHidden: false
+    },
+    header: {
+        colorScheme: 'primary',
+        width: 'large',
+        layout: 'logo-center-menu-left-inline',
+        showDivider: true,
+        enableStickyHeader: false,
+        openMenuDropdown: 'hover',
+        navigationMenu: 'main-menu',
+        logoAlignment: 'center',
+        menu: '',
+        desktopLogoSize: 190,
+        mobileLogoSize: 120,
+        iconStyle: 'style-1-outline',
+        cartType: 'bag',
+        isHidden: false,
+        desktopLogoUrl: '',
+        mobileLogoUrl: '',
+        sectionVisibility: {
+            menu: true,
+            logo: true,
+            icons: true
+        }
+    },
+    announcements: {}, // Almacenar configuración individual de cada anuncio
+    announcementOrder: [], // Orden de los anuncios
+    sectionOrder: ['announcement', 'header'] // Orden de las secciones principales
+};
 let currentGlobalThemeSettings = {
     primaryColor: "#1976d2",
     secondaryColor: "#424242",
@@ -88,7 +130,10 @@ async function loadCurrentWebsite() {
         }
         
         const website = await response.json();
-        currentWebsiteId = website.id;
+        console.log('[DEBUG] Loaded website data:', website);
+        // C# serializes properties with capital first letter by default
+        currentWebsiteId = website.id || website.Id;
+        console.log('[DEBUG] Set currentWebsiteId to:', currentWebsiteId);
         
         // Parse and load global theme settings
         if (website.globalThemeSettingsJson) {
@@ -98,6 +143,45 @@ async function loadCurrentWebsite() {
             } catch (e) {
                 console.error('Error parsing global theme settings:', e);
                 currentGlobalThemeSettings = {};
+            }
+        }
+        
+        // Parse and load page structure
+        if (website.pagesJson) {
+            try {
+                const pageData = JSON.parse(website.pagesJson);
+                if (pageData && typeof pageData === 'object') {
+                    currentPageBlocks = pageData.blocks || [];
+                    if (pageData.sectionsConfig) {
+                        currentSectionsConfig = pageData.sectionsConfig;
+                        // Ensure required properties exist for backward compatibility
+                        if (!currentSectionsConfig.announcementOrder) {
+                            currentSectionsConfig.announcementOrder = [];
+                        }
+                        if (!currentSectionsConfig.sectionOrder) {
+                            currentSectionsConfig.sectionOrder = ['announcement', 'header'];
+                        }
+                        // Ensure header has logo URL properties and section visibility
+                        if (currentSectionsConfig.header) {
+                            if (!currentSectionsConfig.header.hasOwnProperty('desktopLogoUrl')) {
+                                currentSectionsConfig.header.desktopLogoUrl = '';
+                            }
+                            if (!currentSectionsConfig.header.hasOwnProperty('mobileLogoUrl')) {
+                                currentSectionsConfig.header.mobileLogoUrl = '';
+                            }
+                            if (!currentSectionsConfig.header.hasOwnProperty('sectionVisibility')) {
+                                currentSectionsConfig.header.sectionVisibility = {
+                                    menu: true,
+                                    logo: true,
+                                    icons: true
+                                };
+                            }
+                        }
+                    }
+                    console.log('[DEBUG] Loaded page structure from DB:', currentSectionsConfig);
+                }
+            } catch (e) {
+                console.error('Error parsing pages data:', e);
             }
         }
         
@@ -292,7 +376,7 @@ $(document).ready(async function() {
     let currentLanguage = localStorage.getItem('preferredLanguage') || 'es';
     
     // Translation objects
-    const translations = {
+    const translations = window.translations = {
         es: {
             exitEditorButtonText: "Salir",
             themeLabel: "Plantilla",
@@ -400,6 +484,9 @@ $(document).ready(async function() {
             'headerSettings.layoutLogoLeftMenuCenter': 'Logo izquierda, menú centro en línea',
             'headerSettings.layoutLogoLeftMenuLeft': 'Logo izquierda, menú izquierda en línea',
             'headerSettings.layoutLogoCenterMenuLeft': 'Logo centro, menú izquierda en línea',
+            'headerSettings.layoutLogoCenterMenuCenterBelow': 'Logo centro, menú centro debajo',
+            'headerSettings.layoutLogoLeftMenuLeftBelow': 'Logo izquierda, menú izquierda debajo',
+            'headerSettings.layoutDescription': 'El diseño se optimiza automáticamente para móvil',
             'headerSettings.mobileLayout': 'Diseño móvil',
             'headerSettings.enableStickyHeader': 'Habilitar encabezado fijo',
             'headerSettings.showDivider': 'Mostrar divisor',
@@ -408,6 +495,33 @@ $(document).ready(async function() {
             'headerSettings.secondary': 'Secundario',
             'headerSettings.contrasting': 'Contrastante',
             'headerSettings.scheme': 'Esquema',
+            'headerSettings.menu': 'Menú',
+            'headerSettings.openMenuDropdown': 'Abrir menú desplegable',
+            'headerSettings.onHover': 'Al pasar el cursor',
+            'headerSettings.onClick': 'Al hacer clic',
+            'headerSettings.chooseNavigationMenu': 'Elegir menú de navegación',
+            'headerSettings.mainMenu': 'Menú principal',
+            'headerSettings.footerMenu': 'Menú de pie de página',
+            'headerSettings.logo': 'Logo',
+            'headerSettings.desktopLogo': 'Logo de escritorio',
+            'headerSettings.desktopLogoSize': 'Tamaño del logo de escritorio',
+            'headerSettings.mobileLogo': 'Logo móvil',
+            'headerSettings.mobileLogoSize': 'Tamaño del logo móvil',
+            'headerSettings.selectImage': 'Seleccionar',
+            'headerSettings.browseFreeImages': 'Explorar imágenes gratuitas',
+            'headerSettings.icons': 'Iconos',
+            'headerSettings.iconStyle': 'Estilo de icono',
+            'headerSettings.iconStyleSolid1': 'Estilo 1 - sólido',
+            'headerSettings.iconStyleOutline1': 'Estilo 1 - contorno',
+            'headerSettings.iconStyleSolid2': 'Estilo 2 - sólido',
+            'headerSettings.iconStyleOutline2': 'Estilo 2 - contorno',
+            'headerSettings.cartType': 'Tipo de carrito',
+            'headerSettings.cartTypeBag': 'Bolsa',
+            'headerSettings.cartTypeCart': 'Carrito',
+            'headerSettings.uploadingImage': 'Subiendo imagen...',
+            'headerSettings.uploadFailed': 'Error al subir',
+            'headerSettings.changeImage': 'Cambiar imagen',
+            'headerSettings.removeImage': 'Eliminar imagen',
             // Announcement Item Settings translations
             'announcementItem.title': 'Anuncio',
             'announcementItem.announcement': 'Anuncio',
@@ -861,6 +975,74 @@ $(document).ready(async function() {
             'appearance.edgeRoundingMedium': 'Size 3 - Medium',
             'appearance.edgeRoundingLarge': 'Size 4 - Large',
             'appearance.edgeRoundingDescription': 'Applies to cards, buttons, section corners, and other elements',
+            // Header Settings translations
+            'headerSettings.title': 'Header',
+            'headerSettings.colorScheme': 'Color scheme',
+            'headerSettings.learnAboutColorSchemes': 'Learn about color schemes',
+            'headerSettings.width': 'Width',
+            'headerSettings.widthScreen': 'Screen',
+            'headerSettings.widthPage': 'Page',
+            'headerSettings.widthLarge': 'Large',
+            'headerSettings.widthMedium': 'Medium',
+            'headerSettings.layout': 'Layout',
+            'headerSettings.layoutDrawer': 'Drawer',
+            'headerSettings.layoutLogoLeftMenuCenter': 'Logo left, menu center inline',
+            'headerSettings.layoutLogoLeftMenuLeft': 'Logo left, menu left inline',
+            'headerSettings.layoutLogoCenterMenuLeft': 'Logo center, menu left inline',
+            'headerSettings.layoutLogoCenterMenuCenterBelow': 'Logo center, menu center below',
+            'headerSettings.layoutLogoLeftMenuLeftBelow': 'Logo left, menu left below',
+            'headerSettings.layoutDescription': 'Layout is auto-optimized for mobile',
+            'headerSettings.enableStickyHeader': 'Enable sticky header',
+            'headerSettings.showDivider': 'Show divider',
+            'headerSettings.default': 'Default',
+            'headerSettings.primary': 'Primary',
+            'headerSettings.secondary': 'Secondary',
+            'headerSettings.contrasting': 'Contrasting',
+            'headerSettings.scheme': 'Scheme',
+            'headerSettings.menu': 'Menu',
+            'headerSettings.openMenuDropdown': 'Open menu dropdown',
+            'headerSettings.onHover': 'On hover',
+            'headerSettings.onClick': 'On click',
+            'headerSettings.chooseNavigationMenu': 'Choose navigation menu',
+            'headerSettings.mainMenu': 'Main menu',
+            'headerSettings.footerMenu': 'Footer menu',
+            'headerSettings.logo': 'Logo',
+            'headerSettings.desktopLogo': 'Desktop logo',
+            'headerSettings.desktopLogoSize': 'Desktop logo size',
+            'headerSettings.mobileLogo': 'Mobile logo',
+            'headerSettings.mobileLogoSize': 'Mobile logo size',
+            'headerSettings.selectImage': 'Select',
+            'headerSettings.browseFreeImages': 'Browse free images',
+            'headerSettings.icons': 'Icons',
+            'headerSettings.iconStyle': 'Icon style',
+            'headerSettings.iconStyleSolid1': 'Style 1 - solid',
+            'headerSettings.iconStyleOutline1': 'Style 1 - outline',
+            'headerSettings.iconStyleSolid2': 'Style 2 - solid',
+            'headerSettings.iconStyleOutline2': 'Style 2 - outline',
+            'headerSettings.cartType': 'Cart type',
+            'headerSettings.cartTypeBag': 'Bag',
+            'headerSettings.cartTypeCart': 'Cart',
+            'headerSettings.uploadingImage': 'Uploading image...',
+            'headerSettings.uploadFailed': 'Upload failed',
+            'headerSettings.changeImage': 'Change image',
+            'headerSettings.removeImage': 'Remove image',
+            // Announcement Item Settings translations
+            'announcementItem.title': 'Announcement',
+            'announcementItem.announcement': 'Announcement',
+            'announcementItem.link': 'Link',
+            'announcementItem.linkPlaceholder': 'Paste a link or search',
+            'announcementItem.icon': 'Icon',
+            'announcementItem.select': 'Select',
+            'announcementItem.selectPlaceholder': 'Select',
+            'announcementItem.browseFreeImages': 'Browse free images',
+            'announcementItem.deleteBlock': 'Delete block',
+            'announcementItem.makeAnnouncement': 'Make an announcement',
+            'announcementItem.fontTitle': 'Font',
+            'announcementItem.boldTitle': 'Bold',
+            'announcementItem.italicTitle': 'Italic',
+            'announcementItem.linkTitle': 'Link',
+            'announcementItem.bulletListTitle': 'Bulleted list',
+            'announcementItem.numberedListTitle': 'Numbered list',
             // Typography translations
             'typography.title': 'Typography',
             'typography.description': 'We recommend that you use no more than two font families for your store.',
@@ -1059,6 +1241,10 @@ $(document).ready(async function() {
     // Set current language translations
     const lang = translations[currentLanguage];
     
+    // Sidebar view state
+    let currentSidebarView = 'blockList';
+    let currentPageData = { name: lang.homePageLabel || "Página de inicio", blocks: [] };
+    
     // Initialize translations in UI
     $('#exit-builder-btn .btn-text').text(lang.exitEditorButtonText);
     $('#active-theme-name-display .theme-label').text(lang.themeLabel);
@@ -1073,10 +1259,6 @@ $(document).ready(async function() {
     $('#exit-builder-btn').on('click', function() {
         window.location.href = '/Admin/ExactIndex';
     });
-    
-    // Sidebar view state
-    let currentSidebarView = 'blockList';
-    let currentPageData = { name: lang.homePageLabel || "Página de inicio", blocks: [] };
     
     // Global announcement counter to maintain unique IDs
     let globalAnnouncementCounter = 1;
@@ -1130,6 +1312,18 @@ $(document).ready(async function() {
         fields: ["primaryColor", "secondaryColor", "fontFamily", "headerHeight"]
     };
     
+    
+    // Make currentPageData globally accessible
+    window.currentPageData = currentPageData;
+    
+    // Helper function to get updated page data
+    window.getUpdatedPageData = function() {
+        return {
+            name: window.currentPageData?.name || lang.homePageLabel || "Página de inicio",
+            blocks: currentPageBlocks,
+            sectionsConfig: currentSectionsConfig
+        };
+    }
     
     // Function to switch sidebar view - Make it global for delegated events
     window.switchSidebarView = function(viewName, data = null) {
@@ -1216,22 +1410,144 @@ $(document).ready(async function() {
                 }
             }, 100);
             
-            attachAnnouncementBarEventListeners();
             // Apply translations after rendering
             setTimeout(applyTranslations, 0);
+            // Delay to ensure DOM is ready
+            setTimeout(() => {
+                console.log('[DEBUG] About to attach announcement bar event listeners');
+                attachAnnouncementBarEventListeners();
+                // Populate with current values
+                console.log('[DEBUG] About to populate announcement bar fields');
+                populateAnnouncementBarFields();
+                console.log('[DEBUG] Announcement bar setup complete');
+            }, 100);
         } else if (viewName === 'headerSettings') {
             dynamicContentArea.innerHTML = renderHeaderSettingsView();
             attachHeaderSettingsEventListeners();
             // Apply translations after rendering
             setTimeout(applyTranslations, 0);
+            // Populate with current values
+            populateHeaderSettingsFields();
         } else if (viewName === 'announcementItemSettings') {
             dynamicContentArea.innerHTML = renderAnnouncementItemSettingsView(data);
             attachAnnouncementItemEventListeners();
             // Apply translations after rendering
             setTimeout(applyTranslations, 0);
+            // Populate with current values
+            if (data && data.id) {
+                populateAnnouncementItemFields(data.id);
+            }
         } else {
             dynamicContentArea.innerHTML = `<p class="sidebar-loading-text">${lang.sidebarLoadingText}</p>`;
         }
+    }
+    
+    // Function to render header sections based on saved order
+    function renderHeaderSections() {
+        let html = '';
+        const sections = {
+            'announcement': {
+                html: `
+                    <div class="sidebar-subsection collapsible-parent" data-block-type="announcement" data-element-id="barra-anuncios">
+                        <span class="subsection-text" data-i18n="sections.announcementBar">Barra de anuncios</span>
+                        <div class="subsection-actions">
+                            <button class="action-icon visibility-toggle ${currentSectionsConfig.announcementBar.isHidden ? 'is-hidden' : ''}" data-section="announcement" title="Toggle visibility">
+                                <i class="material-icons icon-visible" style="${currentSectionsConfig.announcementBar.isHidden ? 'display: none;' : ''}">visibility</i>
+                                <i class="material-icons icon-hidden" style="${currentSectionsConfig.announcementBar.isHidden ? '' : 'display: none;'}">visibility_off</i>
+                            </button>
+                            <button class="action-icon add-icon" data-section="announcement" title="Add">
+                                <i class="material-icons">add</i>
+                            </button>
+                            <button class="action-icon collapse-toggle" title="Collapse/Expand">
+                                <i class="material-icons collapse-indicator">expand_more</i>
+                            </button>
+                        </div>
+                    </div>
+                `,
+                includeAnnouncements: true
+            },
+            'header': {
+                html: `
+                    <div class="sidebar-subsection" data-block-type="header">
+                        <span class="subsection-text" data-i18n="sections.headerSection">Encabezado</span>
+                        <div class="subsection-actions">
+                            <button class="action-icon visibility-toggle ${currentSectionsConfig.header.isHidden ? 'is-hidden' : ''}" data-section="header" title="Toggle visibility">
+                                <i class="material-icons icon-visible" style="${currentSectionsConfig.header.isHidden ? 'display: none;' : ''}">visibility</i>
+                                <i class="material-icons icon-hidden" style="${currentSectionsConfig.header.isHidden ? '' : 'display: none;'}">visibility_off</i>
+                            </button>
+                            <button class="action-icon add-icon" data-section="header" title="Add">
+                                <i class="material-icons">add</i>
+                            </button>
+                        </div>
+                    </div>
+                `,
+                includeAnnouncements: false
+            }
+        };
+        
+        // Use saved order or default
+        const order = currentSectionsConfig.sectionOrder || ['announcement', 'header'];
+        
+        for (const sectionType of order) {
+            if (sections[sectionType]) {
+                html += sections[sectionType].html;
+                if (sections[sectionType].includeAnnouncements) {
+                    html += renderAnnouncementItems();
+                }
+            }
+        }
+        
+        return html;
+    }
+    
+    // Function to render announcement items
+    function renderAnnouncementItems() {
+        console.log('[DEBUG] Rendering announcement items:', currentSectionsConfig.announcements);
+        let html = '';
+        // Si hay un orden definido, usarlo
+        if (currentSectionsConfig.announcementOrder && currentSectionsConfig.announcementOrder.length > 0) {
+            for (const announcementId of currentSectionsConfig.announcementOrder) {
+                if (currentSectionsConfig.announcements[announcementId]) {
+                    const config = currentSectionsConfig.announcements[announcementId];
+                    const text = config.text || lang['announcementItem.makeAnnouncement'] || 'Make an announcement';
+                    console.log('[DEBUG] Rendering announcement:', announcementId, 'with text:', text);
+                    html += `
+                        <div class="sidebar-subsection" data-block-type="announcement-item" data-element-id="${announcementId}" style="padding-left: 30px;">
+                            <span class="subsection-text">${text}</span>
+                            <div class="subsection-actions">
+                                <button class="action-icon visibility-toggle ${config.isHidden ? 'is-hidden' : ''}" title="Toggle visibility">
+                                    <i class="material-icons icon-visible" style="${config.isHidden ? 'display: none;' : ''}">visibility</i>
+                                    <i class="material-icons icon-hidden" style="${config.isHidden ? '' : 'display: none;'}">visibility_off</i>
+                                </button>
+                                <button class="action-icon delete-announcement" data-element-id="${announcementId}" title="Delete">
+                                    <i class="material-icons">delete</i>
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                }
+            }
+        } else {
+            // Si no hay orden, renderizar todos los anuncios
+            for (const [announcementId, config] of Object.entries(currentSectionsConfig.announcements)) {
+                const text = config.text || lang['announcementItem.makeAnnouncement'] || 'Make an announcement';
+                html += `
+                    <div class="sidebar-subsection" data-block-type="announcement-item" data-element-id="${announcementId}" style="padding-left: 30px;">
+                        <span class="subsection-text">${text}</span>
+                        <div class="subsection-actions">
+                            <button class="action-icon visibility-toggle" title="Toggle visibility">
+                                <i class="material-icons icon-visible">visibility</i>
+                                <i class="material-icons icon-hidden" style="display: none;">visibility_off</i>
+                            </button>
+                            <button class="action-icon delete-announcement" data-element-id="${announcementId}" title="Delete">
+                                <i class="material-icons">delete</i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+        return html;
     }
     
     // Function to render block list view - Shopify style
@@ -1253,33 +1569,7 @@ $(document).ready(async function() {
                     <i class="material-icons section-expand-icon">chevron_right</i>
                 </div>
                 <div class="sidebar-section-content">
-                    <div class="sidebar-subsection collapsible-parent" data-block-type="announcement" data-element-id="barra-anuncios">
-                        <span class="subsection-text" data-i18n="sections.announcementBar">Barra de anuncios</span>
-                        <div class="subsection-actions">
-                            <button class="action-icon visibility-toggle" data-section="announcement" title="Toggle visibility">
-                                <i class="material-icons icon-visible">visibility</i>
-                                <i class="material-icons icon-hidden" style="display: none;">visibility_off</i>
-                            </button>
-                            <button class="action-icon add-icon" data-section="announcement" title="Add">
-                                <i class="material-icons">add</i>
-                            </button>
-                            <button class="action-icon collapse-toggle" title="Collapse/Expand">
-                                <i class="material-icons collapse-indicator">expand_more</i>
-                            </button>
-                        </div>
-                    </div>
-                    <div class="sidebar-subsection" data-block-type="header">
-                        <span class="subsection-text" data-i18n="sections.headerSection">Encabezado</span>
-                        <div class="subsection-actions">
-                            <button class="action-icon visibility-toggle" data-section="header" title="Toggle visibility">
-                                <i class="material-icons icon-visible">visibility</i>
-                                <i class="material-icons icon-hidden" style="display: none;">visibility_off</i>
-                            </button>
-                            <button class="action-icon add-icon" data-section="header" title="Add">
-                                <i class="material-icons">add</i>
-                            </button>
-                        </div>
-                    </div>
+                    ${renderHeaderSections()}
                     <div class="add-section-button add-header-section" data-group="header">
                         <i class="material-icons">add_circle</i>
                         <span data-i18n="sections.addSection">Agregar sección</span>
@@ -1545,7 +1835,7 @@ $(document).ready(async function() {
                 </div>
                 
                 <!-- Settings Content -->
-                <div style="padding: 20px; overflow-y: auto; flex: 1;">
+                <div class="header-settings-content" style="padding: 20px; overflow-y: auto; flex: 1; height: calc(100% - 60px);">
                     <!-- Color scheme -->
                     <div class="settings-field">
                         <label data-i18n="headerSettings.colorScheme">Esquema de color</label>
@@ -1582,10 +1872,10 @@ $(document).ready(async function() {
                             <option value="logo-left-menu-center-inline" data-i18n="headerSettings.layoutLogoLeftMenuCenter">Logo izquierda, menú centro en línea</option>
                             <option value="logo-left-menu-left-inline" data-i18n="headerSettings.layoutLogoLeftMenuLeft">Logo izquierda, menú izquierda en línea</option>
                             <option value="logo-center-menu-left-inline" selected data-i18n="headerSettings.layoutLogoCenterMenuLeft">Logo centro, menú izquierda en línea</option>
-                            <option value="logo-center-menu-center-below">Logo center, menu center below</option>
-                            <option value="logo-left-menu-left-below">Logo left, menu left below</option>
+                            <option value="logo-center-menu-center-below" data-i18n="headerSettings.layoutLogoCenterMenuCenterBelow">Logo center, menu center below</option>
+                            <option value="logo-left-menu-left-below" data-i18n="headerSettings.layoutLogoLeftMenuLeftBelow">Logo left, menu left below</option>
                         </select>
-                        <p class="field-description" style="font-size: 12px; color: #6d7175; margin-top: 4px;">
+                        <p class="field-description" style="font-size: 12px; color: #6d7175; margin-top: 4px;" data-i18n="headerSettings.layoutDescription">
                             Layout is auto-optimized for mobile
                         </p>
                     </div>
@@ -1610,51 +1900,75 @@ $(document).ready(async function() {
                     
                     <!-- Menu Section -->
                     <div class="settings-section">
-                        <h4>Menu</h4>
+                        <div class="section-header-with-toggle">
+                            <h4 data-i18n="headerSettings.menu">Menu</h4>
+                            <button class="simple-visibility-btn" onclick="window.toggleHeaderSectionVisibility('menu', this)" data-section="menu" style="width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center; background: transparent; border: 1px solid #e0e0e0; border-radius: 4px; cursor: pointer;">
+                                ${currentSectionsConfig.header.sectionVisibility?.menu !== false ? 
+                                    `<span style="font-size: 18px;">👁️</span>` : 
+                                    `<span style="font-size: 18px; text-decoration: line-through;">👁️</span>`
+                                }
+                            </button>
+                        </div>
                         
                         <!-- Open menu dropdown -->
                         <div class="settings-field">
-                            <label>Open menu dropdown</label>
-                            <div class="radio-group">
-                                <label class="radio-label">
-                                    <input type="radio" name="open-menu" value="hover" checked>
-                                    <span>On hover</span>
-                                </label>
-                                <label class="radio-label">
-                                    <input type="radio" name="open-menu" value="click">
-                                    <span>On click</span>
-                                </label>
-                            </div>
+                            <label data-i18n="headerSettings.openMenuDropdown">Open menu dropdown</label>
+                            <select class="shopify-select" id="open-menu-dropdown">
+                                <option value="hover" data-i18n="headerSettings.onHover">On hover</option>
+                                <option value="click" data-i18n="headerSettings.onClick">On click</option>
+                            </select>
                         </div>
                         
                         <!-- Choose navigation menu -->
                         <div class="settings-field">
-                            <label>Choose navigation menu</label>
+                            <label data-i18n="headerSettings.chooseNavigationMenu">Choose navigation menu</label>
                             <select class="shopify-select" id="navigation-menu">
-                                <option value="main-menu" selected>Main menu</option>
-                                <option value="footer-menu">Footer menu</option>
+                                <option value="main-menu" selected data-i18n="headerSettings.mainMenu">Main menu</option>
+                                <option value="footer-menu" data-i18n="headerSettings.footerMenu">Footer menu</option>
                             </select>
                         </div>
                     </div>
                     
                     <!-- Logo Section -->
                     <div class="settings-section">
-                        <h4>Logo</h4>
+                        <div class="section-header-with-toggle">
+                            <h4 data-i18n="headerSettings.logo">Logo</h4>
+                            <button class="simple-visibility-btn" onclick="window.toggleHeaderSectionVisibility('logo', this)" data-section="logo" style="width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center; background: transparent; border: 1px solid #e0e0e0; border-radius: 4px; cursor: pointer;">
+                                ${currentSectionsConfig.header.sectionVisibility?.logo !== false ? 
+                                    `<span style="font-size: 18px;">👁️</span>` : 
+                                    `<span style="font-size: 18px; text-decoration: line-through;">👁️</span>`
+                                }
+                            </button>
+                        </div>
                         
                         <!-- Desktop logo -->
                         <div class="settings-field">
-                            <label>Desktop logo</label>
-                            <div class="image-upload-field" style="position: relative; border: 1px dashed #c9cccf; border-radius: 4px; padding: 20px; text-align: center; cursor: pointer; background: #020711;">
-                                <div style="background: white; border-radius: 50%; width: 120px; height: 120px; margin: 0 auto 10px; display: flex; align-items: center; justify-content: center;">
-                                    <span style="color: #020711; font-size: 48px; font-weight: bold;">A</span>
+                            <label data-i18n="headerSettings.desktopLogo">Desktop logo</label>
+                            <div class="image-upload-field desktop-logo-upload">
+                                <input type="file" id="desktop-logo-input" accept="image/*" style="display: none;">
+                                <div class="logo-preview">
+                                    <div class="logo-placeholder">
+                                        <span style="color: #020711; font-size: 48px; font-weight: bold;">A</span>
+                                    </div>
+                                    <img class="logo-image" src="" alt="Desktop logo">
                                 </div>
-                                <p style="font-size: 12px; color: rgba(255,255,255,0.7); margin: 0;">26 pages</p>
+                                <div class="logo-actions">
+                                    <button class="btn-secondary select-logo-btn" data-logo-type="desktop">
+                                        <span data-i18n="headerSettings.selectImage">Select</span>
+                                    </button>
+                                    <button class="btn-secondary remove-logo-btn" data-logo-type="desktop" style="display: none;">
+                                        <span data-i18n="headerSettings.removeImage">Remove</span>
+                                    </button>
+                                </div>
+                                <p style="font-size: 11px; color: #6d7175; margin: 8px 0 0 0;">
+                                    <span data-i18n="headerSettings.browseFreeImages">Browse free images</span>
+                                </p>
                             </div>
                         </div>
                         
                         <!-- Desktop logo size -->
                         <div class="settings-field">
-                            <label>Desktop logo size</label>
+                            <label data-i18n="headerSettings.desktopLogoSize">Desktop logo size</label>
                             <div class="range-with-inputs">
                                 <input type="range" class="shopify-range" min="50" max="300" value="190" id="desktop-logo-size">
                                 <div class="range-inputs">
@@ -1666,26 +1980,34 @@ $(document).ready(async function() {
                         
                         <!-- Mobile logo -->
                         <div class="settings-field">
-                            <label>Mobile logo</label>
-                            <div style="position: relative; border: 1px dashed #c9cccf; border-radius: 4px; padding: 16px; background: #f9f9f9;">
-                                <!-- Preview del logo móvil -->
-                                <div style="background: #020711; border-radius: 4px; padding: 15px; margin-bottom: 12px; text-align: center;">
-                                    <div style="background: white; border-radius: 50%; width: 80px; height: 80px; margin: 0 auto; display: flex; align-items: center; justify-content: center;">
-                                        <span style="color: #020711; font-size: 32px; font-weight: bold;">A</span>
+                            <label data-i18n="headerSettings.mobileLogo">Mobile logo</label>
+                            <div class="image-upload-field mobile-logo-upload">
+                                <input type="file" id="mobile-logo-input" accept="image/*" style="display: none;">
+                                <div class="logo-preview">
+                                    <div style="background: #020711; border-radius: 4px; padding: 15px; text-align: center;">
+                                        <div class="logo-placeholder">
+                                            <span style="color: #020711; font-size: 32px; font-weight: bold;">A</span>
+                                        </div>
+                                        <img class="logo-image" src="" alt="Mobile logo">
                                     </div>
                                 </div>
-                                <button class="btn-secondary" style="width: 100%; padding: 8px 16px; background: white; border: 1px solid #c9cccf; border-radius: 4px; cursor: pointer;">
-                                    Seleccionar
-                                </button>
+                                <div class="logo-actions">
+                                    <button class="btn-secondary select-logo-btn" data-logo-type="mobile" style="width: 100%;">
+                                        <span data-i18n="headerSettings.selectImage">Select</span>
+                                    </button>
+                                    <button class="btn-secondary remove-logo-btn" data-logo-type="mobile" style="display: none; width: 100%;">
+                                        <span data-i18n="headerSettings.removeImage">Remove</span>
+                                    </button>
+                                </div>
                                 <p style="font-size: 11px; color: #6d7175; margin: 8px 0 0 0; text-align: center;">
-                                    Explorar imágenes gratuitas
+                                    <span data-i18n="headerSettings.browseFreeImages">Browse free images</span>
                                 </p>
                             </div>
                         </div>
                         
                         <!-- Mobile logo size -->
                         <div class="settings-field">
-                            <label>Mobile logo size</label>
+                            <label data-i18n="headerSettings.mobileLogoSize">Mobile logo size</label>
                             <div class="range-with-inputs">
                                 <input type="range" class="shopify-range" min="50" max="250" value="120" id="mobile-logo-size">
                                 <div class="range-inputs">
@@ -1698,32 +2020,34 @@ $(document).ready(async function() {
                     
                     <!-- Icons Section -->
                     <div class="settings-section">
-                        <h4>Icons</h4>
+                        <div class="section-header-with-toggle">
+                            <h4 data-i18n="headerSettings.icons">Icons</h4>
+                            <button class="simple-visibility-btn" onclick="window.toggleHeaderSectionVisibility('icons', this)" data-section="icons" style="width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center; background: transparent; border: 1px solid #e0e0e0; border-radius: 4px; cursor: pointer;">
+                                ${currentSectionsConfig.header.sectionVisibility?.icons !== false ? 
+                                    `<span style="font-size: 18px;">👁️</span>` : 
+                                    `<span style="font-size: 18px; text-decoration: line-through;">👁️</span>`
+                                }
+                            </button>
+                        </div>
                         
                         <!-- Icon style -->
                         <div class="settings-field">
-                            <label>Icon style</label>
+                            <label data-i18n="headerSettings.iconStyle">Icon style</label>
                             <select class="shopify-select" id="icon-style">
-                                <option value="style-1-solid">Style 1 - solid</option>
-                                <option value="style-1-outline" selected>Style 1 - outline</option>
-                                <option value="style-2-solid">Style 2 - solid</option>
-                                <option value="style-2-outline">Style 2 - outline</option>
+                                <option value="style-1-solid" data-i18n="headerSettings.iconStyleSolid1">Style 1 - solid</option>
+                                <option value="style-1-outline" selected data-i18n="headerSettings.iconStyleOutline1">Style 1 - outline</option>
+                                <option value="style-2-solid" data-i18n="headerSettings.iconStyleSolid2">Style 2 - solid</option>
+                                <option value="style-2-outline" data-i18n="headerSettings.iconStyleOutline2">Style 2 - outline</option>
                             </select>
                         </div>
                         
                         <!-- Cart type -->
                         <div class="settings-field">
-                            <label>Cart type</label>
-                            <div class="radio-group">
-                                <label class="radio-label">
-                                    <input type="radio" name="cart-type" value="bag" checked>
-                                    <span>Bag</span>
-                                </label>
-                                <label class="radio-label">
-                                    <input type="radio" name="cart-type" value="cart">
-                                    <span>Cart</span>
-                                </label>
-                            </div>
+                            <label data-i18n="headerSettings.cartType">Cart type</label>
+                            <select class="shopify-select" id="cart-type-select">
+                                <option value="bag" data-i18n="headerSettings.cartTypeBag">Bag</option>
+                                <option value="cart" data-i18n="headerSettings.cartTypeCart">Cart</option>
+                            </select>
                         </div>
                     </div>
                 </div>
@@ -1731,40 +2055,14 @@ $(document).ready(async function() {
         `;
     }
     
-    // Function to attach event listeners for header settings view
-    function attachHeaderSettingsEventListeners() {
-        // Back button
-        $('.back-to-sections-btn').on('click', function() {
-            switchSidebarView('blockList', currentPageData);
-        });
-        
-        // Sync range slider with number input
-        $('#desktop-logo-size').on('input', function() {
-            const value = $(this).val();
-            $(this).closest('.range-with-inputs').find('.shopify-number-input').val(value);
-        });
-        
-        $('#mobile-logo-size').on('input', function() {
-            const value = $(this).val();
-            $(this).closest('.range-with-inputs').find('.shopify-number-input').val(value);
-        });
-        
-        // Sync number input with range slider
-        $('.shopify-number-input').on('input', function() {
-            const value = $(this).val();
-            const $rangeInput = $(this).closest('.range-with-inputs').find('.shopify-range');
-            $rangeInput.val(value);
-        });
-    }
-    
     // Function to render announcement item settings view
     function renderAnnouncementItemSettingsView(data) {
         const announcementId = data?.id || 1;
-        const announcementText = translations[currentLanguage]['announcementItem.makeAnnouncement'] || 'Make an announcement';
+        const announcementText = lang && lang['announcementItem.makeAnnouncement'] || 'Make an announcement';
         
         return `
             <div style="display: flex; flex-direction: column; height: 100%; position: relative;">
-                <div class="sidebar-view-header" style="position: relative; z-index: 10;">
+                <div class="sidebar-view-header" data-announcement-id="${announcementId}" style="position: relative; z-index: 10;">
                     <button class="back-to-sections-btn">
                         <i class="material-icons">arrow_back</i>
                     </button>
@@ -1844,28 +2142,6 @@ $(document).ready(async function() {
                 </div>
             </div>
         `;
-    }
-    
-    // Function to attach event listeners for announcement item settings view
-    function attachAnnouncementItemEventListeners() {
-        // Back button
-        $('.back-to-sections-btn').on('click', function() {
-            switchSidebarView('blockList', currentPageData);
-        });
-        
-        // Delete block button
-        $('.delete-block-btn').on('click', function() {
-            if (confirm('¿Estás seguro de que quieres eliminar este bloque?')) {
-                // TODO: Implement delete functionality
-                switchSidebarView('blockList', currentPageData);
-            }
-        });
-        
-        // Toolbar buttons
-        $('.toolbar-btn').on('click', function(e) {
-            e.preventDefault();
-            // TODO: Implement rich text formatting
-        });
     }
     
     // Function to render block settings view  
@@ -3531,10 +3807,10 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
     }
     
     // Attach event listeners for announcement bar view
-    function attachAnnouncementBarEventListeners() {
+    function attachAnnouncementBarEventListenersGeneric() {
         // Back button
         $('.back-to-sections-btn').on('click', function() {
-            switchSidebarView('blockList', currentPageData);
+            window.switchSidebarView('blockList', window.getUpdatedPageData());
         });
         
         // Menu dropdown toggle
@@ -3652,28 +3928,8 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
             // TODO: Handle other block types
         });
         
-        // Visibility toggle button
-        $(document).on('click', '.visibility-toggle', function(e) {
-            e.stopPropagation();
-            const $button = $(this);
-            const $visibleIcon = $button.find('.icon-visible');
-            const $hiddenIcon = $button.find('.icon-hidden');
-            
-            $button.toggleClass('hidden');
-            const isHidden = $button.hasClass('hidden');
-            
-            if (isHidden) {
-                $visibleIcon.hide();
-                $hiddenIcon.show();
-            } else {
-                $visibleIcon.show();
-                $hiddenIcon.hide();
-            }
-            
-            const section = $button.data('section');
-            console.log(`Visibility toggled for ${section}: ${isHidden ? 'hidden' : 'visible'}`);
-            // TODO: Actually hide/show the section in the preview
-        });
+        // Visibility toggle button - COMMENTED OUT TO AVOID DUPLICATE HANDLER
+        // This handler is replaced by the unified one below
         
         // Delete button for announcement
         $(document).on('click', '.delete-icon', function(e) {
@@ -3684,6 +3940,10 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                 // TODO: Actually delete the section
                 $(this).closest('.sidebar-subsection').fadeOut(300, function() {
                     $(this).remove();
+                    // Activar bandera de cambios pendientes
+                    hasPendingPageStructureChanges = true;
+                    updateSaveButtonState();
+                    console.log('[DEBUG] Page structure changed - element deleted');
                 });
             }
         });
@@ -3719,7 +3979,7 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
             
             // Create unique ID
             const announcementId = 'anuncio-' + Date.now();
-            const announcementText = translations[currentLanguage]['announcementBar.makeAnnouncement'] || 'Make an announcement';
+            const announcementText = lang && lang['announcementBar.makeAnnouncement'] || 'Make an announcement';
             const announcementName = `${announcementText} ${announcementNumber}`;
             
             // Create new announcement (same level as announcement bar but indented)
@@ -3745,6 +4005,25 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
             } else {
                 $announcementBar.after(newAnnouncement);
             }
+            
+            // Add to configuration
+            currentSectionsConfig.announcements[announcementId] = {
+                text: announcementName,
+                link: '',
+                icon: 'none',
+                customIcon: ''
+            };
+            
+            // Add to order array (ensure it exists first)
+            if (!currentSectionsConfig.announcementOrder) {
+                currentSectionsConfig.announcementOrder = [];
+            }
+            currentSectionsConfig.announcementOrder.push(announcementId);
+            
+            // Activar bandera de cambios pendientes
+            hasPendingPageStructureChanges = true;
+            updateSaveButtonState();
+            console.log('[DEBUG] Page structure changed - new announcement added:', announcementId);
             
             // Reinitialize drag and drop to include new element
             setTimeout(() => {
@@ -3779,34 +4058,80 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
         $(document).on('click', '.delete-announcement', function(e) {
             e.preventDefault();
             e.stopPropagation();
+            e.stopImmediatePropagation(); // Prevenir múltiples disparos del evento
+            
             const elementId = $(this).data('element-id');
             const $announcement = $(`.sidebar-subsection[data-element-id="${elementId}"]`);
             
+            console.log('[DEBUG] Delete announcement clicked for:', elementId);
+            
             if (confirm('¿Estás seguro de que quieres eliminar este anuncio?')) {
                 $announcement.remove();
+                // Eliminar del objeto de configuración
+                delete currentSectionsConfig.announcements[elementId];
+                // Eliminar del array de orden si existe
+                if (currentSectionsConfig.announcementOrder && Array.isArray(currentSectionsConfig.announcementOrder)) {
+                    const orderIndex = currentSectionsConfig.announcementOrder.indexOf(elementId);
+                    if (orderIndex > -1) {
+                        currentSectionsConfig.announcementOrder.splice(orderIndex, 1);
+                    }
+                }
+                // Activar bandera de cambios pendientes
+                hasPendingPageStructureChanges = true;
+                updateSaveButtonState();
+                console.log('[DEBUG] Page structure changed - announcement item deleted:', elementId);
             }
+            
+            return false; // Prevenir cualquier otro manejo del evento
         });
         
-        // Visibility toggle for all elements
-        $(document).on('click', '.visibility-toggle', function(e) {
+        // Visibility toggle for all elements (except header toggles)
+        $(document).on('click', '.visibility-toggle:not(.header-visibility-toggle)', function(e) {
             e.preventDefault();
             e.stopPropagation();
             
             const $button = $(this);
             const $visibleIcon = $button.find('.icon-visible');
             const $hiddenIcon = $button.find('.icon-hidden');
+            const section = $button.data('section');
+            const $subsection = $button.closest('.sidebar-subsection');
+            const elementId = $subsection.data('element-id');
+            const blockType = $subsection.data('block-type');
             
-            if ($button.hasClass('is-hidden')) {
+            // Toggle visibility state
+            const isCurrentlyHidden = $hiddenIcon.is(':visible');
+            
+            if (isCurrentlyHidden) {
                 // Show element - show visibility icon
+                $visibleIcon.show();
+                $hiddenIcon.hide();
                 $button.removeClass('is-hidden');
-                $visibleIcon.css('display', 'inline-block');
-                $hiddenIcon.css('display', 'none');
             } else {
                 // Hide element - show visibility_off icon
+                $visibleIcon.hide();
+                $hiddenIcon.show();
                 $button.addClass('is-hidden');
-                $visibleIcon.css('display', 'none');
-                $hiddenIcon.css('display', 'inline-block');
             }
+            
+            // Save visibility state based on element type
+            if (blockType === 'announcement-item' && elementId) {
+                if (!currentSectionsConfig.announcements[elementId]) {
+                    currentSectionsConfig.announcements[elementId] = {};
+                }
+                currentSectionsConfig.announcements[elementId].isHidden = !isCurrentlyHidden;
+                console.log(`[DEBUG] Announcement ${elementId} visibility: ${!isCurrentlyHidden ? 'hidden' : 'visible'}`);
+            } else if (section === 'announcement') {
+                currentSectionsConfig.announcementBar.isHidden = !isCurrentlyHidden;
+                console.log(`[DEBUG] Announcement bar visibility: ${!isCurrentlyHidden ? 'hidden' : 'visible'}`);
+            } else if (section === 'header' || blockType === 'header') {
+                currentSectionsConfig.header.isHidden = !isCurrentlyHidden;
+                console.log(`[DEBUG] Header visibility: ${!isCurrentlyHidden ? 'hidden' : 'visible'}`);
+            }
+            
+            // Activar bandera de cambios pendientes
+            hasPendingPageStructureChanges = true;
+            updateSaveButtonState();
+            console.log('[DEBUG] Page structure changed - element visibility toggled');
         });
         
         // Initialize collapsible subsections
@@ -3934,6 +4259,21 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                             ui.item.removeData('announcement-children');
                         }
                         
+                        // Update section order based on DOM
+                        const newOrder = [];
+                        $('.sidebar-subsection[data-block-type="announcement"], .sidebar-subsection[data-block-type="header"]').each(function() {
+                            const blockType = $(this).data('block-type');
+                            if (blockType && !newOrder.includes(blockType)) {
+                                newOrder.push(blockType);
+                            }
+                        });
+                        currentSectionsConfig.sectionOrder = newOrder;
+                        
+                        // Activar bandera de cambios pendientes
+                        hasPendingPageStructureChanges = true;
+                        updateSaveButtonState();
+                        console.log('[DEBUG] Page structure changed - drag & drop reorder. New order:', newOrder);
+                        
                         // Re-ensure the collapse button is present
                         setTimeout(() => {
                             const $announcementBar = $('.sidebar-subsection[data-element-id="barra-anuncios"]');
@@ -3983,6 +4323,27 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                                 if (currentIndex <= barPos) {
                                     return false;
                                 }
+                            },
+                            stop: function(e, ui) {
+                                // Update announcement order based on DOM
+                                const newAnnouncementOrder = [];
+                                $('.sidebar-subsection[data-block-type="announcement-item"]').each(function() {
+                                    const elementId = $(this).data('element-id');
+                                    if (elementId) {
+                                        newAnnouncementOrder.push(elementId);
+                                    }
+                                });
+                                
+                                // Ensure the announcements property exists
+                                if (!currentSectionsConfig.announcementOrder) {
+                                    currentSectionsConfig.announcementOrder = [];
+                                }
+                                currentSectionsConfig.announcementOrder = newAnnouncementOrder;
+                                
+                                // Activar bandera de cambios pendientes
+                                hasPendingPageStructureChanges = true;
+                                updateSaveButtonState();
+                                console.log('[DEBUG] Page structure changed - announcement items reorder. New order:', newAnnouncementOrder);
                             }
                         });
                     }
@@ -7612,10 +7973,535 @@ document.head.appendChild(style);
         updateSaveButtonState();
     }
     
+    // Function to populate announcement bar fields with current values
+    function populateAnnouncementBarFields() {
+        const config = currentSectionsConfig.announcementBar;
+        $('#show-only-home').prop('checked', config.showOnlyHomePage);
+        $('#color-scheme-select').val(config.colorScheme);
+        $('#width-select').val(config.width);
+        $('#show-nav-arrows').prop('checked', config.showNavigationArrows);
+        $(`input[name="autoplay-mode"][value="${config.autoplayMode}"]`).prop('checked', true);
+        $('#autoplay-speed').val(config.autoplaySpeed);
+        $('.shopify-number-input').val(config.autoplaySpeed);
+        $('#show-language-selector').prop('checked', config.showLanguageSelector);
+        $('#show-currency-selector').prop('checked', config.showCurrencySelector);
+        $('#show-social-icons').prop('checked', config.showSocialMediaIcons);
+    }
+    
+    // Function to attach event listeners for announcement bar settings
+    function attachAnnouncementBarEventListeners() {
+        // Back button
+        $('.back-to-sections-btn').on('click', function() {
+            window.switchSidebarView('blockList', window.getUpdatedPageData());
+        });
+        
+        // Toggle fields
+        $('#show-only-home').on('change', function() {
+            currentSectionsConfig.announcementBar.showOnlyHomePage = $(this).is(':checked');
+            hasPendingPageStructureChanges = true;
+            updateSaveButtonState();
+            console.log('[DEBUG] Announcement bar config changed - showOnlyHomePage');
+        });
+        
+        $('#color-scheme-select').on('change', function() {
+            currentSectionsConfig.announcementBar.colorScheme = $(this).val();
+            hasPendingPageStructureChanges = true;
+            updateSaveButtonState();
+            console.log('[DEBUG] Announcement bar config changed - colorScheme');
+        });
+        
+        $('#width-select').on('change', function() {
+            currentSectionsConfig.announcementBar.width = $(this).val();
+            hasPendingPageStructureChanges = true;
+            updateSaveButtonState();
+            console.log('[DEBUG] Announcement bar config changed - width');
+        });
+        
+        $('#show-nav-arrows').on('change', function() {
+            currentSectionsConfig.announcementBar.showNavigationArrows = $(this).is(':checked');
+            hasPendingPageStructureChanges = true;
+            updateSaveButtonState();
+            console.log('[DEBUG] Announcement bar config changed - showNavigationArrows');
+        });
+        
+        $('input[name="autoplay-mode"]').on('change', function() {
+            currentSectionsConfig.announcementBar.autoplayMode = $(this).val();
+            hasPendingPageStructureChanges = true;
+            updateSaveButtonState();
+            console.log('[DEBUG] Announcement bar config changed - autoplayMode');
+        });
+        
+        $('#autoplay-speed').on('input', function() {
+            const value = $(this).val();
+            currentSectionsConfig.announcementBar.autoplaySpeed = parseInt(value);
+            $(this).closest('.range-with-inputs').find('.shopify-number-input').val(value);
+            hasPendingPageStructureChanges = true;
+            updateSaveButtonState();
+        });
+        
+        $('.shopify-number-input').on('input', function() {
+            const value = $(this).val();
+            currentSectionsConfig.announcementBar.autoplaySpeed = parseInt(value);
+            $(this).closest('.range-with-inputs').find('#autoplay-speed').val(value);
+            hasPendingPageStructureChanges = true;
+            updateSaveButtonState();
+        });
+        
+        $('#show-language-selector').on('change', function() {
+            currentSectionsConfig.announcementBar.showLanguageSelector = $(this).is(':checked');
+            hasPendingPageStructureChanges = true;
+            updateSaveButtonState();
+            console.log('[DEBUG] Announcement bar config changed - showLanguageSelector');
+        });
+        
+        $('#show-currency-selector').on('change', function() {
+            currentSectionsConfig.announcementBar.showCurrencySelector = $(this).is(':checked');
+            hasPendingPageStructureChanges = true;
+            updateSaveButtonState();
+            console.log('[DEBUG] Announcement bar config changed - showCurrencySelector');
+        });
+        
+        $('#show-social-icons').on('change', function() {
+            currentSectionsConfig.announcementBar.showSocialMediaIcons = $(this).is(':checked');
+            hasPendingPageStructureChanges = true;
+            updateSaveButtonState();
+            console.log('[DEBUG] Announcement bar config changed - showSocialMediaIcons');
+        });
+    }
+    
+    // Function to populate announcement item fields with current values
+    function populateAnnouncementItemFields(announcementId) {
+        const config = currentSectionsConfig.announcements[announcementId];
+        if (!config) {
+            // Initialize with default values if not exists
+            currentSectionsConfig.announcements[announcementId] = {
+                text: lang && lang['announcementItem.makeAnnouncement'] || 'Make an announcement',
+                link: '',
+                icon: 'none',
+                customIcon: ''
+            };
+            return;
+        }
+        
+        $('.rich-text-input').val(config.text || '');
+        $('.shopify-input[type="text"]').val(config.link || '');
+        $('#announcement-icon').val(config.icon || 'none');
+    }
+    
+    // Function to update existing attachAnnouncementItemEventListeners
+    function attachAnnouncementItemEventListeners() {
+        const announcementId = $('.sidebar-view-header').data('announcement-id') || 
+                              window.location.hash.split('/').pop() || 
+                              'temp-' + Date.now();
+        
+        // Back button
+        $('.back-to-sections-btn').on('click', function() {
+            window.switchSidebarView('blockList', window.getUpdatedPageData());
+        });
+        
+        // Text input
+        $('.rich-text-input').on('input change', function() {
+            if (!currentSectionsConfig.announcements[announcementId]) {
+                currentSectionsConfig.announcements[announcementId] = {};
+            }
+            const newText = $(this).val();
+            currentSectionsConfig.announcements[announcementId].text = newText;
+            hasPendingPageStructureChanges = true;
+            updateSaveButtonState();
+            console.log('[DEBUG] Announcement item text changed:', {
+                announcementId: announcementId,
+                newText: newText,
+                currentConfig: currentSectionsConfig.announcements[announcementId]
+            });
+        });
+        
+        // Link input
+        $('.shopify-input[type="text"]').on('input change', function() {
+            if (!currentSectionsConfig.announcements[announcementId]) {
+                currentSectionsConfig.announcements[announcementId] = {};
+            }
+            currentSectionsConfig.announcements[announcementId].link = $(this).val();
+            hasPendingPageStructureChanges = true;
+            updateSaveButtonState();
+            console.log('[DEBUG] Announcement item link changed');
+        });
+        
+        // Icon select
+        $('#announcement-icon').on('change', function() {
+            if (!currentSectionsConfig.announcements[announcementId]) {
+                currentSectionsConfig.announcements[announcementId] = {};
+            }
+            currentSectionsConfig.announcements[announcementId].icon = $(this).val();
+            hasPendingPageStructureChanges = true;
+            updateSaveButtonState();
+            console.log('[DEBUG] Announcement item icon changed');
+        });
+        
+        // Delete block button
+        $('.delete-block-btn').on('click', function() {
+            if (confirm('¿Estás seguro de que quieres eliminar este bloque?')) {
+                // Remove from config
+                delete currentSectionsConfig.announcements[announcementId];
+                hasPendingPageStructureChanges = true;
+                updateSaveButtonState();
+                // Go back to block list
+                switchSidebarView('blockList', currentPageData);
+            }
+        });
+        
+        // Toolbar buttons
+        $('.toolbar-btn').on('click', function(e) {
+            e.preventDefault();
+            // TODO: Implement rich text formatting
+        });
+    }
+    
+    // Function to populate header settings fields with current values
+    function populateHeaderSettingsFields() {
+        const config = currentSectionsConfig.header;
+        $('#header-color-scheme').val(config.colorScheme);
+        $('#header-width').val(config.width);
+        $('#header-layout').val(config.layout);
+        $('#show-separator').prop('checked', config.showDivider);
+        $('#logo-alignment').val(config.logoAlignment);
+        $('#menu-select').val(config.menu);
+        $('#desktop-logo-size').val(config.desktopLogoSize);
+        $('#mobile-logo-size').val(config.mobileLogoSize);
+        // Update number inputs
+        $('#desktop-logo-size').closest('.range-with-inputs').find('.shopify-number-input').val(config.desktopLogoSize);
+        $('#mobile-logo-size').closest('.range-with-inputs').find('.shopify-number-input').val(config.mobileLogoSize);
+        $('#icon-style').val(config.iconStyle);
+        $('#cart-type-select').val(config.cartType);
+        $('#enable-sticky').prop('checked', config.enableStickyHeader);
+        $('#open-menu-dropdown').val(config.openMenuDropdown);
+        $('#navigation-menu').val(config.navigationMenu);
+        
+        // Load logos if they exist
+        if (config.desktopLogoUrl) {
+            const $desktopUpload = $('.desktop-logo-upload');
+            $desktopUpload.find('.logo-placeholder').hide();
+            $desktopUpload.find('.logo-image').attr('src', config.desktopLogoUrl).show();
+            $desktopUpload.find('.select-logo-btn').html('<span data-i18n="headerSettings.changeImage">Change image</span>');
+        }
+        
+        if (config.mobileLogoUrl) {
+            const $mobileUpload = $('.mobile-logo-upload');
+            $mobileUpload.find('.logo-placeholder').hide();
+            $mobileUpload.find('.logo-image').attr('src', config.mobileLogoUrl).show();
+            $mobileUpload.find('.select-logo-btn').html('<span data-i18n="headerSettings.changeImage">Change image</span>');
+        }
+        
+        // Load section visibility states
+        if (config.sectionVisibility) {
+            Object.keys(config.sectionVisibility).forEach(section => {
+                const $toggle = $(`.header-visibility-toggle[data-section="${section}"]`);
+                const isVisible = config.sectionVisibility[section];
+                
+                // Replace the entire button content
+                const iconHtml = isVisible ? 
+                    '<i class="fas fa-eye"></i>' : 
+                    '<i class="fas fa-eye-slash"></i>';
+                
+                $toggle.html(iconHtml);
+                $toggle.attr('data-visible', isVisible);
+            });
+        }
+    }
+    
+    // Function to attach event listeners for header settings
+    function attachHeaderSettingsEventListeners() {
+        // Back button
+        $('.back-to-sections-btn').on('click', function() {
+            window.switchSidebarView('blockList', window.getUpdatedPageData());
+        });
+        
+        // Color scheme
+        $('#header-color-scheme').on('change', function() {
+            currentSectionsConfig.header.colorScheme = $(this).val();
+            hasPendingPageStructureChanges = true;
+            updateSaveButtonState();
+            console.log('[DEBUG] Header config changed - colorScheme');
+        });
+        
+        // Width
+        $('#header-width').on('change', function() {
+            currentSectionsConfig.header.width = $(this).val();
+            hasPendingPageStructureChanges = true;
+            updateSaveButtonState();
+            console.log('[DEBUG] Header config changed - width');
+        });
+        
+        // Layout
+        $('#header-layout').on('change', function() {
+            currentSectionsConfig.header.layout = $(this).val();
+            hasPendingPageStructureChanges = true;
+            updateSaveButtonState();
+            console.log('[DEBUG] Header config changed - layout');
+        });
+        
+        // Show divider
+        $('#show-separator').on('change', function() {
+            currentSectionsConfig.header.showDivider = $(this).is(':checked');
+            hasPendingPageStructureChanges = true;
+            updateSaveButtonState();
+            console.log('[DEBUG] Header config changed - showDivider');
+        });
+        
+        // Logo alignment
+        $('#logo-alignment').on('change', function() {
+            currentSectionsConfig.header.logoAlignment = $(this).val();
+            hasPendingPageStructureChanges = true;
+            updateSaveButtonState();
+            console.log('[DEBUG] Header config changed - logoAlignment');
+        });
+        
+        // Menu
+        $('#menu-select').on('change', function() {
+            currentSectionsConfig.header.menu = $(this).val();
+            hasPendingPageStructureChanges = true;
+            updateSaveButtonState();
+            console.log('[DEBUG] Header config changed - menu');
+        });
+        
+        // Desktop logo size
+        $('#desktop-logo-size').on('input', function() {
+            const value = $(this).val();
+            currentSectionsConfig.header.desktopLogoSize = parseInt(value);
+            $(this).closest('.range-with-inputs').find('.shopify-number-input').val(value);
+            hasPendingPageStructureChanges = true;
+            updateSaveButtonState();
+        });
+        
+        // Mobile logo size
+        $('#mobile-logo-size').on('input', function() {
+            const value = $(this).val();
+            currentSectionsConfig.header.mobileLogoSize = parseInt(value);
+            $(this).closest('.range-with-inputs').find('.shopify-number-input').val(value);
+            hasPendingPageStructureChanges = true;
+            updateSaveButtonState();
+        });
+        
+        // Number inputs sync
+        $('.shopify-number-input').on('input', function() {
+            const value = $(this).val();
+            const $rangeInput = $(this).closest('.range-with-inputs').find('.shopify-range');
+            $rangeInput.val(value);
+            
+            if ($rangeInput.attr('id') === 'desktop-logo-size') {
+                currentSectionsConfig.header.desktopLogoSize = parseInt(value);
+            } else if ($rangeInput.attr('id') === 'mobile-logo-size') {
+                currentSectionsConfig.header.mobileLogoSize = parseInt(value);
+            }
+            
+            hasPendingPageStructureChanges = true;
+            updateSaveButtonState();
+        });
+        
+        // Icon style
+        $('#icon-style').on('change', function() {
+            currentSectionsConfig.header.iconStyle = $(this).val();
+            hasPendingPageStructureChanges = true;
+            updateSaveButtonState();
+            console.log('[DEBUG] Header config changed - iconStyle');
+        });
+        
+        // Cart type
+        $('#cart-type-select').on('change', function() {
+            currentSectionsConfig.header.cartType = $(this).val();
+            hasPendingPageStructureChanges = true;
+            updateSaveButtonState();
+            console.log('[DEBUG] Header config changed - cartType:', $(this).val());
+        });
+        
+        // Enable sticky header
+        $('#enable-sticky').on('change', function() {
+            currentSectionsConfig.header.enableStickyHeader = $(this).is(':checked');
+            hasPendingPageStructureChanges = true;
+            updateSaveButtonState();
+            console.log('[DEBUG] Header config changed - enableStickyHeader');
+        });
+        
+        // Open menu dropdown
+        $('#open-menu-dropdown').on('change', function() {
+            currentSectionsConfig.header.openMenuDropdown = $(this).val();
+            hasPendingPageStructureChanges = true;
+            updateSaveButtonState();
+            console.log('[DEBUG] Header config changed - openMenuDropdown:', $(this).val());
+        });
+        
+        // Navigation menu
+        $('#navigation-menu').on('change', function() {
+            currentSectionsConfig.header.navigationMenu = $(this).val();
+            hasPendingPageStructureChanges = true;
+            updateSaveButtonState();
+            console.log('[DEBUG] Header config changed - navigationMenu');
+        });
+        
+        // Logo upload buttons
+        $('.select-logo-btn').on('click', function(e) {
+            e.preventDefault();
+            const logoType = $(this).data('logo-type');
+            const fileInput = logoType === 'desktop' ? $('#desktop-logo-input') : $('#mobile-logo-input');
+            fileInput.click();
+        });
+        
+        // Desktop logo file input
+        $('#desktop-logo-input').on('change', async function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                try {
+                    // Create FormData for upload
+                    const formData = new FormData();
+                    formData.append('logoFile', file);
+                    formData.append('logoType', 'desktop');
+                    
+                    // Show loading state
+                    const $upload = $('.desktop-logo-upload');
+                    $upload.find('.select-logo-btn').html('<span data-i18n="headerSettings.uploadingImage">Uploading image...</span>').prop('disabled', true);
+                    
+                    // Upload to server
+                    const response = await fetch('/api/builder/websites/current/upload-logo', {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'RequestVerificationToken': $('[name="__RequestVerificationToken"]').val() || ''
+                        }
+                    });
+                    
+                    if (response.ok) {
+                        const result = await response.json();
+                        currentSectionsConfig.header.desktopLogoUrl = result.logoUrl;
+                        
+                        // Update preview
+                        $upload.find('.logo-placeholder').hide();
+                        $upload.find('.logo-image').attr('src', result.logoUrl).show();
+                        $upload.find('.select-logo-btn').html('<span data-i18n="headerSettings.changeImage">Change image</span>').prop('disabled', false);
+                        
+                        hasPendingPageStructureChanges = true;
+                        updateSaveButtonState();
+                        console.log('[DEBUG] Desktop logo uploaded:', result.logoUrl);
+                    } else {
+                        let errorMessage = 'Upload failed';
+                        try {
+                            const error = await response.json();
+                            errorMessage = error.message || errorMessage;
+                        } catch (e) {
+                            // If response is not JSON, use status text
+                            errorMessage = response.statusText || errorMessage;
+                        }
+                        const uploadFailedText = (window.translations && window.translations[currentLanguage] && window.translations[currentLanguage]['headerSettings.uploadFailed']) || 'Upload failed';
+                        alert(uploadFailedText + ': ' + errorMessage);
+                        $upload.find('.select-logo-btn').html('<span data-i18n="headerSettings.selectImage">Select</span>').prop('disabled', false);
+                    }
+                } catch (error) {
+                    console.error('Error uploading desktop logo:', error);
+                    const uploadFailedText = (window.translations && window.translations[currentLanguage] && window.translations[currentLanguage]['headerSettings.uploadFailed']) || 'Upload failed';
+                    alert(uploadFailedText);
+                    $('.desktop-logo-upload').find('.select-logo-btn').html('<span data-i18n="headerSettings.selectImage">Select</span>').prop('disabled', false);
+                }
+            }
+        });
+        
+        // Mobile logo file input
+        $('#mobile-logo-input').on('change', async function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                try {
+                    // Create FormData for upload
+                    const formData = new FormData();
+                    formData.append('logoFile', file);
+                    formData.append('logoType', 'mobile');
+                    
+                    // Show loading state
+                    const $upload = $('.mobile-logo-upload');
+                    $upload.find('.select-logo-btn').html('<span data-i18n="headerSettings.uploadingImage">Uploading image...</span>').prop('disabled', true);
+                    
+                    // Upload to server
+                    const response = await fetch('/api/builder/websites/current/upload-logo', {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'RequestVerificationToken': $('[name="__RequestVerificationToken"]').val() || ''
+                        }
+                    });
+                    
+                    if (response.ok) {
+                        const result = await response.json();
+                        currentSectionsConfig.header.mobileLogoUrl = result.logoUrl;
+                        
+                        // Update preview
+                        $upload.find('.logo-placeholder').hide();
+                        $upload.find('.logo-image').attr('src', result.logoUrl).show();
+                        $upload.find('.select-logo-btn').html('<span data-i18n="headerSettings.changeImage">Change image</span>').prop('disabled', false);
+                        
+                        hasPendingPageStructureChanges = true;
+                        updateSaveButtonState();
+                        console.log('[DEBUG] Mobile logo uploaded:', result.logoUrl);
+                    } else {
+                        let errorMessage = 'Upload failed';
+                        try {
+                            const error = await response.json();
+                            errorMessage = error.message || errorMessage;
+                        } catch (e) {
+                            // If response is not JSON, use status text
+                            errorMessage = response.statusText || errorMessage;
+                        }
+                        const uploadFailedText = (window.translations && window.translations[currentLanguage] && window.translations[currentLanguage]['headerSettings.uploadFailed']) || 'Upload failed';
+                        alert(uploadFailedText + ': ' + errorMessage);
+                        $upload.find('.select-logo-btn').html('<span data-i18n="headerSettings.selectImage">Select</span>').prop('disabled', false);
+                    }
+                } catch (error) {
+                    console.error('Error uploading mobile logo:', error);
+                    const uploadFailedText = (window.translations && window.translations[currentLanguage] && window.translations[currentLanguage]['headerSettings.uploadFailed']) || 'Upload failed';
+                    alert(uploadFailedText);
+                    $('.mobile-logo-upload').find('.select-logo-btn').html('<span data-i18n="headerSettings.selectImage">Select</span>').prop('disabled', false);
+                }
+            }
+        });
+    }
+    
+    // Simple global function for header section visibility toggle
+    window.toggleHeaderSectionVisibility = function(section, button) {
+        console.log('[SIMPLE-TOGGLE] Called for section:', section);
+        
+        // Initialize sectionVisibility if it doesn't exist
+        if (!currentSectionsConfig.header.sectionVisibility) {
+            currentSectionsConfig.header.sectionVisibility = {
+                menu: true,
+                logo: true,
+                icons: true
+            };
+        }
+        
+        // Toggle visibility
+        currentSectionsConfig.header.sectionVisibility[section] = !currentSectionsConfig.header.sectionVisibility[section];
+        const isVisible = currentSectionsConfig.header.sectionVisibility[section];
+        
+        console.log('[SIMPLE-TOGGLE] New visibility state:', isVisible);
+        
+        // Update button content with simple emoji
+        if (isVisible) {
+            button.innerHTML = '<span style="font-size: 18px;">👁️</span>';
+        } else {
+            button.innerHTML = '<span style="font-size: 18px; text-decoration: line-through;">👁️</span>';
+        }
+        
+        // Mark as having changes
+        hasPendingPageStructureChanges = true;
+        updateSaveButtonState();
+    };
+    
     // Function to update save button state
     function updateSaveButtonState() {
         const hasChanges = hasPendingGlobalSettingsChanges || hasPendingPageStructureChanges;
         const $saveButton = $('#save-builder-btn-topbar');
+        
+        console.log('[DEBUG] updateSaveButtonState called:', {
+            hasPendingGlobalSettingsChanges,
+            hasPendingPageStructureChanges,
+            hasChanges,
+            buttonExists: $saveButton.length > 0
+        });
         
         if (hasChanges) {
             $saveButton.removeClass('disabled').prop('disabled', false);
@@ -7646,10 +8532,25 @@ document.head.appendChild(style);
         let savePromises = [];
         
         // Save page structure changes if any
-        if (hasPendingPageStructureChanges && currentPageBlocks) {
+        if (hasPendingPageStructureChanges) {
             console.log('[INFO] Saving page structure...');
+            
+            // Validate currentWebsiteId
+            if (!currentWebsiteId) {
+                console.error('[ERROR] Cannot save: currentWebsiteId is null or undefined');
+                alert('Error: No se ha cargado correctamente el ID del sitio web. Por favor, recarga la página.');
+                $button.removeClass('loading').prop('disabled', false);
+                $button.find('.btn-text').text('Error');
+                return;
+            }
+            
+            // Combine page blocks and sections configuration
+            const pageData = {
+                blocks: currentPageBlocks,
+                sectionsConfig: currentSectionsConfig
+            };
             const pagePayload = {
-                pageStructureJson: JSON.stringify(currentPageBlocks)
+                pageStructureJson: JSON.stringify(pageData)
             };
             savePromises.push(
                 fetch(`/api/builder/websites/${currentWebsiteId}/pages/${currentPageId}`, {
@@ -7723,6 +8624,23 @@ document.head.appendChild(style);
                     $button.find('.btn-text').text('Guardado');
                     $button.removeClass('loading');
                     // Aquí podrías mostrar una notificación de éxito al usuario
+                    
+                    // Recargar la vista actual para mostrar los cambios guardados
+                    if (currentSidebarView === 'blockList') {
+                        // Si estamos en la vista de lista, refrescarla con los datos actualizados
+                        window.switchSidebarView('blockList', window.getUpdatedPageData());
+                    } else if (currentSidebarView === 'headerSettings') {
+                        // Recargar la vista de header settings
+                        console.log('[DEBUG] Reloading header settings view after save');
+                        window.switchSidebarView('headerSettings');
+                    } else if (currentSidebarView === 'announcementBar') {
+                        // Recargar la vista de announcement bar
+                        console.log('[DEBUG] Reloading announcement bar view after save');
+                        window.switchSidebarView('announcementBar');
+                    } else if (currentSidebarView === 'announcementItemSettings') {
+                        // No recargar la vista de edición de anuncio individual
+                        console.log('[DEBUG] Staying in announcement item settings view after save');
+                    }
                     
                     setTimeout(() => {
                         updateSaveButtonState();

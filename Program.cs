@@ -7,6 +7,13 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 
+// Add support for API controllers with camelCase JSON serialization
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
+    });
+
 // Configurar DbContext con PostgreSQL
 builder.Services.AddDbContext<HotelDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -48,5 +55,8 @@ app.MapControllerRoute(
     name: "admin",
     pattern: "admin/{action=Index}/{id?}",
     defaults: new { controller = "Admin" });
+
+// Map API controllers
+app.MapControllers();
 
 app.Run();

@@ -457,7 +457,8 @@
     display: flex;
     flex-direction: column;
     height: 100%;
-    overflow: hidden;
+    min-height: 0;
+    overflow: visible;
 }
 
 
@@ -1676,6 +1677,119 @@
 .shopify-checkbox {
     margin-right: 8px;
     cursor: pointer;
+}
+
+/* Section Header with Toggle */
+.section-header-with-toggle {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.section-header-with-toggle h4 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: #202223;
+}
+
+.dark-mode .section-header-with-toggle h4 {
+    color: #e3e3e3;
+}
+
+/* Visibility Toggle Button */
+.visibility-toggle,
+.header-visibility-toggle {
+    background: none;
+    border: none;
+    padding: 4px;
+    cursor: pointer;
+    color: #6d7175;
+    transition: color 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+}
+
+.visibility-toggle:hover,
+.header-visibility-toggle:hover {
+    color: #202223;
+    background-color: #f6f6f7;
+}
+
+.dark-mode .visibility-toggle,
+.dark-mode .header-visibility-toggle {
+    color: #8c9196;
+}
+
+.dark-mode .visibility-toggle:hover,
+.dark-mode .header-visibility-toggle:hover {
+    color: #e3e3e3;
+    background-color: #404040;
+}
+
+.visibility-toggle i,
+.header-visibility-toggle i {
+    font-size: 20px;
+}
+
+/* Font Awesome icons in header toggles */
+.header-visibility-toggle .fas,
+.header-visibility-toggle .far {
+    font-size: 18px;
+}
+
+/* Logo Upload Field */
+.image-upload-field {
+    transition: all 0.2s ease;
+}
+
+.image-upload-field:hover {
+    background-color: #f6f6f7 !important;
+    border-color: #8c9196 !important;
+}
+
+.dark-mode .image-upload-field:hover {
+    background-color: #404040 !important;
+    border-color: #8c9196 !important;
+}
+
+.logo-preview {
+    position: relative;
+}
+
+.logo-image {
+    border-radius: 4px;
+    object-fit: contain;
+}
+
+.btn-secondary {
+    background: white;
+    border: 1px solid #c9cccf;
+    color: #202223;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 13px;
+    transition: all 0.1s ease;
+}
+
+.btn-secondary:hover {
+    background: #f6f6f7;
+    border-color: #8c9196;
+}
+
+.dark-mode .btn-secondary {
+    background: #303030;
+    border-color: #616161;
+    color: #e3e3e3;
+}
+
+.dark-mode .btn-secondary:hover {
+    background: #404040;
+    border-color: #8c9196;
 }
 
 /* Color schemes - Shopify Style */
@@ -4750,3 +4864,170 @@
     scrollbar-width: none;
     -ms-overflow-style: none; /* IE and Edge */
 }
+
+/* Logo Upload Styles */
+.image-upload-field {
+    position: relative;
+    border: 1px dashed #c9cccf;
+    border-radius: 4px;
+    padding: 20px;
+    text-align: center;
+    cursor: pointer;
+    background: #f9f9f9;
+    transition: all 0.2s ease;
+}
+
+.dark-mode .image-upload-field {
+    background: #303030;
+    border-color: #616161;
+}
+
+.image-upload-field:hover {
+    border-color: #8c9196;
+    background: #f6f6f7;
+}
+
+.dark-mode .image-upload-field:hover {
+    border-color: #8c9196;
+    background: #404040;
+}
+
+.logo-preview {
+    margin-bottom: 10px;
+}
+
+.logo-placeholder {
+    background: white;
+    border-radius: 50%;
+    width: 120px;
+    height: 120px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.dark-mode .logo-placeholder {
+    background: #e3e3e3;
+}
+
+.mobile-logo-upload .logo-placeholder {
+    width: 80px;
+    height: 80px;
+}
+
+.logo-image {
+    display: none;
+    max-width: 120px;
+    max-height: 120px;
+    margin: 0 auto;
+    border-radius: 4px;
+}
+
+.mobile-logo-upload .logo-image {
+    max-width: 80px;
+    max-height: 80px;
+}
+
+.select-logo-btn {
+    padding: 8px 16px;
+    background: white;
+    border: 1px solid #c9cccf;
+    border-radius: 4px;
+    color: #202223;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.1s ease;
+}
+
+.dark-mode .select-logo-btn {
+    background: #404040;
+    border-color: #616161;
+    color: #e3e3e3;
+}
+
+.select-logo-btn:hover {
+    background: #f6f6f7;
+    border-color: #8c9196;
+}
+
+.dark-mode .select-logo-btn:hover {
+    background: #505050;
+    border-color: #8c9196;
+}
+
+.logo-actions {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    margin-top: 10px;
+}
+
+.remove-logo-btn {
+    padding: 8px 16px;
+    background: #fff;
+    border: 1px solid #ff4444;
+    border-radius: 4px;
+    color: #ff4444;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.1s ease;
+}
+
+.dark-mode .remove-logo-btn {
+    background: #404040;
+    border-color: #ff6666;
+    color: #ff6666;
+}
+
+.remove-logo-btn:hover {
+    background: #ffeeee;
+    border-color: #ff2222;
+    color: #ff2222;
+}
+
+.dark-mode .remove-logo-btn:hover {
+    background: #505050;
+    border-color: #ff8888;
+    color: #ff8888;
+}
+
+/* ===== Simple Visibility Button Styles ===== */
+.simple-visibility-btn {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    min-width: 32px !important;
+    min-height: 32px !important;
+    padding: 4px !important;
+    background: transparent;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+.simple-visibility-btn:hover {
+    background: #f5f5f5;
+    border-color: #bdbdbd;
+}
+
+.simple-visibility-btn span {
+    display: inline-block !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+/* Dark mode styles for visibility button */
+.dark-mode .simple-visibility-btn {
+    border-color: #555;
+}
+
+.dark-mode .simple-visibility-btn:hover {
+    background: #404040;
+    border-color: #777;
+}
+/* ===== End of Simple Visibility Button Styles ===== */
