@@ -13,5 +13,11 @@ namespace Hotel.Controllers
         {
             return View();
         }
+
+        // Sirve la vista en blanco que se cargará en el iframe de la previsualización.
+        public IActionResult PreviewTemplate()
+        {
+            return View();
+        }
     }
 }

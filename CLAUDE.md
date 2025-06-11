@@ -239,3 +239,66 @@ if (!previewFrame) {
 1. **Variables undefined**: Verificar declaración global
 2. **Cambios no persisten**: Verificar actualización de `currentSectionsConfig`
 3. **Vista cortada**: Revisar CSS del contenedor padre (`#sidebar-dynamic-content`)
+
+## Problemas Resueltos - Website Builder
+
+### Toggle de Visibilidad (Ícono del Ojo)
+**Problema**: Después de guardar, se necesitaban dos clicks para cambiar el estado del ícono del ojo. Funcionaba bien al recargar la página pero no después de guardar dinámicamente.
+
+**Causa**: Estados residuales y estilos inline que quedaban después de recargar la vista dinámicamente interferían con el siguiente toggle.
+
+**Solución implementada** (líneas ~4171-4182):
+```javascript
+// 1. Limpiar completamente el estado antes de aplicar el nuevo
+$button.removeClass('is-hidden');
+if (newHiddenState) {
+    $button.addClass('is-hidden');
+}
+
+// 2. Remover TODOS los estilos inline (no solo vaciarlos)
+$visibleIcon.removeAttr('style');
+$hiddenIcon.removeAttr('style');
+
+// 3. Prevenir clicks durante transición (líneas ~4136-4145)
+if ($button.data('transitioning')) return;
+$button.data('transitioning', true);
+setTimeout(() => $button.data('transitioning', false), 300);
+```
+
+**CSS correcto** (website-builder.css ~870-896):
+- Usar selectores específicos: `.visibility-toggle:not(.is-hidden)` y `.visibility-toggle.is-hidden`
+- Todos los iconos con `display: none` por defecto, luego mostrar según estado
+- Usar `!important` para asegurar precedencia sobre estilos inline residuales
+
+## Sistema de Preview - Website Builder
+
+### Arquitectura del Preview
+**Vista principal**: `Views/WebsiteBuilder/Index.cshtml` contiene un iframe que carga `PreviewTemplate`
+**Template del iframe**: `Views/WebsiteBuilder/PreviewTemplate.cshtml` - vista sin layout para el contenido
+**Controlador**: `PreviewTemplate()` en `WebsiteBuilderController.cs` sirve la vista del iframe
+
+### Funciones de Renderizado (website-builder.js)
+1. **renderPreview()** (~línea 450): Función principal que orquesta el renderizado
+   - Verifica que el iframe esté listo
+   - Limpia contenido anterior
+   - Itera por `sectionOrder` y llama a renderers específicos
+   - Adjunta event listeners para clicks en secciones
+
+2. **renderHeader()** (~línea 391): Renderiza el header con logo, menú y iconos
+3. **renderAnnouncementBar()** (~línea 426): Renderiza barra con primer anuncio visible
+
+### Interactividad del Preview
+- Click en sección → Abre panel de configuración correspondiente
+- Hover muestra etiqueta azul con nombre de sección
+- Event listeners en línea ~490-516
+
+### Estilos del Preview (PreviewTemplate.cshtml)
+- Background: #F6F6F7 (gris claro Shopify)
+- Selección: box-shadow azul #2962ff en hover
+- Etiquetas: posición absoluta arriba, border-radius 6px
+- Iconos: Material Symbols Outlined para aspecto moderno
+
+### Momentos de Renderizado
+1. Al cargar datos (`loadCurrentWebsite` línea ~232)
+2. Cuando iframe termina de cargar (línea ~488)
+3. Después de guardar cambios (línea ~8885)

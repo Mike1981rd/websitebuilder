@@ -229,6 +229,7 @@ async function loadCurrentWebsite() {
         
         // Apply global styles to preview
         applyGlobalStylesToPreview(currentGlobalThemeSettings);
+        renderPreview(); // <-- AÑADE ESTA LÍNEA
         
         return website;
     } catch (error) {
@@ -382,6 +383,141 @@ function applyGlobalStylesToPreview(settings) {
     }
 }
 
+/**
+ * Renderiza el HTML para la sección del Header de forma más realista.
+ * @param {object} config - La configuración de la sección del header.
+ * @returns {string} El string HTML para el header.
+ */
+function renderHeader(config) {
+    if (!config || config.isHidden) return '';
+
+    const logoHtml = config.desktopLogoUrl 
+        ? `<img src="${config.desktopLogoUrl}" alt="logo" style="max-height: ${config.desktopLogoSize || 50}px;">`
+        : `<span style="font-size: 24px; font-weight: bold;">My Store</span>`;
+
+    const headerContent = `
+        <header style="height: 80px; display: flex; align-items: center; justify-content: space-between; padding: 0 40px; border-bottom: ${config.showDivider ? '1px solid var(--color-primary-border, #e0e0e0)' : 'none'}; background-color: var(--color-primary-background, #ffffff); color: var(--color-primary-text, #000000);">
+            <div class="header-menu-left" style="display: flex; gap: 20px;">
+                <a href="#" style="text-decoration: none; color: inherit;">Shop</a>
+                <a href="#" style="text-decoration: none; color: inherit;">About</a>
+            </div>
+            <div class="header-logo">${logoHtml}</div>
+            <div class="header-icons-right" style="display: flex; gap: 15px;">
+                <span class="material-symbols-outlined">search</span>
+                <span class="material-symbols-outlined">person</span>
+                <span class="material-symbols-outlined">shopping_bag</span>
+            </div>
+        </header>
+    `;
+
+    return `<div class="section-wrapper" data-section-id="header">
+                <div class="section-header-tag">
+                    <span class="material-symbols-outlined" style="font-size: 16px;">view_quilt</span>Header
+                </div>
+                ${headerContent}
+            </div>`;
+}
+
+/**
+ * Renderiza el HTML para la Barra de Anuncios, incluyendo el wrapper y el contenido real.
+ * @param {object} config - La configuración de la barra de anuncios.
+ * @returns {string} El string HTML para la barra de anuncios.
+ */
+function renderAnnouncementBar(config) {
+    if (!config || config.isHidden) return '';
+
+    let firstAnnouncementText = 'Welcome to our store!';
+    if (currentSectionsConfig.announcementOrder && currentSectionsConfig.announcementOrder.length > 0) {
+        const firstVisibleId = currentSectionsConfig.announcementOrder.find(id => currentSectionsConfig.announcements[id] && !currentSectionsConfig.announcements[id].isHidden);
+        if (firstVisibleId) {
+            firstAnnouncementText = currentSectionsConfig.announcements[firstVisibleId].text;
+        }
+    }
+
+    const announcementContent = `<div class="announcement-bar-content" style="padding: 10px; text-align: center; background-color: var(--color-secondary-background, #f0f0f0); color: var(--color-secondary-text, #333333); font-size: 14px;"><p style="margin:0;">${firstAnnouncementText}</p></div>`;
+
+    return `<div class="section-wrapper" data-section-id="announcement">
+                <div class="section-header-tag">
+                    <span class="material-symbols-outlined" style="font-size: 16px;">campaign</span>Announcement Bar
+                </div>
+                ${announcementContent}
+            </div>`;
+}
+
+/**
+ * Renderiza todas las secciones de la página en el iframe de previsualización.
+ */
+function renderPreview() {
+    console.log('[PREVIEW] Rendering preview...');
+    const previewIframe = document.getElementById('preview-iframe');
+    if (!previewIframe || !previewIframe.contentWindow) {
+        console.warn('[PREVIEW] Iframe no encontrado o no listo. Se reintentará.');
+        setTimeout(renderPreview, 200); // Reintentar si el iframe aún no está listo
+        return;
+    }
+
+    const previewDoc = previewIframe.contentWindow.document;
+    const previewBody = previewDoc.body;
+    if (!previewBody) {
+        console.warn('[PREVIEW] El body del Iframe no está listo. Se reintentará.');
+        setTimeout(renderPreview, 200);
+        return;
+    }
+
+    // Limpiar el contenido anterior
+    previewBody.innerHTML = '';
+
+    let finalHtml = '';
+    const renderers = {
+        'announcement': renderAnnouncementBar,
+        'header': renderHeader
+        // Aquí añadiremos más renderers en el futuro (slideshow, footer, etc.)
+    };
+
+    // Renderizar secciones según el orden definido
+    if (currentSectionsConfig && currentSectionsConfig.sectionOrder) {
+        currentSectionsConfig.sectionOrder.forEach(sectionId => {
+            const renderer = renderers[sectionId];
+            const config = currentSectionsConfig[sectionId === 'announcement' ? 'announcementBar' : sectionId];
+            if (renderer && config) {
+                finalHtml += renderer(config);
+            }
+        });
+    }
+    
+    previewBody.innerHTML = finalHtml;
+    console.log('[PREVIEW] Renderizado completado.');
+    
+    // Attach click listeners to the newly rendered section wrappers
+    const sectionWrappers = previewDoc.querySelectorAll('.section-wrapper');
+    sectionWrappers.forEach(wrapper => {
+        wrapper.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            const sectionId = this.dataset.sectionId;
+            console.log(`[PREVIEW CLICK] Section clicked: ${sectionId}`);
+
+            // Cambia la vista del panel lateral según la sección clickeada.
+            if (sectionId === 'header') {
+                // Asegurarse de que el botón de 'settings' no esté activo
+                $('.topbar-nav-icon').removeClass('active');
+                // Activar el botón de secciones
+                $('.topbar-nav-icon[data-view="sections"]').addClass('active');
+
+                // Cambiar a la vista de configuración del header
+                window.switchSidebarView('headerSettings');
+            } else if (sectionId === 'announcement') {
+                // Lógica similar para la barra de anuncios
+                $('.topbar-nav-icon').removeClass('active');
+                $('.topbar-nav-icon[data-view="sections"]').addClass('active');
+                window.switchSidebarView('announcementBar');
+            }
+            // Aquí añadiremos más 'else if' para otras secciones en el futuro.
+        });
+    });
+}
+
 $(document).ready(async function() {
     // Load current website data first
     await loadCurrentWebsite();
@@ -392,6 +528,7 @@ $(document).ready(async function() {
         previewFrame.addEventListener('load', () => {
             console.log('[DEBUG] Preview iframe loaded, applying initial styles');
             applyGlobalStylesToPreview(currentGlobalThemeSettings);
+            renderPreview(); // <-- AÑADIR ESTA LÍNEA
         });
     }
     
@@ -8786,6 +8923,9 @@ document.head.appendChild(style);
                     $button.find('.btn-text').text('Guardado');
                     $button.removeClass('loading');
                     // Aquí podrías mostrar una notificación de éxito al usuario
+                    
+                    // Renderizar preview después de guardar
+                    renderPreview(); // <-- AÑADIR ESTA LÍNEA
                     
                     // Recargar la vista actual para mostrar los cambios guardados
                     if (currentSidebarView === 'blockList') {
