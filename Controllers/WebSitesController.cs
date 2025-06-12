@@ -317,6 +317,261 @@ namespace Hotel.Controllers
             }
         }
 
+        // GET: api/builder/navigation
+        [HttpGet("/api/builder/navigation")]
+        public async Task<ActionResult<List<NavigationItem>>> GetNavigation()
+        {
+            try
+            {
+                var company = await _context.Companies.FirstOrDefaultAsync();
+                if (company == null)
+                {
+                    return NotFound(new { message = "No company found" });
+                }
+
+                var website = await _context.WebSites
+                    .FirstOrDefaultAsync(w => w.CompanyId == company.Id);
+
+                if (website == null)
+                {
+                    return NotFound(new { message = "Website not found" });
+                }
+
+                // Parse NavigationJson
+                var navigation = new List<NavigationItem>();
+                if (!string.IsNullOrEmpty(website.NavigationJson) && website.NavigationJson != "[]")
+                {
+                    try
+                    {
+                        navigation = JsonSerializer.Deserialize<List<NavigationItem>>(website.NavigationJson);
+                    }
+                    catch (JsonException ex)
+                    {
+                        _logger.LogError(ex, "Error parsing NavigationJson");
+                        navigation = new List<NavigationItem>();
+                    }
+                }
+
+                return Ok(navigation);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting navigation");
+                return StatusCode(500, new { message = "An error occurred while retrieving navigation" });
+            }
+        }
+
+        // POST: api/builder/navigation
+        [HttpPost("/api/builder/navigation")]
+        public async Task<IActionResult> SaveNavigation([FromBody] List<NavigationItem> navigation)
+        {
+            try
+            {
+                if (navigation == null)
+                {
+                    return BadRequest(new { message = "Navigation data is required" });
+                }
+
+                var company = await _context.Companies.FirstOrDefaultAsync();
+                if (company == null)
+                {
+                    return NotFound(new { message = "No company found" });
+                }
+
+                var website = await _context.WebSites
+                    .FirstOrDefaultAsync(w => w.CompanyId == company.Id);
+
+                if (website == null)
+                {
+                    return NotFound(new { message = "Website not found" });
+                }
+
+                // Serialize navigation to JSON
+                var navigationJson = JsonSerializer.Serialize(navigation, new JsonSerializerOptions
+                {
+                    WriteIndented = false
+                });
+
+                website.NavigationJson = navigationJson;
+                website.UpdatedAt = DateTime.UtcNow;
+
+                _context.Entry(website).State = EntityState.Modified;
+                await _context.SaveChangesAsync();
+
+                _logger.LogInformation("Successfully saved navigation structure");
+
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error saving navigation");
+                return StatusCode(500, new { message = "An error occurred while saving navigation" });
+            }
+        }
+
+        // PUT: api/builder/navigation/reorder
+        [HttpPut("/api/builder/navigation/reorder")]
+        public async Task<IActionResult> ReorderNavigation([FromBody] ReorderNavigationDto dto)
+        {
+            try
+            {
+                if (dto == null || dto.ItemIds == null || !dto.ItemIds.Any())
+                {
+                    return BadRequest(new { message = "Item IDs are required for reordering" });
+                }
+
+                var company = await _context.Companies.FirstOrDefaultAsync();
+                if (company == null)
+                {
+                    return NotFound(new { message = "No company found" });
+                }
+
+                var website = await _context.WebSites
+                    .FirstOrDefaultAsync(w => w.CompanyId == company.Id);
+
+                if (website == null)
+                {
+                    return NotFound(new { message = "Website not found" });
+                }
+
+                // Parse current navigation
+                var navigation = new List<NavigationItem>();
+                if (!string.IsNullOrEmpty(website.NavigationJson) && website.NavigationJson != "[]")
+                {
+                    try
+                    {
+                        navigation = JsonSerializer.Deserialize<List<NavigationItem>>(website.NavigationJson);
+                    }
+                    catch (JsonException ex)
+                    {
+                        _logger.LogError(ex, "Error parsing NavigationJson");
+                        return StatusCode(500, new { message = "Error processing current navigation" });
+                    }
+                }
+
+                // Create a dictionary for quick lookup
+                var navDict = navigation.ToDictionary(n => n.Id, n => n);
+
+                // Reorder based on provided IDs
+                var reorderedNavigation = new List<NavigationItem>();
+                foreach (var id in dto.ItemIds)
+                {
+                    if (navDict.ContainsKey(id))
+                    {
+                        reorderedNavigation.Add(navDict[id]);
+                    }
+                }
+
+                // Add any items that weren't in the reorder list (shouldn't happen, but safety check)
+                foreach (var item in navigation)
+                {
+                    if (!dto.ItemIds.Contains(item.Id))
+                    {
+                        reorderedNavigation.Add(item);
+                    }
+                }
+
+                // Save reordered navigation
+                website.NavigationJson = JsonSerializer.Serialize(reorderedNavigation);
+                website.UpdatedAt = DateTime.UtcNow;
+
+                _context.Entry(website).State = EntityState.Modified;
+                await _context.SaveChangesAsync();
+
+                _logger.LogInformation("Successfully reordered navigation");
+
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error reordering navigation");
+                return StatusCode(500, new { message = "An error occurred while reordering navigation" });
+            }
+        }
+
+        // DELETE: api/builder/navigation/{id}
+        [HttpDelete("/api/builder/navigation/{id}")]
+        public async Task<IActionResult> DeleteNavigationItem(string id)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(id))
+                {
+                    return BadRequest(new { message = "Item ID is required" });
+                }
+
+                var company = await _context.Companies.FirstOrDefaultAsync();
+                if (company == null)
+                {
+                    return NotFound(new { message = "No company found" });
+                }
+
+                var website = await _context.WebSites
+                    .FirstOrDefaultAsync(w => w.CompanyId == company.Id);
+
+                if (website == null)
+                {
+                    return NotFound(new { message = "Website not found" });
+                }
+
+                // Parse current navigation
+                var navigation = new List<NavigationItem>();
+                if (!string.IsNullOrEmpty(website.NavigationJson) && website.NavigationJson != "[]")
+                {
+                    try
+                    {
+                        navigation = JsonSerializer.Deserialize<List<NavigationItem>>(website.NavigationJson);
+                    }
+                    catch (JsonException ex)
+                    {
+                        _logger.LogError(ex, "Error parsing NavigationJson");
+                        return StatusCode(500, new { message = "Error processing current navigation" });
+                    }
+                }
+
+                // Recursive function to remove item
+                bool RemoveItem(List<NavigationItem> items, string itemId)
+                {
+                    var item = items.FirstOrDefault(i => i.Id == itemId);
+                    if (item != null)
+                    {
+                        items.Remove(item);
+                        return true;
+                    }
+
+                    foreach (var navItem in items)
+                    {
+                        if (navItem.Children != null && RemoveItem(navItem.Children, itemId))
+                        {
+                            return true;
+                        }
+                    }
+                    return false;
+                }
+
+                if (!RemoveItem(navigation, id))
+                {
+                    return NotFound(new { message = "Navigation item not found" });
+                }
+
+                // Save updated navigation
+                website.NavigationJson = JsonSerializer.Serialize(navigation);
+                website.UpdatedAt = DateTime.UtcNow;
+
+                _context.Entry(website).State = EntityState.Modified;
+                await _context.SaveChangesAsync();
+
+                _logger.LogInformation("Successfully deleted navigation item {ItemId}", id);
+
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error deleting navigation item");
+                return StatusCode(500, new { message = "An error occurred while deleting navigation item" });
+            }
+        }
+
         // POST: api/builder/websites/current/upload-logo
         [HttpPost("current/upload-logo")]
         [DisableRequestSizeLimit]
@@ -453,5 +708,29 @@ namespace Hotel.Controllers
     {
         [JsonPropertyName("pageStructureJson")]
         public string PageStructureJson { get; set; } = string.Empty;
+    }
+
+    public class NavigationItem
+    {
+        [JsonPropertyName("id")]
+        public string Id { get; set; } = string.Empty;
+
+        [JsonPropertyName("label")]
+        public string Label { get; set; } = string.Empty;
+
+        [JsonPropertyName("url")]
+        public string Url { get; set; } = string.Empty;
+
+        [JsonPropertyName("target")]
+        public string Target { get; set; } = "_self";
+
+        [JsonPropertyName("children")]
+        public List<NavigationItem> Children { get; set; } = new List<NavigationItem>();
+    }
+
+    public class ReorderNavigationDto
+    {
+        [JsonPropertyName("itemIds")]
+        public List<string> ItemIds { get; set; } = new List<string>();
     }
 }
