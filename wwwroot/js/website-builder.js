@@ -89,6 +89,7 @@ let currentSectionsConfig = {
         showNavigationArrows: true,
         autoplayMode: 'none',
         autoplaySpeed: 6,
+        animationStyle: 'none',
         showLanguageSelector: false,
         showCurrencySelector: false,
         showSocialMediaIcons: false,
@@ -106,7 +107,7 @@ let currentSectionsConfig = {
         menu: '',
         desktopLogoSize: 190,
         mobileLogoSize: 120,
-        iconStyle: 'style-1-outline',
+        iconStyle: 'outline',
         cartType: 'bag',
         isHidden: false,
         desktopLogoUrl: '',
@@ -259,6 +260,7 @@ async function loadCurrentWebsite() {
                                 showNavigationArrows: true,
                                 autoplayMode: 'none',
                                 autoplaySpeed: 6,
+                                animationStyle: 'none',
                                 showLanguageSelector: false,
                                 showCurrencySelector: false,
                                 showSocialMediaIcons: false,
@@ -529,24 +531,145 @@ function applyGlobalStylesToPreview(settings) {
 function renderHeader(config) {
     if (!config || config.isHidden) return '';
 
+    // Get the selected color scheme
+    const selectedScheme = config.colorScheme || 'primary';
+    const schemeColors = getColorSchemeValues(selectedScheme);
+    
+    // Get typography settings
+    const menuTypography = currentGlobalThemeSettings?.typography?.menu || {};
+    const menuFontValue = menuTypography.font || 'roboto';
+    const menuFontFamily = window.getFontNameFromValueSafe(menuFontValue);
+    const menuFontSize = menuTypography.fontSize || '15px';
+    
+    // Determine logo size based on viewport (we'll use desktop size for now, mobile will be handled via CSS)
+    const logoSize = config.desktopLogoSize || 190;
+    
+    // Logo HTML with proper sizing
     const logoHtml = config.desktopLogoUrl 
-        ? `<img src="${config.desktopLogoUrl}" alt="logo" style="max-height: ${config.desktopLogoSize || 80}px;">`
-        : `<span style="font-size: 32px; font-weight: 600; letter-spacing: 0.08em; color: #ffffff;">AURORA</span>`;
+        ? `<img src="${config.desktopLogoUrl}" alt="logo" style="max-height: ${logoSize}px; width: auto; object-fit: contain;">`
+        : `<span style="font-size: 32px; font-weight: 600; letter-spacing: 0.08em; color: ${schemeColors.text};">AURORA</span>`;
 
-    const headerContent = `
-        <header style="height: 120px; display: flex; align-items: center; justify-content: space-between; padding: 0 50px; border-bottom: ${config.showDivider ? '1px solid var(--color-primary-border, #e5e5e5)' : 'none'}; background-color: var(--color-primary-background, #000000); color: var(--color-primary-text, #ffffff);">
-            <div class="header-menu-left" style="display: flex; gap: 32px; align-items: center;">
-                <a href="#" style="text-decoration: none; color: inherit; font-size: 15px; font-weight: 400; letter-spacing: 0.06em;">Soluciones</a>
-                <a href="#" style="text-decoration: none; color: inherit; font-size: 15px; font-weight: 400; letter-spacing: 0.06em;">Herramientas</a>
-            </div>
-            <div class="header-logo" style="position: absolute; left: 50%; transform: translateX(-50%);">${logoHtml}</div>
-            <div class="header-icons-right" style="display: flex; gap: 24px; align-items: center;">
-                <span class="material-symbols-outlined" style="font-size: 24px; font-weight: 300; cursor: pointer;">search</span>
-                <span class="material-symbols-outlined" style="font-size: 24px; font-weight: 300; cursor: pointer;">person_outline</span>
-                <span class="material-symbols-outlined" style="font-size: 24px; font-weight: 300; cursor: pointer;">shopping_bag</span>
-            </div>
-        </header>
+    // Determine cart icon based on configuration
+    const cartIcon = config.cartType === 'cart' ? 'shopping_cart' : 'shopping_bag';
+    
+    // Determine icon style (outline vs solid)
+    const iconClass = config.iconStyle === 'solid' ? 'material-icons' : 'material-symbols-outlined';
+    const iconWeight = config.iconStyle === 'solid' ? '400' : '300';
+    
+    // Icons for different styles
+    const searchIcon = config.iconStyle === 'solid' ? 'search' : 'search';
+    const personIcon = config.iconStyle === 'solid' ? 'person' : 'person_outline';
+    
+    // Menu items
+    const menuItems = `
+        <a href="#" style="text-decoration: none; color: inherit; font-family: ${menuFontFamily}, -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: ${menuFontSize}; font-weight: 400; letter-spacing: 0.06em;">Soluciones</a>
+        <a href="#" style="text-decoration: none; color: inherit; font-family: ${menuFontFamily}, -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: ${menuFontSize}; font-weight: 400; letter-spacing: 0.06em;">Herramientas</a>
     `;
+    
+    // Icons section
+    const iconsHtml = `
+        <div class="header-icons-right" style="display: flex; gap: 24px; align-items: center;">
+            <span class="${iconClass}" style="font-size: 24px; font-weight: ${iconWeight}; cursor: pointer; color: ${schemeColors.text};">${searchIcon}</span>
+            <span class="${iconClass}" style="font-size: 24px; font-weight: ${iconWeight}; cursor: pointer; color: ${schemeColors.text};">${personIcon}</span>
+            <span class="${iconClass}" style="font-size: 24px; font-weight: ${iconWeight}; cursor: pointer; color: ${schemeColors.text};">${cartIcon}</span>
+        </div>
+    `;
+    
+    let headerContent = '';
+    const layout = config.layout || 'logo-center-menu-left-inline';
+    
+    switch(layout) {
+        case 'drawer':
+            headerContent = `
+                <header style="height: 120px; display: flex; align-items: center; justify-content: space-between; padding: 0 50px; border-bottom: ${config.showDivider ? `1px solid ${schemeColors.border || '#e5e5e5'}` : 'none'}; background-color: ${schemeColors.background}; color: ${schemeColors.text};">
+                    <div class="header-menu-drawer" style="display: flex; align-items: center;">
+                        <span class="${iconClass}" style="font-size: 28px; font-weight: ${iconWeight}; cursor: pointer; color: ${schemeColors.text};">menu</span>
+                    </div>
+                    <div class="header-logo" style="position: absolute; left: 50%; transform: translateX(-50%);">${logoHtml}</div>
+                    ${iconsHtml}
+                </header>
+            `;
+            break;
+            
+        case 'logo-left-menu-center-inline':
+            headerContent = `
+                <header style="height: 120px; display: flex; align-items: center; justify-content: space-between; padding: 0 50px; border-bottom: ${config.showDivider ? `1px solid ${schemeColors.border || '#e5e5e5'}` : 'none'}; background-color: ${schemeColors.background}; color: ${schemeColors.text};">
+                    <div class="header-logo">${logoHtml}</div>
+                    <div class="header-menu-center" style="position: absolute; left: 50%; transform: translateX(-50%); display: flex; gap: 32px; align-items: center;">
+                        ${menuItems}
+                    </div>
+                    ${iconsHtml}
+                </header>
+            `;
+            break;
+            
+        case 'logo-left-menu-left-inline':
+            headerContent = `
+                <header style="height: 120px; display: flex; align-items: center; justify-content: space-between; padding: 0 50px; border-bottom: ${config.showDivider ? `1px solid ${schemeColors.border || '#e5e5e5'}` : 'none'}; background-color: ${schemeColors.background}; color: ${schemeColors.text};">
+                    <div style="display: flex; align-items: center; gap: 48px;">
+                        <div class="header-logo">${logoHtml}</div>
+                        <div class="header-menu-left" style="display: flex; gap: 32px; align-items: center;">
+                            ${menuItems}
+                        </div>
+                    </div>
+                    ${iconsHtml}
+                </header>
+            `;
+            break;
+            
+        case 'logo-center-menu-left-inline':
+            headerContent = `
+                <header style="height: 120px; display: flex; align-items: center; justify-content: space-between; padding: 0 50px; border-bottom: ${config.showDivider ? `1px solid ${schemeColors.border || '#e5e5e5'}` : 'none'}; background-color: ${schemeColors.background}; color: ${schemeColors.text};">
+                    <div class="header-menu-left" style="display: flex; gap: 32px; align-items: center;">
+                        ${menuItems}
+                    </div>
+                    <div class="header-logo" style="position: absolute; left: 50%; transform: translateX(-50%);">${logoHtml}</div>
+                    ${iconsHtml}
+                </header>
+            `;
+            break;
+            
+        case 'logo-center-menu-center-below':
+            headerContent = `
+                <header style="display: flex; flex-direction: column; padding: 20px 50px; border-bottom: ${config.showDivider ? `1px solid ${schemeColors.border || '#e5e5e5'}` : 'none'}; background-color: ${schemeColors.background}; color: ${schemeColors.text};">
+                    <div style="display: flex; align-items: center; justify-content: space-between; height: 80px;">
+                        <div style="width: 120px;"></div>
+                        <div class="header-logo">${logoHtml}</div>
+                        ${iconsHtml}
+                    </div>
+                    <div class="header-menu-center" style="display: flex; gap: 32px; align-items: center; justify-content: center; margin-top: 20px;">
+                        ${menuItems}
+                    </div>
+                </header>
+            `;
+            break;
+            
+        case 'logo-left-menu-left-below':
+            headerContent = `
+                <header style="display: flex; flex-direction: column; padding: 20px 50px; border-bottom: ${config.showDivider ? `1px solid ${schemeColors.border || '#e5e5e5'}` : 'none'}; background-color: ${schemeColors.background}; color: ${schemeColors.text};">
+                    <div style="display: flex; align-items: center; justify-content: space-between; height: 80px;">
+                        <div class="header-logo">${logoHtml}</div>
+                        ${iconsHtml}
+                    </div>
+                    <div class="header-menu-left" style="display: flex; gap: 32px; align-items: center; margin-top: 20px;">
+                        ${menuItems}
+                    </div>
+                </header>
+            `;
+            break;
+            
+        default:
+            // Default to logo-center-menu-left-inline
+            headerContent = `
+                <header style="height: 120px; display: flex; align-items: center; justify-content: space-between; padding: 0 50px; border-bottom: ${config.showDivider ? `1px solid ${schemeColors.border || '#e5e5e5'}` : 'none'}; background-color: ${schemeColors.background}; color: ${schemeColors.text};">
+                    <div class="header-menu-left" style="display: flex; gap: 32px; align-items: center;">
+                        ${menuItems}
+                    </div>
+                    <div class="header-logo" style="position: absolute; left: 50%; transform: translateX(-50%);">${logoHtml}</div>
+                    ${iconsHtml}
+                </header>
+            `;
+    }
 
     return `<div class="section-wrapper" data-section-id="header">
                 <div class="section-header-tag">
@@ -579,34 +702,61 @@ function renderAnnouncementBar(config) {
         visibleAnnouncements.push({ text: 'Welcome to our store!', link: '', icon: 'none' });
     }
 
-    // Asegurar que el índice actual esté dentro del rango
-    if (currentAnnouncementIndex >= visibleAnnouncements.length) {
-        currentAnnouncementIndex = 0;
-    }
-    
-    const currentAnnouncement = visibleAnnouncements[currentAnnouncementIndex];
-    
     // Get the selected color scheme or default to scheme1
     const selectedScheme = config.colorScheme || 'scheme1';
     const schemeColors = getColorSchemeValues(selectedScheme);
-
-    // Construir contenido del anuncio con link si existe
-    let announcementText = currentAnnouncement.text;
-    if (currentAnnouncement.icon && currentAnnouncement.icon !== 'none') {
-        const iconMap = {
-            'local_shipping': 'local_shipping',
-            'campaign': 'campaign',
-            'star': 'star',
-            'info': 'info'
-        };
-        const iconName = iconMap[currentAnnouncement.icon] || currentAnnouncement.customIcon || '';
-        if (iconName) {
-            announcementText = `<span class="material-symbols-outlined" style="font-size: 16px;">${iconName}</span> ${announcementText}`;
+    
+    // Check if marquee animation is selected
+    const isMarquee = config.animationStyle === 'marquee';
+    
+    let announcementContent;
+    
+    if (isMarquee && visibleAnnouncements.length > 0) {
+        // Build marquee content with all announcements
+        const marqueeItems = [];
+        
+        // Create two sets of announcements for seamless looping
+        for (let i = 0; i < 2; i++) {
+            visibleAnnouncements.forEach(announcement => {
+                let itemText = announcement.text;
+                
+                // Handle icon display
+                if (announcement.useCustomIcon && announcement.customIconFile) {
+                    itemText = `<img src="${announcement.customIconFile}" alt="icon" style="width: 16px; height: 16px; vertical-align: middle;"> ${itemText}`;
+                } else if (announcement.icon && announcement.icon !== 'none') {
+                    itemText = `<span class="material-icons" style="font-size: 16px; vertical-align: middle; color: inherit;">${announcement.icon}</span> ${itemText}`;
+                }
+                
+                if (announcement.link) {
+                    itemText = `<a href="${announcement.link}" style="color: inherit; text-decoration: none;">${itemText}</a>`;
+                }
+                
+                marqueeItems.push(`<span class="marquee-item">${itemText}</span>`);
+            });
         }
-    }
+        
+        announcementContent = marqueeItems.join('<span class="marquee-separator">•</span>');
+    } else {
+        // Normal single announcement display
+        if (currentAnnouncementIndex >= visibleAnnouncements.length) {
+            currentAnnouncementIndex = 0;
+        }
+        
+        const currentAnnouncement = visibleAnnouncements[currentAnnouncementIndex];
+        let announcementText = currentAnnouncement.text;
+        
+        // Handle icon display based on icon source
+        if (currentAnnouncement.useCustomIcon && currentAnnouncement.customIconFile) {
+            announcementText = `<img src="${currentAnnouncement.customIconFile}" alt="icon" style="width: 16px; height: 16px; vertical-align: middle;"> ${announcementText}`;
+        } else if (currentAnnouncement.icon && currentAnnouncement.icon !== 'none') {
+            announcementText = `<span class="material-icons" style="font-size: 16px; vertical-align: middle; color: inherit;">${currentAnnouncement.icon}</span> ${announcementText}`;
+        }
 
-    if (currentAnnouncement.link) {
-        announcementText = `<a href="${currentAnnouncement.link}" style="color: inherit; text-decoration: none;">${announcementText}</a>`;
+        if (currentAnnouncement.link) {
+            announcementText = `<a href="${currentAnnouncement.link}" style="color: inherit; text-decoration: none;">${announcementText}</a>`;
+        }
+        
+        announcementContent = announcementText;
     }
 
     // Construir iconos sociales si están habilitados
@@ -645,8 +795,8 @@ function renderAnnouncementBar(config) {
         </div>
     ` : '';
 
-    // Construir flechas de navegación si están habilitadas y hay múltiples anuncios
-    const navigationArrowsHtml = (config.showNavigationArrows && visibleAnnouncements.length > 1) ? `
+    // Construir flechas de navegación si están habilitadas y hay múltiples anuncios (no mostrar en marquee)
+    const navigationArrowsHtml = (config.showNavigationArrows && visibleAnnouncements.length > 1 && !isMarquee) ? `
         <button onclick="window.navigateAnnouncement('prev')" style="position: absolute; left: 20px; top: 50%; transform: translateY(-50%); background: none; border: none; color: inherit; cursor: pointer; padding: 4px;">
             <span class="material-symbols-outlined" style="font-size: 20px;">chevron_left</span>
         </button>
@@ -672,13 +822,25 @@ function renderAnnouncementBar(config) {
         fontSize: bodyFontSize
     });
     
-    const announcementContent = `
+    const announcementContentHtml = isMarquee ? `
+        <div class="announcement-bar-content marquee-mode" style="position: relative; padding: 10px 50px; background-color: ${schemeColors.background}; color: ${schemeColors.text}; font-family: ${bodyFontFamily}, -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: ${bodyFontSize}; font-weight: 400; letter-spacing: 0.04em; line-height: 1.5; overflow: hidden;">
+            <div style="${containerStyle}">
+                ${socialIconsHtml}
+                <div class="marquee-container" style="display: flex; align-items: center; overflow: hidden;">
+                    <div class="marquee-content" style="display: flex; align-items: center; gap: 30px; animation: scroll-marquee ${(visibleAnnouncements.length * 5)}s linear infinite; white-space: nowrap;">
+                        ${announcementContent}
+                    </div>
+                </div>
+                ${selectorsHtml}
+            </div>
+        </div>
+    ` : `
         <div class="announcement-bar-content" style="position: relative; padding: 10px 50px; background-color: ${schemeColors.background}; color: ${schemeColors.text}; font-family: ${bodyFontFamily}, -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: ${bodyFontSize}; font-weight: 400; letter-spacing: 0.04em; line-height: 1.5;">
             <div style="${containerStyle}">
                 ${socialIconsHtml}
                 <div style="text-align: center;">
-                    <p style="margin:0; display: inline-flex; align-items: center; gap: 8px;">
-                        ${announcementText}
+                    <p style="margin:0; display: inline-flex; align-items: center; justify-content: center; gap: 8px;">
+                        ${announcementContent}
                     </p>
                 </div>
                 ${selectorsHtml}
@@ -691,7 +853,7 @@ function renderAnnouncementBar(config) {
                 <div class="section-header-tag">
                     <span class="material-symbols-outlined" style="font-size: 16px;">campaign</span>Announcement Bar
                 </div>
-                ${announcementContent}
+                ${announcementContentHtml}
             </div>`;
 }
 
@@ -713,15 +875,67 @@ window.navigateAnnouncement = function(direction) {
 
     if (visibleAnnouncements.length <= 1) return;
 
-    // Actualizar índice
-    if (direction === 'next') {
-        currentAnnouncementIndex = (currentAnnouncementIndex + 1) % visibleAnnouncements.length;
-    } else {
-        currentAnnouncementIndex = (currentAnnouncementIndex - 1 + visibleAnnouncements.length) % visibleAnnouncements.length;
-    }
+    // Get animation style
+    const animationStyle = currentSectionsConfig.announcementBar.animationStyle || 'none';
+    
+    // Skip navigation for marquee mode
+    if (animationStyle === 'marquee') return;
+    const previewIframe = document.getElementById('preview-iframe');
+    const announcementElement = previewIframe?.contentDocument?.querySelector('.announcement-bar-content');
 
-    // Re-renderizar el preview
-    renderPreview();
+    // Apply animation if element exists and animation is not 'none'
+    if (announcementElement && animationStyle !== 'none') {
+        // Add exit animation class
+        if (animationStyle === 'fade') {
+            announcementElement.classList.add('fade-out');
+        } else if (animationStyle === 'slide-horizontal') {
+            announcementElement.classList.add('slide-horizontal-out');
+        } else if (animationStyle === 'slide-vertical') {
+            announcementElement.classList.add('slide-vertical-out');
+        }
+
+        // Wait for animation to complete before updating content
+        setTimeout(() => {
+            // Update index
+            if (direction === 'next') {
+                currentAnnouncementIndex = (currentAnnouncementIndex + 1) % visibleAnnouncements.length;
+            } else {
+                currentAnnouncementIndex = (currentAnnouncementIndex - 1 + visibleAnnouncements.length) % visibleAnnouncements.length;
+            }
+
+            // Re-render the preview
+            renderPreview();
+
+            // Apply entry animation after a brief delay
+            setTimeout(() => {
+                const newAnnouncementElement = previewIframe?.contentDocument?.querySelector('.announcement-bar-content');
+                if (newAnnouncementElement) {
+                    if (animationStyle === 'fade') {
+                        newAnnouncementElement.classList.add('fade-in');
+                    } else if (animationStyle === 'slide-horizontal') {
+                        newAnnouncementElement.classList.add('slide-horizontal-in');
+                    } else if (animationStyle === 'slide-vertical') {
+                        newAnnouncementElement.classList.add('slide-vertical-in');
+                    } else if (animationStyle === 'typewriter') {
+                        const textElement = newAnnouncementElement.querySelector('p');
+                        if (textElement) {
+                            textElement.classList.add('announcement-text-typewriter');
+                        }
+                    }
+                }
+            }, 50);
+        }, animationStyle === 'fade' ? 300 : 400);
+    } else {
+        // No animation, update immediately
+        if (direction === 'next') {
+            currentAnnouncementIndex = (currentAnnouncementIndex + 1) % visibleAnnouncements.length;
+        } else {
+            currentAnnouncementIndex = (currentAnnouncementIndex - 1 + visibleAnnouncements.length) % visibleAnnouncements.length;
+        }
+
+        // Re-render the preview
+        renderPreview();
+    }
     
     // Reiniciar autoplay si está activo
     if (currentSectionsConfig.announcementBar.autoplayMode !== 'none') {
@@ -738,6 +952,9 @@ function startAnnouncementAutoplay() {
     
     const config = currentSectionsConfig.announcementBar;
     if (!config || config.autoplayMode === 'none') return;
+    
+    // Skip autoplay for marquee mode
+    if (config.animationStyle === 'marquee') return;
     
     // Obtener anuncios visibles
     const visibleAnnouncements = [];
@@ -960,6 +1177,13 @@ $(document).ready(async function() {
             'announcementBar.none': 'Ninguno',
             'announcementBar.oneAtATime': 'Uno a la vez',
             'announcementBar.autoplaySpeed': 'Velocidad de reproducción automática',
+            'announcementBar.animationStyle': 'Estilo de animación',
+            'announcementBar.animationNone': 'Sin animación',
+            'announcementBar.animationFade': 'Desvanecimiento',
+            'announcementBar.animationSlideHorizontal': 'Deslizar horizontal',
+            'announcementBar.animationSlideVertical': 'Deslizar vertical',
+            'announcementBar.animationTypewriter': 'Máquina de escribir',
+            'announcementBar.animationMarquee': 'Marquesina infinita',
             'announcementBar.languageSelector': 'Selector de idioma',
             'announcementBar.languageSelectorDesc': 'Muestra selector en escritorio. Para agregar un idioma, ve a tu configuración de idioma',
             'announcementBar.showLanguageSelector': 'Mostrar selector de idioma',
@@ -1040,10 +1264,8 @@ $(document).ready(async function() {
             'headerSettings.browseFreeImages': 'Explorar imágenes gratuitas',
             'headerSettings.icons': 'Iconos',
             'headerSettings.iconStyle': 'Estilo de icono',
-            'headerSettings.iconStyleSolid1': 'Estilo 1 - sólido',
-            'headerSettings.iconStyleOutline1': 'Estilo 1 - contorno',
-            'headerSettings.iconStyleSolid2': 'Estilo 2 - sólido',
-            'headerSettings.iconStyleOutline2': 'Estilo 2 - contorno',
+            'headerSettings.iconStyleSolid': 'Sólido',
+            'headerSettings.iconStyleOutline': 'Contorno',
             'headerSettings.cartType': 'Tipo de carrito',
             'headerSettings.cartTypeBag': 'Bolsa',
             'headerSettings.cartTypeCart': 'Carrito',
@@ -1465,6 +1687,13 @@ $(document).ready(async function() {
             'announcementBar.none': 'None',
             'announcementBar.oneAtATime': 'One-at-a-time',
             'announcementBar.autoplaySpeed': 'Autoplay speed',
+            'announcementBar.animationStyle': 'Animation style',
+            'announcementBar.animationNone': 'No animation',
+            'announcementBar.animationFade': 'Fade',
+            'announcementBar.animationSlideHorizontal': 'Slide horizontal',
+            'announcementBar.animationSlideVertical': 'Slide vertical',
+            'announcementBar.animationTypewriter': 'Typewriter',
+            'announcementBar.animationMarquee': 'Infinite marquee',
             'announcementBar.languageSelector': 'Language selector',
             'announcementBar.languageSelectorDesc': 'Shows selector on desktop. To add a language, go to your language settings',
             'announcementBar.showLanguageSelector': 'Show language selector',
@@ -1544,10 +1773,8 @@ $(document).ready(async function() {
             'headerSettings.browseFreeImages': 'Browse free images',
             'headerSettings.icons': 'Icons',
             'headerSettings.iconStyle': 'Icon style',
-            'headerSettings.iconStyleSolid1': 'Style 1 - solid',
-            'headerSettings.iconStyleOutline1': 'Style 1 - outline',
-            'headerSettings.iconStyleSolid2': 'Style 2 - solid',
-            'headerSettings.iconStyleOutline2': 'Style 2 - outline',
+            'headerSettings.iconStyleSolid': 'Solid',
+            'headerSettings.iconStyleOutline': 'Outline',
             'headerSettings.cartType': 'Cart type',
             'headerSettings.cartTypeBag': 'Bag',
             'headerSettings.cartTypeCart': 'Cart',
@@ -2047,7 +2274,7 @@ $(document).ready(async function() {
     // Function to render announcement items
     function renderAnnouncementItems() {
         console.log('[DEBUG] Rendering announcement items:', currentSectionsConfig.announcements);
-        let html = '';
+        let itemsHtml = '';
         // Si hay un orden definido, usarlo
         if (currentSectionsConfig.announcementOrder && currentSectionsConfig.announcementOrder.length > 0) {
             for (const announcementId of currentSectionsConfig.announcementOrder) {
@@ -2055,7 +2282,7 @@ $(document).ready(async function() {
                     const config = currentSectionsConfig.announcements[announcementId];
                     const text = config.text || lang['announcementItem.makeAnnouncement'] || 'Make an announcement';
                     console.log('[DEBUG] Rendering announcement:', announcementId, 'with text:', text);
-                    html += `
+                    itemsHtml += `
                         <div class="sidebar-subsection" data-block-type="announcement-item" data-element-id="${announcementId}" style="padding-left: 30px;">
                             <span class="subsection-text">${text}</span>
                             <div class="subsection-actions">
@@ -2075,7 +2302,7 @@ $(document).ready(async function() {
             // Si no hay orden, renderizar todos los anuncios
             for (const [announcementId, config] of Object.entries(currentSectionsConfig.announcements)) {
                 const text = config.text || lang['announcementItem.makeAnnouncement'] || 'Make an announcement';
-                html += `
+                itemsHtml += `
                     <div class="sidebar-subsection" data-block-type="announcement-item" data-element-id="${announcementId}" style="padding-left: 30px;">
                         <span class="subsection-text">${text}</span>
                         <div class="subsection-actions">
@@ -2091,7 +2318,12 @@ $(document).ready(async function() {
                 `;
             }
         }
-        return html;
+        
+        // Wrap items in the announcement wrapper
+        if (itemsHtml) {
+            return `<div id="announcement-items-wrapper" style="position: relative;">${itemsHtml}</div>`;
+        }
+        return '';
     }
     
     // Function to render block list view - Shopify style
@@ -2305,6 +2537,19 @@ $(document).ready(async function() {
                                     <span class="unit">s</span>
                                 </div>
                             </div>
+                        </div>
+                        
+                        <!-- Animation style -->
+                        <div class="settings-field">
+                            <label data-i18n="announcementBar.animationStyle">Estilo de animación</label>
+                            <select class="shopify-select" id="animation-style">
+                                <option value="none" data-i18n="announcementBar.animationNone">Sin animación</option>
+                                <option value="fade" data-i18n="announcementBar.animationFade">Desvanecimiento</option>
+                                <option value="slide-horizontal" data-i18n="announcementBar.animationSlideHorizontal">Deslizar horizontal</option>
+                                <option value="slide-vertical" data-i18n="announcementBar.animationSlideVertical">Deslizar vertical</option>
+                                <option value="typewriter" data-i18n="announcementBar.animationTypewriter">Máquina de escribir</option>
+                                <option value="marquee" data-i18n="announcementBar.animationMarquee">Marquesina infinita</option>
+                            </select>
                         </div>
                     </div>
                     
@@ -2570,10 +2815,8 @@ $(document).ready(async function() {
                         <div class="settings-field">
                             <label data-i18n="headerSettings.iconStyle">Icon style</label>
                             <select class="shopify-select" id="icon-style">
-                                <option value="style-1-solid" data-i18n="headerSettings.iconStyleSolid1">Style 1 - solid</option>
-                                <option value="style-1-outline" selected data-i18n="headerSettings.iconStyleOutline1">Style 1 - outline</option>
-                                <option value="style-2-solid" data-i18n="headerSettings.iconStyleSolid2">Style 2 - solid</option>
-                                <option value="style-2-outline" data-i18n="headerSettings.iconStyleOutline2">Style 2 - outline</option>
+                                <option value="outline" selected data-i18n="headerSettings.iconStyleOutline">Outline</option>
+                                <option value="solid" data-i18n="headerSettings.iconStyleSolid">Solid</option>
                             </select>
                         </div>
                         
@@ -2655,24 +2898,152 @@ $(document).ready(async function() {
                     
                     <!-- Icon Section -->
                     <div class="settings-field">
-                        <label data-i18n="announcementItem.icon">Icono</label>
-                        <select class="shopify-select" id="announcement-icon">
-                            <option value="none" selected>None</option>
-                            <option value="shipping">Shipping</option>
-                            <option value="discount">Discount</option>
-                            <option value="info">Info</option>
-                            <option value="star">Star</option>
-                        </select>
-                        <a href="#" class="settings-link" style="display: block; margin-top: 8px;">See what icon stands for each label</a>
+                        <label style="display: flex; justify-content: space-between; align-items: center;">
+                            <span data-i18n="announcementItem.useIconLibrary">Usar icono de la librería</span>
+                            <label class="switch">
+                                <input type="checkbox" id="use-icon-library" checked>
+                                <span class="slider"></span>
+                            </label>
+                        </label>
                     </div>
                     
-                    <!-- Custom icon -->
-                    <div class="settings-field">
-                        <label>Custom icon</label>
+                    <!-- Icon Library Section -->
+                    <div id="icon-library-section" class="settings-field">
+                        <label data-i18n="announcementItem.icon">Icono</label>
+                        <div class="icon-library-wrapper">
+                            <button class="icon-library-trigger" id="icon-library-trigger" style="width: 100%; padding: 12px; border: 1px solid #c9cccf; border-radius: 4px; background: white; display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                <i class="material-icons" id="selected-icon-preview" style="font-size: 20px;">star</i>
+                                <span id="selected-icon-name">Star</span>
+                                <i class="material-icons" style="margin-left: auto;">arrow_drop_down</i>
+                            </button>
+                            <div class="icon-library-dropdown" id="icon-library-dropdown" style="display: none; position: absolute; width: 100%; max-height: 400px; overflow-y: auto; background: white; border: 1px solid #c9cccf; border-radius: 4px; margin-top: 4px; z-index: 1000; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                                <!-- General Icons -->
+                                <div class="icon-category" style="padding: 8px 12px; background: #f4f4f4; font-weight: 500; font-size: 12px;">General</div>
+                                <div class="icon-grid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; padding: 8px;">
+                                    <div class="icon-item" data-icon="none" data-name="None"><i class="material-icons" style="visibility: hidden;">block</i><span>None</span></div>
+                                    <div class="icon-item" data-icon="settings" data-name="Settings"><i class="material-icons">settings</i><span>Settings</span></div>
+                                    <div class="icon-item" data-icon="search" data-name="Search"><i class="material-icons">search</i><span>Search</span></div>
+                                    <div class="icon-item" data-icon="visibility" data-name="Eye"><i class="material-icons">visibility</i><span>Eye</span></div>
+                                    <div class="icon-item" data-icon="visibility_off" data-name="Eye slash"><i class="material-icons">visibility_off</i><span>Eye slash</span></div>
+                                    <div class="icon-item" data-icon="person" data-name="User"><i class="material-icons">person</i><span>User</span></div>
+                                    <div class="icon-item" data-icon="favorite_border" data-name="Love outline"><i class="material-icons">favorite_border</i><span>Love outline</span></div>
+                                    <div class="icon-item" data-icon="favorite" data-name="Love solid"><i class="material-icons">favorite</i><span>Love solid</span></div>
+                                    <div class="icon-item" data-icon="thumb_up" data-name="Like"><i class="material-icons">thumb_up</i><span>Like</span></div>
+                                    <div class="icon-item" data-icon="thumb_down" data-name="Dislike"><i class="material-icons">thumb_down</i><span>Dislike</span></div>
+                                    <div class="icon-item" data-icon="lightbulb" data-name="Lamp"><i class="material-icons">lightbulb</i><span>Lamp</span></div>
+                                    <div class="icon-item" data-icon="star_border" data-name="Star outline"><i class="material-icons">star_border</i><span>Star outline</span></div>
+                                    <div class="icon-item" data-icon="star" data-name="Star solid"><i class="material-icons">star</i><span>Star solid</span></div>
+                                    <div class="icon-item" data-icon="delete" data-name="Trash"><i class="material-icons">delete</i><span>Trash</span></div>
+                                    <div class="icon-item" data-icon="description" data-name="Document"><i class="material-icons">description</i><span>Document</span></div>
+                                    <div class="icon-item" data-icon="content_copy" data-name="Copy"><i class="material-icons">content_copy</i><span>Copy</span></div>
+                                </div>
+                                
+                                <!-- Shop Icons -->
+                                <div class="icon-category" style="padding: 8px 12px; background: #f4f4f4; font-weight: 500; font-size: 12px;">Shop</div>
+                                <div class="icon-grid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; padding: 8px;">
+                                    <div class="icon-item" data-icon="shopping_bag" data-name="Bag"><i class="material-icons">shopping_bag</i><span>Bag</span></div>
+                                    <div class="icon-item" data-icon="shopping_cart" data-name="Cart"><i class="material-icons">shopping_cart</i><span>Cart</span></div>
+                                    <div class="icon-item" data-icon="qr_code_scanner" data-name="Barcode"><i class="material-icons">qr_code_scanner</i><span>Barcode</span></div>
+                                    <div class="icon-item" data-icon="confirmation_number" data-name="Coupon"><i class="material-icons">confirmation_number</i><span>Coupon</span></div>
+                                    <div class="icon-item" data-icon="card_giftcard" data-name="Gift"><i class="material-icons">card_giftcard</i><span>Gift</span></div>
+                                    <div class="icon-item" data-icon="sell" data-name="Discount outline"><i class="material-icons">sell</i><span>Discount</span></div>
+                                    <div class="icon-item" data-icon="workspace_premium" data-name="Medal"><i class="material-icons">workspace_premium</i><span>Medal</span></div>
+                                    <div class="icon-item" data-icon="straighten" data-name="Pen and ruler"><i class="material-icons">straighten</i><span>Ruler</span></div>
+                                    <div class="icon-item" data-icon="palette" data-name="Color swatch"><i class="material-icons">palette</i><span>Colors</span></div>
+                                    <div class="icon-item" data-icon="directions_car" data-name="Car"><i class="material-icons">directions_car</i><span>Car</span></div>
+                                    <div class="icon-item" data-icon="local_cafe" data-name="Cup"><i class="material-icons">local_cafe</i><span>Cup</span></div>
+                                    <div class="icon-item" data-icon="cake" data-name="Cake"><i class="material-icons">cake</i><span>Cake</span></div>
+                                    <div class="icon-item" data-icon="checkroom" data-name="Hanger"><i class="material-icons">checkroom</i><span>Hanger</span></div>
+                                    <div class="icon-item" data-icon="store" data-name="Store"><i class="material-icons">store</i><span>Store</span></div>
+                                    <div class="icon-item" data-icon="label" data-name="Tag"><i class="material-icons">label</i><span>Tag</span></div>
+                                </div>
+                                
+                                <!-- Shipping Icons -->
+                                <div class="icon-category" style="padding: 8px 12px; background: #f4f4f4; font-weight: 500; font-size: 12px;">Shipping</div>
+                                <div class="icon-grid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; padding: 8px;">
+                                    <div class="icon-item" data-icon="inventory_2" data-name="Shipping box"><i class="material-icons">inventory_2</i><span>Box</span></div>
+                                    <div class="icon-item" data-icon="place" data-name="Address pin"><i class="material-icons">place</i><span>Pin</span></div>
+                                    <div class="icon-item" data-icon="local_shipping" data-name="Fast delivery"><i class="material-icons">local_shipping</i><span>Delivery</span></div>
+                                    <div class="icon-item" data-icon="local_shipping" data-name="Delivery truck"><i class="material-icons">local_shipping</i><span>Truck</span></div>
+                                    <div class="icon-item" data-icon="replay" data-name="Easy returns"><i class="material-icons">replay</i><span>Returns</span></div>
+                                    <div class="icon-item" data-icon="public" data-name="World"><i class="material-icons">public</i><span>World</span></div>
+                                    <div class="icon-item" data-icon="flight" data-name="Plane"><i class="material-icons">flight</i><span>Plane</span></div>
+                                    <div class="icon-item" data-icon="manage_search" data-name="Search order"><i class="material-icons">manage_search</i><span>Track</span></div>
+                                    <div class="icon-item" data-icon="business_center" data-name="Briefcase"><i class="material-icons">business_center</i><span>Business</span></div>
+                                    <div class="icon-item" data-icon="route" data-name="Routing"><i class="material-icons">route</i><span>Route</span></div>
+                                </div>
+                                
+                                <!-- Payment & Security Icons -->
+                                <div class="icon-category" style="padding: 8px 12px; background: #f4f4f4; font-weight: 500; font-size: 12px;">Payment Security</div>
+                                <div class="icon-grid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; padding: 8px;">
+                                    <div class="icon-item" data-icon="credit_card" data-name="Credit card"><i class="material-icons">credit_card</i><span>Card</span></div>
+                                    <div class="icon-item" data-icon="lock" data-name="Lock"><i class="material-icons">lock</i><span>Lock</span></div>
+                                    <div class="icon-item" data-icon="shield" data-name="Shield"><i class="material-icons">shield</i><span>Shield</span></div>
+                                    <div class="icon-item" data-icon="verified_user" data-name="Secure payment"><i class="material-icons">verified_user</i><span>Secure</span></div>
+                                    <div class="icon-item" data-icon="account_balance_wallet" data-name="Wallet"><i class="material-icons">account_balance_wallet</i><span>Wallet</span></div>
+                                    <div class="icon-item" data-icon="attach_money" data-name="Cash"><i class="material-icons">attach_money</i><span>Cash</span></div>
+                                    <div class="icon-item" data-icon="receipt" data-name="Receipt"><i class="material-icons">receipt</i><span>Receipt</span></div>
+                                </div>
+                                
+                                <!-- Communication Icons -->
+                                <div class="icon-category" style="padding: 8px 12px; background: #f4f4f4; font-weight: 500; font-size: 12px;">Communication</div>
+                                <div class="icon-grid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; padding: 8px;">
+                                    <div class="icon-item" data-icon="phone" data-name="Phone"><i class="material-icons">phone</i><span>Phone</span></div>
+                                    <div class="icon-item" data-icon="chat" data-name="Chat"><i class="material-icons">chat</i><span>Chat</span></div>
+                                    <div class="icon-item" data-icon="message" data-name="Message"><i class="material-icons">message</i><span>Message</span></div>
+                                    <div class="icon-item" data-icon="email" data-name="Email"><i class="material-icons">email</i><span>Email</span></div>
+                                    <div class="icon-item" data-icon="support_agent" data-name="Customer support"><i class="material-icons">support_agent</i><span>Support</span></div>
+                                    <div class="icon-item" data-icon="print" data-name="Printer"><i class="material-icons">print</i><span>Print</span></div>
+                                    <div class="icon-item" data-icon="smartphone" data-name="Mobile"><i class="material-icons">smartphone</i><span>Mobile</span></div>
+                                </div>
+                                
+                                <!-- Other Icons -->
+                                <div class="icon-category" style="padding: 8px 12px; background: #f4f4f4; font-weight: 500; font-size: 12px;">Other</div>  
+                                <div class="icon-grid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; padding: 8px;">
+                                    <div class="icon-item" data-icon="add" data-name="Plus"><i class="material-icons">add</i><span>Plus</span></div>
+                                    <div class="icon-item" data-icon="remove" data-name="Minus"><i class="material-icons">remove</i><span>Minus</span></div>
+                                    <div class="icon-item" data-icon="check" data-name="Checkmark"><i class="material-icons">check</i><span>Check</span></div>
+                                    <div class="icon-item" data-icon="arrow_forward" data-name="Arrow right"><i class="material-icons">arrow_forward</i><span>Right</span></div>
+                                    <div class="icon-item" data-icon="arrow_back" data-name="Arrow left"><i class="material-icons">arrow_back</i><span>Left</span></div>
+                                    <div class="icon-item" data-icon="undo" data-name="Undo"><i class="material-icons">undo</i><span>Undo</span></div>
+                                    <div class="icon-item" data-icon="redo" data-name="Redo"><i class="material-icons">redo</i><span>Redo</span></div>
+                                    <div class="icon-item" data-icon="refresh" data-name="Refresh"><i class="material-icons">refresh</i><span>Refresh</span></div>
+                                    <div class="icon-item" data-icon="notifications" data-name="Notification"><i class="material-icons">notifications</i><span>Alert</span></div>
+                                    <div class="icon-item" data-icon="schedule" data-name="Clock"><i class="material-icons">schedule</i><span>Clock</span></div>
+                                    <div class="icon-item" data-icon="calendar_today" data-name="Calendar"><i class="material-icons">calendar_today</i><span>Calendar</span></div>
+                                    <div class="icon-item" data-icon="info" data-name="Information"><i class="material-icons">info</i><span>Info</span></div>
+                                    <div class="icon-item" data-icon="campaign" data-name="Announcement"><i class="material-icons">campaign</i><span>Announce</span></div>
+                                    <div class="icon-item" data-icon="share" data-name="Share"><i class="material-icons">share</i><span>Share</span></div>
+                                    <div class="icon-item" data-icon="format_list_bulleted" data-name="List"><i class="material-icons">format_list_bulleted</i><span>List</span></div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Icon Color (Hidden - Icons will use text color from scheme) -->
+                        <div class="settings-field" style="margin-top: 16px; display: none;">
+                            <label data-i18n="announcementItem.iconColor">Color del icono</label>
+                            <div class="shopify-color-input-wrapper">
+                                <input type="color" value="#000000" class="shopify-color-picker" id="icon-color-picker">
+                                <input type="text" value="#000000" class="shopify-color-text" id="icon-color-text">
+                                <button class="shopify-color-copy">
+                                    <i class="material-icons">content_copy</i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Custom icon upload section -->
+                    <div id="custom-icon-section" class="settings-field" style="display: none;">
+                        <label data-i18n="announcementItem.customIcon">Icono personalizado</label>
                         <div style="border: 1px dashed #c9cccf; border-radius: 4px; padding: 16px; background: #f9f9f9;">
-                            <button class="btn-secondary" style="width: 100%; padding: 8px 16px; background: white; border: 1px solid #c9cccf; border-radius: 4px; cursor: pointer;" data-i18n="announcementItem.select">
+                            <button class="btn-secondary" id="custom-icon-upload-btn" style="width: 100%; padding: 8px 16px; background: white; border: 1px solid #c9cccf; border-radius: 4px; cursor: pointer;" data-i18n="announcementItem.select">
                                 Seleccionar
                             </button>
+                            <input type="file" id="custom-icon-file" accept="image/*" style="display: none;">
+                            <div id="custom-icon-preview" style="margin-top: 12px; text-align: center; display: none;">
+                                <img src="" alt="Custom icon" style="max-width: 32px; max-height: 32px;">
+                                <button class="btn-link" id="remove-custom-icon" style="display: block; margin: 8px auto 0; color: #d72c0d;">Remove</button>
+                            </div>
                             <p style="font-size: 11px; color: #6d7175; margin: 8px 0 0 0; text-align: center;" data-i18n="announcementItem.browseFreeImages">
                                 Explorar imágenes gratuitas
                             </p>
@@ -4558,13 +4929,16 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                 </div>
             `);
             
-            // Insert after last announcement or after announcement bar
-            const $lastAnnouncement = $headerContent.find('.sidebar-subsection[data-block-type="announcement-item"]').last();
-            if ($lastAnnouncement.length) {
-                $lastAnnouncement.after(newAnnouncement);
-            } else {
-                $announcementBar.after(newAnnouncement);
+            // Find or create the announcement wrapper
+            let $announcementWrapper = $('#announcement-items-wrapper');
+            if ($announcementWrapper.length === 0) {
+                // Create wrapper if it doesn't exist
+                $announcementWrapper = $('<div id="announcement-items-wrapper" style="position: relative;"></div>');
+                $announcementBar.after($announcementWrapper);
             }
+            
+            // Insert new announcement at the end of the wrapper
+            $announcementWrapper.append(newAnnouncement);
             
             // Add to configuration
             currentSectionsConfig.announcements[announcementId] = {
@@ -4927,33 +5301,59 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
             
             // Apply sortable with parent-child logic
             if (typeof $.fn.sortable === 'function') {
+                // First, destroy any existing sortable instances to prevent conflicts
+                if ($container.hasClass('ui-sortable')) {
+                    $container.sortable('destroy');
+                }
+                
                 // Main sortable for announcement bar and header only
                 $container.sortable({
                     items: '.sidebar-subsection[data-block-type="announcement"], .sidebar-subsection[data-block-type="header"]',
                     handle: '.drag-handle',
                     axis: 'y',
                     tolerance: 'pointer',
+                    placeholder: 'sortable-placeholder',
+                    helper: function(e, item) {
+                        // Create a helper that includes visual feedback
+                        const helper = item.clone();
+                        helper.css({
+                            'opacity': '0.8',
+                            'background': '#f0f0f0'
+                        });
+                        return helper;
+                    },
                     start: function(e, ui) {
-                        // If dragging announcement bar, collect all its children
+                        // Add placeholder styling
+                        ui.placeholder.css({
+                            'height': ui.item.outerHeight(),
+                            'visibility': 'visible',
+                            'background': '#e0e0e0',
+                            'border': '2px dashed #999'
+                        });
+                        
+                        // If dragging announcement bar, handle its children and wrapper
                         if (ui.item.attr('data-element-id') === 'barra-anuncios') {
-                            const $children = $('.sidebar-subsection[data-block-type="announcement-item"]');
-                            ui.item.data('announcement-children', $children);
-                            $children.hide();
+                            const $wrapper = $('#announcement-items-wrapper');
+                            if ($wrapper.length > 0) {
+                                // Store wrapper reference
+                                ui.item.data('announcement-wrapper', $wrapper);
+                                // Hide and detach the entire wrapper to prevent interference
+                                $wrapper.hide();
+                                ui.item.data('detached-wrapper', $wrapper.detach());
+                            }
                         }
                     },
                     stop: function(e, ui) {
-                        // If we moved announcement bar, move its children after it
+                        // If we moved announcement bar, reattach its wrapper after it
                         if (ui.item.attr('data-element-id') === 'barra-anuncios') {
-                            const $children = ui.item.data('announcement-children');
-                            if ($children && $children.length > 0) {
-                                // Insert all children after the announcement bar
-                                let $insertAfter = ui.item;
-                                $children.each(function() {
-                                    $(this).insertAfter($insertAfter).show();
-                                    $insertAfter = $(this);
-                                });
+                            const $detachedWrapper = ui.item.data('detached-wrapper');
+                            if ($detachedWrapper && $detachedWrapper.length > 0) {
+                                // Insert wrapper after the announcement bar
+                                $detachedWrapper.insertAfter(ui.item).show();
                             }
-                            ui.item.removeData('announcement-children');
+                            // Clean up data
+                            ui.item.removeData('announcement-wrapper');
+                            ui.item.removeData('detached-wrapper');
                         }
                         
                         // Update section order based on DOM
@@ -4974,7 +5374,7 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                         updateSaveButtonState();
                         console.log('[DEBUG] Page structure changed - drag & drop reorder. New order:', newOrder);
                         
-                        // Re-ensure the collapse button is present
+                        // Re-ensure the collapse button is present and reinitialize announcement sortable
                         setTimeout(() => {
                             const $announcementBar = $('.sidebar-subsection[data-element-id="barra-anuncios"]');
                             if ($announcementBar.length) {
@@ -4990,6 +5390,9 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                                     `);
                                 }
                             }
+                            
+                            // Reinitialize announcement items sortable
+                            createAnnouncementSortable();
                         }, 100);
                     }
                 });
@@ -5000,52 +5403,72 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                     const $announcementBar = $('.sidebar-subsection[data-element-id="barra-anuncios"]');
                     const $announcements = $('.sidebar-subsection[data-block-type="announcement-item"]');
                     
-                    if ($announcements.length > 1) {
-                        // Get positions
-                        const barPos = $announcementBar.index();
-                        const firstAnnouncementPos = $announcements.first().index();
-                        const lastAnnouncementPos = $announcements.last().index();
+                    if ($announcements.length > 0) {
+                        // Find existing wrapper
+                        let $announcementWrapper = $('#announcement-items-wrapper');
                         
-                        $announcements.parent().sortable({
-                            items: '.sidebar-subsection[data-block-type="announcement-item"]',
-                            handle: '.drag-handle',
-                            axis: 'y',
-                            tolerance: 'pointer',
-                            containment: 'parent',
-                            // Restrict movement to only between first and last announcement
-                            start: function(e, ui) {
-                                ui.item.data('min-index', firstAnnouncementPos);
-                                ui.item.data('max-index', lastAnnouncementPos);
-                            },
-                            sort: function(e, ui) {
-                                // Prevent moving above announcement bar or below last announcement
-                                const currentIndex = ui.placeholder.index();
-                                if (currentIndex <= barPos) {
-                                    return false;
-                                }
-                            },
-                            stop: function(e, ui) {
-                                // Update announcement order based on DOM
-                                const newAnnouncementOrder = [];
-                                $('.sidebar-subsection[data-block-type="announcement-item"]').each(function() {
-                                    const elementId = $(this).data('element-id');
-                                    if (elementId) {
-                                        newAnnouncementOrder.push(elementId);
-                                    }
-                                });
+                        // If wrapper doesn't exist, announcements might be loose - create wrapper
+                        if ($announcementWrapper.length === 0) {
+                            // Check if announcements are not already in a wrapper
+                            const $firstAnnouncement = $announcements.first();
+                            if (!$firstAnnouncement.parent().is('#announcement-items-wrapper')) {
+                                // Create wrapper and move all announcement items into it
+                                $announcementWrapper = $('<div id="announcement-items-wrapper" style="position: relative;"></div>');
                                 
-                                // Ensure the announcements property exists
-                                if (!currentSectionsConfig.announcementOrder) {
-                                    currentSectionsConfig.announcementOrder = [];
-                                }
-                                currentSectionsConfig.announcementOrder = newAnnouncementOrder;
+                                // Insert wrapper after announcement bar
+                                $announcementBar.after($announcementWrapper);
                                 
-                                // Activar bandera de cambios pendientes
-                                hasPendingPageStructureChanges = true;
-                                updateSaveButtonState();
-                                console.log('[DEBUG] Page structure changed - announcement items reorder. New order:', newAnnouncementOrder);
+                                // Move all announcement items into the wrapper
+                                $announcements.detach().appendTo($announcementWrapper);
                             }
-                        });
+                        }
+                        
+                        // Only initialize sortable if there are multiple items
+                        if ($announcements.length > 1) {
+                            // Destroy existing sortable if exists
+                            if ($announcementWrapper.hasClass('ui-sortable')) {
+                                $announcementWrapper.sortable('destroy');
+                            }
+                            
+                            // Initialize sortable on the wrapper
+                            $announcementWrapper.sortable({
+                                items: '.sidebar-subsection[data-block-type="announcement-item"]',
+                                handle: '.drag-handle',
+                                axis: 'y',
+                                tolerance: 'pointer',
+                                placeholder: 'sortable-placeholder',
+                                helper: 'clone',
+                                start: function(e, ui) {
+                                    ui.placeholder.css({
+                                        'height': ui.item.outerHeight(),
+                                        'visibility': 'visible',
+                                        'background': '#e0e0e0',
+                                        'border': '2px dashed #999'
+                                    });
+                                },
+                                stop: function(e, ui) {
+                                    // Update announcement order based on DOM
+                                    const newAnnouncementOrder = [];
+                                    $announcementWrapper.find('.sidebar-subsection[data-block-type="announcement-item"]').each(function() {
+                                        const elementId = $(this).data('element-id');
+                                        if (elementId) {
+                                            newAnnouncementOrder.push(elementId);
+                                        }
+                                    });
+                                    
+                                    // Ensure the announcements property exists
+                                    if (!currentSectionsConfig.announcementOrder) {
+                                        currentSectionsConfig.announcementOrder = [];
+                                    }
+                                    currentSectionsConfig.announcementOrder = newAnnouncementOrder;
+                                    
+                                    // Activar bandera de cambios pendientes
+                                    hasPendingPageStructureChanges = true;
+                                    updateSaveButtonState();
+                                    console.log('[DEBUG] Page structure changed - announcement items reorder. New order:', newAnnouncementOrder);
+                                }
+                            });
+                        }
                     }
                 };
                 
@@ -8980,6 +9403,7 @@ document.head.appendChild(style);
         $(`input[name="autoplay-mode"][value="${config.autoplayMode}"]`).prop('checked', true);
         $('#autoplay-speed').val(config.autoplaySpeed);
         $('.shopify-number-input').val(config.autoplaySpeed);
+        $('#animation-style').val(config.animationStyle || 'none');
         $('#show-language-selector').prop('checked', config.showLanguageSelector);
         $('#show-currency-selector').prop('checked', config.showCurrencySelector);
         $('#show-social-icons').prop('checked', config.showSocialMediaIcons);
@@ -9045,6 +9469,16 @@ document.head.appendChild(style);
             $(this).closest('.range-with-inputs').find('#autoplay-speed').val(value);
             hasPendingPageStructureChanges = true;
             updateSaveButtonState();
+        });
+        
+        $('#animation-style').on('change', function() {
+            currentSectionsConfig.announcementBar.animationStyle = $(this).val();
+            hasPendingPageStructureChanges = true;
+            updateSaveButtonState();
+            console.log('[DEBUG] Announcement bar config changed - animationStyle');
+            
+            // Re-render to apply animation
+            renderPreview();
         });
         
         $('#show-language-selector').on('change', function() {
@@ -9129,15 +9563,145 @@ document.head.appendChild(style);
             console.log('[DEBUG] Announcement item link changed');
         });
         
-        // Icon select
-        $('#announcement-icon').on('change', function() {
+        // Use icon library checkbox
+        $('#use-icon-library').on('change', function() {
+            const useLibrary = $(this).is(':checked');
+            if (useLibrary) {
+                $('#icon-library-section').show();
+                $('#custom-icon-section').hide();
+            } else {
+                $('#icon-library-section').hide();
+                $('#custom-icon-section').show();
+            }
             if (!currentSectionsConfig.announcements[announcementId]) {
                 currentSectionsConfig.announcements[announcementId] = {};
             }
-            currentSectionsConfig.announcements[announcementId].icon = $(this).val();
+            currentSectionsConfig.announcements[announcementId].useIconLibrary = useLibrary;
             hasPendingPageStructureChanges = true;
             updateSaveButtonState();
-            console.log('[DEBUG] Announcement item icon changed');
+        });
+        
+        // Icon library trigger
+        $('#icon-library-trigger').on('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            $('#icon-library-dropdown').toggle();
+        });
+        
+        // Icon selection from library
+        $(document).on('click', '.icon-item', function() {
+            const icon = $(this).data('icon');
+            const name = $(this).data('name');
+            
+            // Update preview
+            if (icon === 'none') {
+                $('#selected-icon-preview').css('visibility', 'hidden');
+                $('#selected-icon-name').text('None');
+            } else {
+                $('#selected-icon-preview').css('visibility', 'visible').text(icon);
+                $('#selected-icon-name').text(name);
+            }
+            
+            // Mark as selected
+            $('.icon-item').removeClass('selected');
+            $(this).addClass('selected');
+            
+            // Close dropdown
+            $('#icon-library-dropdown').hide();
+            
+            // Save to config
+            if (!currentSectionsConfig.announcements[announcementId]) {
+                currentSectionsConfig.announcements[announcementId] = {};
+            }
+            currentSectionsConfig.announcements[announcementId].icon = icon;
+            currentSectionsConfig.announcements[announcementId].iconName = name;
+            hasPendingPageStructureChanges = true;
+            updateSaveButtonState();
+            console.log('[DEBUG] Announcement item icon changed:', icon, name);
+        });
+        
+        // Icon color picker
+        $('#icon-color-picker').on('change', function() {
+            const color = $(this).val();
+            $('#icon-color-text').val(color);
+            if (!currentSectionsConfig.announcements[announcementId]) {
+                currentSectionsConfig.announcements[announcementId] = {};
+            }
+            currentSectionsConfig.announcements[announcementId].iconColor = color;
+            hasPendingPageStructureChanges = true;
+            updateSaveButtonState();
+        });
+        
+        $('#icon-color-text').on('input', function() {
+            const color = $(this).val();
+            if (/^#[0-9A-F]{6}$/i.test(color)) {
+                $('#icon-color-picker').val(color);
+                if (!currentSectionsConfig.announcements[announcementId]) {
+                    currentSectionsConfig.announcements[announcementId] = {};
+                }
+                currentSectionsConfig.announcements[announcementId].iconColor = color;
+                hasPendingPageStructureChanges = true;
+                updateSaveButtonState();
+            }
+        });
+        
+        // Color copy button
+        $('.shopify-color-copy').on('click', function(e) {
+            e.preventDefault();
+            const colorText = $(this).siblings('.shopify-color-text').val();
+            navigator.clipboard.writeText(colorText).then(() => {
+                const originalIcon = $(this).find('i').text();
+                $(this).find('i').text('check');
+                setTimeout(() => {
+                    $(this).find('i').text(originalIcon);
+                }, 2000);
+            });
+        });
+        
+        // Custom icon upload button
+        $('#custom-icon-upload-btn').on('click', function(e) {
+            e.preventDefault();
+            $('#custom-icon-file').click();
+        });
+        
+        // Custom icon file change
+        $('#custom-icon-file').on('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    $('#custom-icon-preview img').attr('src', e.target.result);
+                    $('#custom-icon-preview').show();
+                    
+                    if (!currentSectionsConfig.announcements[announcementId]) {
+                        currentSectionsConfig.announcements[announcementId] = {};
+                    }
+                    currentSectionsConfig.announcements[announcementId].customIcon = e.target.result;
+                    currentSectionsConfig.announcements[announcementId].useIconLibrary = false;
+                    hasPendingPageStructureChanges = true;
+                    updateSaveButtonState();
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+        
+        // Remove custom icon
+        $('#remove-custom-icon').on('click', function(e) {
+            e.preventDefault();
+            $('#custom-icon-preview').hide();
+            $('#custom-icon-file').val('');
+            if (currentSectionsConfig.announcements[announcementId]) {
+                delete currentSectionsConfig.announcements[announcementId].customIcon;
+                hasPendingPageStructureChanges = true;
+                updateSaveButtonState();
+            }
+        });
+        
+        // Close dropdown when clicking outside
+        $(document).on('click', function(e) {
+            if (!$(e.target).closest('.icon-library-wrapper').length) {
+                $('#icon-library-dropdown').hide();
+            }
         });
         
         // Visibility toggle
@@ -9240,6 +9804,8 @@ document.head.appendChild(style);
             hasPendingPageStructureChanges = true;
             updateSaveButtonState();
             console.log('[DEBUG] Header config changed - colorScheme');
+            // Re-render to apply color scheme changes
+            renderPreview();
         });
         
         // Width
@@ -9256,6 +9822,8 @@ document.head.appendChild(style);
             hasPendingPageStructureChanges = true;
             updateSaveButtonState();
             console.log('[DEBUG] Header config changed - layout');
+            // Re-render to apply layout changes
+            renderPreview();
         });
         
         // Show divider
@@ -9322,6 +9890,8 @@ document.head.appendChild(style);
             hasPendingPageStructureChanges = true;
             updateSaveButtonState();
             console.log('[DEBUG] Header config changed - iconStyle');
+            // Re-render to apply icon style changes
+            renderPreview();
         });
         
         // Cart type
@@ -9330,6 +9900,56 @@ document.head.appendChild(style);
             hasPendingPageStructureChanges = true;
             updateSaveButtonState();
             console.log('[DEBUG] Header config changed - cartType:', $(this).val());
+            // Re-render to apply changes
+            renderPreview();
+        });
+        
+        // Desktop logo size
+        $('#desktop-logo-size').on('input', function() {
+            const value = $(this).val();
+            currentSectionsConfig.header.desktopLogoSize = parseInt(value);
+            $(this).closest('.range-with-inputs').find('.shopify-number-input').val(value);
+            hasPendingPageStructureChanges = true;
+            updateSaveButtonState();
+            console.log('[DEBUG] Header config changed - desktopLogoSize:', value);
+            // Re-render to apply changes
+            renderPreview();
+        });
+        
+        // Desktop logo size number input
+        $('#desktop-logo-size').closest('.range-with-inputs').find('.shopify-number-input').on('input', function() {
+            const value = $(this).val();
+            currentSectionsConfig.header.desktopLogoSize = parseInt(value);
+            $('#desktop-logo-size').val(value);
+            hasPendingPageStructureChanges = true;
+            updateSaveButtonState();
+            console.log('[DEBUG] Header config changed - desktopLogoSize:', value);
+            // Re-render to apply changes
+            renderPreview();
+        });
+        
+        // Mobile logo size
+        $('#mobile-logo-size').on('input', function() {
+            const value = $(this).val();
+            currentSectionsConfig.header.mobileLogoSize = parseInt(value);
+            $(this).closest('.range-with-inputs').find('.shopify-number-input').val(value);
+            hasPendingPageStructureChanges = true;
+            updateSaveButtonState();
+            console.log('[DEBUG] Header config changed - mobileLogoSize:', value);
+            // Re-render to apply changes
+            renderPreview();
+        });
+        
+        // Mobile logo size number input
+        $('#mobile-logo-size').closest('.range-with-inputs').find('.shopify-number-input').on('input', function() {
+            const value = $(this).val();
+            currentSectionsConfig.header.mobileLogoSize = parseInt(value);
+            $('#mobile-logo-size').val(value);
+            hasPendingPageStructureChanges = true;
+            updateSaveButtonState();
+            console.log('[DEBUG] Header config changed - mobileLogoSize:', value);
+            // Re-render to apply changes
+            renderPreview();
         });
         
         // Enable sticky header
@@ -9399,6 +10019,8 @@ document.head.appendChild(style);
                         hasPendingPageStructureChanges = true;
                         updateSaveButtonState();
                         console.log('[DEBUG] Desktop logo uploaded:', result.logoUrl);
+                        // Re-render to show new logo
+                        renderPreview();
                     } else {
                         let errorMessage = 'Upload failed';
                         try {
@@ -9456,6 +10078,8 @@ document.head.appendChild(style);
                         hasPendingPageStructureChanges = true;
                         updateSaveButtonState();
                         console.log('[DEBUG] Mobile logo uploaded:', result.logoUrl);
+                        // Re-render to show new logo
+                        renderPreview();
                     } else {
                         let errorMessage = 'Upload failed';
                         try {

@@ -5042,3 +5042,286 @@
     border-color: #777;
 }
 /* ===== End of Simple Visibility Button Styles ===== */
+
+/* ===== Icon Library Styles ===== */
+.icon-library-wrapper {
+    position: relative;
+}
+
+.icon-library-trigger {
+    transition: border-color 0.2s;
+}
+
+.icon-library-trigger:hover {
+    border-color: #8c9196 !important;
+}
+
+.icon-library-dropdown {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.icon-category {
+    padding: 8px 12px;
+    background: #f4f4f4;
+    font-weight: 500;
+    font-size: 12px;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+}
+
+.icon-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 4px;
+    padding: 8px;
+}
+
+.icon-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 8px 4px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.icon-item:hover {
+    background-color: #f4f4f4;
+}
+
+.icon-item.selected {
+    background-color: #e3f2fd;
+}
+
+.icon-item i {
+    font-size: 20px;
+    margin-bottom: 4px;
+    color: #202223;
+}
+
+.icon-item span {
+    font-size: 10px;
+    text-align: center;
+    word-break: break-word;
+    line-height: 1.2;
+    color: #6d7175;
+}
+
+/* Shopify Color Input Wrapper for icons */
+.shopify-color-input-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.shopify-color-picker {
+    width: 36px;
+    height: 36px;
+    border: 1px solid #c9cccf;
+    border-radius: 4px;
+    cursor: pointer;
+    padding: 2px;
+}
+
+.shopify-color-text {
+    flex: 1;
+    padding: 8px 12px;
+    border: 1px solid #c9cccf;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.shopify-color-copy {
+    padding: 8px;
+    background: white;
+    border: 1px solid #c9cccf;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.shopify-color-copy:hover {
+    background: #f4f4f4;
+}
+
+.shopify-color-copy i {
+    font-size: 18px;
+    color: #6d7175;
+}
+
+/* Dark mode support for icon library */
+.dark-mode .icon-category {
+    background: #303030;
+    color: #e3e3e3;
+}
+
+.dark-mode .icon-item:hover {
+    background-color: #404040;
+}
+
+.dark-mode .icon-item.selected {
+    background-color: #2c6ecb;
+}
+
+.dark-mode .icon-item i {
+    color: #e3e3e3;
+}
+
+.dark-mode .icon-item span {
+    color: #8c9196;
+}
+
+.dark-mode .shopify-color-picker,
+.dark-mode .shopify-color-text,
+.dark-mode .shopify-color-copy {
+    background: #303030;
+    border-color: #404040;
+    color: #e3e3e3;
+}
+
+.dark-mode .shopify-color-copy:hover {
+    background: #404040;
+}
+/* ===== End of Icon Library Styles ===== */
+
+/* ===== Announcement Bar Animation Styles ===== */
+.announcement-bar-content {
+    position: relative;
+    overflow: hidden;
+}
+
+/* Fade animation */
+.announcement-bar-content.fade-out {
+    animation: fadeOut 0.3s ease-out forwards;
+}
+
+.announcement-bar-content.fade-in {
+    animation: fadeIn 0.3s ease-in forwards;
+}
+
+@keyframes fadeOut {
+    from { opacity: 1; }
+    to { opacity: 0; }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* Slide horizontal animation */
+.announcement-bar-content.slide-horizontal-out {
+    animation: slideHorizontalOut 0.4s ease-out forwards;
+}
+
+.announcement-bar-content.slide-horizontal-in {
+    animation: slideHorizontalIn 0.4s ease-in forwards;
+}
+
+@keyframes slideHorizontalOut {
+    from { transform: translateX(0); }
+    to { transform: translateX(-100%); }
+}
+
+@keyframes slideHorizontalIn {
+    from { transform: translateX(100%); }
+    to { transform: translateX(0); }
+}
+
+/* Slide vertical animation */
+.announcement-bar-content.slide-vertical-out {
+    animation: slideVerticalOut 0.3s ease-out forwards;
+}
+
+.announcement-bar-content.slide-vertical-in {
+    animation: slideVerticalIn 0.3s ease-in forwards;
+}
+
+@keyframes slideVerticalOut {
+    from { transform: translateY(0); }
+    to { transform: translateY(-100%); }
+}
+
+@keyframes slideVerticalIn {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+}
+
+/* Typewriter animation */
+.announcement-text-typewriter {
+    overflow: hidden;
+    white-space: nowrap;
+    animation: typewriter 2s steps(40, end) forwards;
+}
+
+@keyframes typewriter {
+    from { width: 0; }
+    to { width: 100%; }
+}
+
+.announcement-text-typewriter::after {
+    content: '|';
+    animation: blink 1s infinite;
+}
+
+@keyframes blink {
+    0%, 50% { opacity: 1; }
+    51%, 100% { opacity: 0; }
+}
+/* Marquee animation */
+.marquee-container {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+}
+
+.marquee-content {
+    display: flex;
+    align-items: center;
+    white-space: nowrap;
+    padding-right: 100%;
+}
+
+@keyframes scroll-marquee {
+    0% {
+        transform: translateX(0);
+    }
+    100% {
+        transform: translateX(-50%);
+    }
+}
+
+.marquee-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 15px;
+}
+
+.marquee-separator {
+    display: inline-block;
+    margin: 0 15px;
+    opacity: 0.5;
+}
+
+/* Hide navigation arrows and autoplay controls when marquee is active */
+.announcement-bar-content.marquee-mode .navigation-arrows,
+.announcement-bar-content.marquee-mode + .autoplay-controls {
+    display: none !important;
+}
+
+/* Ensure marquee items don't wrap */
+.marquee-content a {
+    white-space: nowrap;
+}
+
+/* Pause marquee on hover */
+.marquee-container:hover .marquee-content {
+    animation-play-state: paused;
+}
+/* ===== End of Announcement Bar Animation Styles ===== */

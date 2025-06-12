@@ -86,10 +86,33 @@
 2. **Handlers globales**: Para elementos dinámicos usar `$(document).on()` FUERA de funciones
 3. **Funciones globales**: `window.functionName = function()` para acceso desde cualquier contexto
 
-### Jerarquía y Drag & Drop
-1. **Estructura**: Elementos hijos como hermanos DOM con data attributes para relación
-2. **Sortable padre-hijo**: En `start` ocultar hijos, en `stop` reinsertar después del padre
-3. **Reinicializar**: Después de drag, reinicializar colapsadores y handlers en `setTimeout`
+### Drag & Drop con Elementos Padres-Hijos (CRÍTICO)
+**Problema**: Cuando un elemento padre (ej: barra de anuncios) tiene hijos, el drag & drop del header falla.
+
+**Solución definitiva**:
+1. **Wrapper para hijos**: Envolver elementos hijos en un contenedor `<div id="announcement-items-wrapper">`
+2. **Detach durante drag**: En `start`, hacer `.detach()` del wrapper completo (no solo `.hide()`)
+3. **Reattach en stop**: Reinsertar wrapper después del elemento padre movido
+4. **Sortables separados**: Crear sortable independiente para el wrapper de hijos
+
+**Código clave**:
+```javascript
+// En start del sortable principal
+if (ui.item.attr('data-element-id') === 'barra-anuncios') {
+    const $wrapper = $('#announcement-items-wrapper');
+    $wrapper.hide();
+    ui.item.data('detached-wrapper', $wrapper.detach()); // CRÍTICO: detach previene interferencia
+}
+
+// En stop
+const $detachedWrapper = ui.item.data('detached-wrapper');
+if ($detachedWrapper) {
+    $detachedWrapper.insertAfter(ui.item).show();
+}
+```
+
+### Reinicialización Post-Drag
+Después de drag, reinicializar colapsadores y handlers en `setTimeout`
 
 ### Traducciones Dinámicas
 1. **HTML**: `data-i18n="key"`, `data-i18n-placeholder="key"`, `data-i18n-title="key"`
