@@ -8,11 +8,83 @@ let currentPageId = 1; // Default to home page
 let currentPageBlocks = [];
 let currentSelectedColorScheme = 'scheme1'; // Track which color scheme is being edited
 let currentSidebarView = 'blockList'; // Track the current sidebar view
+let currentAnnouncementIndex = 0; // Track current announcement being displayed
+let announcementAutoplayTimer = null; // Timer for autoplay functionality
+
+// Global font map for converting font values to display names
+window.globalFontMap = {
+    'abel': 'Abel',
+    'archivo': 'Archivo',
+    'archivo-narrow': 'Archivo Narrow',
+    'arimo': 'Arimo',
+    'assistant': 'Assistant',
+    'bebas-neue': 'Bebas Neue',
+    'cabin': 'Cabin',
+    'chivo': 'Chivo',
+    'dosis': 'Dosis',
+    'fjalla-one': 'Fjalla One',
+    'josefin-sans': 'Josefin Sans',
+    'karla': 'Karla',
+    'libre-franklin': 'Libre Franklin',
+    'noto-sans': 'Noto Sans',
+    'nunito-sans': 'Nunito Sans',
+    'oswald': 'Oswald',
+    'oxygen': 'Oxygen',
+    'pt-sans': 'PT Sans',
+    'raleway': 'Raleway',
+    'roboto': 'Roboto',
+    'rubik': 'Rubik',
+    'source-sans-pro': 'Source Sans Pro',
+    'titillium-web': 'Titillium Web',
+    'ubuntu': 'Ubuntu',
+    'work-sans': 'Work Sans',
+    'arvo': 'Arvo',
+    'bitter': 'Bitter',
+    'cardo': 'Cardo',
+    'cormorant': 'Cormorant',
+    'crimson-text': 'Crimson Text',
+    'david-libre': 'David Libre',
+    'eb-garamond': 'EB Garamond',
+    'eczar': 'Eczar',
+    'inter': 'Inter',
+    'lato': 'Lato',
+    'libre-baskerville': 'Libre Baskerville',
+    'lora': 'Lora',
+    'merriweather': 'Merriweather',
+    'montserrat': 'Montserrat',
+    'noticia-text': 'Noticia Text',
+    'noto-serif': 'Noto Serif',
+    'open-sans': 'Open Sans',
+    'playfair-display': 'Playfair Display',
+    'poppins': 'Poppins',
+    'pt-serif': 'PT Serif',
+    'roboto-slab': 'Roboto Slab',
+    'source-serif-pro': 'Source Serif Pro',
+    'vollkorn': 'Vollkorn',
+    'anonymous-pro': 'Anonymous Pro',
+    'fira-mono': 'Fira Mono',
+    'ibm-plex-mono': 'IBM Plex Mono',
+    'inconsolata': 'Inconsolata',
+    'jetbrains-mono': 'JetBrains Mono',
+    'noto-sans-mono': 'Noto Sans Mono',
+    'roboto-mono': 'Roboto Mono',
+    'source-code-pro': 'Source Code Pro',
+    'space-mono': 'Space Mono',
+    'ubuntu-mono': 'Ubuntu Mono'
+};
+
+// Helper function to get font name from value
+window.getFontNameFromValueSafe = function(fontValue) {
+    if (!fontValue) return 'Roboto';
+    return window.globalFontMap[fontValue] || fontValue.split('-').map(word => 
+        word.charAt(0).toUpperCase() + word.slice(1)
+    ).join(' ');
+};
 // Estructura para almacenar configuración de secciones
 let currentSectionsConfig = {
     announcementBar: {
         showOnlyHomePage: false,
-        colorScheme: 'secondary',
+        colorScheme: 'scheme1',
         width: 'screen',
         showNavigationArrows: true,
         autoplayMode: 'none',
@@ -53,7 +125,8 @@ let currentGlobalThemeSettings = {
     primaryColor: "#1976d2",
     secondaryColor: "#424242",
     fontFamily: "Roboto",
-    headerHeight: "60px"
+    headerHeight: "60px",
+    colorSchemes: {}
 };
 
 // Estructura de datos para los esquemas de color - estructura plana para los campos de configuración
@@ -115,6 +188,17 @@ const colorSchemes = {
     }
 };
 
+// Helper function to get color scheme values
+function getColorSchemeValues(schemeName) {
+    // First check if we have custom values in currentGlobalThemeSettings
+    if (currentGlobalThemeSettings && currentGlobalThemeSettings.colorSchemes && currentGlobalThemeSettings.colorSchemes[schemeName]) {
+        return currentGlobalThemeSettings.colorSchemes[schemeName];
+    }
+    
+    // Fall back to default color schemes
+    return colorSchemes[schemeName] || colorSchemes['scheme1'];
+}
+
 // Function to load current website data from the backend - moved outside document.ready
 async function loadCurrentWebsite() {
     try {
@@ -140,10 +224,23 @@ async function loadCurrentWebsite() {
             try {
                 currentGlobalThemeSettings = JSON.parse(website.globalThemeSettingsJson);
                 console.log('[DEBUG] Loaded theme settings from DB:', currentGlobalThemeSettings);
+                
+                // Ensure colorSchemes property exists
+                if (!currentGlobalThemeSettings.colorSchemes) {
+                    console.log('[DEBUG] colorSchemes not found in DB, initializing empty object');
+                    currentGlobalThemeSettings.colorSchemes = {};
+                }
             } catch (e) {
                 console.error('Error parsing global theme settings:', e);
-                currentGlobalThemeSettings = {};
+                currentGlobalThemeSettings = {
+                    colorSchemes: {}
+                };
             }
+        } else {
+            // Initialize with empty object if no settings in DB
+            currentGlobalThemeSettings = {
+                colorSchemes: {}
+            };
         }
         
         // Parse and load page structure
@@ -157,7 +254,7 @@ async function loadCurrentWebsite() {
                         const defaultConfig = {
                             announcementBar: {
                                 showOnlyHomePage: false,
-                                colorScheme: 'secondary',
+                                colorScheme: 'scheme1',
                                 width: 'screen',
                                 showNavigationArrows: true,
                                 autoplayMode: 'none',
@@ -276,6 +373,47 @@ function applyGlobalStylesToPreview(settings) {
         
         console.log('[DEBUG] Preview iframe is ready. Applying styles.');
         
+        // Load Google Fonts in iframe if needed
+        if (settings.typography) {
+            const fontsToLoad = new Set();
+            
+            // Collect all fonts that need to be loaded
+            if (settings.typography.heading?.font) {
+                const fontName = window.getFontNameFromValueSafe(settings.typography.heading.font);
+                if (fontName) fontsToLoad.add(fontName);
+            }
+            if (settings.typography.body?.font) {
+                const fontName = window.getFontNameFromValueSafe(settings.typography.body.font);
+                if (fontName) fontsToLoad.add(fontName);
+            }
+            if (settings.typography.menu?.font) {
+                const fontName = window.getFontNameFromValueSafe(settings.typography.menu.font);
+                if (fontName) fontsToLoad.add(fontName);
+            }
+            if (settings.typography.product?.font) {
+                const fontName = window.getFontNameFromValueSafe(settings.typography.product.font);
+                if (fontName) fontsToLoad.add(fontName);
+            }
+            if (settings.typography.buttons?.font) {
+                const fontName = window.getFontNameFromValueSafe(settings.typography.buttons.font);
+                if (fontName) fontsToLoad.add(fontName);
+            }
+            
+            // Load each font in the iframe
+            const iframeHead = previewDoc.head;
+            fontsToLoad.forEach(fontName => {
+                // Check if font is already loaded
+                const existingLink = iframeHead.querySelector(`link[href*="${fontName.replace(/\s+/g, '+')}"]`);
+                if (!existingLink) {
+                    const link = document.createElement('link');
+                    link.href = `https://fonts.googleapis.com/css2?family=${fontName.replace(/\s+/g, '+')}:wght@400;500;600;700&display=swap`;
+                    link.rel = 'stylesheet';
+                    iframeHead.appendChild(link);
+                    console.log('[DEBUG] Loaded font in iframe:', fontName);
+                }
+            });
+        }
+        
         // Apply appearance settings
         if (settings.appearance) {
             if (settings.appearance.pageWidth) {
@@ -392,20 +530,20 @@ function renderHeader(config) {
     if (!config || config.isHidden) return '';
 
     const logoHtml = config.desktopLogoUrl 
-        ? `<img src="${config.desktopLogoUrl}" alt="logo" style="max-height: ${config.desktopLogoSize || 50}px;">`
-        : `<span style="font-size: 24px; font-weight: bold;">My Store</span>`;
+        ? `<img src="${config.desktopLogoUrl}" alt="logo" style="max-height: ${config.desktopLogoSize || 80}px;">`
+        : `<span style="font-size: 32px; font-weight: 600; letter-spacing: 0.08em; color: #ffffff;">AURORA</span>`;
 
     const headerContent = `
-        <header style="height: 80px; display: flex; align-items: center; justify-content: space-between; padding: 0 40px; border-bottom: ${config.showDivider ? '1px solid var(--color-primary-border, #e0e0e0)' : 'none'}; background-color: var(--color-primary-background, #ffffff); color: var(--color-primary-text, #000000);">
-            <div class="header-menu-left" style="display: flex; gap: 20px;">
-                <a href="#" style="text-decoration: none; color: inherit;">Shop</a>
-                <a href="#" style="text-decoration: none; color: inherit;">About</a>
+        <header style="height: 120px; display: flex; align-items: center; justify-content: space-between; padding: 0 50px; border-bottom: ${config.showDivider ? '1px solid var(--color-primary-border, #e5e5e5)' : 'none'}; background-color: var(--color-primary-background, #000000); color: var(--color-primary-text, #ffffff);">
+            <div class="header-menu-left" style="display: flex; gap: 32px; align-items: center;">
+                <a href="#" style="text-decoration: none; color: inherit; font-size: 15px; font-weight: 400; letter-spacing: 0.06em;">Soluciones</a>
+                <a href="#" style="text-decoration: none; color: inherit; font-size: 15px; font-weight: 400; letter-spacing: 0.06em;">Herramientas</a>
             </div>
-            <div class="header-logo">${logoHtml}</div>
-            <div class="header-icons-right" style="display: flex; gap: 15px;">
-                <span class="material-symbols-outlined">search</span>
-                <span class="material-symbols-outlined">person</span>
-                <span class="material-symbols-outlined">shopping_bag</span>
+            <div class="header-logo" style="position: absolute; left: 50%; transform: translateX(-50%);">${logoHtml}</div>
+            <div class="header-icons-right" style="display: flex; gap: 24px; align-items: center;">
+                <span class="material-symbols-outlined" style="font-size: 24px; font-weight: 300; cursor: pointer;">search</span>
+                <span class="material-symbols-outlined" style="font-size: 24px; font-weight: 300; cursor: pointer;">person_outline</span>
+                <span class="material-symbols-outlined" style="font-size: 24px; font-weight: 300; cursor: pointer;">shopping_bag</span>
             </div>
         </header>
     `;
@@ -426,15 +564,128 @@ function renderHeader(config) {
 function renderAnnouncementBar(config) {
     if (!config || config.isHidden) return '';
 
-    let firstAnnouncementText = 'Welcome to our store!';
-    if (currentSectionsConfig.announcementOrder && currentSectionsConfig.announcementOrder.length > 0) {
-        const firstVisibleId = currentSectionsConfig.announcementOrder.find(id => currentSectionsConfig.announcements[id] && !currentSectionsConfig.announcements[id].isHidden);
-        if (firstVisibleId) {
-            firstAnnouncementText = currentSectionsConfig.announcements[firstVisibleId].text;
+    // Obtener anuncios visibles
+    const visibleAnnouncements = [];
+    if (currentSectionsConfig.announcementOrder && currentSectionsConfig.announcements) {
+        currentSectionsConfig.announcementOrder.forEach(id => {
+            const announcement = currentSectionsConfig.announcements[id];
+            if (announcement && !announcement.isHidden) {
+                visibleAnnouncements.push({ id, ...announcement });
+            }
+        });
+    }
+
+    if (visibleAnnouncements.length === 0) {
+        visibleAnnouncements.push({ text: 'Welcome to our store!', link: '', icon: 'none' });
+    }
+
+    // Asegurar que el índice actual esté dentro del rango
+    if (currentAnnouncementIndex >= visibleAnnouncements.length) {
+        currentAnnouncementIndex = 0;
+    }
+    
+    const currentAnnouncement = visibleAnnouncements[currentAnnouncementIndex];
+    
+    // Get the selected color scheme or default to scheme1
+    const selectedScheme = config.colorScheme || 'scheme1';
+    const schemeColors = getColorSchemeValues(selectedScheme);
+
+    // Construir contenido del anuncio con link si existe
+    let announcementText = currentAnnouncement.text;
+    if (currentAnnouncement.icon && currentAnnouncement.icon !== 'none') {
+        const iconMap = {
+            'local_shipping': 'local_shipping',
+            'campaign': 'campaign',
+            'star': 'star',
+            'info': 'info'
+        };
+        const iconName = iconMap[currentAnnouncement.icon] || currentAnnouncement.customIcon || '';
+        if (iconName) {
+            announcementText = `<span class="material-symbols-outlined" style="font-size: 16px;">${iconName}</span> ${announcementText}`;
         }
     }
 
-    const announcementContent = `<div class="announcement-bar-content" style="padding: 10px; text-align: center; background-color: var(--color-secondary-background, #f0f0f0); color: var(--color-secondary-text, #333333); font-size: 14px;"><p style="margin:0;">${firstAnnouncementText}</p></div>`;
+    if (currentAnnouncement.link) {
+        announcementText = `<a href="${currentAnnouncement.link}" style="color: inherit; text-decoration: none;">${announcementText}</a>`;
+    }
+
+    // Construir iconos sociales si están habilitados
+    const socialIconsHtml = config.showSocialMediaIcons ? `
+        <div style="position: absolute; left: 50px; top: 50%; transform: translateY(-50%); display: flex; align-items: center; gap: 16px;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="cursor: pointer;">
+                <path d="M12 0c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12-5.373-12-12-12zm3 8h-1.35c-.538 0-.65.221-.65.778v1.222h2l-.209 2h-1.791v7h-3v-7h-2v-2h2v-2.308c0-1.769.931-2.692 3.029-2.692h1.971v3z"/>
+            </svg>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="cursor: pointer;">
+                <path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z"/>
+            </svg>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="cursor: pointer;">
+                <path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/>
+            </svg>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="cursor: pointer;">
+                <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zM5.838 12a6.162 6.162 0 1112.324 0 6.162 6.162 0 01-12.324 0zM12 16a4 4 0 110-8 4 4 0 010 8zm4.965-10.405a1.44 1.44 0 112.881.001 1.44 1.44 0 01-2.881-.001z"/>
+            </svg>
+        </div>
+    ` : '';
+
+    // Construir selectores si están habilitados
+    const selectorsHtml = (config.showLanguageSelector || config.showCurrencySelector) ? `
+        <div style="position: absolute; right: 50px; top: 50%; transform: translateY(-50%); display: flex; align-items: center; gap: 16px;">
+            ${config.showLanguageSelector ? `
+                <select style="border: none; background: transparent; font-size: 12px; cursor: pointer; outline: none; color: inherit;">
+                    <option>Español</option>
+                    <option>English</option>
+                </select>
+            ` : ''}
+            ${config.showCurrencySelector ? `
+                <select style="border: none; background: transparent; font-size: 12px; cursor: pointer; outline: none; color: inherit;">
+                    <option>USD</option>
+                    <option>EUR</option>
+                </select>
+            ` : ''}
+        </div>
+    ` : '';
+
+    // Construir flechas de navegación si están habilitadas y hay múltiples anuncios
+    const navigationArrowsHtml = (config.showNavigationArrows && visibleAnnouncements.length > 1) ? `
+        <button onclick="window.navigateAnnouncement('prev')" style="position: absolute; left: 20px; top: 50%; transform: translateY(-50%); background: none; border: none; color: inherit; cursor: pointer; padding: 4px;">
+            <span class="material-symbols-outlined" style="font-size: 20px;">chevron_left</span>
+        </button>
+        <button onclick="window.navigateAnnouncement('next')" style="position: absolute; right: 20px; top: 50%; transform: translateY(-50%); background: none; border: none; color: inherit; cursor: pointer; padding: 4px;">
+            <span class="material-symbols-outlined" style="font-size: 20px;">chevron_right</span>
+        </button>
+    ` : '';
+
+    // Determinar el ancho del contenedor
+    const containerStyle = config.width === 'container' 
+        ? 'max-width: 1200px; margin: 0 auto; position: relative;' 
+        : 'position: relative;';
+
+    // Get typography settings
+    const bodyTypography = currentGlobalThemeSettings?.typography?.body || {};
+    const bodyFontValue = bodyTypography.font || 'roboto';
+    const bodyFontFamily = window.getFontNameFromValueSafe(bodyFontValue);
+    const bodyFontSize = bodyTypography.fontSize || '16px';
+    
+    console.log('[DEBUG] Announcement bar typography:', {
+        fontValue: bodyFontValue,
+        fontFamily: bodyFontFamily,
+        fontSize: bodyFontSize
+    });
+    
+    const announcementContent = `
+        <div class="announcement-bar-content" style="position: relative; padding: 10px 50px; background-color: ${schemeColors.background}; color: ${schemeColors.text}; font-family: ${bodyFontFamily}, -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: ${bodyFontSize}; font-weight: 400; letter-spacing: 0.04em; line-height: 1.5;">
+            <div style="${containerStyle}">
+                ${socialIconsHtml}
+                <div style="text-align: center;">
+                    <p style="margin:0; display: inline-flex; align-items: center; gap: 8px;">
+                        ${announcementText}
+                    </p>
+                </div>
+                ${selectorsHtml}
+                ${navigationArrowsHtml}
+            </div>
+        </div>
+    `;
 
     return `<div class="section-wrapper" data-section-id="announcement">
                 <div class="section-header-tag">
@@ -442,6 +693,80 @@ function renderAnnouncementBar(config) {
                 </div>
                 ${announcementContent}
             </div>`;
+}
+
+/**
+ * Navega entre anuncios en el announcement bar
+ * @param {string} direction - 'prev' o 'next'
+ */
+window.navigateAnnouncement = function(direction) {
+    // Obtener anuncios visibles
+    const visibleAnnouncements = [];
+    if (currentSectionsConfig.announcementOrder && currentSectionsConfig.announcements) {
+        currentSectionsConfig.announcementOrder.forEach(id => {
+            const announcement = currentSectionsConfig.announcements[id];
+            if (announcement && !announcement.isHidden) {
+                visibleAnnouncements.push({ id, ...announcement });
+            }
+        });
+    }
+
+    if (visibleAnnouncements.length <= 1) return;
+
+    // Actualizar índice
+    if (direction === 'next') {
+        currentAnnouncementIndex = (currentAnnouncementIndex + 1) % visibleAnnouncements.length;
+    } else {
+        currentAnnouncementIndex = (currentAnnouncementIndex - 1 + visibleAnnouncements.length) % visibleAnnouncements.length;
+    }
+
+    // Re-renderizar el preview
+    renderPreview();
+    
+    // Reiniciar autoplay si está activo
+    if (currentSectionsConfig.announcementBar.autoplayMode !== 'none') {
+        startAnnouncementAutoplay();
+    }
+};
+
+/**
+ * Inicia el autoplay de anuncios
+ */
+function startAnnouncementAutoplay() {
+    // Detener cualquier autoplay existente
+    stopAnnouncementAutoplay();
+    
+    const config = currentSectionsConfig.announcementBar;
+    if (!config || config.autoplayMode === 'none') return;
+    
+    // Obtener anuncios visibles
+    const visibleAnnouncements = [];
+    if (currentSectionsConfig.announcementOrder && currentSectionsConfig.announcements) {
+        currentSectionsConfig.announcementOrder.forEach(id => {
+            const announcement = currentSectionsConfig.announcements[id];
+            if (announcement && !announcement.isHidden) {
+                visibleAnnouncements.push({ id, ...announcement });
+            }
+        });
+    }
+    
+    // Solo activar autoplay si hay múltiples anuncios
+    if (visibleAnnouncements.length > 1) {
+        const intervalMs = (config.autoplaySpeed || 6) * 1000;
+        announcementAutoplayTimer = setInterval(() => {
+            window.navigateAnnouncement('next');
+        }, intervalMs);
+    }
+}
+
+/**
+ * Detiene el autoplay de anuncios
+ */
+function stopAnnouncementAutoplay() {
+    if (announcementAutoplayTimer) {
+        clearInterval(announcementAutoplayTimer);
+        announcementAutoplayTimer = null;
+    }
 }
 
 /**
@@ -516,6 +841,50 @@ function renderPreview() {
             // Aquí añadiremos más 'else if' para otras secciones en el futuro.
         });
     });
+    
+    // Iniciar autoplay si está configurado
+    startAnnouncementAutoplay();
+    
+    // Load Google Fonts in preview iframe
+    loadFontsInPreview();
+}
+
+// Function to load Google Fonts in the preview iframe
+function loadFontsInPreview() {
+    const previewFrame = document.getElementById('preview-iframe');
+    if (!previewFrame || !previewFrame.contentDocument) return;
+    
+    const iframeHead = previewFrame.contentDocument.head;
+    
+    // Get all fonts from typography settings
+    if (currentGlobalThemeSettings && currentGlobalThemeSettings.typography) {
+        const typography = currentGlobalThemeSettings.typography;
+        const fontsToLoad = new Set();
+        
+        // Collect all unique fonts
+        if (typography.heading?.font) fontsToLoad.add(typography.heading.font);
+        if (typography.body?.font) fontsToLoad.add(typography.body.font);
+        if (typography.menu?.font) fontsToLoad.add(typography.menu.font);
+        if (typography.product?.font) fontsToLoad.add(typography.product.font);
+        if (typography.buttons?.font) fontsToLoad.add(typography.buttons.font);
+        
+        // Load each font
+        fontsToLoad.forEach(fontValue => {
+            const fontName = window.getFontNameFromValue ? window.getFontNameFromValue(fontValue) : null;
+            if (fontName) {
+                const linkId = `google-font-${fontValue}`;
+                const existingLink = iframeHead.querySelector(`#${linkId}`);
+                
+                if (!existingLink) {
+                    const link = document.createElement('link');
+                    link.id = linkId;
+                    link.href = `https://fonts.googleapis.com/css2?family=${fontName.replace(/\s+/g, '+')}:wght@400;500;600;700&display=swap`;
+                    link.rel = 'stylesheet';
+                    iframeHead.appendChild(link);
+                }
+            }
+        });
+    }
 }
 
 $(document).ready(async function() {
@@ -1401,8 +1770,8 @@ $(document).ready(async function() {
     // Set current language translations
     const lang = translations[currentLanguage];
     
-    // Sidebar view state
-    let currentSidebarView = 'blockList';
+    // Sidebar view state - REMOVED duplicate declaration (using global instead)
+    // currentSidebarView is already declared globally at line 10
     let currentPageData = { name: lang.homePageLabel || "Página de inicio", blocks: [] };
     
     // Initialize translations in UI
@@ -1487,6 +1856,7 @@ $(document).ready(async function() {
     
     // Function to switch sidebar view - Make it global for delegated events
     window.switchSidebarView = function(viewName, data = null) {
+        console.log('[DEBUG] Switching sidebar view from', currentSidebarView, 'to', viewName);
         currentSidebarView = viewName;
         const dynamicContentArea = document.getElementById('sidebar-dynamic-content');
         if (!dynamicContentArea) return;
@@ -1525,13 +1895,27 @@ $(document).ready(async function() {
                     console.log(`[DEBUG] Scheme selector found:`, $schemeSelect.length > 0);
                     
                     if ($schemeSelect.length > 0) {
-                        loadSchemeConfiguration('scheme1');
+                        // Get the currently selected scheme from settings, default to scheme1 if not set
+                        const selectedScheme = currentGlobalThemeSettings.selectedColorScheme || 'scheme1';
+                        console.log(`[DEBUG] Loading previously selected scheme: ${selectedScheme}`);
+                        
+                        // Set the dropdown to show the selected scheme
+                        $schemeSelect.val(selectedScheme);
+                        
+                        // Load the configuration for the selected scheme
+                        loadSchemeConfiguration(selectedScheme);
                         
                         // Attach the scheme selector change handler here where we know the DOM is ready
                         $schemeSelect.off('change.schemeConfig').on('change.schemeConfig', function() {
-                            const selectedScheme = $(this).val();
-                            console.log(`[DEBUG] Scheme selector changed to: ${selectedScheme}`);
-                            loadSchemeConfiguration(selectedScheme);
+                            const newSelectedScheme = $(this).val();
+                            console.log(`[DEBUG] Scheme selector changed to: ${newSelectedScheme}`);
+                            
+                            // Save the selected scheme in global settings
+                            currentGlobalThemeSettings.selectedColorScheme = newSelectedScheme;
+                            hasPendingGlobalSettingsChanges = true;
+                            updateSaveButtonState();
+                            
+                            loadSchemeConfiguration(newSelectedScheme);
                         });
                     } else {
                         console.error('[ERROR] schemeConfigSelect not found in DOM!');
@@ -1863,10 +2247,6 @@ $(document).ready(async function() {
                     <div class="settings-field">
                         <label data-i18n="announcementBar.colorScheme">Esquema de color</label>
                         <select class="shopify-select" id="color-scheme-select">
-                            <option value="default">Default</option>
-                            <option value="primary">Primary</option>
-                            <option value="secondary" selected>Secondary</option>
-                            <option value="contrasting">Contrasting</option>
                             <option value="scheme1">Scheme 1</option>
                             <option value="scheme2">Scheme 2</option>
                             <option value="scheme3">Scheme 3</option>
@@ -2000,15 +2380,11 @@ $(document).ready(async function() {
                     <div class="settings-field">
                         <label data-i18n="headerSettings.colorScheme">Esquema de color</label>
                         <select class="shopify-select" id="header-color-scheme">
-                            <option value="default" data-i18n="headerSettings.default">Por defecto</option>
-                            <option value="primary" selected data-i18n="headerSettings.primary">Primario</option>
-                            <option value="secondary" data-i18n="headerSettings.secondary">Secundario</option>
-                            <option value="contrasting" data-i18n="headerSettings.contrasting">Contrastante</option>
-                            <option value="scheme1">Esquema 1</option>
-                            <option value="scheme2">Esquema 2</option>
-                            <option value="scheme3">Esquema 3</option>
-                            <option value="scheme4">Esquema 4</option>
-                            <option value="scheme5">Esquema 5</option>
+                            <option value="scheme1">Scheme 1</option>
+                            <option value="scheme2">Scheme 2</option>
+                            <option value="scheme3">Scheme 3</option>
+                            <option value="scheme4">Scheme 4</option>
+                            <option value="scheme5">Scheme 5</option>
                         </select>
                         <a href="#" class="settings-link" data-i18n="headerSettings.learnAboutColorSchemes">Aprende sobre esquemas de color</a>
                     </div>
@@ -2261,6 +2637,17 @@ $(document).ready(async function() {
                     </div>
                     
                     <!-- Link -->
+                    <!-- Visibility Toggle -->
+                    <div class="settings-field">
+                        <label style="display: flex; justify-content: space-between; align-items: center;">
+                            <span data-i18n="announcementItem.visibility">Visibilidad</span>
+                            <label class="switch">
+                                <input type="checkbox" id="announcement-item-visibility" checked>
+                                <span class="slider"></span>
+                            </label>
+                        </label>
+                    </div>
+                    
                     <div class="settings-field">
                         <label data-i18n="announcementItem.link">Enlace</label>
                         <input type="text" class="shopify-input" data-i18n-placeholder="announcementItem.linkPlaceholder" placeholder="Pega un enlace o busca" style="width: 100%; padding: 8px 12px; border: 1px solid #c9cccf; border-radius: 4px;">
@@ -2516,6 +2903,17 @@ $(document).ready(async function() {
                                         <div class="font-preview-text">Aa</div>
                                     </div>
                                 </div>
+                                
+                                <div class="settings-field">
+                                    <label data-i18n="typography.fontSize">Font size</label>
+                                    <div class="shopify-slider-container">
+                                        <input type="range" id="bodyFontSize" min="12" max="24" value="16" step="1" class="shopify-slider">
+                                        <div class="shopify-value-box">
+                                            <input type="number" id="bodyFontSizeValue" min="12" max="24" value="16" class="shopify-value-input">
+                                            <span class="shopify-unit">px</span>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                             
                             <!-- Menu Section -->
@@ -2670,8 +3068,8 @@ $(document).ready(async function() {
                             
                             <!-- Color Scheme Settings -->
                             <div class="color-scheme-settings" data-scheme="scheme1">
-                                <!-- Primary Section -->
-                                <div class="color-section">
+                                <!-- Primary Section - HIDDEN -->
+                                <!-- <div class="color-section">
                                     <h4 class="color-section-title" data-i18n="colorSchemes.primary">Primary</h4>
                                     
                                     <div class="color-field">
@@ -2771,9 +3169,9 @@ $(document).ready(async function() {
                                             </button>
                                         </div>
                                     </div>
-                                </div>
+                                </div> -->
                                 
-                                <!-- Secondary Section -->
+                                <!-- Secondary Section - HIDDEN
                                 <div class="color-section">
                                     <h4 class="color-section-title" data-i18n="colorSchemes.secondary">Secondary</h4>
                                     
@@ -2875,8 +3273,9 @@ $(document).ready(async function() {
                                         </div>
                                     </div>
                                 </div>
+                                -->
                                 
-                                <!-- Contrasting Section -->
+                                <!-- Contrasting Section - HIDDEN
                                 <div class="color-section">
                                     <h4 class="color-section-title" data-i18n="colorSchemes.contrasting">Contrasting</h4>
                                     
@@ -2978,6 +3377,7 @@ $(document).ready(async function() {
                                         </div>
                                     </div>
                                 </div>
+                                -->
                                 
                                 <!-- Additional Color Scheme Configuration -->
                                 <div class="color-section" style="margin-top: 40px;">
@@ -4171,7 +4571,8 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                 text: announcementName,
                 link: '',
                 icon: 'none',
-                customIcon: ''
+                customIcon: '',
+                isHidden: false  // Default to visible
             };
             
             // Add to order array (ensure it exists first)
@@ -5087,8 +5488,19 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
         }
     });
     
-    // Initialize the sidebar with default view
-    switchSidebarView('blockList', currentPageData);
+    // Initialize the sidebar with last view or default
+    const lastView = sessionStorage.getItem('websiteBuilderLastView');
+    if (lastView === 'themeSettingsView') {
+        // Restore theme settings view
+        $('.topbar-nav-icon').removeClass('active');
+        $('.topbar-nav-icon[data-view="settings"]').addClass('active');
+        switchSidebarView('themeSettingsView');
+        // Clear the saved state
+        sessionStorage.removeItem('websiteBuilderLastView');
+    } else {
+        // Default view
+        switchSidebarView('blockList', currentPageData);
+    }
     
     // Apply translations on initial load
     setTimeout(applyTranslations, 100);
@@ -5642,10 +6054,10 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
         ]
     };
     
-    // Store selected fonts globally
-    const selectedFonts = {
+    // Store selected fonts globally - will be updated when settings are loaded
+    let selectedFonts = {
         heading: 'assistant',
-        body: 'assistant',
+        body: 'roboto',
         menu: 'assistant',
         product: 'assistant',
         buttons: 'assistant'
@@ -5667,8 +6079,20 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
             
             console.log('Setting up font selector for:', fontType);
             
-            // Set current font value
-            const currentFont = selectedFonts[fontType] || 'assistant';
+            // Set current font value from currentGlobalThemeSettings or selectedFonts
+            let currentFont = selectedFonts[fontType];
+            
+            // Check if we have a saved value in currentGlobalThemeSettings
+            if (currentGlobalThemeSettings?.typography?.[fontType]?.font) {
+                currentFont = currentGlobalThemeSettings.typography[fontType].font;
+                selectedFonts[fontType] = currentFont; // Update selectedFonts
+            }
+            
+            // Use default values if no font is set
+            if (!currentFont) {
+                currentFont = fontType === 'body' ? 'roboto' : 'assistant';
+            }
+            
             searchInput.val(getFontDisplayName(currentFont));
             searchInput.attr('data-font-value', currentFont);
             updateFontPreview(previewText, currentFont);
@@ -5706,19 +6130,31 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
     
     // Function to get font display name
     window.getFontDisplayName = function(fontValue) {
-        // Convert font value to display name
+        // If no value, return empty string
+        if (!fontValue) return '';
+        
+        // Convert font value to display name - comprehensive mapping
         const fontMap = {
-            'tisa-sans': 'FF Tisa Sans',
-            'playfair': 'Playfair Display',
+            'assistant': 'Assistant',
             'roboto': 'Roboto',
+            'open-sans': 'Open Sans',
+            'lato': 'Lato',
+            'montserrat': 'Montserrat',
+            'poppins': 'Poppins',
+            'inter': 'Inter',
+            'raleway': 'Raleway',
+            'playfair-display': 'Playfair Display',
+            'oswald': 'Oswald',
             'helvetica': 'Helvetica',
             'georgia': 'Georgia',
             'arial': 'Arial',
-            'times': 'Times New Roman',
-            'courier': 'Courier New'
+            'times-new-roman': 'Times New Roman',
+            'courier-new': 'Courier New',
+            'tisa-sans': 'FF Tisa Sans'
         };
         
-        return fontMap[fontValue] || fontValue.split('-').map(word => 
+        // Return mapped value or convert kebab-case to Title Case
+        return fontMap[fontValue.toLowerCase()] || fontValue.split('-').map(word => 
             word.charAt(0).toUpperCase() + word.slice(1)
         ).join(' ');
     }
@@ -5770,10 +6206,12 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                         selectedFonts[fontType] = fontValue;
                         searchInput.val(font);
                         searchInput.attr('data-font-value', fontValue);
+                        searchInput.data('font-value', fontValue); // Also update data property
                         updateFontPreview(previewText, fontValue);
                         dropdown.hide();
                         
                         // Trigger change event for any listeners
+                        searchInput.trigger('change'); // Trigger standard change event
                         searchInput.trigger('fontChanged', [fontType, fontValue]);
                         
                         console.log(`Font selected for ${fontType}:`, font, '(', fontValue, ')');
@@ -7051,8 +7489,13 @@ document.head.appendChild(style);
             // Heading settings
             if (typography.heading) {
                 if (typography.heading.font) {
-                    $('.font-search-input[data-font-type="heading"]').val(typography.heading.font);
+                    const fontDisplayName = getFontDisplayName(typography.heading.font);
+                    $('.font-search-input[data-font-type="heading"]').val(fontDisplayName);
                     $('.font-search-input[data-font-type="heading"]').data('font-value', typography.heading.font);
+                    // Update the selectedFonts object
+                    if (typeof selectedFonts !== 'undefined') {
+                        selectedFonts.heading = typography.heading.font;
+                    }
                 }
                 $('#headingUppercase').prop('checked', typography.heading.uppercase || false);
                 if (typography.heading.letterSpacing !== undefined) {
@@ -7064,12 +7507,83 @@ document.head.appendChild(style);
             // Body settings
             if (typography.body) {
                 if (typography.body.font) {
-                    $('.font-search-input[data-font-type="body"]').val(typography.body.font);
+                    const fontDisplayName = getFontDisplayName(typography.body.font);
+                    $('.font-search-input[data-font-type="body"]').val(fontDisplayName);
                     $('.font-search-input[data-font-type="body"]').data('font-value', typography.body.font);
+                    // Update the selectedFonts object
+                    if (typeof selectedFonts !== 'undefined') {
+                        selectedFonts.body = typography.body.font;
+                    }
                 }
                 if (typography.body.fontSize) {
                     $('#bodyFontSize').val(parseInt(typography.body.fontSize));
                     $('#bodyFontSizeValue').val(parseInt(typography.body.fontSize));
+                }
+            }
+            
+            // Menu settings
+            if (typography.menu) {
+                if (typography.menu.font) {
+                    const fontDisplayName = getFontDisplayName(typography.menu.font);
+                    $('.font-search-input[data-font-type="menu"]').val(fontDisplayName);
+                    $('.font-search-input[data-font-type="menu"]').data('font-value', typography.menu.font);
+                    // Update the selectedFonts object
+                    if (typeof selectedFonts !== 'undefined') {
+                        selectedFonts.menu = typography.menu.font;
+                    }
+                }
+                $('#menuUppercase').prop('checked', typography.menu.uppercase || false);
+                if (typography.menu.fontSize !== undefined) {
+                    $('#menuFontSize').val(typography.menu.fontSize);
+                    $('#menuFontSizeValue').val(typography.menu.fontSize);
+                }
+                if (typography.menu.letterSpacing !== undefined) {
+                    $('#menuLetterSpacing').val(typography.menu.letterSpacing);
+                    $('#menuLetterSpacingValue').val(typography.menu.letterSpacing);
+                }
+            }
+            
+            // Product settings
+            if (typography.product) {
+                if (typography.product.font) {
+                    const fontDisplayName = getFontDisplayName(typography.product.font);
+                    $('.font-search-input[data-font-type="product"]').val(fontDisplayName);
+                    $('.font-search-input[data-font-type="product"]').data('font-value', typography.product.font);
+                    // Update the selectedFonts object
+                    if (typeof selectedFonts !== 'undefined') {
+                        selectedFonts.product = typography.product.font;
+                    }
+                }
+                $('#productUppercase').prop('checked', typography.product.uppercase || false);
+                if (typography.product.fontSize !== undefined) {
+                    $('#productFontSize').val(typography.product.fontSize);
+                    $('#productFontSizeValue').val(typography.product.fontSize);
+                }
+                if (typography.product.letterSpacing !== undefined) {
+                    $('#productLetterSpacing').val(typography.product.letterSpacing);
+                    $('#productLetterSpacingValue').val(typography.product.letterSpacing);
+                }
+            }
+            
+            // Buttons settings
+            if (typography.buttons) {
+                if (typography.buttons.font) {
+                    const fontDisplayName = getFontDisplayName(typography.buttons.font);
+                    $('.font-search-input[data-font-type="buttons"]').val(fontDisplayName);
+                    $('.font-search-input[data-font-type="buttons"]').data('font-value', typography.buttons.font);
+                    // Update the selectedFonts object
+                    if (typeof selectedFonts !== 'undefined') {
+                        selectedFonts.buttons = typography.buttons.font;
+                    }
+                }
+                $('#buttonsUppercase').prop('checked', typography.buttons.uppercase || false);
+                if (typography.buttons.fontSize !== undefined) {
+                    $('#buttonsFontSize').val(typography.buttons.fontSize);
+                    $('#buttonsFontSizeValue').val(typography.buttons.fontSize);
+                }
+                if (typography.buttons.letterSpacing !== undefined) {
+                    $('#buttonsLetterSpacing').val(typography.buttons.letterSpacing);
+                    $('#buttonsLetterSpacingValue').val(typography.buttons.letterSpacing);
                 }
             }
         }
@@ -7411,6 +7925,9 @@ document.head.appendChild(style);
         if (!currentGlobalThemeSettings.typography) currentGlobalThemeSettings.typography = {};
         if (!currentGlobalThemeSettings.typography.heading) currentGlobalThemeSettings.typography.heading = {};
         if (!currentGlobalThemeSettings.typography.body) currentGlobalThemeSettings.typography.body = {};
+        if (!currentGlobalThemeSettings.typography.menu) currentGlobalThemeSettings.typography.menu = {};
+        if (!currentGlobalThemeSettings.typography.product) currentGlobalThemeSettings.typography.product = {};
+        if (!currentGlobalThemeSettings.typography.buttons) currentGlobalThemeSettings.typography.buttons = {};
         if (!currentGlobalThemeSettings.colorSchemes) currentGlobalThemeSettings.colorSchemes = {};
         if (!currentGlobalThemeSettings.productCards) currentGlobalThemeSettings.productCards = {};
         if (!currentGlobalThemeSettings.productBadges) currentGlobalThemeSettings.productBadges = {};
@@ -7421,6 +7938,96 @@ document.head.appendChild(style);
         if (!currentGlobalThemeSettings.swatches) currentGlobalThemeSettings.swatches = {};
         if (!currentGlobalThemeSettings.swatches.primary) currentGlobalThemeSettings.swatches.primary = {};
         if (!currentGlobalThemeSettings.swatches.secondary) currentGlobalThemeSettings.swatches.secondary = {};
+        
+        // Set default values for typography if not present
+        const typographyDefaults = {
+            heading: {
+                font: 'assistant',
+                uppercase: false,
+                letterSpacing: 0
+            },
+            body: {
+                font: 'roboto',
+                fontSize: '16px'
+            },
+            menu: {
+                font: 'assistant',
+                uppercase: false,
+                fontSize: '100',
+                letterSpacing: 0
+            },
+            product: {
+                font: 'assistant',
+                uppercase: false,
+                fontSize: '100',
+                letterSpacing: 0
+            },
+            buttons: {
+                font: 'assistant',
+                uppercase: false,
+                fontSize: '100',
+                letterSpacing: 0
+            }
+        };
+        
+        // Apply typography defaults
+        if (!currentGlobalThemeSettings.typography.heading.font) {
+            currentGlobalThemeSettings.typography.heading.font = typographyDefaults.heading.font;
+        }
+        if (currentGlobalThemeSettings.typography.heading.uppercase === undefined) {
+            currentGlobalThemeSettings.typography.heading.uppercase = typographyDefaults.heading.uppercase;
+        }
+        if (currentGlobalThemeSettings.typography.heading.letterSpacing === undefined) {
+            currentGlobalThemeSettings.typography.heading.letterSpacing = typographyDefaults.heading.letterSpacing;
+        }
+        if (!currentGlobalThemeSettings.typography.body.font) {
+            currentGlobalThemeSettings.typography.body.font = typographyDefaults.body.font;
+        }
+        if (!currentGlobalThemeSettings.typography.body.fontSize) {
+            currentGlobalThemeSettings.typography.body.fontSize = typographyDefaults.body.fontSize;
+        }
+        
+        // Menu defaults
+        if (!currentGlobalThemeSettings.typography.menu.font) {
+            currentGlobalThemeSettings.typography.menu.font = typographyDefaults.menu.font;
+        }
+        if (currentGlobalThemeSettings.typography.menu.uppercase === undefined) {
+            currentGlobalThemeSettings.typography.menu.uppercase = typographyDefaults.menu.uppercase;
+        }
+        if (!currentGlobalThemeSettings.typography.menu.fontSize) {
+            currentGlobalThemeSettings.typography.menu.fontSize = typographyDefaults.menu.fontSize;
+        }
+        if (currentGlobalThemeSettings.typography.menu.letterSpacing === undefined) {
+            currentGlobalThemeSettings.typography.menu.letterSpacing = typographyDefaults.menu.letterSpacing;
+        }
+        
+        // Product defaults
+        if (!currentGlobalThemeSettings.typography.product.font) {
+            currentGlobalThemeSettings.typography.product.font = typographyDefaults.product.font;
+        }
+        if (currentGlobalThemeSettings.typography.product.uppercase === undefined) {
+            currentGlobalThemeSettings.typography.product.uppercase = typographyDefaults.product.uppercase;
+        }
+        if (!currentGlobalThemeSettings.typography.product.fontSize) {
+            currentGlobalThemeSettings.typography.product.fontSize = typographyDefaults.product.fontSize;
+        }
+        if (currentGlobalThemeSettings.typography.product.letterSpacing === undefined) {
+            currentGlobalThemeSettings.typography.product.letterSpacing = typographyDefaults.product.letterSpacing;
+        }
+        
+        // Buttons defaults
+        if (!currentGlobalThemeSettings.typography.buttons.font) {
+            currentGlobalThemeSettings.typography.buttons.font = typographyDefaults.buttons.font;
+        }
+        if (currentGlobalThemeSettings.typography.buttons.uppercase === undefined) {
+            currentGlobalThemeSettings.typography.buttons.uppercase = typographyDefaults.buttons.uppercase;
+        }
+        if (!currentGlobalThemeSettings.typography.buttons.fontSize) {
+            currentGlobalThemeSettings.typography.buttons.fontSize = typographyDefaults.buttons.fontSize;
+        }
+        if (currentGlobalThemeSettings.typography.buttons.letterSpacing === undefined) {
+            currentGlobalThemeSettings.typography.buttons.letterSpacing = typographyDefaults.buttons.letterSpacing;
+        }
         
         // Set default values for swatches if not present
         const swatchesPrimaryDefaults = {
@@ -7711,12 +8318,103 @@ document.head.appendChild(style);
             handleGlobalSettingChange('typography.body.font', currentGlobalThemeSettings.typography.body.font);
         });
         
+        // Handle custom font picker event for body typography
+        $(document).on('fontChanged', '.font-search-input[data-font-type="body"]', function(e, fontType, fontValue) {
+            console.log('[DEBUG] Body font changed:', fontValue);
+            currentGlobalThemeSettings.typography.body.font = fontValue;
+            handleGlobalSettingChange('typography.body.font', fontValue);
+            
+            // Trigger preview update
+            renderPreview();
+        });
+        
         $('#bodyFontSize, #bodyFontSizeValue').on('input change', function() {
             const value = $(this).val();
             $('#bodyFontSize').val(value);
             $('#bodyFontSizeValue').val(value);
             currentGlobalThemeSettings.typography.body.fontSize = value + 'px';
             handleGlobalSettingChange('typography.body.fontSize', value + 'px');
+        });
+        
+        // Menu typography
+        $('.font-search-input[data-font-type="menu"]').on('change', function() {
+            currentGlobalThemeSettings.typography.menu.font = $(this).data('font-value') || $(this).val();
+            handleGlobalSettingChange('typography.menu.font', currentGlobalThemeSettings.typography.menu.font);
+        });
+        
+        $('#menuUppercase').on('change', function() {
+            currentGlobalThemeSettings.typography.menu.uppercase = $(this).is(':checked');
+            handleGlobalSettingChange('typography.menu.uppercase', currentGlobalThemeSettings.typography.menu.uppercase);
+        });
+        
+        $('#menuFontSize, #menuFontSizeValue').on('input change', function() {
+            const value = $(this).val();
+            $('#menuFontSize').val(value);
+            $('#menuFontSizeValue').val(value);
+            currentGlobalThemeSettings.typography.menu.fontSize = value;
+            handleGlobalSettingChange('typography.menu.fontSize', value);
+        });
+        
+        $('#menuLetterSpacing, #menuLetterSpacingValue').on('input change', function() {
+            const value = $(this).val();
+            $('#menuLetterSpacing').val(value);
+            $('#menuLetterSpacingValue').val(value);
+            currentGlobalThemeSettings.typography.menu.letterSpacing = parseFloat(value);
+            handleGlobalSettingChange('typography.menu.letterSpacing', value);
+        });
+        
+        // Product typography
+        $('.font-search-input[data-font-type="product"]').on('change', function() {
+            currentGlobalThemeSettings.typography.product.font = $(this).data('font-value') || $(this).val();
+            handleGlobalSettingChange('typography.product.font', currentGlobalThemeSettings.typography.product.font);
+        });
+        
+        $('#productUppercase').on('change', function() {
+            currentGlobalThemeSettings.typography.product.uppercase = $(this).is(':checked');
+            handleGlobalSettingChange('typography.product.uppercase', currentGlobalThemeSettings.typography.product.uppercase);
+        });
+        
+        $('#productFontSize, #productFontSizeValue').on('input change', function() {
+            const value = $(this).val();
+            $('#productFontSize').val(value);
+            $('#productFontSizeValue').val(value);
+            currentGlobalThemeSettings.typography.product.fontSize = value;
+            handleGlobalSettingChange('typography.product.fontSize', value);
+        });
+        
+        $('#productLetterSpacing, #productLetterSpacingValue').on('input change', function() {
+            const value = $(this).val();
+            $('#productLetterSpacing').val(value);
+            $('#productLetterSpacingValue').val(value);
+            currentGlobalThemeSettings.typography.product.letterSpacing = parseFloat(value);
+            handleGlobalSettingChange('typography.product.letterSpacing', value);
+        });
+        
+        // Buttons typography
+        $('.font-search-input[data-font-type="buttons"]').on('change', function() {
+            currentGlobalThemeSettings.typography.buttons.font = $(this).data('font-value') || $(this).val();
+            handleGlobalSettingChange('typography.buttons.font', currentGlobalThemeSettings.typography.buttons.font);
+        });
+        
+        $('#buttonsUppercase').on('change', function() {
+            currentGlobalThemeSettings.typography.buttons.uppercase = $(this).is(':checked');
+            handleGlobalSettingChange('typography.buttons.uppercase', currentGlobalThemeSettings.typography.buttons.uppercase);
+        });
+        
+        $('#buttonsFontSize, #buttonsFontSizeValue').on('input change', function() {
+            const value = $(this).val();
+            $('#buttonsFontSize').val(value);
+            $('#buttonsFontSizeValue').val(value);
+            currentGlobalThemeSettings.typography.buttons.fontSize = value;
+            handleGlobalSettingChange('typography.buttons.fontSize', value);
+        });
+        
+        $('#buttonsLetterSpacing, #buttonsLetterSpacingValue').on('input change', function() {
+            const value = $(this).val();
+            $('#buttonsLetterSpacing').val(value);
+            $('#buttonsLetterSpacingValue').val(value);
+            currentGlobalThemeSettings.typography.buttons.letterSpacing = parseFloat(value);
+            handleGlobalSettingChange('typography.buttons.letterSpacing', value);
         });
         
         // Product cards event listeners
@@ -8307,6 +9005,9 @@ document.head.appendChild(style);
             hasPendingPageStructureChanges = true;
             updateSaveButtonState();
             console.log('[DEBUG] Announcement bar config changed - colorScheme');
+            
+            // Re-render the preview to show the new color scheme
+            renderPreview();
         });
         
         $('#width-select').on('change', function() {
@@ -8377,7 +9078,8 @@ document.head.appendChild(style);
                 text: lang && lang['announcementItem.makeAnnouncement'] || 'Make an announcement',
                 link: '',
                 icon: 'none',
-                customIcon: ''
+                customIcon: '',
+                isHidden: false  // Default to visible
             };
             return;
         }
@@ -8385,6 +9087,8 @@ document.head.appendChild(style);
         $('.rich-text-input').val(config.text || '');
         $('.shopify-input[type="text"]').val(config.link || '');
         $('#announcement-icon').val(config.icon || 'none');
+        // Set visibility checkbox state - default to visible (checked) if not specified
+        $('#announcement-item-visibility').prop('checked', !config.isHidden);
     }
     
     // Function to update existing attachAnnouncementItemEventListeners
@@ -8434,6 +9138,22 @@ document.head.appendChild(style);
             hasPendingPageStructureChanges = true;
             updateSaveButtonState();
             console.log('[DEBUG] Announcement item icon changed');
+        });
+        
+        // Visibility toggle
+        $('#announcement-item-visibility').on('change', function() {
+            if (!currentSectionsConfig.announcements[announcementId]) {
+                currentSectionsConfig.announcements[announcementId] = {};
+            }
+            const isVisible = $(this).is(':checked');
+            currentSectionsConfig.announcements[announcementId].isHidden = !isVisible;
+            hasPendingPageStructureChanges = true;
+            updateSaveButtonState();
+            console.log('[DEBUG] Announcement item visibility changed:', {
+                announcementId: announcementId,
+                isVisible: isVisible,
+                isHidden: !isVisible
+            });
         });
         
         // Delete block button
@@ -8928,6 +9648,7 @@ document.head.appendChild(style);
                     renderPreview(); // <-- AÑADIR ESTA LÍNEA
                     
                     // Recargar la vista actual para mostrar los cambios guardados
+                    console.log('[DEBUG] Current sidebar view after save:', currentSidebarView);
                     if (currentSidebarView === 'blockList') {
                         // Esperar un poco antes de recargar para asegurar que todo se haya guardado
                         setTimeout(() => {
@@ -8949,6 +9670,11 @@ document.head.appendChild(style);
                     } else if (currentSidebarView === 'announcementItemSettings') {
                         // No recargar la vista de edición de anuncio individual
                         console.log('[DEBUG] Staying in announcement item settings view after save');
+                    } else if (currentSidebarView === 'themeSettingsView') {
+                        // Permanecer en la vista de configuración después de guardar
+                        console.log('[DEBUG] Staying in theme settings view after save');
+                        // Guardar el estado actual antes de recargar
+                        sessionStorage.setItem('websiteBuilderLastView', 'themeSettingsView');
                     }
                     
                     setTimeout(() => {

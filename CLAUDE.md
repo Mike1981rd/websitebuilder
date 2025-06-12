@@ -242,6 +242,20 @@ if (!previewFrame) {
 
 ## Problemas Resueltos - Website Builder
 
+### Sistema de Fuentes y Tipografía
+**Problema**: Las fuentes solo cambiaban entre 2 estilos sin importar la selección. El valor guardado ('roboto') no coincidía con el nombre real de la fuente ('Roboto').
+
+**Solución implementada**:
+1. Crear mapa global `window.globalFontMap` con todos los valores y nombres
+2. Función helper `window.getFontNameFromValueSafe()` para conversión consistente
+3. Event listener para `fontChanged` que actualiza preview inmediatamente
+4. Carga automática de Google Fonts en iframe principal y preview
+5. Usar la función helper en TODOS los lugares donde se renderiza tipografía
+
+**Archivos clave**:
+- `website-builder.js`: líneas ~15-82 (mapa global), ~8270-8277 (event handler), ~664-673 (renderizado)
+- `Index.cshtml`: líneas ~108-125 (carga dinámica de fuentes)
+
 ### Toggle de Visibilidad (Ícono del Ojo)
 **Problema**: Después de guardar, se necesitaban dos clicks para cambiar el estado del ícono del ojo. Funcionaba bien al recargar la página pero no después de guardar dinámicamente.
 
@@ -302,3 +316,80 @@ setTimeout(() => $button.data('transitioning', false), 300);
 1. Al cargar datos (`loadCurrentWebsite` línea ~232)
 2. Cuando iframe termina de cargar (línea ~488)
 3. Después de guardar cambios (línea ~8885)
+
+## Implementaciones Clave - Guía Rápida para Nuevos Módulos
+
+### 1. Sistema de Color Schemes
+- **Solo usar Scheme 1-5**: Primary/Secondary/Contrasting están ocultos
+- **Helper function**: `getColorSchemeValues(schemeName)` obtiene colores del scheme
+- **Aplicación**: Los módulos deben leer el colorScheme seleccionado y usar los colores correspondientes
+- **Estructura**: `currentGlobalThemeSettings.colorSchemes[schemeName]` contiene background, text, etc.
+
+### 2. Configuración de Módulos (Announcement Bar como ejemplo)
+**Campos configurables típicos**:
+- Visibilidad condicional de elementos (showSocialMediaIcons, showLanguageSelector)
+- Width: 'screen' vs 'container'
+- Color scheme selection
+- Navegación entre elementos múltiples
+- Autoplay con timer configurable
+
+**Patrón de renderizado**:
+```javascript
+function renderModule(config) {
+    if (!config || config.isHidden) return '';
+    const schemeColors = getColorSchemeValues(config.colorScheme || 'scheme1');
+    // Aplicar colores: background-color: ${schemeColors.background}
+}
+```
+
+### 3. Tipografía Dinámica
+- **Body typography para textos**: Usar `currentGlobalThemeSettings.typography.body`
+- **Cargar Google Fonts**: Implementado en Index.cshtml con `loadGoogleFont()`
+- **Aplicar en módulos**: `font-family: ${bodyTypography.font}; font-size: ${bodyTypography.fontSize}`
+
+**CRÍTICO - Conversión de valores de fuentes**:
+- Los selectores guardan valores como 'roboto', 'playfair-display'
+- Para renderizado usar `window.getFontNameFromValueSafe(fontValue)` que convierte a 'Roboto', 'Playfair Display'
+- Mapa global de fuentes en `window.globalFontMap` (línea ~15)
+- Al cambiar fuente: disparar `fontChanged` → actualiza modelo → renderiza preview → carga en iframe
+
+### 4. Navegación y Estado de Vistas
+- **NO duplicar `currentSidebarView`**: Ya existe globalmente
+- **Mantener vista después de guardar**: Usar `sessionStorage` si necesitas persistencia
+- **Pattern para no recargar vista**:
+```javascript
+if (currentSidebarView === 'tuVista') {
+    // No hacer nada, mantener vista actual
+}
+```
+
+### 5. Elementos Múltiples con Orden (Anuncios como ejemplo)
+- **Arrays de orden**: `announcementOrder: ['id1', 'id2']`
+- **Objetos de datos**: `announcements: { id1: {...}, id2: {...} }`
+- **Visibilidad individual**: Cada elemento tiene `isHidden`
+- **Navegación con índice**: `currentAnnouncementIndex` para tracking
+
+### 6. Persistencia y Guardado
+- **Un solo endpoint de guardado**: Todo en `globalThemeSettingsJson`
+- **Flags de cambios**: `hasPendingGlobalSettingsChanges = true`
+- **No crear endpoints extras**: Usar estructura existente
+
+### 7. Preview en Tiempo Real
+- **Renderizar después de cambios**: Llamar `renderPreview()`
+- **Cargar fuentes en iframe**: `loadFontsInPreview()`
+- **Event listeners en preview**: Attachar después de renderizar
+
+### 8. Traducciones
+- **Estructura**: `translations[currentLanguage]['key']`
+- **Aplicar después de render**: `setTimeout(applyTranslations, 0)`
+- **Data attributes**: `data-i18n="key"` en HTML
+
+### Checklist para Nuevo Módulo
+1. ✓ Declarar variables globales fuera de $(document).ready()
+2. ✓ Crear función render que respete color schemes
+3. ✓ Implementar configuración con campos comunes
+4. ✓ Usar tipografía del sistema (body/heading según corresponda)
+5. ✓ Agregar traducciones para todos los textos
+6. ✓ Manejar visibilidad y orden si tiene elementos múltiples
+7. ✓ No recargar vista innecesariamente después de guardar
+8. ✓ Attachar event listeners con namespaces para evitar duplicados
