@@ -121,12 +121,29 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            /* Prevent image blur on transform */
+            -webkit-transform: translateZ(0);
+            transform: translateZ(0);
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
         }
         
         .header-logo-wrapper img {
             image-rendering: -webkit-optimize-contrast;
-            image-rendering: auto;
+            image-rendering: crisp-edges;
             -ms-interpolation-mode: bicubic;
+            /* Force GPU acceleration for better rendering */
+            will-change: transform;
+            /* Prevent blur during scaling */
+            -webkit-transform: translateZ(0);
+            transform: translateZ(0);
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            /* Ensure pixel-perfect rendering */
+            shape-rendering: crispEdges;
+            /* Disable font smoothing on images */
+            -webkit-font-smoothing: none;
+            -moz-osx-font-smoothing: auto;
         }
         
         /* Ensure no shadows on hover */
@@ -404,14 +421,48 @@
         
         // Función para adjuntar event listeners
         function attachPreviewEventListeners() {
-            // Event listeners para el menú drawer
+            // Event listeners para el menú drawer basados en configuración
             const menuIcons = document.querySelectorAll('.header-menu-drawer .material-icons, .header-menu-drawer .material-symbols-outlined, .header-menu-drawer-icon .material-icons, .header-menu-drawer-icon .material-symbols-outlined');
+            const openMenuDropdown = currentSectionsConfig.header?.openMenuDropdown || 'hover';
+            
             menuIcons.forEach(menuIcon => {
-                menuIcon.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    openDrawerMenuModal();
-                });
+                if (openMenuDropdown === 'hover') {
+                    // Hover behavior para abrir drawer
+                    menuIcon.addEventListener('mouseenter', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        openDrawerMenuModal();
+                    });
+                    
+                    // Mantener drawer abierto al pasar el mouse sobre él
+                    menuIcon.addEventListener('mouseleave', function(e) {
+                        setTimeout(() => {
+                            const drawer = document.getElementById('drawer-menu-modal');
+                            const overlay = document.getElementById('drawer-menu-overlay');
+                            if (drawer && !drawer.matches(':hover') && overlay && !overlay.matches(':hover')) {
+                                closeDrawerMenu();
+                            }
+                        }, 100);
+                    });
+                } else {
+                    // Click behavior
+                    let isProcessing = false;
+                    menuIcon.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        
+                        // Prevent multiple rapid clicks
+                        if (isProcessing) return;
+                        isProcessing = true;
+                        
+                        openDrawerMenuModal();
+                        
+                        // Reset flag after animation completes
+                        setTimeout(() => {
+                            isProcessing = false;
+                        }, 500);
+                    });
+                }
             });
             
             // Event listeners para dropdowns de menú
