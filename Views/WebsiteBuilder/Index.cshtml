@@ -138,7 +138,7 @@
                     <input type="text" id="new-menu-name" class="form-control" placeholder="p. ej., Menú de barra lateral">
                 </div>
                 
-                <div class="form-group">
+                <div class="form-group" style="display: none;">
                     <label data-i18n="menus.handle">Identificador:</label>
                     <div class="handle-display" id="new-menu-handle"></div>
                 </div>
@@ -156,9 +156,68 @@
                             </div>
                             <div class="inline-form-field">
                                 <label data-i18n="menus.itemLink">Enlace</label>
-                                <input type="text" class="menu-item-input" id="new-item-url-create" placeholder="Busca o pega un enlace">
-                                <button class="link-action-btn" onclick="$('#new-item-url-create').val('').focus();" title="Borrar">
-                                    <i class="material-symbols-outlined">delete</i>
+                                <div class="link-input-wrapper">
+                                    <input type="text" class="menu-item-input" id="new-item-url-create" placeholder="Busca o pega un enlace">
+                                    <button class="link-action-btn cancel-add-item-btn" title="Cancelar">
+                                        <i class="material-symbols-outlined">delete</i>
+                                    </button>
+                                    <div class="link-suggestions-dropdown" id="link-suggestions-create" style="display: none;">
+                                        <div class="link-category">
+                                            <h4 data-i18n="menus.linkSuggestions.onlineStore">Tienda online</h4>
+                                            <ul>
+                                                <li data-url="/"><i class="material-icons">home</i><span data-i18n="menus.linkSuggestions.homePage">Página de inicio</span></li>
+                                                <li data-url="/search"><i class="material-icons">search</i><span data-i18n="menus.linkSuggestions.search">Búsqueda</span></li>
+                                                <li data-url="/collections" class="has-submenu">
+                                                    <i class="material-icons">collections</i>
+                                                    <span data-i18n="menus.linkSuggestions.collections">Colecciones</span>
+                                                    <i class="material-icons submenu-arrow">chevron_right</i>
+                                                </li>
+                                                <li data-url="/products" class="has-submenu">
+                                                    <i class="material-icons">inventory_2</i>
+                                                    <span data-i18n="menus.linkSuggestions.products">Productos</span>
+                                                    <i class="material-icons submenu-arrow">chevron_right</i>
+                                                </li>
+                                                <li data-url="/pages" class="has-submenu">
+                                                    <i class="material-icons">description</i>
+                                                    <span data-i18n="menus.linkSuggestions.pages">Páginas</span>
+                                                    <i class="material-icons submenu-arrow">chevron_right</i>
+                                                </li>
+                                                <li data-url="/blogs" class="has-submenu">
+                                                    <i class="material-icons">article</i>
+                                                    <span data-i18n="menus.linkSuggestions.blogs">Blogs</span>
+                                                    <i class="material-icons submenu-arrow">chevron_right</i>
+                                                </li>
+                                                <li data-url="/blog/news" class="has-submenu">
+                                                    <i class="material-icons">article</i>
+                                                    <span data-i18n="menus.linkSuggestions.blogPosts">Artículos del blog</span>
+                                                    <i class="material-icons submenu-arrow">chevron_right</i>
+                                                </li>
+                                                <li data-url="/policies" class="has-submenu">
+                                                    <i class="material-icons">gavel</i>
+                                                    <span data-i18n="menus.linkSuggestions.policies">Políticas</span>
+                                                    <i class="material-icons submenu-arrow">chevron_right</i>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                        <div class="link-category">
+                                            <h4 data-i18n="menus.linkSuggestions.customerAccount">Cuentas de cliente</h4>
+                                            <ul>
+                                                <li data-url="/account/orders"><i class="material-icons">receipt_long</i><span data-i18n="menus.linkSuggestions.orders">Pedidos</span></li>
+                                                <li data-url="/account/profile"><i class="material-icons">person</i><span data-i18n="menus.linkSuggestions.profile">Perfil</span></li>
+                                                <li data-url="/account/settings"><i class="material-icons">settings</i><span data-i18n="menus.linkSuggestions.settings">Configuración</span></li>
+                                                <li data-url="/apps" class="has-submenu">
+                                                    <i class="material-icons">apps</i>
+                                                    <span data-i18n="menus.linkSuggestions.apps">Apps</span>
+                                                    <i class="material-icons submenu-arrow">chevron_right</i>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="inline-form-actions">
+                                <button class="confirm-add-item-btn" id="confirm-add-item-create" title="Agregar">
+                                    <i class="material-symbols-outlined">check_circle</i>
                                 </button>
                             </div>
                         </div>
@@ -216,7 +275,7 @@
                     <input type="text" id="edit-menu-name" class="form-control">
                 </div>
                 
-                <div class="form-group">
+                <div class="form-group" style="display: none;">
                     <label data-i18n="menus.handle">Identificador:</label>
                     <div class="handle-display" id="edit-menu-handle"></div>
                 </div>
@@ -234,9 +293,68 @@
                             </div>
                             <div class="inline-form-field">
                                 <label data-i18n="menus.itemLink">Enlace</label>
-                                <input type="text" class="menu-item-input" id="new-item-url-edit" placeholder="Busca o pega un enlace">
-                                <button class="link-action-btn" onclick="$('#new-item-url-edit').val('').focus();" title="Borrar">
-                                    <i class="material-symbols-outlined">delete</i>
+                                <div class="link-input-wrapper">
+                                    <input type="text" class="menu-item-input" id="new-item-url-edit" placeholder="Busca o pega un enlace">
+                                    <button class="link-action-btn cancel-add-item-btn" title="Cancelar">
+                                        <i class="material-symbols-outlined">delete</i>
+                                    </button>
+                                    <div class="link-suggestions-dropdown" id="link-suggestions-edit" style="display: none;">
+                                        <div class="link-category">
+                                            <h4 data-i18n="menus.linkSuggestions.onlineStore">Tienda online</h4>
+                                            <ul>
+                                                <li data-url="/"><i class="material-icons">home</i><span data-i18n="menus.linkSuggestions.homePage">Página de inicio</span></li>
+                                                <li data-url="/search"><i class="material-icons">search</i><span data-i18n="menus.linkSuggestions.search">Búsqueda</span></li>
+                                                <li data-url="/collections" class="has-submenu">
+                                                    <i class="material-icons">collections</i>
+                                                    <span data-i18n="menus.linkSuggestions.collections">Colecciones</span>
+                                                    <i class="material-icons submenu-arrow">chevron_right</i>
+                                                </li>
+                                                <li data-url="/products" class="has-submenu">
+                                                    <i class="material-icons">inventory_2</i>
+                                                    <span data-i18n="menus.linkSuggestions.products">Productos</span>
+                                                    <i class="material-icons submenu-arrow">chevron_right</i>
+                                                </li>
+                                                <li data-url="/pages" class="has-submenu">
+                                                    <i class="material-icons">description</i>
+                                                    <span data-i18n="menus.linkSuggestions.pages">Páginas</span>
+                                                    <i class="material-icons submenu-arrow">chevron_right</i>
+                                                </li>
+                                                <li data-url="/blogs" class="has-submenu">
+                                                    <i class="material-icons">article</i>
+                                                    <span data-i18n="menus.linkSuggestions.blogs">Blogs</span>
+                                                    <i class="material-icons submenu-arrow">chevron_right</i>
+                                                </li>
+                                                <li data-url="/blog/news" class="has-submenu">
+                                                    <i class="material-icons">article</i>
+                                                    <span data-i18n="menus.linkSuggestions.blogPosts">Artículos del blog</span>
+                                                    <i class="material-icons submenu-arrow">chevron_right</i>
+                                                </li>
+                                                <li data-url="/policies" class="has-submenu">
+                                                    <i class="material-icons">gavel</i>
+                                                    <span data-i18n="menus.linkSuggestions.policies">Políticas</span>
+                                                    <i class="material-icons submenu-arrow">chevron_right</i>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                        <div class="link-category">
+                                            <h4 data-i18n="menus.linkSuggestions.customerAccount">Cuentas de cliente</h4>
+                                            <ul>
+                                                <li data-url="/account/orders"><i class="material-icons">receipt_long</i><span data-i18n="menus.linkSuggestions.orders">Pedidos</span></li>
+                                                <li data-url="/account/profile"><i class="material-icons">person</i><span data-i18n="menus.linkSuggestions.profile">Perfil</span></li>
+                                                <li data-url="/account/settings"><i class="material-icons">settings</i><span data-i18n="menus.linkSuggestions.settings">Configuración</span></li>
+                                                <li data-url="/apps" class="has-submenu">
+                                                    <i class="material-icons">apps</i>
+                                                    <span data-i18n="menus.linkSuggestions.apps">Apps</span>
+                                                    <i class="material-icons submenu-arrow">chevron_right</i>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="inline-form-actions">
+                                <button class="confirm-add-item-btn" id="confirm-add-item-edit" title="Agregar">
+                                    <i class="material-symbols-outlined">check_circle</i>
                                 </button>
                             </div>
                         </div>

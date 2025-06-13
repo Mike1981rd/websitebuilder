@@ -86,16 +86,17 @@
 2. **Handlers globales**: Para elementos dinámicos usar `$(document).on()` FUERA de funciones
 3. **Funciones globales**: `window.functionName = function()` para acceso desde cualquier contexto
 
-### Drag & Drop con Elementos Padres-Hijos (CRÍTICO)
-**Problema**: Cuando un elemento padre (ej: barra de anuncios) tiene hijos, el drag & drop del header falla.
+### Drag & Drop con Elementos Padres-Hijos (CRÍTICO - DOS SOLUCIONES)
+**Problema**: Cuando un elemento padre (ej: barra de anuncios, menu items) tiene hijos, el drag & drop falla porque jQuery UI inserta un placeholder que interfiere con la búsqueda de elementos hijos.
 
-**Solución definitiva**:
+#### Solución 1: Wrapper Method (Secciones)
+**Uso**: Cuando los hijos están envueltos en un contenedor wrapper
 1. **Wrapper para hijos**: Envolver elementos hijos en un contenedor `<div id="announcement-items-wrapper">`
 2. **Detach durante drag**: En `start`, hacer `.detach()` del wrapper completo (no solo `.hide()`)
 3. **Reattach en stop**: Reinsertar wrapper después del elemento padre movido
 4. **Sortables separados**: Crear sortable independiente para el wrapper de hijos
 
-**Código clave**:
+**Código clave secciones**:
 ```javascript
 // En start del sortable principal
 if (ui.item.attr('data-element-id') === 'barra-anuncios') {
@@ -109,6 +110,79 @@ const $detachedWrapper = ui.item.data('detached-wrapper');
 if ($detachedWrapper) {
     $detachedWrapper.insertAfter(ui.item).show();
 }
+```
+
+#### Solución 2: Pre-Reference Method (Menús) - MÁS COMPLEJA
+**Uso**: Cuando los hijos son elementos hermanos que siguen al padre
+**Por qué es necesaria**: jQuery UI inserta un placeholder justo después del elemento arrastrado, haciendo que `ui.item.next('.submenu-container')` encuentre el placeholder en lugar del contenedor de submenús.
+
+1. **Pre-almacenar referencias**: ANTES de inicializar sortable, almacenar referencias directas
+2. **Usar referencias durante drag**: No buscar elementos con .next(), usar referencias pre-almacenadas
+3. **Re-establecer referencias después**: Actualizar referencias con el nuevo orden
+
+**Código clave menús (líneas ~11442-11541 en website-builder.js)**:
+```javascript
+// ANTES de inicializar sortable - almacenar referencias
+setTimeout(() => {
+    $('.menu-item-card.has-submenus').each(function() {
+        const $item = $(this);
+        const $nextElement = $item.next();
+        
+        if ($nextElement.hasClass('submenu-container')) {
+            // Almacenar referencia directa al submenu container
+            $item.data('submenu-container-ref', $nextElement);
+            console.log('[MENU] Pre-stored submenu reference for item:', $item.data('item-id'));
+        }
+    });
+
+    // Ahora inicializar sortable...
+    $('#menu-details-content').sortable({
+        start: function(e, ui) {
+            const hasSubmenus = ui.item.hasClass('has-submenus');
+            
+            if (hasSubmenus) {
+                // NO buscar con next() porque jQuery UI ya insertó el placeholder
+                const $submenuContainer = ui.item.data('submenu-container-ref');
+                
+                if ($submenuContainer && $submenuContainer.length > 0) {
+                    $submenuContainer.hide();
+                    ui.item.data('detached-submenu', $submenuContainer.detach());
+                }
+            }
+        },
+        stop: function(e, ui) {
+            const $detachedSubmenu = ui.item.data('detached-submenu');
+            if ($detachedSubmenu) {
+                $detachedSubmenu.insertAfter(ui.item).show();
+            }
+            
+            // CRÍTICO: Re-establecer referencias después del reordenamiento
+            setTimeout(() => {
+                $('.menu-item-card.has-submenus').each(function() {
+                    const $item = $(this);
+                    const $nextElement = $item.next();
+                    
+                    if ($nextElement.hasClass('submenu-container')) {
+                        $item.data('submenu-container-ref', $nextElement);
+                    }
+                });
+            }, 50);
+        }
+    });
+}, 100);
+```
+
+**Por qué falla la búsqueda directa en menús**:
+- jQuery UI modifica el DOM inmediatamente al iniciar el drag
+- Inserta `<div class="ui-sortable-placeholder">` después del elemento arrastrado
+- Cualquier búsqueda con `.next()` encuentra el placeholder, no el submenu
+- La solución es almacenar referencias ANTES de que jQuery UI modifique el DOM
+
+**Logs de debug que confirman el problema**:
+```
+[MENU] Item has submenus: true
+[MENU] Next element: ui-sortable-placeholder menu-item-placeholder  // <-- Este es el problema
+[MENU] Found submenu container: 0
 ```
 
 ### Reinicialización Post-Drag
