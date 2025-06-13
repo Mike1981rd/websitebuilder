@@ -30,6 +30,60 @@
         body {
             padding-top: 20px; /* Espacio para separar del header de la página */
         }
+        
+        /* Mobile-first responsive design */
+        * {
+            box-sizing: border-box;
+        }
+        
+        img {
+            max-width: 100%;
+            height: auto;
+        }
+        
+        /* Container responsive */
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 15px;
+        }
+        
+        /* Mobile breakpoint */
+        @@media (max-width: 480px) {
+            body {
+                padding-top: 10px;
+            }
+            
+            .container {
+                padding: 0 10px;
+            }
+            
+            /* Stack elements vertically on mobile */
+            .flex-row {
+                flex-direction: column !important;
+            }
+            
+            /* Adjust font sizes for mobile */
+            h1 { font-size: 1.5rem; }
+            h2 { font-size: 1.3rem; }
+            h3 { font-size: 1.1rem; }
+            p { font-size: 0.9rem; }
+        }
+        
+        /* Tablet breakpoint */
+        @@media (min-width: 481px) and (max-width: 768px) {
+            .container {
+                padding: 0 20px;
+            }
+        }
+        
+        /* Desktop breakpoint */
+        @@media (min-width: 769px) {
+            .container {
+                padding: 0 30px;
+            }
+        }
 
         /* Contenedor principal de la sección seleccionable */
         .section-wrapper {

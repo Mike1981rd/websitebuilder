@@ -36,10 +36,10 @@
             <button class="btn-icon">
                 <i class="material-icons">remove_red_eye</i>
             </button>
-            <button class="btn-icon">
+            <button class="btn-icon viewport-toggle active" data-viewport="desktop">
                 <i class="material-icons">computer</i>
             </button>
-            <button class="btn-icon">
+            <button class="btn-icon viewport-toggle" data-viewport="mobile">
                 <i class="material-icons">smartphone</i>
             </button>
             <button class="btn-icon">
@@ -62,7 +62,7 @@
         
         <!-- Editor Preview Area -->
         <main id="editor-preview-area">
-            <iframe id="preview-iframe" src="@Url.Action("PreviewTemplate", "WebsiteBuilder")" frameborder="0" style="width: 100%; height: 100%; border: none;"></iframe>
+            <iframe id="preview-iframe" src="@Url.Action("PreviewTemplate", "WebsiteBuilder")" frameborder="0"></iframe>
         </main>
     </div>
 </div>
