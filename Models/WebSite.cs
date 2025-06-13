@@ -20,6 +20,9 @@ namespace Hotel.Models
 
         [StringLength(255)]
         public string? CustomDomain { get; set; }
+        
+        [StringLength(255)]
+        public string Domain { get; set; } = string.Empty;
 
         public bool IsActive { get; set; } = true;
 
@@ -31,6 +34,9 @@ namespace Hotel.Models
 
         // JSON storage for theme settings - default to empty object
         public string GlobalThemeSettingsJson { get; set; } = "{}";
+        
+        // JSON storage for sections configuration
+        public string SectionsConfigJson { get; set; } = "{}";
 
         // JSON storage for pages
         public string PagesJson { get; set; } = "[]";

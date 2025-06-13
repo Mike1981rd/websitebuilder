@@ -50,8 +50,10 @@ namespace Hotel.Controllers
                         CompanyId = company.Id,
                         Name = company.TradeName + " Website",
                         Subdomain = company.TradeName.ToLower().Replace(" ", "-"),
+                        Domain = company.TradeName.ToLower().Replace(" ", "-") + ".com",
                         Template = "default",
                         GlobalThemeSettingsJson = GetDefaultGlobalThemeSettings("default"),
+                        SectionsConfigJson = GetDefaultSectionsConfig(),
                         PagesJson = "[]",
                         NavigationJson = "[]",
                         SeoSettingsJson = "{}"
@@ -213,6 +215,51 @@ namespace Hotel.Controllers
             }
         }
 
+        private string GetDefaultSectionsConfig()
+        {
+            return @"{
+                ""sectionOrder"": [""announcement"", ""header""],
+                ""announcementBar"": {
+                    ""isHidden"": false,
+                    ""colorScheme"": ""scheme1"",
+                    ""showOnlyHomePage"": false,
+                    ""width"": ""screen"",
+                    ""showNavigationArrows"": true,
+                    ""autoplayMode"": ""none"",
+                    ""autoplaySpeed"": 6,
+                    ""animationStyle"": ""none"",
+                    ""showLanguageSelector"": false,
+                    ""showCurrencySelector"": false,
+                    ""showSocialMediaIcons"": false
+                },
+                ""announcements"": {},
+                ""announcementOrder"": [],
+                ""header"": {
+                    ""isHidden"": false,
+                    ""colorScheme"": ""primary"",
+                    ""width"": ""large"",
+                    ""layout"": ""logo-center-menu-left-inline"",
+                    ""showDivider"": true,
+                    ""enableStickyHeader"": false,
+                    ""openMenuDropdown"": ""hover"",
+                    ""navigationMenuId"": ""main-menu"",
+                    ""logoAlignment"": ""center"",
+                    ""menu"": """",
+                    ""desktopLogoSize"": 190,
+                    ""mobileLogoSize"": 120,
+                    ""iconStyle"": ""outline"",
+                    ""cartType"": ""bag"",
+                    ""desktopLogoUrl"": """",
+                    ""mobileLogoUrl"": """",
+                    ""sectionVisibility"": {
+                        ""menu"": true,
+                        ""logo"": true,
+                        ""icons"": true
+                    }
+                }
+            }";
+        }
+
         private string GetDefaultGlobalThemeSettings(string template)
         {
             // Aquí puedes definir configuraciones por defecto para cada plantilla
@@ -298,9 +345,30 @@ namespace Hotel.Controllers
                     return NotFound(new { message = "Website not found" });
                 }
 
-                // For now, store the page structure in the PagesJson field
-                // In a real implementation, you would have a separate Pages table
-                website.PagesJson = dto.PageStructureJson;
+                // Parse the page structure to extract sectionsConfig
+                try
+                {
+                    var pageData = JsonDocument.Parse(dto.PageStructureJson).RootElement;
+                    
+                    // Extract sectionsConfig if it exists
+                    if (pageData.TryGetProperty("sectionsConfig", out JsonElement sectionsConfig))
+                    {
+                        website.SectionsConfigJson = sectionsConfig.GetRawText();
+                        _logger.LogInformation("Saving sectionsConfig to SectionsConfigJson");
+                    }
+                    else
+                    {
+                        // If no sectionsConfig property, save the entire structure
+                        website.SectionsConfigJson = dto.PageStructureJson;
+                        _logger.LogInformation("No sectionsConfig found, saving entire structure");
+                    }
+                }
+                catch (JsonException)
+                {
+                    // If parsing fails, save as is
+                    website.SectionsConfigJson = dto.PageStructureJson;
+                }
+                
                 website.UpdatedAt = DateTime.UtcNow;
 
                 _context.Entry(website).State = EntityState.Modified;

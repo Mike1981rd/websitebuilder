@@ -113,6 +113,10 @@ namespace Hotel.Data
             modelBuilder.Entity<WebSite>()
                 .Property(w => w.GlobalThemeSettingsJson)
                 .HasColumnType("jsonb");
+                
+            modelBuilder.Entity<WebSite>()
+                .Property(w => w.SectionsConfigJson)
+                .HasColumnType("jsonb");
 
             modelBuilder.Entity<WebSite>()
                 .Property(w => w.PagesJson)

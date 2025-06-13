@@ -1,0 +1,430 @@
+@{
+    Layout = null; // Sin layout para mostrar solo el contenido
+}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Preview - Hotel</title>
+    
+    <!-- Material Icons -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    
+    <!-- Google Material Symbols (Outlined) -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+    
+    <!-- Google Fonts - Preload common fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Roboto:wght@300;400;500;700&family=Open+Sans:wght@400;600;700&family=Playfair+Display:wght@400;700&family=Montserrat:wght@400;500;600;700&family=Lato:wght@400;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* Reset básico */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body, html {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #ffffff;
+        }
+        
+        /* Mobile-first responsive design */
+        img {
+            max-width: 100%;
+            height: auto;
+        }
+        
+        /* Container responsive */
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 15px;
+        }
+        
+        /* Mobile breakpoint */
+        @@media (max-width: 480px) {
+            .container {
+                padding: 0 10px;
+            }
+            
+            /* Stack elements vertically on mobile */
+            .flex-row {
+                flex-direction: column !important;
+            }
+            
+            /* Adjust font sizes for mobile */
+            h1 { font-size: 1.5rem; }
+            h2 { font-size: 1.3rem; }
+            h3 { font-size: 1.1rem; }
+            p { font-size: 0.9rem; }
+        }
+        
+        /* Tablet breakpoint */
+        @@media (min-width: 481px) and (max-width: 768px) {
+            .container {
+                padding: 0 20px;
+            }
+        }
+        
+        /* Desktop breakpoint */
+        @@media (min-width: 769px) {
+            .container {
+                padding: 0 30px;
+            }
+        }
+        
+        /* Material Symbols styling */
+        .material-symbols-outlined {
+            font-variation-settings:
+            'FILL' 0,
+            'wght' 300,
+            'GRAD' 0,
+            'opsz' 20
+        }
+        
+        /* Link transitions */
+        a {
+            transition: opacity 0.2s ease;
+            text-decoration: none;
+        }
+        
+        a:hover {
+            opacity: 0.7;
+        }
+        
+        /* Remove shadows from menu items */
+        .menu-item-link,
+        .drawer-dropdown-item a,
+        .drawer-dropdown-submenu-item,
+        .menu-item-parent,
+        .menu-item-with-dropdown a {
+            box-shadow: none !important;
+            text-shadow: none !important;
+        }
+        
+        /* High quality image rendering */
+        img {
+            image-rendering: auto;
+            -webkit-font-smoothing: subpixel-antialiased;
+            -moz-osx-font-smoothing: auto;
+        }
+        
+        /* Header logo specific styles for HD quality */
+        .header-logo-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .header-logo-wrapper img {
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: auto;
+            -ms-interpolation-mode: bicubic;
+        }
+        
+        /* Ensure no shadows on hover */
+        .menu-item-link:hover,
+        .drawer-dropdown-item a:hover,
+        .drawer-dropdown-submenu-item:hover,
+        .menu-item-parent:hover,
+        .menu-item-with-dropdown a:hover {
+            box-shadow: none !important;
+            text-shadow: none !important;
+        }
+    </style>
+</head>
+<body>
+    <div id="preview-content">
+        <!-- El contenido se renderizará aquí dinámicamente -->
+    </div>
+    
+    <!-- jQuery (necesario para el funcionamiento) -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    
+    <!-- Funciones de renderizado compartidas -->
+    <script src="~/js/website-render-functions.js?v=@DateTime.Now.Ticks"></script>
+    
+    <script>
+        // Variables globales necesarias para el renderizado
+        let currentSectionsConfig = {};
+        let currentGlobalThemeSettings = {};
+        let currentMenusData = [];
+        let currentAnnouncementIndex = 0;
+        let currentLanguage = 'es';
+        
+        // Helper function para obtener el nombre de la fuente
+        window.getFontNameFromValueSafe = function(fontValue) {
+            if (!fontValue) return 'Roboto';
+            const fontMap = {
+                'abel': 'Abel',
+                'archivo': 'Archivo',
+                'archivo-narrow': 'Archivo Narrow',
+                'arimo': 'Arimo',
+                'assistant': 'Assistant',
+                'bebas-neue': 'Bebas Neue',
+                'cabin': 'Cabin',
+                'chivo': 'Chivo',
+                'dosis': 'Dosis',
+                'fjalla-one': 'Fjalla One',
+                'josefin-sans': 'Josefin Sans',
+                'karla': 'Karla',
+                'libre-franklin': 'Libre Franklin',
+                'noto-sans': 'Noto Sans',
+                'nunito-sans': 'Nunito Sans',
+                'oswald': 'Oswald',
+                'oxygen': 'Oxygen',
+                'pt-sans': 'PT Sans',
+                'raleway': 'Raleway',
+                'roboto': 'Roboto',
+                'rubik': 'Rubik',
+                'source-sans-pro': 'Source Sans Pro',
+                'titillium-web': 'Titillium Web',
+                'ubuntu': 'Ubuntu',
+                'work-sans': 'Work Sans',
+                'arvo': 'Arvo',
+                'bitter': 'Bitter',
+                'cardo': 'Cardo',
+                'cormorant': 'Cormorant',
+                'crimson-text': 'Crimson Text',
+                'david-libre': 'David Libre',
+                'eb-garamond': 'EB Garamond',
+                'eczar': 'Eczar',
+                'inter': 'Inter',
+                'lato': 'Lato',
+                'libre-baskerville': 'Libre Baskerville',
+                'lora': 'Lora',
+                'merriweather': 'Merriweather',
+                'montserrat': 'Montserrat',
+                'noticia-text': 'Noticia Text',
+                'noto-serif': 'Noto Serif',
+                'open-sans': 'Open Sans',
+                'playfair-display': 'Playfair Display',
+                'poppins': 'Poppins',
+                'pt-serif': 'PT Serif',
+                'roboto-slab': 'Roboto Slab',
+                'source-serif-pro': 'Source Serif Pro',
+                'vollkorn': 'Vollkorn',
+                'anonymous-pro': 'Anonymous Pro',
+                'fira-mono': 'Fira Mono',
+                'ibm-plex-mono': 'IBM Plex Mono',
+                'inconsolata': 'Inconsolata',
+                'jetbrains-mono': 'JetBrains Mono',
+                'noto-sans-mono': 'Noto Sans Mono',
+                'roboto-mono': 'Roboto Mono',
+                'source-code-pro': 'Source Code Pro',
+                'space-mono': 'Space Mono',
+                'ubuntu-mono': 'Ubuntu Mono'
+            };
+            
+            return fontMap[fontValue] || fontValue.split('-').map(word => 
+                word.charAt(0).toUpperCase() + word.slice(1)
+            ).join(' ');
+        };
+        
+        // Función para cargar los datos del website
+        async function loadWebsiteData() {
+            try {
+                // Cargar datos desde la API
+                const response = await fetch('/api/builder/websites/current');
+                if (!response.ok) {
+                    throw new Error('Failed to load website data');
+                }
+                
+                const websiteData = await response.json();
+                console.log('Website data loaded:', websiteData);
+                
+                // Parsear las configuraciones JSON
+                if (websiteData.globalThemeSettingsJson) {
+                    currentGlobalThemeSettings = JSON.parse(websiteData.globalThemeSettingsJson);
+                }
+                
+                if (websiteData.sectionsConfigJson) {
+                    currentSectionsConfig = JSON.parse(websiteData.sectionsConfigJson);
+                }
+                
+                // Si la API falla o no hay datos, usar datos de prueba
+                if (!currentSectionsConfig.sectionOrder) {
+                    console.log('No sections found, using default data');
+                    // Por ahora, usar datos de prueba
+                currentGlobalThemeSettings = {
+                    typography: {
+                        body: {
+                            font: 'roboto',
+                            fontSize: '14px'
+                        },
+                        menu: {
+                            font: 'roboto',
+                            fontSize: '15px'
+                        }
+                    },
+                    colorSchemes: {
+                        scheme1: {
+                            background: '#ffffff',
+                            text: '#333333',
+                            foreground: '#f0f0f0',
+                            border: '#e5e5e5'
+                        }
+                    }
+                };
+                
+                currentSectionsConfig = {
+                    sectionOrder: ['announcement', 'header'],
+                    announcementBar: {
+                        isHidden: false,
+                        colorScheme: 'scheme1',
+                        showOnlyHomePage: false,
+                        width: 'full',
+                        animationStyle: 'none',
+                        text: 'Welcome to our store!'
+                    },
+                    announcements: {},
+                    announcementOrder: [],
+                    header: {
+                        isHidden: false,
+                        colorScheme: 'scheme1',
+                        layout: 'logo-center-menu-left-inline',
+                        showDivider: true,
+                        desktopLogoSize: 190,
+                        mobileLogoSize: 120,
+                        iconStyle: 'outline',
+                        cartType: 'bag',
+                        navigationMenuId: 'main-menu',
+                        openMenuDropdown: 'hover'
+                    }
+                };
+                
+                    // Menús de prueba
+                    currentMenusData = [{
+                        id: 'main-menu',
+                        name: 'Main Menu',
+                        items: [
+                            {
+                                label: 'Inicio',
+                                url: '/',
+                                children: []
+                            },
+                            {
+                                label: 'Productos',
+                                url: '/products',
+                                children: [
+                                    { label: 'Categoría 1', url: '/category1' },
+                                    { label: 'Categoría 2', url: '/category2' }
+                                ]
+                            }
+                        ]
+                    }];
+                }
+                
+                // Cargar menús si existen
+                if (currentGlobalThemeSettings.menus && Array.isArray(currentGlobalThemeSettings.menus)) {
+                    currentMenusData = currentGlobalThemeSettings.menus;
+                    console.log('Loaded menus from global settings:', currentMenusData);
+                } else if (currentSectionsConfig.menus && Array.isArray(currentSectionsConfig.menus)) {
+                    currentMenusData = currentSectionsConfig.menus;
+                    console.log('Loaded menus from sections config:', currentMenusData);
+                } else {
+                    console.log('No menus found, using default menu');
+                }
+                
+                // Renderizar el contenido
+                renderPreviewContent();
+                
+            } catch (error) {
+                console.error('Error loading website data:', error);
+                document.getElementById('preview-content').innerHTML = '<p style="text-align: center; padding: 50px;">Error al cargar el preview</p>';
+            }
+        }
+        
+        // Función para cargar Google Fonts dinámicamente
+        function loadGoogleFont(fontValue) {
+            if (!fontValue || fontValue === 'system') return;
+            
+            const fontName = window.getFontNameFromValueSafe(fontValue);
+            const fontUrl = `https://fonts.googleapis.com/css2?family=${fontName.replace(/\s+/g, '+')}:wght@300;400;500;600;700&display=swap`;
+            
+            // Check if font is already loaded
+            const existingLink = document.querySelector(`link[href="${fontUrl}"]`);
+            if (!existingLink) {
+                const link = document.createElement('link');
+                link.rel = 'stylesheet';
+                link.href = fontUrl;
+                document.head.appendChild(link);
+                console.log('Loaded font:', fontName);
+            }
+        }
+        
+        // Función para renderizar el contenido del preview
+        function renderPreviewContent() {
+            const previewContent = document.getElementById('preview-content');
+            let finalHtml = '';
+            
+            // Cargar las fuentes necesarias
+            if (currentGlobalThemeSettings?.typography) {
+                if (currentGlobalThemeSettings.typography.body?.font) {
+                    loadGoogleFont(currentGlobalThemeSettings.typography.body.font);
+                }
+                if (currentGlobalThemeSettings.typography.menu?.font) {
+                    loadGoogleFont(currentGlobalThemeSettings.typography.menu.font);
+                }
+                if (currentGlobalThemeSettings.typography.heading?.font) {
+                    loadGoogleFont(currentGlobalThemeSettings.typography.heading.font);
+                }
+            }
+            
+            // Renderizar secciones según el orden definido
+            if (currentSectionsConfig && currentSectionsConfig.sectionOrder) {
+                currentSectionsConfig.sectionOrder.forEach(sectionId => {
+                    if (sectionId === 'announcement') {
+                        const announcementConfig = currentSectionsConfig.announcementBar;
+                        if (announcementConfig && !announcementConfig.isHidden) {
+                            finalHtml += renderAnnouncementBar(announcementConfig);
+                        }
+                    } else if (sectionId === 'header') {
+                        const headerConfig = currentSectionsConfig.header;
+                        if (headerConfig && !headerConfig.isHidden) {
+                            finalHtml += renderHeader(headerConfig);
+                        }
+                    }
+                    // Aquí se agregarán más secciones en el futuro
+                });
+            }
+            
+            previewContent.innerHTML = finalHtml;
+            
+            // Adjuntar event listeners después del renderizado
+            attachPreviewEventListeners();
+        }
+        
+        // Función para adjuntar event listeners
+        function attachPreviewEventListeners() {
+            // Event listeners para el menú drawer
+            const menuIcons = document.querySelectorAll('.header-menu-drawer .material-icons, .header-menu-drawer .material-symbols-outlined, .header-menu-drawer-icon .material-icons, .header-menu-drawer-icon .material-symbols-outlined');
+            menuIcons.forEach(menuIcon => {
+                menuIcon.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    openDrawerMenuModal();
+                });
+            });
+            
+            // Event listeners para dropdowns de menú
+            attachDropdownMenuListeners(document);
+        }
+        
+        // Incluir aquí las funciones de renderizado necesarias
+        // (Se copiarán desde website-builder.js)
+        
+        // Cargar los datos cuando el DOM esté listo
+        $(document).ready(function() {
+            loadWebsiteData();
+        });
+    </script>
+</body>
+</html>

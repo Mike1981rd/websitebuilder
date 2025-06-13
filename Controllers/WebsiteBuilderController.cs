@@ -19,5 +19,13 @@ namespace Hotel.Controllers
         {
             return View();
         }
+
+        // Vista de preview completa en nueva pestaña
+        public IActionResult Preview()
+        {
+            // Por ahora retornamos la vista sin datos
+            // Más adelante aquí cargaremos los datos guardados del website
+            return View();
+        }
     }
 }
