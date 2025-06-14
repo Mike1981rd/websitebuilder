@@ -8,6 +8,7 @@ let currentPageId = 1; // Default to home page
 let currentPageBlocks = [];
 let currentSelectedColorScheme = 'scheme1'; // Track which color scheme is being edited
 let currentSidebarView = 'blockList'; // Track the current sidebar view
+let previousSidebarView = null; // Track previous view for back navigation
 let currentAnnouncementIndex = 0; // Track current announcement being displayed
 let announcementAutoplayTimer = null; // Timer for autoplay functionality
 let currentNavigationData = []; // Track navigation menu items
@@ -101,7 +102,7 @@ let currentSectionsConfig = {
         isHidden: false
     },
     header: {
-        colorScheme: 'primary',
+        colorScheme: 'scheme1',
         width: 'large',
         layout: 'logo-center-menu-left-inline',
         showDivider: true,
@@ -134,6 +135,9 @@ let currentGlobalThemeSettings = {
     fontFamily: "Roboto",
     colorSchemes: {}
 };
+
+// Hacer currentGlobalThemeSettings disponible globalmente para website-render-functions.js
+window.currentGlobalThemeSettings = currentGlobalThemeSettings;
 
 // Estructura de datos para los esquemas de color - estructura plana para los campos de configuración
 const colorSchemes = {
@@ -208,6 +212,18 @@ function getColorSchemeValues(schemeName) {
 // Function to load current website data from the backend - moved outside document.ready
 async function loadCurrentWebsite() {
     try {
+        // Primero, hacer una prueba simple del API
+        try {
+            const testResponse = await fetch('/api/builder/test');
+            if (testResponse.ok) {
+                const testData = await testResponse.json();
+                console.log('[DEBUG] API test successful:', testData);
+            } else {
+                console.error('[DEBUG] API test failed with status:', testResponse.status);
+            }
+        } catch (testError) {
+            console.error('[DEBUG] API test error:', testError);
+        }
         const response = await fetch('/api/builder/websites/current', {
             method: 'GET',
             headers: {
@@ -216,7 +232,31 @@ async function loadCurrentWebsite() {
         });
         
         if (!response.ok) {
-            throw new Error('Failed to load website data');
+            // Intentar obtener el mensaje de error del servidor
+            let errorMessage = 'Failed to load website data';
+            try {
+                const errorText = await response.text();
+                console.error('[DEBUG] Raw error response:', errorText);
+                
+                // Intentar parsear como JSON
+                try {
+                    const errorData = JSON.parse(errorText);
+                    console.error('[DEBUG] API Error:', errorData);
+                    errorMessage = errorData.message || errorData.error || errorMessage;
+                    if (errorData.innerException) {
+                        console.error('[DEBUG] Inner Exception:', errorData.innerException);
+                    }
+                    if (errorData.stackTrace || errorData.details) {
+                        console.error('[DEBUG] Stack Trace:', errorData.stackTrace || errorData.details);
+                    }
+                } catch (jsonError) {
+                    console.error('[DEBUG] Response is not JSON:', errorText);
+                    errorMessage = errorText || errorMessage;
+                }
+            } catch (e) {
+                console.error('[DEBUG] Could not read error response:', e);
+            }
+            throw new Error(errorMessage);
         }
         
         const website = await response.json();
@@ -231,22 +271,51 @@ async function loadCurrentWebsite() {
                 currentGlobalThemeSettings = JSON.parse(website.globalThemeSettingsJson);
                 console.log('[DEBUG] Loaded theme settings from DB:', currentGlobalThemeSettings);
                 
+                // Update the global window reference
+                window.currentGlobalThemeSettings = currentGlobalThemeSettings;
+                
                 // Ensure colorSchemes property exists
                 if (!currentGlobalThemeSettings.colorSchemes) {
                     console.log('[DEBUG] colorSchemes not found in DB, initializing empty object');
                     currentGlobalThemeSettings.colorSchemes = {};
+                }
+                
+                // Also check if colorSchemes exists but is empty
+                if (currentGlobalThemeSettings.colorSchemes && Object.keys(currentGlobalThemeSettings.colorSchemes).length === 0) {
+                    console.log('[DEBUG] colorSchemes is empty, will initialize with defaults below');
                 }
             } catch (e) {
                 console.error('Error parsing global theme settings:', e);
                 currentGlobalThemeSettings = {
                     colorSchemes: {}
                 };
+                // Update the global window reference
+                window.currentGlobalThemeSettings = currentGlobalThemeSettings;
             }
         } else {
             // Initialize with empty object if no settings in DB
             currentGlobalThemeSettings = {
                 colorSchemes: {}
             };
+            // Update the global window reference
+            window.currentGlobalThemeSettings = currentGlobalThemeSettings;
+        }
+        
+        // Initialize default color schemes if they don't exist
+        if (!currentGlobalThemeSettings.colorSchemes || Object.keys(currentGlobalThemeSettings.colorSchemes).length === 0) {
+            console.log('[DEBUG] No color schemes found, initializing with defaults');
+            currentGlobalThemeSettings.colorSchemes = {};
+            
+            // Copy default color schemes to currentGlobalThemeSettings
+            for (const [schemeName, schemeData] of Object.entries(colorSchemes)) {
+                currentGlobalThemeSettings.colorSchemes[schemeName] = { ...schemeData };
+            }
+            
+            // Update the global window reference after setting defaults
+            window.currentGlobalThemeSettings = currentGlobalThemeSettings;
+            
+            // Mark as needing save to persist the defaults
+            hasPendingGlobalSettingsChanges = true;
         }
         
         // Parse and load sections config
@@ -270,7 +339,7 @@ async function loadCurrentWebsite() {
                                 isHidden: false
                             },
                             header: {
-                                colorScheme: 'primary',
+                                colorScheme: 'scheme1',
                                 width: 'large',
                                 layout: 'logo-center-menu-left-inline',
                                 showDivider: true,
@@ -288,6 +357,9 @@ async function loadCurrentWebsite() {
                         console.log('[DEBUG] Merged sections config:', currentSectionsConfig);
                         // Ensure header has logo URL properties and section visibility
                         if (currentSectionsConfig.header) {
+                            if (!currentSectionsConfig.header.hasOwnProperty('colorScheme')) {
+                                currentSectionsConfig.header.colorScheme = 'scheme1';
+                            }
                             if (!currentSectionsConfig.header.hasOwnProperty('desktopLogoUrl')) {
                                 currentSectionsConfig.header.desktopLogoUrl = '';
                             }
@@ -300,6 +372,58 @@ async function loadCurrentWebsite() {
                                     logo: true,
                                     icons: true
                                 };
+                            }
+                        }
+                        
+                        // Ensure slideshow is properly initialized
+                        if (!currentSectionsConfig.slideshow) {
+                            const defaultSlideId = 'slide-' + Date.now();
+                            currentSectionsConfig.slideshow = {
+                                isHidden: false,
+                                config: {
+                                    layout: 'fullWidth',
+                                    height: 'adaptToFirstImage',
+                                    showNavigationArrows: true,
+                                    showPagination: true,
+                                    paginationType: 'dots',
+                                    animation: 'none',
+                                    autoRotate: false,
+                                    changeInterval: 5,
+                                    addSidePaddings: false,
+                                    topPadding: 0,
+                                    bottomPadding: 0
+                                },
+                                slides: {
+                                    [defaultSlideId]: {
+                                        title: 'Welcome to our Store',
+                                        subtitle: 'Discover amazing products and great deals',
+                                        titleSize: 'large',
+                                        container: false,
+                                        contentPosition: 'center',
+                                        contentAlignment: 'center',
+                                        mobileContentAlignment: 'center',
+                                        buttonText: 'Shop Now',
+                                        buttonLink: '/collections',
+                                        colorScheme: 'scheme3',
+                                        useOverlay: true,
+                                        overlayOpacity: 0.3,
+                                        desktopImage: '',
+                                        mobileImage: '',
+                                        isHidden: false
+                                    }
+                                },
+                                slideOrder: [defaultSlideId]
+                            };
+                        }
+                        
+                        // Add slideshow to section order if not present
+                        if (currentSectionsConfig.sectionOrder && !currentSectionsConfig.sectionOrder.includes('slideshow')) {
+                            // Add slideshow after header
+                            const headerIndex = currentSectionsConfig.sectionOrder.indexOf('header');
+                            if (headerIndex >= 0) {
+                                currentSectionsConfig.sectionOrder.splice(headerIndex + 1, 0, 'slideshow');
+                            } else {
+                                currentSectionsConfig.sectionOrder.push('slideshow');
                             }
                         }
                     console.log('[DEBUG] Loaded sections config from DB:', currentSectionsConfig);
@@ -758,9 +882,15 @@ function renderHeader(config) {
     let menuItems = '';
     const selectedMenuId = config.navigationMenuId || 'main-menu';
     
-    // Ensure menus are loaded
+    // Ensure menus are loaded - if not, try to load from globalThemeSettings
     if (!currentMenusData || currentMenusData.length === 0) {
-        console.log('[DEBUG] No menus loaded in renderHeader, using defaults');
+        console.log('[DEBUG] No menus loaded in renderHeader, attempting to load from settings');
+        if (currentGlobalThemeSettings && currentGlobalThemeSettings.menus) {
+            currentMenusData = currentGlobalThemeSettings.menus;
+            console.log('[DEBUG] Loaded menus from globalThemeSettings:', currentMenusData);
+        } else {
+            console.log('[DEBUG] No menus found in settings, using defaults');
+        }
     }
     
     const selectedMenu = currentMenusData.find(m => m.id === selectedMenuId);
@@ -1299,8 +1429,11 @@ function stopAnnouncementAutoplay() {
  */
 function renderSlideshow(config) {
     console.log('[SLIDESHOW] Rendering slideshow with config:', config);
+    console.log('[SLIDESHOW] Current sections config:', currentSectionsConfig);
+    console.log('[SLIDESHOW] Section order:', currentSectionsConfig?.sectionOrder);
     
     if (!config || config.isHidden) {
+        console.log('[SLIDESHOW] Slideshow is hidden or config is null');
         return '';
     }
     
@@ -1331,11 +1464,27 @@ function renderSlideshow(config) {
     
     const headingFontValue = headingTypography.font || 'helvetica';
     const headingFontFamily = window.getFontNameFromValueSafe(headingFontValue);
-    const headingSize = '48px'; // Default size for slideshow titles
+    const headingUppercase = headingTypography.uppercase || false;
+    const headingLetterSpacing = headingTypography.letterSpacing || 0;
+    
+    // Get title size based on slide configuration
+    let headingFontSize = '36px'; // Default
+    // Handle both Spanish and English values
+    if (currentSlide.titleSize === 'small' || currentSlide.titleSize === 'pequeño') {
+        headingFontSize = '24px';
+    } else if (currentSlide.titleSize === 'medium' || currentSlide.titleSize === 'mediano') {
+        headingFontSize = '36px';
+    } else if (currentSlide.titleSize === 'large' || currentSlide.titleSize === 'grande') {
+        headingFontSize = '48px';
+    } else if (currentSlide.titleSize === 'extraLarge' || currentSlide.titleSize === 'extraGrande') {
+        headingFontSize = '64px';
+    } else if (currentSlide.titleSize === 'superExtraLarge' || currentSlide.titleSize === 'superExtraGrande') {
+        headingFontSize = '80px';
+    }
     
     const bodyFontValue = bodyTypography.font || 'roboto';
     const bodyFontFamily = window.getFontNameFromValueSafe(bodyFontValue);
-    const bodyFontSize = '18px'; // Default size for slideshow subtitles
+    const bodyFontSize = bodyTypography.fontSize || '16px';
     
     // Build slide content
     let slideContentHtml = '';
@@ -1348,10 +1497,10 @@ function renderSlideshow(config) {
         slideContentHtml = `
             <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; display: flex; align-items: center; justify-content: ${contentAlignment}; padding: 40px; z-index: 2;">
                 <div style="max-width: 600px; text-align: ${textAlign};">
-                    ${currentSlide.title ? `<h2 style="margin: 0 0 20px 0; font-family: ${headingFontFamily}; font-size: ${headingSize}; color: ${schemeColors.text};">${currentSlide.title}</h2>` : ''}
-                    ${currentSlide.subtitle ? `<p style="margin: 0 0 30px 0; font-family: ${bodyFontFamily}; font-size: ${bodyFontSize}; color: ${schemeColors.text}; opacity: 0.8;">${currentSlide.subtitle}</p>` : ''}
+                    ${currentSlide.title ? `<h2 style="margin: 0 0 20px 0; font-family: ${headingFontFamily}, -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: ${headingFontSize}; color: ${schemeColors.text}; ${headingUppercase ? 'text-transform: uppercase;' : ''} letter-spacing: ${headingLetterSpacing}px; font-weight: 600;">${currentSlide.title}</h2>` : ''}
+                    ${currentSlide.subtitle ? `<p style="margin: 0 0 30px 0; font-family: ${bodyFontFamily}, -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: ${bodyFontSize}; color: ${schemeColors.text}; opacity: 0.8; line-height: 1.5;">${currentSlide.subtitle}</p>` : ''}
                     ${currentSlide.buttonText ? `
-                        <button style="padding: 12px 30px; background: ${schemeColors.buttonBackground || schemeColors.primary}; color: ${schemeColors.buttonText || '#fff'}; border: none; border-radius: 4px; font-family: ${bodyFontFamily}; font-size: 16px; cursor: pointer;">
+                        <button style="padding: 12px 30px; background: ${schemeColors['solid-button'] || schemeColors.primary || '#121212'}; color: ${schemeColors['solid-button-text'] || '#FFFFFF'}; border: none; border-radius: 4px; font-family: ${bodyFontFamily}, -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 16px; cursor: pointer; font-weight: 500; transition: all 0.3s ease;">
                             ${currentSlide.buttonText}
                         </button>
                     ` : ''}
@@ -1405,19 +1554,30 @@ function renderSlideshow(config) {
     // Container width based on layout
     const containerClass = slideshowConfig.layout === 'page' ? 'style="max-width: 1200px; margin: 0 auto;"' : '';
     
+    // Add top and bottom padding from config
+    const topPadding = slideshowConfig.topPadding || 0;
+    const bottomPadding = slideshowConfig.bottomPadding || 0;
+    const paddingStyle = `padding-top: ${topPadding}px; padding-bottom: ${bottomPadding}px;`;
+    
     return `
-        <div class="section-wrapper" data-section-id="slideshow">
+        <div class="section-wrapper" data-section-id="slideshow" style="${paddingStyle}">
             <div class="section-header-tag">
                 <span class="material-symbols-outlined" style="font-size: 16px;">view_carousel</span>${translations[currentLanguage] && translations[currentLanguage]['sections.slideshow'] || 'Slideshow'}
             </div>
             <div class="slideshow-container" ${containerClass} style="position: relative; ${heightStyle} background: ${schemeColors.background}; overflow: hidden;">
                 ${currentSlide.desktopImage ? `
-                    <img src="${currentSlide.desktopImage}" style="width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0;">
+                    <img src="${currentSlide.desktopImage}" 
+                         alt="${currentSlide.title || 'Slide image'}"
+                         style="width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; 
+                                image-rendering: -webkit-optimize-contrast; 
+                                image-rendering: crisp-edges;
+                                -webkit-backface-visibility: hidden;
+                                transform: translateZ(0);">
                 ` : `
-                    <div style="width: 100%; height: 100%; background: ${schemeColors.background}; position: absolute; top: 0; left: 0;"></div>
+                    <div style="width: 100%; height: 100%; background: ${schemeColors.foreground || schemeColors.background}; position: absolute; top: 0; left: 0;"></div>
                 `}
-                ${currentSlide.overlayColor ? `
-                    <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: ${currentSlide.overlayColor}; opacity: ${currentSlide.overlayOpacity || 0.3}; z-index: 1;"></div>
+                ${currentSlide.useOverlay && currentSlide.overlayOpacity ? `
+                    <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, ${currentSlide.overlayOpacity}); z-index: 1;"></div>
                 ` : ''}
                 ${slideContentHtml}
                 ${navigationArrowsHtml}
@@ -1446,27 +1606,72 @@ function renderPreview() {
         setTimeout(renderPreview, 200);
         return;
     }
+    
+    // Actualizar las variables globales en el iframe antes de renderizar
+    if (previewIframe.contentWindow) {
+        previewIframe.contentWindow.currentSectionsConfig = currentSectionsConfig;
+        previewIframe.contentWindow.currentGlobalThemeSettings = currentGlobalThemeSettings;
+        previewIframe.contentWindow.currentMenusData = currentMenusData;
+        previewIframe.contentWindow.currentAnnouncementIndex = currentAnnouncementIndex;
+        previewIframe.contentWindow.currentLanguage = currentLanguage;
+    }
 
     // Limpiar el contenido anterior
     previewBody.innerHTML = '';
 
     let finalHtml = '';
-    const renderers = {
-        'announcement': renderAnnouncementBar,
-        'header': renderHeader,
-        'slideshow': renderSlideshow
-        // Aquí añadiremos más renderers en el futuro (footer, etc.)
-    };
+    
+    // Verificar si las funciones de renderizado están disponibles en el iframe
+    const iframeWindow = previewIframe.contentWindow;
+    const hasRenderFunctions = iframeWindow.renderHeader && iframeWindow.renderAnnouncementBar && iframeWindow.renderSlideshow;
+    
+    if (hasRenderFunctions) {
+        // Usar las funciones de renderizado del iframe
+        console.log('[PREVIEW] Using iframe render functions');
+        
+        // Renderizar secciones según el orden definido
+        if (currentSectionsConfig && currentSectionsConfig.sectionOrder) {
+            currentSectionsConfig.sectionOrder.forEach(sectionId => {
+                console.log('[PREVIEW] Rendering section:', sectionId);
+                if (sectionId === 'announcement') {
+                    const config = currentSectionsConfig.announcementBar;
+                    if (config && !config.isHidden) {
+                        finalHtml += iframeWindow.renderAnnouncementBar(config);
+                    }
+                } else if (sectionId === 'header') {
+                    const config = currentSectionsConfig.header;
+                    if (config && !config.isHidden) {
+                        console.log('[PREVIEW] Rendering header with config:', config);
+                        console.log('[PREVIEW] Available menus:', currentMenusData);
+                        finalHtml += iframeWindow.renderHeader(config);
+                    }
+                } else if (sectionId === 'slideshow') {
+                    const config = currentSectionsConfig.slideshow;
+                    if (config && !config.isHidden) {
+                        finalHtml += iframeWindow.renderSlideshow(config);
+                    }
+                }
+            });
+        }
+    } else {
+        // Fallback: usar las funciones del parent (menos ideal pero funciona)
+        console.log('[PREVIEW] Using parent render functions (fallback)');
+        const renderers = {
+            'announcement': renderAnnouncementBar,
+            'header': renderHeader,
+            'slideshow': renderSlideshow
+        };
 
-    // Renderizar secciones según el orden definido
-    if (currentSectionsConfig && currentSectionsConfig.sectionOrder) {
-        currentSectionsConfig.sectionOrder.forEach(sectionId => {
-            const renderer = renderers[sectionId];
-            const config = currentSectionsConfig[sectionId === 'announcement' ? 'announcementBar' : sectionId];
-            if (renderer && config) {
-                finalHtml += renderer(config);
-            }
-        });
+        // Renderizar secciones según el orden definido
+        if (currentSectionsConfig && currentSectionsConfig.sectionOrder) {
+            currentSectionsConfig.sectionOrder.forEach(sectionId => {
+                const renderer = renderers[sectionId];
+                const config = currentSectionsConfig[sectionId === 'announcement' ? 'announcementBar' : sectionId];
+                if (renderer && config) {
+                    finalHtml += renderer(config);
+                }
+            });
+        }
     }
     
     previewBody.innerHTML = finalHtml;
@@ -3086,7 +3291,10 @@ $(document).ready(async function() {
         previewFrame.addEventListener('load', () => {
             console.log('[DEBUG] Preview iframe loaded, applying initial styles');
             applyGlobalStylesToPreview(currentGlobalThemeSettings);
-            renderPreview(); // <-- AÑADIR ESTA LÍNEA
+            // Esperar un poco para que los scripts del iframe se carguen completamente
+            setTimeout(() => {
+                renderPreview();
+            }, 500);
         });
     }
     
@@ -4297,6 +4505,10 @@ $(document).ready(async function() {
     // Function to switch sidebar view - Make it global for delegated events
     window.switchSidebarView = function(viewName, data = null) {
         console.log('[DEBUG] Switching sidebar view from', currentSidebarView, 'to', viewName);
+        // Store previous view for back navigation (but not if we're going back)
+        if (viewName !== previousSidebarView) {
+            previousSidebarView = currentSidebarView;
+        }
         currentSidebarView = viewName;
         const dynamicContentArea = document.getElementById('sidebar-dynamic-content');
         if (!dynamicContentArea) return;
@@ -4442,7 +4654,8 @@ $(document).ready(async function() {
         } else if (viewName === 'slideshowSlideSettings') {
             // Individual slide settings view
             dynamicContentArea.innerHTML = renderSlideshowSlideSettingsView(data);
-            attachSlideshowSlideEventListeners(data?.slideId);
+            // Pass the previous view to know where to go back
+            attachSlideshowSlideEventListeners(data?.slideId, previousSidebarView);
             // Apply translations after rendering
             setTimeout(applyTranslations, 0);
         } else {
@@ -4719,6 +4932,11 @@ $(document).ready(async function() {
                         <button class="action-icon delete-section" data-section="slideshow" title="Delete">
                             <i class="material-icons">delete</i>
                         </button>
+                        ${currentSectionsConfig.slideshow.slides && Object.keys(currentSectionsConfig.slideshow.slides).length > 0 ? `
+                            <button class="action-icon collapse-toggle" title="Collapse/Expand">
+                                <i class="material-icons collapse-indicator">expand_more</i>
+                            </button>
+                        ` : ''}
                     </div>
                 </div>
             `;
@@ -5312,27 +5530,6 @@ $(document).ready(async function() {
                         </select>
                     </div>
                     
-                    <!-- Autoplay -->
-                    <div class="settings-field">
-                        <label class="toggle-field">
-                            <span data-i18n="slideshow.autoplay">Reproducción automática</span>
-                            <input type="checkbox" class="shopify-toggle" id="slideshow-autoplay" ${config.autoplay ? 'checked' : ''}>
-                            <label for="slideshow-autoplay" class="toggle-slider"></label>
-                        </label>
-                    </div>
-                    
-                    <!-- Autoplay interval (only show if autoplay is enabled) -->
-                    <div class="settings-field" id="autoplay-interval-field" style="${config.autoplay ? '' : 'display: none;'}">
-                        <label data-i18n="slideshow.autoplayInterval">Intervalo entre diapositivas</label>
-                        <div class="shopify-slider-container">
-                            <input type="range" id="slideshow-autoplay-interval" min="3" max="10" value="${config.autoplayInterval || 5}" step="1" class="shopify-slider">
-                            <div class="shopify-value-box">
-                                <input type="number" id="slideshow-autoplay-interval-value" min="3" max="10" value="${config.autoplayInterval || 5}" class="shopify-value-input">
-                                <span class="shopify-unit">s</span>
-                            </div>
-                        </div>
-                    </div>
-                    
                     <!-- Show navigation arrows -->
                     <div class="settings-field">
                         <label class="toggle-field">
@@ -5361,6 +5558,15 @@ $(document).ready(async function() {
                         </select>
                     </div>
                     
+                    <!-- Animation -->
+                    <div class="settings-field">
+                        <label data-i18n="slideshow.animation">Animación</label>
+                        <select id="slideshow-animation" class="shopify-select">
+                            <option value="none" ${config.animation === 'none' ? 'selected' : ''} data-i18n="slideshow.animationNone">Ninguna</option>
+                            <option value="ambientMovement" ${config.animation === 'ambientMovement' ? 'selected' : ''} data-i18n="slideshow.ambientMovement">Movimiento de Ambientes</option>
+                        </select>
+                    </div>
+                    
                     <!-- Auto-rotate slides -->
                     <div class="settings-field">
                         <label class="toggle-field">
@@ -5371,7 +5577,7 @@ $(document).ready(async function() {
                     </div>
                     
                     <!-- Change slides every (only show if auto-rotate is enabled) -->
-                    <div class="settings-field" id="change-slides-field" style="${config.autoRotate ? '' : 'display: none;'}">
+                    <div class="settings-field" id="change-slides-field" style="${config.autoRotate ? '' : ''}">
                         <label data-i18n="slideshow.changeSlidesEvery">Cambiar diapositivas cada</label>
                         <div class="shopify-slider-container">
                             <input type="range" id="slideshow-change-interval" min="3" max="10" value="${config.changeInterval || 5}" step="1" class="shopify-slider">
@@ -5379,31 +5585,6 @@ $(document).ready(async function() {
                                 <input type="number" id="slideshow-change-interval-value" min="3" max="10" value="${config.changeInterval || 5}" class="shopify-value-input">
                                 <span class="shopify-unit">s</span>
                             </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Animation -->
-                    <div class="settings-field">
-                        <label data-i18n="slideshow.animation">Animación</label>
-                        <select id="slideshow-animation" class="shopify-select">
-                            <option value="none" ${config.animation === 'none' ? 'selected' : ''} data-i18n="slideshow.animationNone">Ninguna</option>
-                            <option value="ambientMovement" ${config.animation === 'ambientMovement' ? 'selected' : ''} data-i18n="slideshow.ambientMovement">Movimiento de Ambientes</option>
-                        </select>
-                    </div>
-                    
-                    <!-- Slides Section -->
-                    <div class="settings-section" style="margin-top: 30px;">
-                        <h4 data-i18n="slideshow.slides">Diapositivas</h4>
-                        
-                        <!-- Add slide button -->
-                        <button class="shopify-button add-slide-btn" style="margin-bottom: 16px;">
-                            <i class="material-icons" style="vertical-align: middle; margin-right: 4px; font-size: 18px;">add</i>
-                            <span data-i18n="slideshow.addSlide">Agregar diapositiva</span>
-                        </button>
-                        
-                        <!-- Slides list -->
-                        <div id="slideshow-slides-list" style="margin-bottom: 16px;">
-                            ${renderSlideshowSlides()}
                         </div>
                     </div>
                     
@@ -5442,6 +5623,20 @@ $(document).ready(async function() {
                                     <span class="shopify-unit">px</span>
                                 </div>
                             </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Slides Section -->
+                    <div class="settings-section" style="margin-top: 30px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                            <h4 data-i18n="slideshow.slides">Diapositivas</h4>
+                            <button class="shopify-button primary" id="add-slide-btn">
+                                <i class="material-icons" style="font-size: 16px; vertical-align: middle; margin-right: 4px;">add</i>
+                                <span data-i18n="slideshow.addSlide">Agregar diapositiva</span>
+                            </button>
+                        </div>
+                        <div id="slideshow-slides-container">
+                            ${renderSlideshowSlides()}
                         </div>
                     </div>
                 </div>
@@ -8135,10 +8330,45 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
             
             // Initialize slides structure if needed
             if (!currentSectionsConfig.slideshow) {
+                // Create default slide ID
+                const defaultSlideId = 'slide-' + Date.now();
+                
                 currentSectionsConfig.slideshow = {
-                    config: {},
-                    slides: {},
-                    slideOrder: []
+                    config: {
+                        layout: 'fullWidth',
+                        height: 'adaptToFirstImage',
+                        autoRotate: false,
+                        changeInterval: 5,
+                        showNavigationArrows: true,
+                        showPagination: true,
+                        paginationType: 'dots',
+                        animation: 'none',
+                        addSidePaddings: false,
+                        topPadding: 38,
+                        bottomPadding: 48
+                    },
+                    slides: {
+                        [defaultSlideId]: {
+                            id: defaultSlideId,
+                            order: 1,
+                            isHidden: false,
+                            desktopImage: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTkyMCIgaGVpZ2h0PSI2MDAiIHZpZXdCb3g9IjAgMCAxOTIwIDYwMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjE5MjAiIGhlaWdodD0iNjAwIiBmaWxsPSIjQjU5NjRFIi8+CjxwYXRoIGQ9Ik05NjAgMjAwQzk3MS4wNDYgMjAwIDk4MCAyMDguOTU0IDk4MCAyMjBWMzgwQzk4MCAzOTEuMDQ2IDk3MS4wNDYgNDAwIDk2MCA0MDBDOTQ4Ljk1NCA0MDAgOTQwIDM5MS4wNDYgOTQwIDM4MFYyMjBDOTQwIDIwOC45NTQgOTQ4Ljk1NCAyMDAgOTYwIDIwMFoiIGZpbGw9IiNGREY0RTMiIG9wYWNpdHk9IjAuNSIvPgo8dGV4dCB4PSI5NjAiIHk9IjE3MCIgZm9udC1mYW1pbHk9IkFyaWFsLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjE0IiBmaWxsPSIjMDAwMDAwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5JTUFHRSBTTElERTwvdGV4dD4KPC9zdmc+Cg==',
+                            mobileImage: '',
+                            title: 'Image with text',
+                            titleSize: 'grande',
+                            subtitle: 'Fill in the text to tell customers by what your products are inspired.',
+                            container: true,
+                            contentPosition: 'centro',
+                            contentAlignment: 'centrado',
+                            mobileContentAlignment: 'centrado',
+                            buttonText: 'Button label',
+                            buttonLink: '',
+                            colorScheme: 'scheme1',
+                            useOverlay: true,
+                            overlayOpacity: 0.3
+                        }
+                    },
+                    slideOrder: [defaultSlideId]
                 };
             }
             if (!currentSectionsConfig.slideshow.slides) {
@@ -8612,6 +8842,11 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
             if (confirm(translations[currentLanguage]['sections.confirmDelete'] || '¿Estás seguro de eliminar esta sección?')) {
                 // Handle slideshow deletion
                 if (section === 'slideshow') {
+                    // First remove all slide elements from the DOM
+                    $('#slideshow-slides-wrapper').remove();
+                    $('.slideshow-slide-item').remove();
+                    
+                    // Then delete the slideshow data
                     delete currentSectionsConfig.slideshow;
                     
                     // Remove from section order
@@ -9366,6 +9601,9 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
         if (group === 'template' && sectionId === 'slideshow') {
             // Initialize slideshow configuration if it doesn't exist
             if (!currentSectionsConfig.slideshow) {
+                // Create default slide ID
+                const defaultSlideId = 'slide-' + Date.now();
+                
                 currentSectionsConfig.slideshow = {
                     id: 'slideshow',
                     isHidden: false,
@@ -9378,10 +9616,32 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                         showPagination: true,
                         paginationType: 'dots',
                         transitionEffect: 'slide',
-                        animation: 'none'
+                        animation: 'none',
+                        autoRotate: false,
+                        changeInterval: 5
                     },
-                    slides: {},
-                    slideOrder: []
+                    slides: {
+                        [defaultSlideId]: {
+                            id: defaultSlideId,
+                            order: 1,
+                            isHidden: false,
+                            desktopImage: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTkyMCIgaGVpZ2h0PSI2MDAiIHZpZXdCb3g9IjAgMCAxOTIwIDYwMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjE5MjAiIGhlaWdodD0iNjAwIiBmaWxsPSIjQjU5NjRFIi8+CjxwYXRoIGQ9Ik05NjAgMjAwQzk3MS4wNDYgMjAwIDk4MCAyMDguOTU0IDk4MCAyMjBWMzgwQzk4MCAzOTEuMDQ2IDk3MS4wNDYgNDAwIDk2MCA0MDBDOTQ4Ljk1NCA0MDAgOTQwIDM5MS4wNDYgOTQwIDM4MFYyMjBDOTQwIDIwOC45NTQgOTQ4Ljk1NCAyMDAgOTYwIDIwMFoiIGZpbGw9IiNGREY0RTMiIG9wYWNpdHk9IjAuNSIvPgo8dGV4dCB4PSI5NjAiIHk9IjE3MCIgZm9udC1mYW1pbHk9IkFyaWFsLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjE0IiBmaWxsPSIjMDAwMDAwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5JTUFHRSBTTElERTwvdGV4dD4KPC9zdmc+Cg==',
+                            mobileImage: '',
+                            title: 'Image with text',
+                            titleSize: 'grande',
+                            subtitle: 'Fill in the text to tell customers by what your products are inspired.',
+                            container: true,
+                            contentPosition: 'centro',
+                            contentAlignment: 'centrado',
+                            mobileContentAlignment: 'centrado',
+                            buttonText: 'Button label',
+                            buttonLink: '',
+                            colorScheme: 'scheme1',
+                            useOverlay: true,
+                            overlayOpacity: 0.3
+                        }
+                    },
+                    slideOrder: [defaultSlideId]
                 };
                 
                 // Add slideshow to section order if not already present
@@ -13259,7 +13519,7 @@ document.head.appendChild(style);
     // Function to populate header settings fields with current values
     function populateHeaderSettingsFields() {
         const config = currentSectionsConfig.header;
-        $('#header-color-scheme').val(config.colorScheme);
+        $('#header-color-scheme').val(config.colorScheme || 'scheme1');
         $('#header-width').val(config.width);
         $('#header-layout').val(config.layout);
         $('#show-separator').prop('checked', config.showDivider);
@@ -13880,33 +14140,6 @@ document.head.appendChild(style);
             renderPreview();
         });
         
-        // Autoplay toggle
-        $('#slideshow-autoplay').on('change', function() {
-            const isChecked = $(this).is(':checked');
-            currentSectionsConfig.slideshow.config.autoplay = isChecked;
-            $('#autoplay-interval-field').toggle(isChecked);
-            hasPendingPageStructureChanges = true;
-            updateSaveButtonState();
-        });
-        
-        // Autoplay interval slider
-        $('#slideshow-autoplay-interval').on('input', function() {
-            const value = $(this).val();
-            currentSectionsConfig.slideshow.config.autoplayInterval = parseInt(value);
-            $('#slideshow-autoplay-interval-value').val(value);
-            hasPendingPageStructureChanges = true;
-            updateSaveButtonState();
-        });
-        
-        // Autoplay interval number input
-        $('#slideshow-autoplay-interval-value').on('input', function() {
-            const value = $(this).val();
-            currentSectionsConfig.slideshow.config.autoplayInterval = parseInt(value);
-            $('#slideshow-autoplay-interval').val(value);
-            hasPendingPageStructureChanges = true;
-            updateSaveButtonState();
-        });
-        
         // Navigation arrows toggle
         $('#slideshow-navigation-arrows').on('change', function() {
             currentSectionsConfig.slideshow.config.showNavigationArrows = $(this).is(':checked');
@@ -14015,43 +14248,6 @@ document.head.appendChild(style);
             renderPreview();
         });
         
-        // Add slide button
-        $('.add-slide-btn').on('click', function() {
-            const slideId = 'slide-' + Date.now();
-            const slideCount = Object.keys(currentSectionsConfig.slideshow.slides).length;
-            
-            currentSectionsConfig.slideshow.slides[slideId] = {
-                id: slideId,
-                order: slideCount + 1,
-                isHidden: false,
-                desktopImage: '',
-                mobileImage: '',
-                title: '',
-                titleSize: 'mediano',
-                subtitle: '',
-                container: true,
-                contentPosition: 'abajo-derecha',
-                contentAlignment: 'centrado',
-                mobileContentAlignment: 'centrado',
-                buttonText: '',
-                buttonLink: '',
-                colorScheme: 'scheme1',
-                useOverlay: false,
-                overlayOpacity: 0.3
-            };
-            
-            currentSectionsConfig.slideshow.slideOrder.push(slideId);
-            
-            // Re-render slides list
-            $('#slideshow-slides-list').html(renderSlideshowSlides());
-            
-            // Initialize sortable for slides
-            initializeSlideshowSortable();
-            
-            hasPendingPageStructureChanges = true;
-            updateSaveButtonState();
-        });
-        
         // Slide item click - open slide settings (but not when dragging)
         $(document).on('click', '.slide-item', function(e) {
             // Don't open settings if clicking on actions or drag handle
@@ -14093,24 +14289,86 @@ document.head.appendChild(style);
         });
         
         // Delete slide
-        $(document).on('click', '.delete-slide', function(e) {
+        $(document).off('click.deleteSlide').on('click.deleteSlide', '.delete-slide', function(e) {
+            e.preventDefault();
             e.stopPropagation();
             const slideId = $(this).data('slide-id');
             
-            if (confirm(translations[currentLanguage]['slideshow.confirmDeleteSlide'] || '¿Estás seguro de eliminar esta diapositiva?')) {
-                delete currentSectionsConfig.slideshow.slides[slideId];
-                currentSectionsConfig.slideshow.slideOrder = currentSectionsConfig.slideshow.slideOrder.filter(id => id !== slideId);
-                
-                // Re-render slides list
-                $('#slideshow-slides-list').html(renderSlideshowSlides());
-                
-                // Re-initialize sortable
-                initializeSlideshowSortable();
-                
-                hasPendingPageStructureChanges = true;
-                updateSaveButtonState();
-                renderPreview();
+            console.log('[DEBUG] Delete slide clicked, slideId:', slideId);
+            
+            if (!slideId) {
+                console.error('[ERROR] No slide ID found');
+                return;
             }
+            
+            if (confirm(translations[currentLanguage]['slideshow.confirmDeleteSlide'] || '¿Estás seguro de eliminar esta diapositiva?')) {
+                // Delete from data structure
+                if (currentSectionsConfig.slideshow && currentSectionsConfig.slideshow.slides) {
+                    delete currentSectionsConfig.slideshow.slides[slideId];
+                    currentSectionsConfig.slideshow.slideOrder = currentSectionsConfig.slideshow.slideOrder.filter(id => id !== slideId);
+                    
+                    console.log('[DEBUG] Slide deleted from data structure');
+                    
+                    // Remove the slide element from DOM
+                    $(`.slideshow-slide-item[data-element-id="${slideId}"]`).remove();
+                    
+                    // Update slide numbers for remaining slides
+                    $('.slideshow-slide-item').each(function(index) {
+                        const $text = $(this).find('.subsection-text');
+                        const slideData = currentSectionsConfig.slideshow.slides[$(this).data('element-id')];
+                        const title = slideData?.title || translations[currentLanguage]['slideshow.slideTitle'] || 'Diapositiva';
+                        $text.text(`${title} ${index + 1}`);
+                    });
+                    
+                    hasPendingPageStructureChanges = true;
+                    updateSaveButtonState();
+                    renderPreview();
+                }
+            }
+        });
+        
+        // Add slide button (in slideshow settings view)
+        $('#add-slide-btn').on('click', function(e) {
+            e.preventDefault();
+            
+            // Create new slide
+            const newSlideId = 'slide-' + Date.now();
+            const slideCount = currentSectionsConfig.slideshow.slideOrder.length;
+            
+            currentSectionsConfig.slideshow.slides[newSlideId] = {
+                id: newSlideId,
+                order: slideCount + 1,
+                isHidden: false,
+                desktopImage: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTkyMCIgaGVpZ2h0PSI2MDAiIHZpZXdCb3g9IjAgMCAxOTIwIDYwMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjE5MjAiIGhlaWdodD0iNjAwIiBmaWxsPSIjQjU5NjRFIi8+CjxwYXRoIGQ9Ik05NjAgMjAwQzk3MS4wNDYgMjAwIDk4MCAyMDguOTU0IDk4MCAyMjBWMzgwQzk4MCAzOTEuMDQ2IDk3MS4wNDYgNDAwIDk2MCA0MDBDOTQ4Ljk1NCA0MDAgOTQwIDM5MS4wNDYgOTQwIDM4MFYyMjBDOTQwIDIwOC45NTQgOTQ4Ljk1NCAyMDAgOTYwIDIwMFoiIGZpbGw9IiNGREY0RTMiIG9wYWNpdHk9IjAuNSIvPgo8dGV4dCB4PSI5NjAiIHk9IjE3MCIgZm9udC1mYW1pbHk9IkFyaWFsLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjE0IiBmaWxsPSIjMDAwMDAwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5JTUFHRSBTTElERTwvdGV4dD4KPC9zdmc+Cg==',
+                mobileImage: '',
+                title: 'Image with text',
+                titleSize: 'grande',
+                subtitle: 'Fill in the text to tell customers by what your products are inspired.',
+                container: true,
+                contentPosition: 'centro',
+                contentAlignment: 'centrado',
+                mobileContentAlignment: 'centrado',
+                buttonText: 'Button label',
+                buttonLink: '',
+                colorScheme: 'scheme1',
+                useOverlay: true,
+                overlayOpacity: 0.3
+            };
+            
+            currentSectionsConfig.slideshow.slideOrder.push(newSlideId);
+            
+            // Re-render slides list
+            $('#slideshow-slides-container').html(renderSlideshowSlides());
+            
+            // Mark changes
+            hasPendingPageStructureChanges = true;
+            updateSaveButtonState();
+            renderPreview();
+            
+            // Initialize sortable for the new list
+            setTimeout(() => {
+                initializeSlideshowSortable();
+            }, 100);
         });
         
         // Initialize sortable when the view loads
@@ -14120,7 +14378,7 @@ document.head.appendChild(style);
     }
     
     // Function to attach event listeners for individual slide settings
-    function attachSlideshowSlideEventListeners(passedSlideId = null) {
+    function attachSlideshowSlideEventListeners(passedSlideId = null, fromView = null) {
         const slideId = passedSlideId || 
                        $('.sidebar-view-header').data('slide-id') || 
                        currentSidebarView === 'slideshowSlideSettings' && window.currentSlideId;
@@ -14133,9 +14391,15 @@ document.head.appendChild(style);
         // Store current slide ID globally for reference
         window.currentSlideId = slideId;
         
-        // Back button - Go back to sections list
+        // Back button - Go back to where we came from
         $('.back-to-sections-btn').on('click', function() {
-            window.switchSidebarView('blockList', window.getUpdatedPageData());
+            if (fromView === 'slideshowSettings') {
+                // Go back to slideshow settings
+                window.switchSidebarView('slideshowSettings');
+            } else {
+                // Default: go back to block list
+                window.switchSidebarView('blockList', window.getUpdatedPageData());
+            }
         });
         
         // Title change
@@ -14145,6 +14409,7 @@ document.head.appendChild(style);
                 currentSectionsConfig.slideshow.slides[slideId].title = value;
                 hasPendingPageStructureChanges = true;
                 updateSaveButtonState();
+                renderPreview(); // Add this to sync preview immediately
                 // Update the slide name in the list without re-rendering everything
                 const slideIndex = currentSectionsConfig.slideshow.slideOrder.indexOf(slideId);
                 const displayTitle = value || translations[currentLanguage]['slideshow.slideTitle'] || 'Diapositiva';
@@ -14352,10 +14617,14 @@ document.head.appendChild(style);
             // Check if menus are saved in global theme settings
             if (currentGlobalThemeSettings.menus && Array.isArray(currentGlobalThemeSettings.menus)) {
                 currentMenusData = currentGlobalThemeSettings.menus;
+                // Make menus data globally available for render functions
+                window.currentMenusData = currentMenusData;
                 console.log('[MENU] Loaded menus from global settings:', JSON.stringify(currentMenusData, null, 2));
             } else if (currentSectionsConfig.menus && Array.isArray(currentSectionsConfig.menus)) {
                 // Check in sections config
                 currentMenusData = currentSectionsConfig.menus;
+                // Make menus data globally available for render functions
+                window.currentMenusData = currentMenusData;
                 console.log('[MENU] Loaded menus from sections config:', JSON.stringify(currentMenusData, null, 2));
             } else {
                 // Load navigation data for backward compatibility
@@ -15081,6 +15350,8 @@ document.head.appendChild(style);
                 blocks: currentPageBlocks,
                 sectionsConfig: currentSectionsConfig
             };
+            console.log('[DEBUG] Saving pageData:', pageData);
+            console.log('[DEBUG] SectionOrder being saved:', currentSectionsConfig.sectionOrder);
             const pagePayload = {
                 pageStructureJson: JSON.stringify(pageData)
             };
@@ -15260,31 +15531,57 @@ document.head.appendChild(style);
         const $icon = $button.find('.collapse-indicator');
         const $parent = $button.closest('.collapsible-parent');
         const elementId = $parent.data('element-id');
+        const blockType = $parent.data('block-type');
+        
+        // Determine which child items to show/hide based on parent type
+        let childSelector;
+        if (blockType === 'announcement') {
+            childSelector = '.sidebar-subsection[data-block-type="announcement-item"]';
+        } else if (blockType === 'slideshow') {
+            childSelector = '#slideshow-slides-wrapper';
+        } else {
+            // Generic fallback - find next sibling wrapper
+            childSelector = $parent.next('[id$="-wrapper"]');
+        }
         
         if ($parent.hasClass('collapsed')) {
-            // Expand - show all announcement items
-            console.log('[COLLAPSE] Expanding announcements');
+            // Expand - show child items
+            console.log('[COLLAPSE] Expanding:', blockType);
             $parent.removeClass('collapsed');
             $icon.text('expand_more');
-            const $items = $('.sidebar-subsection[data-block-type="announcement-item"]');
+            
+            const $items = typeof childSelector === 'string' ? $(childSelector) : childSelector;
             console.log('[COLLAPSE] Found items to expand:', $items.length);
             
             // Smooth animation with stagger
-            $items.stop(true, false).each(function(index) {
-                $(this).delay(index * 40).fadeIn(200).slideDown(200);
-            });
+            if (blockType === 'announcement') {
+                // For announcements, animate each item individually
+                $items.stop(true, false).each(function(index) {
+                    $(this).delay(index * 40).fadeIn(200).slideDown(200);
+                });
+            } else {
+                // For other elements, just show the wrapper
+                $items.stop(true, false).fadeIn(200).slideDown(200);
+            }
         } else {
-            // Collapse - hide all announcement items
-            console.log('[COLLAPSE] Collapsing announcements');
+            // Collapse - hide child items
+            console.log('[COLLAPSE] Collapsing:', blockType);
             $parent.addClass('collapsed');
             $icon.text('chevron_right');
-            const $items = $('.sidebar-subsection[data-block-type="announcement-item"]');
+            
+            const $items = typeof childSelector === 'string' ? $(childSelector) : childSelector;
             console.log('[COLLAPSE] Found items to collapse:', $items.length);
             
-            // Smooth animation in reverse order
-            $($items.get().reverse()).stop(true, false).each(function(index) {
-                $(this).delay(index * 40).slideUp(200).fadeOut(200);
-            });
+            // Smooth animation
+            if (blockType === 'announcement') {
+                // For announcements, animate in reverse order
+                $($items.get().reverse()).stop(true, false).each(function(index) {
+                    $(this).delay(index * 40).slideUp(200).fadeOut(200);
+                });
+            } else {
+                // For other elements, just hide the wrapper
+                $items.stop(true, false).slideUp(200).fadeOut(200);
+            }
         }
     });
     

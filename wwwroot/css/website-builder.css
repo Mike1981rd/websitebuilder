@@ -356,7 +356,7 @@
 .editor-main-area {
     display: flex;
     flex: 1;
-    overflow: hidden;
+    overflow: auto;
     height: calc(100vh - 56px); /* Account for fixed topbar */
     margin-top: 56px; /* Add margin to account for fixed topbar */
 }
@@ -639,11 +639,11 @@
 #editor-preview-area {
     flex: 1;
     background-color: #fafafa;
-    overflow: hidden;
+    overflow: auto;
     position: relative;
     display: flex;
     justify-content: center;
-    align-items: center;
+    align-items: flex-start;
 }
 
 .dark-mode #editor-preview-area {
@@ -6959,3 +6959,24 @@
 }
 
 /* ===== End of Create/Edit Menu Styles ===== */
+
+/* ===== Slideshow Settings Scroll Fix ===== */
+/* Fix for slideshow settings container to ensure proper scrolling */
+#sidebar-dynamic-content > div[style*="display: flex"][style*="flex-direction: column"] {
+    display: flex !important;
+    flex-direction: column !important;
+    height: 100% !important;
+}
+
+/* Ensure slideshow settings header doesn't shrink */
+#sidebar-dynamic-content .sidebar-view-header {
+    flex-shrink: 0 !important;
+}
+
+/* Ensure slideshow settings content area can scroll properly */
+#sidebar-dynamic-content > div > div[style*="overflow-y: auto"] {
+    min-height: 0 !important;
+    flex: 1 !important;
+    overflow-y: auto !important;
+}
+/* ===== End of Slideshow Settings Scroll Fix ===== */

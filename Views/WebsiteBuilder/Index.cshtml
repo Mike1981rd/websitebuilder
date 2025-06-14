@@ -403,7 +403,7 @@
         // Dynamic font loading
         const loadedFonts = new Set(['Inter', 'Roboto', 'Open Sans', 'Playfair Display', 'Montserrat', 'Lato', 'Poppins']);
         
-        function loadGoogleFont(fontName) {
+        window.loadGoogleFont = function(fontName) {
             if (loadedFonts.has(fontName)) return;
             
             const link = document.createElement('link');
@@ -418,7 +418,7 @@
         $(document).on('fontChanged', '.font-search-input', function(e, fontType, fontValue) {
             const fontName = window.getFontNameFromValueSafe ? window.getFontNameFromValueSafe(fontValue) : getFontNameFromValue(fontValue);
             if (fontName) {
-                loadGoogleFont(fontName);
+                window.loadGoogleFont(fontName);
                 
                 // Also load the font in the preview iframe
                 const previewFrame = document.getElementById('preview-iframe');
@@ -454,7 +454,7 @@
                     uniqueFonts.forEach(fontValue => {
                         const fontName = window.getFontNameFromValueSafe ? window.getFontNameFromValueSafe(fontValue) : getFontNameFromValue(fontValue);
                         if (fontName) {
-                            loadGoogleFont(fontName);
+                            window.loadGoogleFont(fontName);
                         }
                     });
                 }

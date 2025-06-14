@@ -1,5 +1,8 @@
 // Funciones de renderizado compartidas entre el editor y el preview
 
+// No declarar currentGlobalThemeSettings aquí, ya que se espera que esté disponible globalmente
+// desde website-builder.js o desde el contexto donde se use este archivo
+
 // Color schemes predefinidos
 const colorSchemes = {
     'scheme1': {
@@ -36,9 +39,14 @@ const colorSchemes = {
 
 // Función para obtener los valores de un color scheme
 function getColorSchemeValues(schemeName) {
+    // Intentar obtener currentGlobalThemeSettings de diferentes fuentes
+    const globalSettings = (typeof window !== 'undefined' && window.currentGlobalThemeSettings) 
+        ? window.currentGlobalThemeSettings 
+        : (typeof currentGlobalThemeSettings !== 'undefined' ? currentGlobalThemeSettings : null);
+    
     // First check if we have custom values in currentGlobalThemeSettings
-    if (currentGlobalThemeSettings && currentGlobalThemeSettings.colorSchemes && currentGlobalThemeSettings.colorSchemes[schemeName]) {
-        return currentGlobalThemeSettings.colorSchemes[schemeName];
+    if (globalSettings && globalSettings.colorSchemes && globalSettings.colorSchemes[schemeName]) {
+        return globalSettings.colorSchemes[schemeName];
     }
     
     // Fall back to default color schemes
@@ -50,13 +58,28 @@ function renderHeader(config) {
     if (!config || config.isHidden) return '';
 
     // Get the selected color scheme
-    const selectedScheme = config.colorScheme || 'primary';
+    const selectedScheme = config.colorScheme || 'scheme1';
     const schemeColors = getColorSchemeValues(selectedScheme);
     
-    // Get typography settings
-    const menuTypography = currentGlobalThemeSettings?.typography?.menu || {};
+    // Get typography settings from multiple sources
+    let menuTypography = {};
+    
+    // Try to get typography from window.currentGlobalThemeSettings first
+    if (typeof window !== 'undefined' && window.currentGlobalThemeSettings && window.currentGlobalThemeSettings.typography && window.currentGlobalThemeSettings.typography.menu) {
+        menuTypography = window.currentGlobalThemeSettings.typography.menu;
+    } 
+    // Fallback to currentGlobalThemeSettings if available
+    else if (typeof currentGlobalThemeSettings !== 'undefined' && currentGlobalThemeSettings.typography && currentGlobalThemeSettings.typography.menu) {
+        menuTypography = currentGlobalThemeSettings.typography.menu;
+    }
+    
     const menuFontValue = menuTypography.font || 'assistant';
-    const menuFontFamily = window.getFontNameFromValueSafe(menuFontValue);
+    const menuFontFamily = window.getFontNameFromValueSafe ? window.getFontNameFromValueSafe(menuFontValue) : menuFontValue;
+    
+    // Ensure the font is loaded in the main document
+    if (typeof window !== 'undefined' && window.loadGoogleFont && menuFontFamily && menuFontFamily !== 'assistant') {
+        window.loadGoogleFont(menuFontFamily);
+    }
     
     // Calculate menu font size from percentage
     const baseFontSize = 15; // Base font size in pixels
@@ -97,9 +120,19 @@ function renderHeader(config) {
     
     // Menu items - use selected menu if available
     let menuItems = '';
-    const selectedMenuId = config.navigationMenuId || 'main-menu';
+    const selectedMenuId = config.navigationMenuId || config.navigationMenu || 'main-menu';
     
-    const selectedMenu = currentMenusData.find(m => m.id === selectedMenuId);
+    // Try to get menus data from multiple sources
+    let menusData = (typeof window !== 'undefined' && window.currentMenusData) 
+        ? window.currentMenusData 
+        : (typeof currentMenusData !== 'undefined' ? currentMenusData : []);
+    
+    // If still no menus, try to get from global theme settings
+    if ((!menusData || menusData.length === 0) && typeof window !== 'undefined' && window.currentGlobalThemeSettings && window.currentGlobalThemeSettings.menus) {
+        menusData = window.currentGlobalThemeSettings.menus;
+    }
+    
+    const selectedMenu = menusData.find(m => m.id === selectedMenuId);
     
     if (selectedMenu && selectedMenu.items && selectedMenu.items.length > 0) {
         menuItems = renderMenuItemsForHeader(selectedMenu.items, {
@@ -541,8 +574,19 @@ function openDrawerMenuModal() {
     console.log('[MENU] Opening drawer menu dropdown');
     
     // Get the selected menu
-    const selectedMenuId = currentSectionsConfig.header?.navigationMenuId || 'main-menu';
-    const selectedMenu = currentMenusData.find(m => m.id === selectedMenuId);
+    const selectedMenuId = currentSectionsConfig.header?.navigationMenuId || currentSectionsConfig.header?.navigationMenu || 'main-menu';
+    
+    // Try to get menus data from multiple sources
+    let menusData = (typeof window !== 'undefined' && window.currentMenusData) 
+        ? window.currentMenusData 
+        : (typeof currentMenusData !== 'undefined' ? currentMenusData : []);
+    
+    // If still no menus, try to get from global theme settings
+    if ((!menusData || menusData.length === 0) && typeof window !== 'undefined' && window.currentGlobalThemeSettings && window.currentGlobalThemeSettings.menus) {
+        menusData = window.currentGlobalThemeSettings.menus;
+    }
+    
+    const selectedMenu = menusData.find(m => m.id === selectedMenuId);
     
     if (!selectedMenu || !selectedMenu.items || selectedMenu.items.length === 0) {
         console.log('[MENU] No menu items to display');
@@ -788,7 +832,7 @@ function openDrawerMenuModal() {
     }
     
     // Get selected menu configuration
-    const selectedMenuId = currentSectionsConfig.header?.navigationMenuId || 'main-menu';
+    const selectedMenuId = currentSectionsConfig.header?.navigationMenuId || currentSectionsConfig.header?.navigationMenu || 'main-menu';
     const selectedMenu = currentMenusData.find(m => m.id === selectedMenuId);
     
     if (!selectedMenu || !selectedMenu.items) {
@@ -1333,7 +1377,7 @@ function showMainMenu() {
     if (!menuContainer) return;
     
     // Get current configuration
-    const selectedMenuId = currentSectionsConfig.header?.navigationMenuId || 'main-menu';
+    const selectedMenuId = currentSectionsConfig.header?.navigationMenuId || currentSectionsConfig.header?.navigationMenu || 'main-menu';
     const selectedMenu = currentMenusData.find(m => m.id === selectedMenuId);
     const colorScheme = currentSectionsConfig.header?.colorScheme || 'scheme1';
     const schemeColors = getColorSchemeValues(colorScheme);
@@ -1536,4 +1580,159 @@ function attachDropdownMenuListeners(doc) {
             });
         }
     });
+}
+
+// Función para renderizar el slideshow
+function renderSlideshow(config) {
+    console.log('[SLIDESHOW] Rendering slideshow with config:', config);
+    
+    if (!config || config.isHidden) {
+        return '';
+    }
+    
+    const slides = config.slides || {};
+    const slideOrder = config.slideOrder || [];
+    const slideshowConfig = config.config || {};
+    
+    // Filter visible slides
+    const visibleSlides = slideOrder.filter(slideId => 
+        slides[slideId] && !slides[slideId].isHidden
+    );
+    
+    if (visibleSlides.length === 0) {
+        return '';
+    }
+    
+    // Get current slide
+    const currentSlideId = visibleSlides[0]; // Por ahora mostrar la primera slide
+    const currentSlide = slides[currentSlideId];
+    
+    // Get color scheme
+    const colorScheme = currentSlide.colorScheme || 'scheme1';
+    const schemeColors = getColorSchemeValues(colorScheme);
+    
+    // Get typography settings
+    const headingTypography = currentGlobalThemeSettings?.typography?.heading || {};
+    const bodyTypography = currentGlobalThemeSettings?.typography?.body || {};
+    
+    const headingFontValue = headingTypography.font || 'helvetica';
+    const headingFontFamily = window.getFontNameFromValueSafe(headingFontValue);
+    const headingUppercase = headingTypography.uppercase || false;
+    const headingLetterSpacing = headingTypography.letterSpacing || 0;
+    
+    // Get title size based on slide configuration
+    let headingFontSize = '36px'; // Default
+    // Handle both Spanish and English values
+    if (currentSlide.titleSize === 'small' || currentSlide.titleSize === 'pequeño') {
+        headingFontSize = '24px';
+    } else if (currentSlide.titleSize === 'medium' || currentSlide.titleSize === 'mediano') {
+        headingFontSize = '36px';
+    } else if (currentSlide.titleSize === 'large' || currentSlide.titleSize === 'grande') {
+        headingFontSize = '48px';
+    } else if (currentSlide.titleSize === 'extraLarge' || currentSlide.titleSize === 'extraGrande') {
+        headingFontSize = '64px';
+    } else if (currentSlide.titleSize === 'superExtraLarge' || currentSlide.titleSize === 'superExtraGrande') {
+        headingFontSize = '80px';
+    }
+    
+    const bodyFontValue = bodyTypography.font || 'roboto';
+    const bodyFontFamily = window.getFontNameFromValueSafe(bodyFontValue);
+    const bodyFontSize = bodyTypography.fontSize || '16px';
+    
+    // Build slide content
+    let slideContentHtml = '';
+    if (currentSlide.title || currentSlide.subtitle || currentSlide.buttonText) {
+        const contentAlignment = currentSlide.contentPosition === 'left' ? 'flex-start' : 
+                               currentSlide.contentPosition === 'right' ? 'flex-end' : 'center';
+        const textAlign = currentSlide.contentPosition === 'left' ? 'left' : 
+                         currentSlide.contentPosition === 'right' ? 'right' : 'center';
+        
+        slideContentHtml = `
+            <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; display: flex; align-items: center; justify-content: ${contentAlignment}; padding: 40px; z-index: 2;">
+                <div style="max-width: 600px; text-align: ${textAlign};">
+                    ${currentSlide.title ? `<h2 style="margin: 0 0 20px 0; font-family: ${headingFontFamily}, -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: ${headingFontSize}; color: ${schemeColors.text}; ${headingUppercase ? 'text-transform: uppercase;' : ''} letter-spacing: ${headingLetterSpacing}px; font-weight: 600;">${currentSlide.title}</h2>` : ''}
+                    ${currentSlide.subtitle ? `<p style="margin: 0 0 30px 0; font-family: ${bodyFontFamily}, -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: ${bodyFontSize}; color: ${schemeColors.text}; opacity: 0.8; line-height: 1.5;">${currentSlide.subtitle}</p>` : ''}
+                    ${currentSlide.buttonText ? `
+                        <button style="padding: 12px 30px; background: ${schemeColors['solid-button'] || schemeColors.primary || '#121212'}; color: ${schemeColors['solid-button-text'] || '#FFFFFF'}; border: none; border-radius: 4px; font-family: ${bodyFontFamily}, -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 16px; cursor: pointer; font-weight: 500; transition: all 0.3s ease;">
+                            ${currentSlide.buttonText}
+                        </button>
+                    ` : ''}
+                </div>
+            </div>
+        `;
+    }
+    
+    // Determine height style based on configuration
+    let heightStyle = 'height: 400px;'; // Default
+    if (slideshowConfig.height === 'adaptToFirstImage') {
+        heightStyle = 'min-height: 400px;';
+    } else if (slideshowConfig.height === 'small') {
+        heightStyle = 'height: 300px;';
+    } else if (slideshowConfig.height === 'medium') {
+        heightStyle = 'height: 500px;';
+    } else if (slideshowConfig.height === 'large') {
+        heightStyle = 'height: 700px;';
+    }
+    
+    // Build navigation arrows
+    const navigationArrowsHtml = (slideshowConfig.showNavigationArrows && visibleSlides.length > 1) ? `
+        <button style="position: absolute; left: 20px; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.8); border: none; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 3;">
+            <span class="material-symbols-outlined">chevron_left</span>
+        </button>
+        <button style="position: absolute; right: 20px; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.8); border: none; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 3;">
+            <span class="material-symbols-outlined">chevron_right</span>
+        </button>
+    ` : '';
+    
+    // Build pagination
+    let paginationHtml = '';
+    if (slideshowConfig.showPagination && visibleSlides.length > 1) {
+        if (slideshowConfig.paginationType === 'dots') {
+            paginationHtml = `
+                <div style="position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); display: flex; gap: 8px; z-index: 3;">
+                    ${visibleSlides.map((slideId, index) => `
+                        <div style="width: 8px; height: 8px; border-radius: 50%; background: ${index === 0 ? schemeColors.text : 'rgba(255,255,255,0.5)'}; cursor: pointer;"></div>
+                    `).join('')}
+                </div>
+            `;
+        } else if (slideshowConfig.paginationType === 'counter') {
+            paginationHtml = `
+                <div style="position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); color: ${schemeColors.text}; font-family: ${bodyFontFamily}; z-index: 3;">
+                    1 / ${visibleSlides.length}
+                </div>
+            `;
+        }
+    }
+    
+    // Container width based on layout
+    const containerClass = slideshowConfig.layout === 'page' ? 'style="max-width: 1200px; margin: 0 auto;"' : '';
+    
+    // Add top and bottom padding from config
+    const topPadding = slideshowConfig.topPadding || 0;
+    const bottomPadding = slideshowConfig.bottomPadding || 0;
+    const paddingStyle = `padding-top: ${topPadding}px; padding-bottom: ${bottomPadding}px;`;
+    
+    return `
+        <div class="slideshow-wrapper" style="${paddingStyle}">
+            <div class="slideshow-container" ${containerClass} style="position: relative; ${heightStyle} background: ${schemeColors.background}; overflow: hidden;">
+                ${currentSlide.desktopImage ? `
+                    <img src="${currentSlide.desktopImage}" 
+                         alt="${currentSlide.title || 'Slide image'}"
+                         style="width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; 
+                                image-rendering: -webkit-optimize-contrast; 
+                                image-rendering: crisp-edges;
+                                -webkit-backface-visibility: hidden;
+                                transform: translateZ(0);">
+                ` : `
+                    <div style="width: 100%; height: 100%; background: ${schemeColors.foreground || schemeColors.background}; position: absolute; top: 0; left: 0;"></div>
+                `}
+                ${currentSlide.useOverlay && currentSlide.overlayOpacity ? `
+                    <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, ${currentSlide.overlayOpacity}); z-index: 1;"></div>
+                ` : ''}
+                ${slideContentHtml}
+                ${navigationArrowsHtml}
+                ${paginationHtml}
+            </div>
+        </div>
+    `;
 }
