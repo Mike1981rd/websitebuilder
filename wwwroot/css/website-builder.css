@@ -982,6 +982,31 @@
     pointer-events: auto;
 }
 
+/* Specific styling for slideshow slide drag handles */
+.slideshow-slide-item .drag-handle {
+    position: relative;
+    left: 0;
+    top: 0;
+    transform: none;
+    margin-right: 8px;
+    font-size: 16px !important;
+    color: #8c9196;
+    opacity: 0.6;
+    display: inline-flex;
+    align-items: center;
+    vertical-align: middle;
+}
+
+.slideshow-slide-item:hover .drag-handle {
+    opacity: 1;
+    color: #202223;
+}
+
+.slideshow-slide-item .subsection-text {
+    margin-left: 0;
+    padding-left: 0;
+}
+
 /* Hide ALL menu icons that are direct children of subsections except drag and collapse */
 .sidebar-subsection > i.material-icons:not(.drag-handle):not(.collapse-indicator) {
     display: none !important;

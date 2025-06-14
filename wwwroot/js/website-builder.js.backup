@@ -4442,7 +4442,7 @@ $(document).ready(async function() {
         } else if (viewName === 'slideshowSlideSettings') {
             // Individual slide settings view
             dynamicContentArea.innerHTML = renderSlideshowSlideSettingsView(data);
-            attachSlideshowSlideEventListeners(data?.slideId);
+            attachSlideshowSlideEventListeners();
             // Apply translations after rendering
             setTimeout(applyTranslations, 0);
         } else {
@@ -13810,7 +13810,7 @@ document.head.appendChild(style);
         // Initialize sortable
         $wrapper.sortable({
             items: '.slideshow-slide-item',
-            handle: '.drag-handle',
+            handle: '.material-icons:contains("drag_indicator")',
             axis: 'y',
             placeholder: 'slide-item-placeholder',
             tolerance: 'pointer',
@@ -14120,9 +14120,8 @@ document.head.appendChild(style);
     }
     
     // Function to attach event listeners for individual slide settings
-    function attachSlideshowSlideEventListeners(passedSlideId = null) {
-        const slideId = passedSlideId || 
-                       $('.sidebar-view-header').data('slide-id') || 
+    function attachSlideshowSlideEventListeners() {
+        const slideId = $('.sidebar-view-header').find('button.back-to-slideshow-settings-btn').parent().data('slide-id') || 
                        currentSidebarView === 'slideshowSlideSettings' && window.currentSlideId;
         
         if (!slideId) {
@@ -14133,9 +14132,9 @@ document.head.appendChild(style);
         // Store current slide ID globally for reference
         window.currentSlideId = slideId;
         
-        // Back button - Go back to sections list
+        // Back button - Go back to slideshow settings
         $('.back-to-sections-btn').on('click', function() {
-            window.switchSidebarView('blockList', window.getUpdatedPageData());
+            window.switchSidebarView('slideshowSettings');
         });
         
         // Title change
@@ -16346,4 +16345,3 @@ document.head.appendChild(style);
         }
     });
     
-

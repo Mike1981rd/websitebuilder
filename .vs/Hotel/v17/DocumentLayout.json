@@ -3,6 +3,18 @@
   "WorkspaceRootPath": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\",
   "Documents": [
     {
+      "AbsoluteMoniker": "D:0:0:{80C13050-D8B6-435E-84BC-0A6B27473ADF}|Hotel.csproj|c:\\users\\hp\\documents\\visual studio 2022\\projects\\hotel23\\views\\websitebuilder\\index.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{80C13050-D8B6-435E-84BC-0A6B27473ADF}|Hotel.csproj|solutionrelative:views\\websitebuilder\\index.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{80C13050-D8B6-435E-84BC-0A6B27473ADF}|Hotel.csproj|c:\\users\\hp\\documents\\visual studio 2022\\projects\\hotel23\\views\\shared\\_websitebuilderlayout.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{80C13050-D8B6-435E-84BC-0A6B27473ADF}|Hotel.csproj|solutionrelative:views\\shared\\_websitebuilderlayout.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{80C13050-D8B6-435E-84BC-0A6B27473ADF}|Hotel.csproj|c:\\users\\hp\\documents\\visual studio 2022\\projects\\hotel23\\wwwroot\\js\\website-builder.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
+      "RelativeMoniker": "D:0:0:{80C13050-D8B6-435E-84BC-0A6B27473ADF}|Hotel.csproj|solutionrelative:wwwroot\\js\\website-builder.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{80C13050-D8B6-435E-84BC-0A6B27473ADF}|Hotel.csproj|c:\\users\\hp\\documents\\visual studio 2022\\projects\\hotel23\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{80C13050-D8B6-435E-84BC-0A6B27473ADF}|Hotel.csproj|solutionrelative:program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
@@ -35,6 +47,31 @@
             {
               "$type": "Document",
               "DocumentIndex": 0,
+              "Title": "Index.cshtml",
+              "DocumentMoniker": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\Views\\WebsiteBuilder\\Index.cshtml",
+              "RelativeDocumentMoniker": "Views\\WebsiteBuilder\\Index.cshtml",
+              "ToolTip": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\Views\\WebsiteBuilder\\Index.cshtml",
+              "RelativeToolTip": "Views\\WebsiteBuilder\\Index.cshtml",
+              "ViewState": "AgIAAAkCAAAAAAAAAAAuwA8CAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2025-06-11T16:18:03.647Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "website-builder.js",
+              "DocumentMoniker": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\js\\website-builder.js",
+              "RelativeDocumentMoniker": "wwwroot\\js\\website-builder.js",
+              "ToolTip": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\js\\website-builder.js",
+              "RelativeToolTip": "wwwroot\\js\\website-builder.js",
+              "ViewState": "AgIAANkxAAAAAAAAAAAwwLw1AAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
+              "WhenOpened": "2025-06-11T16:11:08.663Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
               "Title": "Program.cs",
               "DocumentMoniker": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\Program.cs",
               "RelativeDocumentMoniker": "Program.cs",
@@ -42,12 +79,11 @@
               "RelativeToolTip": "Program.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-06-07T04:16:12.447Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-06-07T04:16:12.447Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 4,
               "Title": "appsettings.json",
               "DocumentMoniker": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\appsettings.json",
               "RelativeDocumentMoniker": "appsettings.json",
@@ -56,6 +92,18 @@
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
               "WhenOpened": "2025-06-06T15:08:46.649Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "_WebsiteBuilderLayout.cshtml",
+              "DocumentMoniker": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\Views\\Shared\\_WebsiteBuilderLayout.cshtml",
+              "RelativeDocumentMoniker": "Views\\Shared\\_WebsiteBuilderLayout.cshtml",
+              "ToolTip": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\Views\\Shared\\_WebsiteBuilderLayout.cshtml",
+              "RelativeToolTip": "Views\\Shared\\_WebsiteBuilderLayout.cshtml",
+              "ViewState": "AgIAABkAAAAAAAAAAAAIwDkAAAAHAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2025-06-11T16:15:50.255Z"
             }
           ]
         }
