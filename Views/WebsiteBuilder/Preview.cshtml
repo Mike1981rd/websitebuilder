@@ -255,7 +255,10 @@
                 }
                 
                 const websiteData = await response.json();
-                console.log('Website data loaded:', websiteData);
+                console.log('[PREVIEW] Website data loaded:', websiteData);
+                console.log('[PREVIEW] sectionsConfigJson:', websiteData.sectionsConfigJson);
+                console.log('[PREVIEW] pagesJson:', websiteData.pagesJson);
+                console.log('[PREVIEW] globalThemeSettingsJson:', websiteData.globalThemeSettingsJson);
                 
                 // Parsear las configuraciones JSON
                 if (websiteData.globalThemeSettingsJson) {
@@ -263,13 +266,44 @@
                 }
                 
                 if (websiteData.sectionsConfigJson) {
-                    currentSectionsConfig = JSON.parse(websiteData.sectionsConfigJson);
+                    try {
+                        currentSectionsConfig = JSON.parse(websiteData.sectionsConfigJson);
+                        console.log('Sections config loaded from sectionsConfigJson:', currentSectionsConfig);
+                    } catch (error) {
+                        console.error('Error parsing sectionsConfigJson:', error);
+                        console.log('Raw sectionsConfigJson:', websiteData.sectionsConfigJson);
+                    }
                 }
                 
-                // Si la API falla o no hay datos, usar datos de prueba
-                if (!currentSectionsConfig.sectionOrder) {
-                    console.log('No sections found, using default data');
-                    // Por ahora, usar datos de prueba
+                // Check if pagesJson has sectionsConfig - DEPRECATED: pagesJson no debería sobrescribir sectionsConfigJson
+                // Comentado porque sectionsConfigJson es la fuente correcta de datos
+                /*
+                if (websiteData.pagesJson) {
+                    try {
+                        const pagesData = JSON.parse(websiteData.pagesJson);
+                        if (pagesData.sectionsConfig) {
+                            currentSectionsConfig = pagesData.sectionsConfig;
+                            console.log('Sections config loaded from pagesJson:', currentSectionsConfig);
+                        }
+                    } catch (error) {
+                        console.error('Error parsing pagesJson:', error);
+                    }
+                }
+                */
+                
+                console.log('[PREVIEW] Final sections config:', currentSectionsConfig);
+                console.log('[PREVIEW] Section order:', currentSectionsConfig?.sectionOrder);
+                console.log('[PREVIEW] Slideshow config:', currentSectionsConfig?.slideshow);
+                console.log('[PREVIEW] Available sections:', Object.keys(currentSectionsConfig || {}));
+                
+                // Si no hay sectionOrder, inicializar con valores por defecto
+                if (!currentSectionsConfig.sectionOrder || currentSectionsConfig.sectionOrder.length === 0) {
+                    console.log('No sections found in config, initializing default structure');
+                    
+                    // Inicializar estructura básica si no existe
+                    if (!currentSectionsConfig.sectionOrder) {
+                        currentSectionsConfig.sectionOrder = [];
+                    }
                 currentGlobalThemeSettings = {
                     typography: {
                         body: {
@@ -350,6 +384,13 @@
                     console.log('No menus found, using default menu');
                 }
                 
+                // Debug: Check which menu is configured for header
+                if (currentSectionsConfig?.header?.navigationMenu) {
+                    console.log('Header is configured to use menu:', currentSectionsConfig.header.navigationMenu);
+                    const configuredMenu = currentMenusData.find(m => m.id === currentSectionsConfig.header.navigationMenu || m.handle === currentSectionsConfig.header.navigationMenu);
+                    console.log('Found configured menu:', configuredMenu);
+                }
+                
                 // Renderizar el contenido
                 renderPreviewContent();
                 
@@ -379,6 +420,7 @@
         
         // Función para renderizar el contenido del preview
         function renderPreviewContent() {
+            console.log('[PREVIEW] Starting render with config:', currentSectionsConfig);
             const previewContent = document.getElementById('preview-content');
             let finalHtml = '';
             
@@ -395,9 +437,14 @@
                 }
             }
             
+            // Hacer currentGlobalThemeSettings disponible globalmente para las funciones de renderizado
+            window.currentGlobalThemeSettings = currentGlobalThemeSettings;
+            
             // Renderizar secciones según el orden definido
-            if (currentSectionsConfig && currentSectionsConfig.sectionOrder) {
+            if (currentSectionsConfig && currentSectionsConfig.sectionOrder && currentSectionsConfig.sectionOrder.length > 0) {
+                console.log('Rendering sections in order:', currentSectionsConfig.sectionOrder);
                 currentSectionsConfig.sectionOrder.forEach(sectionId => {
+                    console.log('Processing section:', sectionId);
                     if (sectionId === 'announcement') {
                         const announcementConfig = currentSectionsConfig.announcementBar;
                         if (announcementConfig && !announcementConfig.isHidden) {
@@ -408,9 +455,27 @@
                         if (headerConfig && !headerConfig.isHidden) {
                             finalHtml += renderHeader(headerConfig);
                         }
+                    } else if (sectionId === 'slideshow') {
+                        const slideshowConfig = currentSectionsConfig.slideshow;
+                        if (slideshowConfig && !slideshowConfig.isHidden) {
+                            finalHtml += renderSlideshow(slideshowConfig);
+                        }
                     }
                     // Aquí se agregarán más secciones en el futuro
                 });
+            }
+            
+            // Si no hay contenido, mostrar mensaje
+            if (!finalHtml || finalHtml.trim() === '') {
+                finalHtml = `
+                    <div style="display: flex; align-items: center; justify-content: center; height: 100vh; background-color: #f6f6f7;">
+                        <div style="text-align: center; padding: 40px; background: white; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                            <span class="material-symbols-outlined" style="font-size: 64px; color: #ccc; margin-bottom: 20px; display: block;">web_asset_off</span>
+                            <h2 style="color: #333; margin: 0 0 10px 0; font-size: 24px;">No hay contenido para mostrar</h2>
+                            <p style="color: #666; margin: 0;">Agrega secciones en el editor para ver el preview de tu sitio web.</p>
+                        </div>
+                    </div>
+                `;
             }
             
             previewContent.innerHTML = finalHtml;

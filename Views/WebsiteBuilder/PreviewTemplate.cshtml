@@ -157,5 +157,37 @@
 <body>
     <!-- El contenido de la previsualización, como Header, Footer, etc.,
          será inyectado aquí dinámicamente por website-builder.js -->
+    
+    <!-- jQuery (necesario para el funcionamiento) -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    
+    <!-- Variables globales necesarias para el renderizado -->
+    <script>
+        // Variables globales que necesitan las funciones de renderizado
+        let currentSectionsConfig = window.parent.currentSectionsConfig || {};
+        let currentGlobalThemeSettings = window.parent.currentGlobalThemeSettings || {};
+        let currentMenusData = window.parent.currentMenusData || [];
+        let currentAnnouncementIndex = 0;
+        let currentLanguage = window.parent.currentLanguage || 'es';
+        
+        // Helper function para obtener el nombre de la fuente
+        window.getFontNameFromValueSafe = window.parent.getFontNameFromValueSafe || function(fontValue) {
+            if (!fontValue) return 'Roboto';
+            const fontMap = window.parent.globalFontMap || {
+                'roboto': 'Roboto',
+                'assistant': 'Assistant',
+                'helvetica': 'Helvetica',
+                'playfair-display': 'Playfair Display'
+                // El resto del mapa se tomará del parent si está disponible
+            };
+            
+            return fontMap[fontValue] || fontValue.split('-').map(word => 
+                word.charAt(0).toUpperCase() + word.slice(1)
+            ).join(' ');
+        };
+    </script>
+    
+    <!-- Funciones de renderizado compartidas -->
+    <script src="~/js/website-render-functions.js?v=@DateTime.Now.Ticks"></script>
 </body>
 </html>

@@ -13,7 +13,7 @@ namespace Hotel.Controllers
 {
     [Route("api/builder/websites")]
     [ApiController]
-    [Authorize]
+    //[Authorize] // Temporalmente deshabilitado para pruebas
     public class WebSitesController : ControllerBase
     {
         private readonly HotelDbContext _context;
@@ -236,7 +236,7 @@ namespace Hotel.Controllers
                 ""announcementOrder"": [],
                 ""header"": {
                     ""isHidden"": false,
-                    ""colorScheme"": ""primary"",
+                    ""colorScheme"": ""scheme1"",
                     ""width"": ""large"",
                     ""layout"": ""logo-center-menu-left-inline"",
                     ""showDivider"": true,
