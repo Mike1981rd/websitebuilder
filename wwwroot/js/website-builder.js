@@ -10,6 +10,11 @@ let currentSelectedColorScheme = 'scheme1'; // Track which color scheme is being
 let currentSidebarView = 'blockList'; // Track the current sidebar view
 let currentAnnouncementIndex = 0; // Track current announcement being displayed
 let announcementAutoplayTimer = null; // Timer for autoplay functionality
+let currentNavigationData = []; // Track navigation menu items
+let currentMenusData = []; // Track all menus in the system
+let currentSelectedMenu = null; // Track currently selected menu
+let currentLanguage = localStorage.getItem('preferredLanguage') || 'es'; // Current language
+let translations = {}; // Translation object - will be populated in $(document).ready()
 
 // Global font map for converting font values to display names
 window.globalFontMap = {
@@ -102,11 +107,12 @@ let currentSectionsConfig = {
         showDivider: true,
         enableStickyHeader: false,
         openMenuDropdown: 'hover',
-        navigationMenu: 'main-menu',
+        navigationMenuId: 'main-menu',
         logoAlignment: 'center',
         menu: '',
         desktopLogoSize: 190,
         mobileLogoSize: 120,
+        headerHeight: 80,
         iconStyle: 'outline',
         cartType: 'bag',
         isHidden: false,
@@ -126,7 +132,6 @@ let currentGlobalThemeSettings = {
     primaryColor: "#1976d2",
     secondaryColor: "#424242",
     fontFamily: "Roboto",
-    headerHeight: "60px",
     colorSchemes: {}
 };
 
@@ -244,13 +249,11 @@ async function loadCurrentWebsite() {
             };
         }
         
-        // Parse and load page structure
-        if (website.pagesJson) {
+        // Parse and load sections config
+        if (website.sectionsConfigJson) {
             try {
-                const pageData = JSON.parse(website.pagesJson);
-                if (pageData && typeof pageData === 'object') {
-                    currentPageBlocks = pageData.blocks || [];
-                    if (pageData.sectionsConfig) {
+                const sectionsData = JSON.parse(website.sectionsConfigJson);
+                if (sectionsData && typeof sectionsData === 'object') {
                         // Merge with defaults instead of replacing completely
                         const defaultConfig = {
                             announcementBar: {
@@ -280,7 +283,7 @@ async function loadCurrentWebsite() {
                         };
                         
                         // Deep merge saved config with defaults
-                        currentSectionsConfig = $.extend(true, {}, defaultConfig, pageData.sectionsConfig);
+                        currentSectionsConfig = $.extend(true, {}, defaultConfig, sectionsData);
                         
                         console.log('[DEBUG] Merged sections config:', currentSectionsConfig);
                         // Ensure header has logo URL properties and section visibility
@@ -299,12 +302,29 @@ async function loadCurrentWebsite() {
                                 };
                             }
                         }
-                    }
-                    console.log('[DEBUG] Loaded page structure from DB:', currentSectionsConfig);
+                    console.log('[DEBUG] Loaded sections config from DB:', currentSectionsConfig);
                 }
             } catch (e) {
-                console.error('Error parsing pages data:', e);
+                console.error('Error parsing sections config data:', e);
+                // Initialize with defaults on error
+                currentSectionsConfig = {
+                    announcementBar: {},
+                    header: {},
+                    announcements: {},
+                    announcementOrder: [],
+                    sectionOrder: ['announcement', 'header']
+                };
             }
+        } else {
+            // Initialize with defaults if no data
+            console.log('[DEBUG] No sectionsConfigJson found, using defaults');
+            currentSectionsConfig = {
+                announcementBar: {},
+                header: {},
+                announcements: {},
+                announcementOrder: [],
+                sectionOrder: ['announcement', 'header']
+            };
         }
         
         // Clean up any old colors structure
@@ -325,6 +345,38 @@ async function loadCurrentWebsite() {
                 delete currentGlobalThemeSettings.colors;
             }
         }
+        
+        // Load sections configuration from sectionsConfigJson
+        if (website.sectionsConfigJson) {
+            try {
+                const sectionsData = JSON.parse(website.sectionsConfigJson);
+                console.log('[DEBUG] Loading sections from sectionsConfigJson:', sectionsData);
+                
+                if (sectionsData && typeof sectionsData === 'object') {
+                    // If we didn't get sections from pagesJson, use this
+                    if (!currentSectionsConfig.sectionOrder) {
+                        currentSectionsConfig = sectionsData;
+                        console.log('[DEBUG] Using sections from sectionsConfigJson');
+                    }
+                }
+            } catch (e) {
+                console.error('Error parsing sectionsConfigJson:', e);
+            }
+        }
+        
+        // Load navigation data
+        if (website.navigationJson) {
+            try {
+                currentNavigationData = JSON.parse(website.navigationJson);
+                console.log('[DEBUG] Loaded navigation data from DB:', currentNavigationData);
+            } catch (e) {
+                console.error('Error parsing navigation data:', e);
+                currentNavigationData = [];
+            }
+        }
+        
+        // Load menus data - IMPORTANT: Load this before rendering
+        await loadMenusData();
         
         // Apply global styles to preview
         applyGlobalStylesToPreview(currentGlobalThemeSettings);
@@ -528,6 +580,127 @@ function applyGlobalStylesToPreview(settings) {
  * @param {object} config - La configuración de la sección del header.
  * @returns {string} El string HTML para el header.
  */
+// Function to render menu items for header with submenu support
+function renderMenuItemsForHeader(items, options) {
+    const { menuFontFamily, menuFontSize, menuUppercase, menuLetterSpacing, schemeColors, openMenuDropdown } = options;
+    const textTransform = menuUppercase ? 'text-transform: uppercase;' : '';
+    
+    // Generate unique class names for this render
+    const menuItemClass = `menu-item-${Date.now()}`;
+    const submenuItemClass = `submenu-item-${Date.now()}`;
+    
+    // Add hover styles to iframe
+    const previewFrame = document.getElementById('preview-iframe');
+    if (previewFrame && previewFrame.contentDocument) {
+        let styleElement = previewFrame.contentDocument.getElementById('menu-hover-styles');
+        if (!styleElement) {
+            styleElement = document.createElement('style');
+            styleElement.id = 'menu-hover-styles';
+            previewFrame.contentDocument.head.appendChild(styleElement);
+        }
+        
+        styleElement.textContent = `
+            .${menuItemClass}:hover {
+                color: ${schemeColors.foreground} !important;
+                opacity: 0.8;
+            }
+            .${submenuItemClass}:hover {
+                background-color: ${schemeColors.foreground} !important;
+            }
+            /* Dropdown indicator styles */
+            .dropdown-indicator {
+                display: inline-flex !important;
+                align-items: center;
+                justify-content: center;
+                color: ${schemeColors.text};
+                opacity: 0.7;
+                vertical-align: middle;
+                margin-left: 4px;
+            }
+            .menu-item-parent:hover .dropdown-indicator {
+                opacity: 1;
+            }
+            /* Dropdown container positioning */
+            .menu-item-with-dropdown {
+                position: relative !important;
+                z-index: 100;
+            }
+            .menu-dropdown-content {
+                position: absolute !important;
+                z-index: 10001 !important;
+                min-width: 220px !important;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
+                opacity: 1 !important;
+                visibility: visible !important;
+            }
+            .menu-dropdown-content[style*="display: block"] {
+                display: block !important;
+            }
+            /* Ensure dropdowns are above everything */
+            .header-container {
+                overflow: visible !important;
+            }
+            .header-menu-inline {
+                overflow: visible !important;
+            }
+            /* Ensure indicator is visible and styled properly */
+            .material-symbols-outlined {
+                font-family: 'Material Symbols Outlined' !important;
+                font-variation-settings:
+                  'FILL' 0,
+                  'wght' 400,
+                  'GRAD' 0,
+                  'opsz' 24;
+            }
+        `;
+    }
+    
+    return items.map(item => {
+        const hasSubmenus = item.submenus && item.submenus.length > 0;
+        
+        if (hasSubmenus) {
+            // Render dropdown menu
+            const dropdownId = `dropdown-${item.id}`;
+            const submenuItems = item.submenus.map(sub => `
+                <a href="${sub.url}" 
+                   target="${sub.target || '_self'}"
+                   class="${submenuItemClass}"
+                   style="display: block; padding: 8px 16px; text-decoration: none; color: ${schemeColors.text}; font-family: ${menuFontFamily}, -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 14px; white-space: nowrap; transition: background-color 0.2s ease;">
+                    ${sub.label}
+                </a>
+            `).join('');
+            
+            return `
+                <div class="menu-item-with-dropdown" style="position: relative !important; display: inline-block;">
+                    <a href="${item.url}" 
+                       class="menu-item-parent ${menuItemClass}"
+                       data-dropdown="${dropdownId}"
+                       data-hover="${openMenuDropdown === 'hover' ? 'true' : 'false'}"
+                       style="text-decoration: none; color: inherit; font-family: ${menuFontFamily}, -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: ${menuFontSize}; font-weight: 400; letter-spacing: ${menuLetterSpacing}px; ${textTransform} display: inline-flex; align-items: center; gap: 4px; transition: all 0.2s ease;">
+                        ${item.label}
+                        <span class="material-symbols-outlined dropdown-indicator" style="font-size: 20px; font-weight: 400; transition: transform 0.2s ease; vertical-align: middle;">expand_more</span>
+                    </a>
+                    <div id="${dropdownId}" 
+                         class="menu-dropdown-content" 
+                         style="display: none; position: absolute; top: 100%; left: 0; background: ${schemeColors.background}; border: 1px solid ${schemeColors.border || '#e5e5e5'}; border-radius: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); min-width: 200px; z-index: 10000; margin-top: 8px; padding: 8px 0;">
+                        ${submenuItems}
+                    </div>
+                </div>
+            `;
+        } else {
+            // Regular menu item
+            return `
+                <a href="${item.url}" 
+                   target="${item.target || '_self'}"
+                   class="${menuItemClass}"
+                   style="text-decoration: none; color: inherit; font-family: ${menuFontFamily}, -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: ${menuFontSize}; font-weight: 400; letter-spacing: ${menuLetterSpacing}px; ${textTransform} transition: all 0.2s ease;">
+                    ${item.label}
+                </a>
+            `;
+        }
+    }).join('');
+}
+
 function renderHeader(config) {
     if (!config || config.isHidden) return '';
 
@@ -537,16 +710,37 @@ function renderHeader(config) {
     
     // Get typography settings
     const menuTypography = currentGlobalThemeSettings?.typography?.menu || {};
-    const menuFontValue = menuTypography.font || 'roboto';
+    const menuFontValue = menuTypography.font || 'assistant';
     const menuFontFamily = window.getFontNameFromValueSafe(menuFontValue);
-    const menuFontSize = menuTypography.fontSize || '15px';
     
-    // Determine logo size based on viewport (we'll use desktop size for now, mobile will be handled via CSS)
+    // Calculate menu font size from percentage
+    const baseFontSize = 15; // Base font size in pixels
+    const menuFontPercentage = parseFloat(menuTypography.fontSize) || 100;
+    const menuFontSize = `${Math.round(baseFontSize * menuFontPercentage / 100)}px`;
+    
+    // Get other menu typography settings
+    const menuUppercase = menuTypography.uppercase || false;
+    const menuLetterSpacing = menuTypography.letterSpacing || 0;
+    
+    // Logo sizes for desktop and mobile
     const logoSize = config.desktopLogoSize || 190;
+    const mobileLogoSize = config.mobileLogoSize || 120;
     
-    // Logo HTML with proper sizing
+    // Logo HTML with proper sizing and high-quality rendering using Shopify techniques
     const logoHtml = config.desktopLogoUrl 
-        ? `<img src="${config.desktopLogoUrl}" alt="logo" style="max-height: ${logoSize}px; width: auto; object-fit: contain;">`
+        ? `<div class="header-logo-wrapper" style="height: ${logoSize}px; display: flex; align-items: center;">
+               <img src="${config.desktopLogoUrl}" 
+                    srcset="${config.desktopLogoUrl} 1x, ${config.desktopLogoUrl} 2x, ${config.desktopLogoUrl} 3x"
+                    sizes="(max-width: 768px) ${mobileLogoSize}px, ${logoSize}px"
+                    alt="logo" 
+                    loading="eager"
+                    decoding="async"
+                    style="max-height: 100%; max-width: 100%; width: auto; height: auto; object-fit: contain; display: block; 
+                    -webkit-backface-visibility: hidden; 
+                    transform: translateZ(0);
+                    image-rendering: -webkit-optimize-contrast;
+                    image-rendering: crisp-edges;">
+           </div>`
         : `<span style="font-size: 32px; font-weight: 600; letter-spacing: 0.08em; color: ${schemeColors.text};">AURORA</span>`;
 
     // Determine cart icon based on configuration
@@ -560,11 +754,39 @@ function renderHeader(config) {
     const searchIcon = config.iconStyle === 'solid' ? 'search' : 'search';
     const personIcon = config.iconStyle === 'solid' ? 'person' : 'person_outline';
     
-    // Menu items
-    const menuItems = `
-        <a href="#" style="text-decoration: none; color: inherit; font-family: ${menuFontFamily}, -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: ${menuFontSize}; font-weight: 400; letter-spacing: 0.06em;">Soluciones</a>
-        <a href="#" style="text-decoration: none; color: inherit; font-family: ${menuFontFamily}, -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: ${menuFontSize}; font-weight: 400; letter-spacing: 0.06em;">Herramientas</a>
-    `;
+    // Menu items - use selected menu if available
+    let menuItems = '';
+    const selectedMenuId = config.navigationMenuId || 'main-menu';
+    
+    // Ensure menus are loaded
+    if (!currentMenusData || currentMenusData.length === 0) {
+        console.log('[DEBUG] No menus loaded in renderHeader, using defaults');
+    }
+    
+    const selectedMenu = currentMenusData.find(m => m.id === selectedMenuId);
+    console.log('[DEBUG] renderHeader - selectedMenuId:', selectedMenuId);
+    console.log('[DEBUG] renderHeader - selectedMenu:', selectedMenu);
+    if (selectedMenu && selectedMenu.items) {
+        console.log('[DEBUG] Menu items:', JSON.stringify(selectedMenu.items, null, 2));
+    }
+    
+    if (selectedMenu && selectedMenu.items && selectedMenu.items.length > 0) {
+        menuItems = renderMenuItemsForHeader(selectedMenu.items, {
+            menuFontFamily,
+            menuFontSize,
+            menuUppercase,
+            menuLetterSpacing,
+            schemeColors,
+            openMenuDropdown: config.openMenuDropdown || 'hover'
+        });
+    } else {
+        // Default menu items if no menu found
+        const textTransform = menuUppercase ? 'text-transform: uppercase;' : '';
+        menuItems = `
+            <a href="#" style="text-decoration: none; color: inherit; font-family: ${menuFontFamily}, -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: ${menuFontSize}; font-weight: 400; letter-spacing: ${menuLetterSpacing}px; ${textTransform}">Soluciones</a>
+            <a href="#" style="text-decoration: none; color: inherit; font-family: ${menuFontFamily}, -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: ${menuFontSize}; font-weight: 400; letter-spacing: ${menuLetterSpacing}px; ${textTransform}">Herramientas</a>
+        `;
+    }
     
     // Icons section
     const iconsHtml = `
@@ -575,13 +797,80 @@ function renderHeader(config) {
         </div>
     `;
     
-    let headerContent = '';
+    // Get header height
+    const headerHeight = config.headerHeight || 80;
+    
+    // Add responsive styles to the header
+    const responsiveStyles = `
+        <style>
+            /* Desktop styles (default) */
+            .header-container {
+                height: ${headerHeight}px;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 0 50px;
+                border-bottom: ${config.showDivider ? `1px solid ${schemeColors.border || '#e5e5e5'}` : 'none'};
+                background-color: ${schemeColors.background};
+                color: ${schemeColors.text};
+            }
+            
+            .header-menu-inline {
+                display: flex;
+                gap: 32px;
+                align-items: center;
+            }
+            
+            .header-menu-drawer-icon {
+                display: none;
+            }
+            
+            /* Mobile responsive styles */
+            @media (max-width: 768px) {
+                .header-container {
+                    height: ${Math.max(60, headerHeight * 0.75)}px;
+                    padding: 0 15px;
+                }
+                
+                /* Hide inline menus on mobile */
+                .header-menu-inline {
+                    display: none !important;
+                }
+                
+                /* Show drawer icon on mobile for non-drawer layouts */
+                .header-menu-drawer-icon {
+                    display: flex;
+                    align-items: center;
+                }
+                
+                /* Smaller logo on mobile */
+                .header-logo img {
+                    max-height: ${mobileLogoSize}px !important;
+                }
+                
+                .header-logo span {
+                    font-size: ${Math.round(mobileLogoSize * 0.168)}px !important;
+                }
+                
+                /* Smaller icons on mobile */
+                .header-icons-right {
+                    gap: 16px !important;
+                }
+                
+                .header-icons-right span {
+                    font-size: 20px !important;
+                }
+            }
+        </style>
+    `;
+    
+    let headerContent = responsiveStyles;
     const layout = config.layout || 'logo-center-menu-left-inline';
     
     switch(layout) {
         case 'drawer':
-            headerContent = `
-                <header style="height: 120px; display: flex; align-items: center; justify-content: space-between; padding: 0 50px; border-bottom: ${config.showDivider ? `1px solid ${schemeColors.border || '#e5e5e5'}` : 'none'}; background-color: ${schemeColors.background}; color: ${schemeColors.text};">
+            headerContent += `
+                <header class="header-container">
                     <div class="header-menu-drawer" style="display: flex; align-items: center;">
                         <span class="${iconClass}" style="font-size: 28px; font-weight: ${iconWeight}; cursor: pointer; color: ${schemeColors.text};">menu</span>
                     </div>
@@ -592,10 +881,13 @@ function renderHeader(config) {
             break;
             
         case 'logo-left-menu-center-inline':
-            headerContent = `
-                <header style="height: 120px; display: flex; align-items: center; justify-content: space-between; padding: 0 50px; border-bottom: ${config.showDivider ? `1px solid ${schemeColors.border || '#e5e5e5'}` : 'none'}; background-color: ${schemeColors.background}; color: ${schemeColors.text};">
+            headerContent += `
+                <header class="header-container">
+                    <div class="header-menu-drawer-icon">
+                        <span class="${iconClass}" style="font-size: 28px; font-weight: ${iconWeight}; cursor: pointer; color: ${schemeColors.text};">menu</span>
+                    </div>
                     <div class="header-logo">${logoHtml}</div>
-                    <div class="header-menu-center" style="position: absolute; left: 50%; transform: translateX(-50%); display: flex; gap: 32px; align-items: center;">
+                    <div class="header-menu-center header-menu-inline" style="position: absolute; left: 50%; transform: translateX(-50%);">
                         ${menuItems}
                     </div>
                     ${iconsHtml}
@@ -604,11 +896,14 @@ function renderHeader(config) {
             break;
             
         case 'logo-left-menu-left-inline':
-            headerContent = `
-                <header style="height: 120px; display: flex; align-items: center; justify-content: space-between; padding: 0 50px; border-bottom: ${config.showDivider ? `1px solid ${schemeColors.border || '#e5e5e5'}` : 'none'}; background-color: ${schemeColors.background}; color: ${schemeColors.text};">
+            headerContent += `
+                <header class="header-container">
                     <div style="display: flex; align-items: center; gap: 48px;">
+                        <div class="header-menu-drawer-icon">
+                            <span class="${iconClass}" style="font-size: 28px; font-weight: ${iconWeight}; cursor: pointer; color: ${schemeColors.text};">menu</span>
+                        </div>
                         <div class="header-logo">${logoHtml}</div>
-                        <div class="header-menu-left" style="display: flex; gap: 32px; align-items: center;">
+                        <div class="header-menu-left header-menu-inline">
                             ${menuItems}
                         </div>
                     </div>
@@ -618,9 +913,12 @@ function renderHeader(config) {
             break;
             
         case 'logo-center-menu-left-inline':
-            headerContent = `
-                <header style="height: 120px; display: flex; align-items: center; justify-content: space-between; padding: 0 50px; border-bottom: ${config.showDivider ? `1px solid ${schemeColors.border || '#e5e5e5'}` : 'none'}; background-color: ${schemeColors.background}; color: ${schemeColors.text};">
-                    <div class="header-menu-left" style="display: flex; gap: 32px; align-items: center;">
+            headerContent += `
+                <header class="header-container">
+                    <div class="header-menu-drawer-icon">
+                        <span class="${iconClass}" style="font-size: 28px; font-weight: ${iconWeight}; cursor: pointer; color: ${schemeColors.text};">menu</span>
+                    </div>
+                    <div class="header-menu-left header-menu-inline">
                         ${menuItems}
                     </div>
                     <div class="header-logo" style="position: absolute; left: 50%; transform: translateX(-50%);">${logoHtml}</div>
@@ -630,14 +928,16 @@ function renderHeader(config) {
             break;
             
         case 'logo-center-menu-center-below':
-            headerContent = `
+            headerContent += `
                 <header style="display: flex; flex-direction: column; padding: 20px 50px; border-bottom: ${config.showDivider ? `1px solid ${schemeColors.border || '#e5e5e5'}` : 'none'}; background-color: ${schemeColors.background}; color: ${schemeColors.text};">
                     <div style="display: flex; align-items: center; justify-content: space-between; height: 80px;">
-                        <div style="width: 120px;"></div>
+                        <div class="header-menu-drawer-icon">
+                            <span class="${iconClass}" style="font-size: 28px; font-weight: ${iconWeight}; cursor: pointer; color: ${schemeColors.text};">menu</span>
+                        </div>
                         <div class="header-logo">${logoHtml}</div>
                         ${iconsHtml}
                     </div>
-                    <div class="header-menu-center" style="display: flex; gap: 32px; align-items: center; justify-content: center; margin-top: 20px;">
+                    <div class="header-menu-center header-menu-inline" style="display: flex; gap: 32px; align-items: center; justify-content: center; margin-top: 20px;">
                         ${menuItems}
                     </div>
                 </header>
@@ -645,13 +945,18 @@ function renderHeader(config) {
             break;
             
         case 'logo-left-menu-left-below':
-            headerContent = `
+            headerContent += `
                 <header style="display: flex; flex-direction: column; padding: 20px 50px; border-bottom: ${config.showDivider ? `1px solid ${schemeColors.border || '#e5e5e5'}` : 'none'}; background-color: ${schemeColors.background}; color: ${schemeColors.text};">
                     <div style="display: flex; align-items: center; justify-content: space-between; height: 80px;">
-                        <div class="header-logo">${logoHtml}</div>
+                        <div style="display: flex; align-items: center; gap: 20px;">
+                            <div class="header-menu-drawer-icon">
+                                <span class="${iconClass}" style="font-size: 28px; font-weight: ${iconWeight}; cursor: pointer; color: ${schemeColors.text};">menu</span>
+                            </div>
+                            <div class="header-logo">${logoHtml}</div>
+                        </div>
                         ${iconsHtml}
                     </div>
-                    <div class="header-menu-left" style="display: flex; gap: 32px; align-items: center; margin-top: 20px;">
+                    <div class="header-menu-left header-menu-inline" style="display: flex; gap: 32px; align-items: center; margin-top: 20px;">
                         ${menuItems}
                     </div>
                 </header>
@@ -660,9 +965,12 @@ function renderHeader(config) {
             
         default:
             // Default to logo-center-menu-left-inline
-            headerContent = `
-                <header style="height: 120px; display: flex; align-items: center; justify-content: space-between; padding: 0 50px; border-bottom: ${config.showDivider ? `1px solid ${schemeColors.border || '#e5e5e5'}` : 'none'}; background-color: ${schemeColors.background}; color: ${schemeColors.text};">
-                    <div class="header-menu-left" style="display: flex; gap: 32px; align-items: center;">
+            headerContent += `
+                <header class="header-container">
+                    <div class="header-menu-drawer-icon">
+                        <span class="${iconClass}" style="font-size: 28px; font-weight: ${iconWeight}; cursor: pointer; color: ${schemeColors.text};">menu</span>
+                    </div>
+                    <div class="header-menu-left header-menu-inline">
                         ${menuItems}
                     </div>
                     <div class="header-logo" style="position: absolute; left: 50%; transform: translateX(-50%);">${logoHtml}</div>
@@ -987,6 +1295,139 @@ function stopAnnouncementAutoplay() {
 }
 
 /**
+ * Renderiza el slideshow en el preview
+ */
+function renderSlideshow(config) {
+    console.log('[SLIDESHOW] Rendering slideshow with config:', config);
+    
+    if (!config || config.isHidden) {
+        return '';
+    }
+    
+    const slides = config.slides || {};
+    const slideOrder = config.slideOrder || [];
+    const slideshowConfig = config.config || {};
+    
+    // Filter visible slides
+    const visibleSlides = slideOrder.filter(slideId => 
+        slides[slideId] && !slides[slideId].isHidden
+    );
+    
+    if (visibleSlides.length === 0) {
+        return '';
+    }
+    
+    // Get current slide
+    const currentSlideId = visibleSlides[0]; // Por ahora mostrar la primera slide
+    const currentSlide = slides[currentSlideId];
+    
+    // Get color scheme
+    const colorScheme = currentSlide.colorScheme || 'scheme1';
+    const schemeColors = getColorSchemeValues(colorScheme);
+    
+    // Get typography settings
+    const headingTypography = currentGlobalThemeSettings?.typography?.heading || {};
+    const bodyTypography = currentGlobalThemeSettings?.typography?.body || {};
+    
+    const headingFontValue = headingTypography.font || 'helvetica';
+    const headingFontFamily = window.getFontNameFromValueSafe(headingFontValue);
+    const headingSize = '48px'; // Default size for slideshow titles
+    
+    const bodyFontValue = bodyTypography.font || 'roboto';
+    const bodyFontFamily = window.getFontNameFromValueSafe(bodyFontValue);
+    const bodyFontSize = '18px'; // Default size for slideshow subtitles
+    
+    // Build slide content
+    let slideContentHtml = '';
+    if (currentSlide.title || currentSlide.subtitle || currentSlide.buttonText) {
+        const contentAlignment = currentSlide.contentPosition === 'left' ? 'flex-start' : 
+                               currentSlide.contentPosition === 'right' ? 'flex-end' : 'center';
+        const textAlign = currentSlide.contentPosition === 'left' ? 'left' : 
+                         currentSlide.contentPosition === 'right' ? 'right' : 'center';
+        
+        slideContentHtml = `
+            <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; display: flex; align-items: center; justify-content: ${contentAlignment}; padding: 40px; z-index: 2;">
+                <div style="max-width: 600px; text-align: ${textAlign};">
+                    ${currentSlide.title ? `<h2 style="margin: 0 0 20px 0; font-family: ${headingFontFamily}; font-size: ${headingSize}; color: ${schemeColors.text};">${currentSlide.title}</h2>` : ''}
+                    ${currentSlide.subtitle ? `<p style="margin: 0 0 30px 0; font-family: ${bodyFontFamily}; font-size: ${bodyFontSize}; color: ${schemeColors.text}; opacity: 0.8;">${currentSlide.subtitle}</p>` : ''}
+                    ${currentSlide.buttonText ? `
+                        <button style="padding: 12px 30px; background: ${schemeColors.buttonBackground || schemeColors.primary}; color: ${schemeColors.buttonText || '#fff'}; border: none; border-radius: 4px; font-family: ${bodyFontFamily}; font-size: 16px; cursor: pointer;">
+                            ${currentSlide.buttonText}
+                        </button>
+                    ` : ''}
+                </div>
+            </div>
+        `;
+    }
+    
+    // Determine height style based on configuration
+    let heightStyle = 'height: 400px;'; // Default
+    if (slideshowConfig.height === 'adaptToFirstImage') {
+        heightStyle = 'min-height: 400px;';
+    } else if (slideshowConfig.height === 'small') {
+        heightStyle = 'height: 300px;';
+    } else if (slideshowConfig.height === 'medium') {
+        heightStyle = 'height: 500px;';
+    } else if (slideshowConfig.height === 'large') {
+        heightStyle = 'height: 700px;';
+    }
+    
+    // Build navigation arrows
+    const navigationArrowsHtml = (slideshowConfig.showNavigationArrows && visibleSlides.length > 1) ? `
+        <button style="position: absolute; left: 20px; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.8); border: none; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 3;">
+            <span class="material-symbols-outlined">chevron_left</span>
+        </button>
+        <button style="position: absolute; right: 20px; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.8); border: none; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 3;">
+            <span class="material-symbols-outlined">chevron_right</span>
+        </button>
+    ` : '';
+    
+    // Build pagination
+    let paginationHtml = '';
+    if (slideshowConfig.showPagination && visibleSlides.length > 1) {
+        if (slideshowConfig.paginationType === 'dots') {
+            paginationHtml = `
+                <div style="position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); display: flex; gap: 8px; z-index: 3;">
+                    ${visibleSlides.map((slideId, index) => `
+                        <div style="width: 8px; height: 8px; border-radius: 50%; background: ${index === 0 ? schemeColors.text : 'rgba(255,255,255,0.5)'}; cursor: pointer;"></div>
+                    `).join('')}
+                </div>
+            `;
+        } else if (slideshowConfig.paginationType === 'counter') {
+            paginationHtml = `
+                <div style="position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); color: ${schemeColors.text}; font-family: ${bodyFontFamily}; z-index: 3;">
+                    1 / ${visibleSlides.length}
+                </div>
+            `;
+        }
+    }
+    
+    // Container width based on layout
+    const containerClass = slideshowConfig.layout === 'page' ? 'style="max-width: 1200px; margin: 0 auto;"' : '';
+    
+    return `
+        <div class="section-wrapper" data-section-id="slideshow">
+            <div class="section-header-tag">
+                <span class="material-symbols-outlined" style="font-size: 16px;">view_carousel</span>${translations[currentLanguage] && translations[currentLanguage]['sections.slideshow'] || 'Slideshow'}
+            </div>
+            <div class="slideshow-container" ${containerClass} style="position: relative; ${heightStyle} background: ${schemeColors.background}; overflow: hidden;">
+                ${currentSlide.desktopImage ? `
+                    <img src="${currentSlide.desktopImage}" style="width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0;">
+                ` : `
+                    <div style="width: 100%; height: 100%; background: ${schemeColors.background}; position: absolute; top: 0; left: 0;"></div>
+                `}
+                ${currentSlide.overlayColor ? `
+                    <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: ${currentSlide.overlayColor}; opacity: ${currentSlide.overlayOpacity || 0.3}; z-index: 1;"></div>
+                ` : ''}
+                ${slideContentHtml}
+                ${navigationArrowsHtml}
+                ${paginationHtml}
+            </div>
+        </div>
+    `;
+}
+
+/**
  * Renderiza todas las secciones de la página en el iframe de previsualización.
  */
 function renderPreview() {
@@ -1012,8 +1453,9 @@ function renderPreview() {
     let finalHtml = '';
     const renderers = {
         'announcement': renderAnnouncementBar,
-        'header': renderHeader
-        // Aquí añadiremos más renderers en el futuro (slideshow, footer, etc.)
+        'header': renderHeader,
+        'slideshow': renderSlideshow
+        // Aquí añadiremos más renderers en el futuro (footer, etc.)
     };
 
     // Renderizar secciones según el orden definido
@@ -1054,16 +1496,952 @@ function renderPreview() {
                 $('.topbar-nav-icon').removeClass('active');
                 $('.topbar-nav-icon[data-view="sections"]').addClass('active');
                 window.switchSidebarView('announcementBar');
+            } else if (sectionId === 'slideshow') {
+                // Lógica para el slideshow
+                $('.topbar-nav-icon').removeClass('active');
+                $('.topbar-nav-icon[data-view="sections"]').addClass('active');
+                window.switchSidebarView('slideshowSettings');
             }
             // Aquí añadiremos más 'else if' para otras secciones en el futuro.
         });
     });
+    
+    // Attach event listeners to menu icons for drawer layout
+    const drawerLayout = currentSectionsConfig.header?.layout || 'logo-center-menu-left-inline';
+    const openMenuDropdown = currentSectionsConfig.header?.openMenuDropdown || 'hover';
+    
+    if (drawerLayout === 'drawer') {
+        // For drawer layout, use the menu icon to open fullscreen drawer
+        const drawerMenuIcons = previewDoc.querySelectorAll('.header-menu-drawer .material-icons, .header-menu-drawer .material-symbols-outlined');
+        drawerMenuIcons.forEach(menuIcon => {
+            if (openMenuDropdown === 'hover') {
+                // Hover behavior
+                menuIcon.addEventListener('mouseenter', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('[PREVIEW HOVER] Drawer menu icon hovered');
+                    openDrawerMenuModal(true);
+                });
+            } else {
+                // Click behavior
+                menuIcon.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('[PREVIEW CLICK] Drawer menu icon clicked');
+                    openDrawerMenuModal(false);
+                });
+            }
+        });
+    }
+    
+    // For mobile menu icons (all layouts) - always click
+    const mobileMenuIcons = previewDoc.querySelectorAll('.header-menu-drawer-icon .material-icons, .header-menu-drawer-icon .material-symbols-outlined');
+    mobileMenuIcons.forEach(menuIcon => {
+        menuIcon.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('[PREVIEW CLICK] Mobile menu icon clicked');
+            openDrawerMenuModal(false);
+        });
+    });
+    
+    // Attach dropdown menu event listeners
+    attachDropdownMenuListeners(previewDoc);
     
     // Iniciar autoplay si está configurado
     startAnnouncementAutoplay();
     
     // Load Google Fonts in preview iframe
     loadFontsInPreview();
+}
+
+// Function to open drawer menu dropdown for drawer layout
+function openDrawerMenuModal(isHover = false) {
+    console.log('[MENU] Opening drawer menu modal');
+    
+    // Get the selected menu
+    const selectedMenuId = currentSectionsConfig.header?.navigationMenuId || 'main-menu';
+    const selectedMenu = currentMenusData.find(m => m.id === selectedMenuId);
+    
+    if (!selectedMenu || !selectedMenu.items || selectedMenu.items.length === 0) {
+        console.log('[MENU] No menu items to display');
+        return;
+    }
+    
+    const previewFrame = document.getElementById('preview-iframe');
+    if (!previewFrame || !previewFrame.contentDocument) return;
+    
+    const previewDoc = previewFrame.contentDocument;
+    
+    // Check if drawer already exists
+    let existingDrawer = previewDoc.getElementById('drawer-menu-modal');
+    if (existingDrawer) {
+        closeDrawerMenu();
+        return;
+    }
+    
+    // Get color scheme
+    const colorScheme = currentSectionsConfig.header?.colorScheme || 'scheme1';
+    const schemeColors = getColorSchemeValues(colorScheme);
+    
+    // Get header configuration
+    const headerConfig = currentSectionsConfig.header || {};
+    const logoHtml = headerConfig.desktopLogoUrl 
+        ? `<img src="${headerConfig.desktopLogoUrl}" alt="logo" style="max-height: 60px; width: auto;">`
+        : `<span style="font-size: 24px; font-weight: 600; color: ${schemeColors.text};">AURORA</span>`;
+    
+    // Get header height to position drawer below it
+    const header = previewDoc.querySelector('.header-container');
+    const headerHeight = header ? header.offsetHeight : 80;
+    
+    // Create overlay
+    const overlay = document.createElement('div');
+    overlay.id = 'drawer-menu-overlay';
+    overlay.style.cssText = `
+        position: fixed;
+        top: ${headerHeight}px;
+        left: 0;
+        width: 100%;
+        height: calc(100vh - ${headerHeight}px);
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 9998;
+        animation: fadeIn 0.3s ease-out;
+    `;
+    
+    // Create drawer container (400px width)
+    const drawer = document.createElement('div');
+    drawer.id = 'drawer-menu-modal';
+    drawer.className = 'drawer-menu-modal';
+    drawer.style.cssText = `
+        position: fixed;
+        top: ${headerHeight}px;
+        left: 0;
+        width: 400px;
+        max-width: 90vw;
+        height: calc(100vh - ${headerHeight}px);
+        background: ${schemeColors.background};
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        animation: slideInLeft 0.4s cubic-bezier(0.4, 0.0, 0.2, 1);
+        box-shadow: 2px 0 10px rgba(0, 0, 0, 0.15);
+    `;
+    
+    // Create header section - only close button
+    const drawerHeader = `
+        <div class="drawer-header" style="
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 28px 30px;
+            border-bottom: 1px solid ${schemeColors.border || 'rgba(255,255,255,0.1)'};
+        ">
+            <button class="drawer-close-btn" style="
+                background: none;
+                border: none;
+                font-size: 24px;
+                cursor: pointer;
+                color: ${schemeColors.text};
+                padding: 8px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            ">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+        </div>
+    `;
+    
+    // Create menu content
+    const drawerContent = `
+        <div class="drawer-content" style="
+            flex: 1;
+            overflow-y: auto;
+            padding: 0;
+        ">
+            <div class="drawer-menu-container" id="drawer-menu-main" style="
+                display: flex;
+                flex-direction: column;
+                min-height: 100%;
+            ">
+                ${renderDrawerMenuItems(selectedMenu.items, schemeColors, 'main')}
+            </div>
+        </div>
+    `;
+    
+    drawer.innerHTML = drawerHeader + drawerContent;
+    
+    // Add overlay and drawer to body
+    previewDoc.body.appendChild(overlay);
+    previewDoc.body.appendChild(drawer);
+    
+    // Get open mode configuration
+    const openMode = currentSectionsConfig.header?.openMenuDropdown || 'hover';
+    
+    if (openMode === 'hover' || isHover) {
+        // For hover mode, close drawer when mouse leaves both drawer and hamburger
+        let closeTimeout;
+        
+        const scheduleClose = () => {
+            closeTimeout = setTimeout(() => {
+                closeDrawerMenu();
+            }, 300);
+        };
+        
+        const cancelClose = () => {
+            clearTimeout(closeTimeout);
+        };
+        
+        // Keep drawer open when hovering over it
+        drawer.addEventListener('mouseenter', cancelClose);
+        drawer.addEventListener('mouseleave', scheduleClose);
+        
+        // Also check hamburger icon
+        const hamburgerIcon = previewDoc.querySelector('.header-menu-drawer, .header-menu-drawer-icon');
+        if (hamburgerIcon) {
+            hamburgerIcon.addEventListener('mouseenter', cancelClose);
+            hamburgerIcon.addEventListener('mouseleave', scheduleClose);
+        }
+        
+        // Don't close on overlay click in hover mode
+        overlay.addEventListener('click', (e) => {
+            e.preventDefault();
+        });
+    } else {
+        // Click mode - close on overlay click
+        overlay.addEventListener('click', closeDrawerMenu);
+    }
+    
+    // Add or update styles
+    let styleElement = previewDoc.getElementById('drawer-menu-styles');
+    if (!styleElement) {
+        styleElement = document.createElement('style');
+        styleElement.id = 'drawer-menu-styles';
+        previewDoc.head.appendChild(styleElement);
+    }
+    
+    styleElement.textContent = `
+        @keyframes slideInLeft {
+            from { 
+                transform: translateX(-100%);
+                opacity: 0;
+            }
+            to { 
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        @keyframes slideOutLeft {
+            from { 
+                transform: translateX(0);
+            }
+            to { 
+                transform: translateX(-100%);
+            }
+        }
+        
+        @keyframes slideInRight {
+            from { 
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to { 
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        @keyframes slideOutRight {
+            from { 
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to { 
+                transform: translateX(100%);
+                opacity: 0;
+            }
+        }
+        
+        @keyframes fadeIn {
+            from { 
+                opacity: 0;
+            }
+            to { 
+                opacity: 1;
+            }
+        }
+        
+        @keyframes fadeOut {
+            from { 
+                opacity: 1;
+            }
+            to { 
+                opacity: 0;
+            }
+        }
+        
+        /* Prevent flicker during animations */
+        .drawer-menu-modal {
+            will-change: transform;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            -moz-backface-visibility: hidden;
+            transform: translateZ(0);
+            -webkit-transform: translateZ(0);
+            -moz-transform: translateZ(0);
+        }
+        
+        .drawer-menu-modal * {
+            box-sizing: border-box;
+        }
+        
+        .drawer-close-btn {
+            transition: opacity 0.2s ease, transform 0.2s ease;
+        }
+        
+        .drawer-close-btn:hover {
+            opacity: 0.7;
+            transform: scale(1.1);
+        }
+        
+        .drawer-menu-item {
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+        
+        .drawer-menu-item:active {
+            transform: scale(0.98);
+        }
+        
+        .drawer-submenu-item {
+            transition: background-color 0.3s ease, padding-left 0.2s ease;
+        }
+        
+        .drawer-submenu-item:hover {
+            padding-left: 40px;
+        }
+        
+        /* Prevent body scroll when drawer is open */
+        body.drawer-open {
+            overflow: hidden;
+        }
+    `;
+    
+    // Prevent body scroll
+    previewDoc.body.classList.add('drawer-open');
+    
+    // Attach close button handler
+    const closeBtn = drawer.querySelector('.drawer-close-btn');
+    if (closeBtn) {
+        closeBtn.addEventListener('click', closeDrawerMenu);
+    }
+    
+    // Attach menu item event handlers based on configuration
+    const menuItems = drawer.querySelectorAll('.drawer-menu-item');
+    const openMenuDropdown = currentSectionsConfig.header?.openMenuDropdown || 'hover';
+    
+    menuItems.forEach(item => {
+        const itemId = item.getAttribute('data-item-id');
+        const hasSubmenu = item.classList.contains('has-submenu');
+        
+        // Add hover effects for background color
+        item.addEventListener('mouseenter', function() {
+            this.style.backgroundColor = schemeColors.foreground || 'rgba(255,255,255,0.05)';
+        });
+        
+        item.addEventListener('mouseleave', function() {
+            this.style.backgroundColor = 'transparent';
+        });
+        
+        // Handle submenu opening based on configuration
+        if (hasSubmenu && openMenuDropdown === 'hover') {
+            // Hover behavior for submenus
+            let hoverTimeout;
+            
+            item.addEventListener('mouseenter', function() {
+                clearTimeout(hoverTimeout);
+                console.log('[DRAWER] Menu item hovered:', {
+                    itemId: itemId,
+                    hasSubmenu: hasSubmenu,
+                    itemText: this.textContent.trim()
+                });
+                
+                // Find the menu item data - convert to string for comparison
+                const menuData = selectedMenu.items.find(i => String(i.id) === String(itemId));
+                console.log('[DRAWER] Menu data found:', menuData);
+                
+                if (menuData && menuData.submenus) {
+                    console.log('[DRAWER] Showing submenu with items:', menuData.submenus);
+                    // Delay slightly to avoid accidental hovers
+                    hoverTimeout = setTimeout(() => {
+                        showDrawerSubmenu(menuData.label, menuData.submenus, schemeColors);
+                    }, 200);
+                }
+            });
+            
+            item.addEventListener('mouseleave', function() {
+                clearTimeout(hoverTimeout);
+            });
+            
+            // Still allow click for navigation if no submenus
+            item.addEventListener('click', function() {
+                const menuData = selectedMenu.items.find(i => String(i.id) === String(itemId));
+                if (menuData && menuData.url && !menuData.submenus) {
+                    window.location.href = menuData.url;
+                }
+            });
+        } else {
+            // Click behavior (default or when configured)
+            item.addEventListener('click', function() {
+                console.log('[DRAWER] Menu item clicked:', {
+                    itemId: itemId,
+                    hasSubmenu: hasSubmenu,
+                    itemText: this.textContent.trim()
+                });
+                
+                if (hasSubmenu) {
+                    // Find the menu item data - convert to string for comparison
+                    const menuData = selectedMenu.items.find(i => String(i.id) === String(itemId));
+                    console.log('[DRAWER] Menu data found:', menuData);
+                    console.log('[DRAWER] Available items:', selectedMenu.items.map(i => ({id: i.id, label: i.label})));
+                    
+                    if (menuData && menuData.submenus) {
+                        console.log('[DRAWER] Showing submenu with items:', menuData.submenus);
+                        // Show submenu
+                        showDrawerSubmenu(menuData.label, menuData.submenus, schemeColors);
+                    } else {
+                        console.warn('[DRAWER] No submenus found for item:', itemId);
+                    }
+                } else {
+                    // Navigate to URL - convert to string for comparison
+                    const menuData = selectedMenu.items.find(i => String(i.id) === String(itemId));
+                    if (menuData && menuData.url) {
+                        window.location.href = menuData.url;
+                    }
+                }
+            });
+        }
+    });
+}
+
+// Function to show drawer submenu
+function showDrawerSubmenu(parentLabel, submenus, schemeColors) {
+    console.log('[DRAWER] showDrawerSubmenu called with:', {
+        parentLabel: parentLabel,
+        submenus: submenus,
+        schemeColors: schemeColors
+    });
+    
+    const previewFrame = document.getElementById('preview-iframe');
+    if (!previewFrame || !previewFrame.contentDocument) {
+        console.error('[DRAWER] Preview frame not found');
+        return;
+    }
+    
+    const previewDoc = previewFrame.contentDocument;
+    const menuContainer = previewDoc.getElementById('drawer-menu-main');
+    
+    if (!menuContainer) {
+        console.error('[DRAWER] Menu container not found');
+        return;
+    }
+    
+    // Animate out current content
+    menuContainer.style.animation = 'slideOutLeft 0.4s cubic-bezier(0.4, 0.0, 0.2, 1)';
+    
+    setTimeout(() => {
+        // Update content with submenu
+        menuContainer.innerHTML = renderDrawerMenuItems(submenus, schemeColors, parentLabel);
+        menuContainer.style.animation = 'slideInLeft 0.4s cubic-bezier(0.4, 0.0, 0.2, 1)';
+        
+        // Attach back button handler
+        const backBtn = menuContainer.querySelector('.drawer-back-btn');
+        if (backBtn) {
+            backBtn.addEventListener('click', function() {
+                showMainMenu();
+            });
+        }
+        
+        // Attach hover effects to submenu items
+        const submenuItems = menuContainer.querySelectorAll('.drawer-submenu-item');
+        submenuItems.forEach(item => {
+            item.addEventListener('mouseenter', function() {
+                this.style.backgroundColor = schemeColors.foreground || 'rgba(255,255,255,0.05)';
+            });
+            
+            item.addEventListener('mouseleave', function() {
+                this.style.backgroundColor = 'transparent';
+            });
+        });
+    }, 300);
+}
+
+// Function to show main menu (back from submenu)
+function showMainMenu() {
+    const previewFrame = document.getElementById('preview-iframe');
+    if (!previewFrame || !previewFrame.contentDocument) return;
+    
+    const previewDoc = previewFrame.contentDocument;
+    const menuContainer = previewDoc.getElementById('drawer-menu-main');
+    
+    if (!menuContainer) return;
+    
+    // Get current configuration
+    const selectedMenuId = currentSectionsConfig.header?.navigationMenuId || 'main-menu';
+    const selectedMenu = currentMenusData.find(m => m.id === selectedMenuId);
+    const colorScheme = currentSectionsConfig.header?.colorScheme || 'scheme1';
+    const schemeColors = getColorSchemeValues(colorScheme);
+    
+    if (!selectedMenu || !selectedMenu.items) return;
+    
+    // Animate out current content
+    menuContainer.style.animation = 'slideOutRight 0.4s cubic-bezier(0.4, 0.0, 0.2, 1)';
+    
+    setTimeout(() => {
+        // Update content with main menu
+        menuContainer.innerHTML = renderDrawerMenuItems(selectedMenu.items, schemeColors, 'main');
+        menuContainer.style.animation = 'slideInRight 0.4s cubic-bezier(0.4, 0.0, 0.2, 1)';
+        
+        // Re-attach menu item event handlers with proper configuration
+        const menuItems = menuContainer.querySelectorAll('.drawer-menu-item');
+        const openMenuDropdown = currentSectionsConfig.header?.openMenuDropdown || 'hover';
+        
+        menuItems.forEach(item => {
+            const itemId = item.getAttribute('data-item-id');
+            const hasSubmenu = item.classList.contains('has-submenu');
+            
+            // Add hover effects for background color
+            item.addEventListener('mouseenter', function() {
+                this.style.backgroundColor = schemeColors.foreground || 'rgba(255,255,255,0.05)';
+            });
+            
+            item.addEventListener('mouseleave', function() {
+                this.style.backgroundColor = 'transparent';
+            });
+            
+            // Handle submenu opening based on configuration
+            if (hasSubmenu && openMenuDropdown === 'hover') {
+                // Hover behavior for submenus
+                let hoverTimeout;
+                
+                item.addEventListener('mouseenter', function() {
+                    clearTimeout(hoverTimeout);
+                    const menuData = selectedMenu.items.find(i => String(i.id) === String(itemId));
+                    if (menuData && menuData.submenus) {
+                        hoverTimeout = setTimeout(() => {
+                            showDrawerSubmenu(menuData.label, menuData.submenus, schemeColors);
+                        }, 200);
+                    }
+                });
+                
+                item.addEventListener('mouseleave', function() {
+                    clearTimeout(hoverTimeout);
+                });
+                
+                // Still allow click for navigation if no submenus
+                item.addEventListener('click', function() {
+                    const menuData = selectedMenu.items.find(i => String(i.id) === String(itemId));
+                    if (menuData && menuData.url && !menuData.submenus) {
+                        window.location.href = menuData.url;
+                    }
+                });
+            } else {
+                // Click behavior
+                item.addEventListener('click', function() {
+                    if (hasSubmenu) {
+                        const menuData = selectedMenu.items.find(i => String(i.id) === String(itemId));
+                        if (menuData && menuData.submenus) {
+                            showDrawerSubmenu(menuData.label, menuData.submenus, schemeColors);
+                        }
+                    } else {
+                        const menuData = selectedMenu.items.find(i => String(i.id) === String(itemId));
+                        if (menuData && menuData.url) {
+                            window.location.href = menuData.url;
+                        }
+                    }
+                });
+            }
+        });
+    }, 300);
+}
+
+// Add global functions to window for onclick usage
+window.showMainMenu = showMainMenu;
+window.showDrawerSubmenu = showDrawerSubmenu;
+
+// Function to render menu items for drawer dropdown
+function renderDrawerDropdownItems(items, schemeColors) {
+    return items.map(item => {
+        const hasSubmenus = item.submenus && item.submenus.length > 0;
+        
+        if (hasSubmenus) {
+            const submenuHtml = item.submenus.map(sub => `
+                <a href="${sub.url}" 
+                   target="${sub.target || '_self'}"
+                   class="drawer-dropdown-submenu-item">
+                    ${sub.label}
+                </a>
+            `).join('');
+            
+            return `
+                <div class="drawer-dropdown-item-container">
+                    <div class="drawer-dropdown-item" style="cursor: pointer;">
+                        <span>${item.label}</span>
+                        <button class="drawer-submenu-toggle" data-item-id="${item.id}" onclick="event.preventDefault(); event.stopPropagation();">
+                            <span class="material-icons">chevron_right</span>
+                        </button>
+                    </div>
+                    <div class="drawer-dropdown-submenu" id="drawer-dropdown-submenu-${item.id}">
+                        ${submenuHtml}
+                    </div>
+                </div>
+            `;
+        } else {
+            return `
+                <a href="${item.url}" 
+                   target="${item.target || '_self'}"
+                   class="drawer-dropdown-item">
+                    <span>${item.label}</span>
+                </a>
+            `;
+        }
+    }).join('');
+}
+
+// Function to attach handlers for drawer dropdown
+function attachDrawerDropdownHandlers(doc) {
+    const openMenuDropdown = currentSectionsConfig.header?.openMenuDropdown || 'hover';
+    const parentContainers = doc.querySelectorAll('.drawer-dropdown-item-container');
+    
+    parentContainers.forEach(container => {
+        const parentItem = container.querySelector('.drawer-dropdown-item');
+        const toggleBtn = container.querySelector('.drawer-submenu-toggle');
+        const submenu = container.querySelector('.drawer-dropdown-submenu');
+        
+        if (!toggleBtn || !submenu) return;
+        
+        const itemId = toggleBtn.getAttribute('data-item-id');
+        const icon = toggleBtn.querySelector('.material-icons');
+        
+        if (openMenuDropdown === 'hover') {
+            // Hover behavior for submenus
+            let hoverTimeout;
+            
+            container.addEventListener('mouseenter', function() {
+                clearTimeout(hoverTimeout);
+                submenu.classList.add('open');
+                toggleBtn.classList.add('open');
+                icon.textContent = 'expand_more';
+            });
+            
+            container.addEventListener('mouseleave', function() {
+                hoverTimeout = setTimeout(() => {
+                    submenu.classList.remove('open');
+                    toggleBtn.classList.remove('open');
+                    icon.textContent = 'chevron_right';
+                }, 150);
+            });
+        } else {
+            // Click behavior for submenus
+            toggleBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                const isOpen = submenu.classList.contains('open');
+                submenu.classList.toggle('open');
+                this.classList.toggle('open');
+                icon.textContent = isOpen ? 'chevron_right' : 'expand_more';
+            });
+            
+            // Also handle clicks on parent item
+            parentItem.addEventListener('click', function(e) {
+                if (!e.target.closest('.drawer-submenu-toggle')) {
+                    toggleBtn.click();
+                }
+            });
+        }
+    });
+}
+
+// Function to close drawer menu
+function closeDrawerMenu() {
+    const previewFrame = document.getElementById('preview-iframe');
+    if (!previewFrame || !previewFrame.contentDocument) return;
+    
+    const previewDoc = previewFrame.contentDocument;
+    const drawer = previewDoc.getElementById('drawer-menu-modal');
+    const overlay = previewDoc.getElementById('drawer-menu-overlay');
+    
+    if (drawer) {
+        // Prevent multiple animations
+        drawer.style.animation = '';
+        // Force reflow
+        drawer.offsetHeight;
+        // Apply closing animation
+        drawer.style.animation = 'slideOutLeft 0.4s cubic-bezier(0.4, 0.0, 0.2, 1) forwards';
+    }
+    if (overlay) {
+        // Prevent multiple animations
+        overlay.style.animation = '';
+        // Force reflow
+        overlay.offsetHeight;
+        // Apply closing animation
+        overlay.style.animation = 'fadeOut 0.4s cubic-bezier(0.4, 0.0, 0.2, 1) forwards';
+    }
+    
+    // Wait for animation to complete before removing
+    setTimeout(() => {
+        if (drawer) drawer.remove();
+        if (overlay) overlay.remove();
+        previewDoc.body.classList.remove('drawer-open');
+    }, 400);
+}
+
+// Function to render drawer menu items with new design
+function renderDrawerMenuItems(items, schemeColors, level = 'main') {
+    console.log('[DRAWER] renderDrawerMenuItems called:', {
+        items: items,
+        level: level,
+        itemCount: items ? items.length : 0
+    });
+    
+    if (level === 'main') {
+        return items.map(item => {
+            const hasSubmenus = item.submenus && item.submenus.length > 0;
+            console.log('[DRAWER] Rendering item:', {
+                id: item.id,
+                label: item.label,
+                hasSubmenus: hasSubmenus,
+                submenuCount: item.submenus ? item.submenus.length : 0
+            });
+            
+            return `
+                <div class="drawer-menu-item ${hasSubmenus ? 'has-submenu' : ''}" 
+                     data-item-id="${item.id}"
+                     style="
+                        display: flex;
+                        align-items: center;
+                        justify-content: space-between;
+                        padding: 28px 30px;
+                        cursor: pointer;
+                        color: ${schemeColors.text};
+                        font-size: 18px;
+                        font-weight: 500;
+                        transition: background 0.2s ease;
+                     ">
+                    <span>${item.label}</span>
+                    ${hasSubmenus ? `<span class="material-symbols-outlined" style="font-size: 24px; margin-right: 8px;">chevron_right</span>` : ''}
+                </div>
+            `;
+        }).join('');
+    } else {
+        // Render submenu view
+        return `
+            <div class="drawer-submenu-header" style="
+                display: flex;
+                align-items: center;
+                padding: 20px 30px;
+                border-bottom: 1px solid ${schemeColors.border || 'rgba(255,255,255,0.1)'};
+            ">
+                <button class="drawer-back-btn" onclick="showMainMenu()" style="
+                    background: none;
+                    border: none;
+                    color: ${schemeColors.text};
+                    cursor: pointer;
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                    font-size: 16px;
+                    padding: 0;
+                ">
+                    <span class="material-symbols-outlined">chevron_left</span>
+                </button>
+                <h3 style="
+                    margin: 0 0 0 20px;
+                    font-size: 16px;
+                    font-weight: 600;
+                    text-transform: uppercase;
+                    letter-spacing: 0.08em;
+                    color: ${schemeColors.text};
+                ">${level}</h3>
+            </div>
+            ${items.map(item => `
+                <div class="drawer-submenu-item" 
+                     style="
+                        display: block;
+                        padding: 16px 30px;
+                        color: ${schemeColors.text};
+                        font-size: 16px;
+                        transition: background 0.2s ease;
+                        cursor: pointer;
+                        text-decoration: none;
+                     "
+                     onclick="window.location.href='${item.url}'">
+                    ${item.label}
+                </div>
+            `).join('')}
+        `;
+    }
+}
+
+// Function to render menu items for drawer layout (old version - kept for compatibility)
+function renderDrawerMenuItemsOld(items) {
+    return items.map(item => {
+        const hasSubmenus = item.submenus && item.submenus.length > 0;
+        
+        if (hasSubmenus) {
+            const submenuHtml = item.submenus.map(sub => `
+                <a href="${sub.url}" 
+                   target="${sub.target || '_self'}"
+                   class="drawer-submenu-item">
+                    ${sub.label}
+                </a>
+            `).join('');
+            
+            return `
+                <div class="drawer-menu-item-container">
+                    <div style="display: flex; align-items: center;">
+                        <a href="${item.url}" 
+                           target="${item.target || '_self'}"
+                           class="drawer-menu-item" style="flex: 1;">
+                            ${item.label}
+                        </a>
+                        <button class="drawer-menu-collapse" data-item-id="${item.id}">
+                            <span class="material-icons">expand_more</span>
+                        </button>
+                    </div>
+                    <div class="drawer-submenu-container" id="drawer-submenu-${item.id}" style="display: none;">
+                        ${submenuHtml}
+                    </div>
+                </div>
+            `;
+        } else {
+            return `
+                <a href="${item.url}" 
+                   target="${item.target || '_self'}"
+                   class="drawer-menu-item">
+                    ${item.label}
+                </a>
+            `;
+        }
+    }).join('');
+}
+
+// Function to attach collapse handlers for drawer menu
+function attachDrawerMenuCollapsers(doc) {
+    const collapseButtons = doc.querySelectorAll('.drawer-menu-collapse');
+    
+    collapseButtons.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const itemId = this.getAttribute('data-item-id');
+            const submenuContainer = doc.getElementById(`drawer-submenu-${itemId}`);
+            const icon = this.querySelector('.material-icons');
+            
+            if (submenuContainer) {
+                const isOpen = submenuContainer.style.display === 'block';
+                submenuContainer.style.display = isOpen ? 'none' : 'block';
+                icon.textContent = isOpen ? 'expand_more' : 'expand_less';
+            }
+        });
+    });
+}
+
+// Function to attach dropdown menu event listeners
+function attachDropdownMenuListeners(previewDoc) {
+    const menuItems = previewDoc.querySelectorAll('.menu-item-parent');
+    console.log('[DEBUG] Found menu items with dropdowns:', menuItems.length);
+    
+    menuItems.forEach(item => {
+        const dropdownId = item.getAttribute('data-dropdown');
+        const dropdown = previewDoc.getElementById(dropdownId);
+        const isHoverEnabled = item.getAttribute('data-hover') === 'true';
+        
+        console.log('[DEBUG] Processing menu item:', {
+            label: item.textContent.trim(),
+            dropdownId: dropdownId,
+            dropdownFound: !!dropdown,
+            isHoverEnabled: isHoverEnabled
+        });
+        
+        if (!dropdown) {
+            console.warn('[DEBUG] Dropdown not found for ID:', dropdownId);
+            return;
+        }
+        
+        if (isHoverEnabled) {
+            // Hover behavior
+            let hoverTimeout;
+            
+            item.addEventListener('mouseenter', function() {
+                clearTimeout(hoverTimeout);
+                console.log('[DEBUG] Mouse entered menu item, showing dropdown');
+                dropdown.style.display = 'block';
+                dropdown.style.opacity = '1';
+                dropdown.style.visibility = 'visible';
+                // Rotate dropdown indicator
+                const indicator = item.querySelector('.dropdown-indicator');
+                if (indicator) indicator.style.transform = 'rotate(180deg)';
+            });
+            
+            item.addEventListener('mouseleave', function() {
+                hoverTimeout = setTimeout(() => {
+                    dropdown.style.display = 'none';
+                    // Reset dropdown indicator
+                    const indicator = item.querySelector('.dropdown-indicator');
+                    if (indicator) indicator.style.transform = 'rotate(0deg)';
+                }, 200);
+            });
+            
+            dropdown.addEventListener('mouseenter', function() {
+                clearTimeout(hoverTimeout);
+            });
+            
+            dropdown.addEventListener('mouseleave', function() {
+                dropdown.style.display = 'none';
+                // Reset dropdown indicator
+                const indicator = item.querySelector('.dropdown-indicator');
+                if (indicator) indicator.style.transform = 'rotate(0deg)';
+            });
+        } else {
+            // Click behavior
+            item.addEventListener('click', function(e) {
+                e.preventDefault();
+                console.log('[DEBUG] Menu item clicked');
+                const isOpen = dropdown.style.display === 'block';
+                
+                // Close all other dropdowns and reset their indicators
+                previewDoc.querySelectorAll('.menu-dropdown-content').forEach(d => {
+                    if (d !== dropdown) {
+                        d.style.display = 'none';
+                        const parentItem = previewDoc.querySelector(`[data-dropdown="${d.id}"]`);
+                        if (parentItem) {
+                            const ind = parentItem.querySelector('.dropdown-indicator');
+                            if (ind) ind.style.transform = 'rotate(0deg)';
+                        }
+                    }
+                });
+                
+                // Toggle current dropdown
+                dropdown.style.display = isOpen ? 'none' : 'block';
+                dropdown.style.opacity = isOpen ? '0' : '1';
+                dropdown.style.visibility = isOpen ? 'hidden' : 'visible';
+                console.log('[DEBUG] Dropdown toggled:', {isOpen: !isOpen, dropdownId: dropdownId});
+                
+                // Rotate dropdown indicator
+                const indicator = item.querySelector('.dropdown-indicator');
+                if (indicator) {
+                    indicator.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(180deg)';
+                }
+            });
+            
+            // Close dropdown when clicking outside
+            previewDoc.addEventListener('click', function(e) {
+                if (!item.contains(e.target) && !dropdown.contains(e.target)) {
+                    dropdown.style.display = 'none';
+                }
+            });
+        }
+    });
 }
 
 // Function to load Google Fonts in the preview iframe
@@ -1104,6 +2482,600 @@ function loadFontsInPreview() {
     }
 }
 
+// Function to load navigation data from API
+async function loadNavigationData() {
+    try {
+        const response = await fetch('/api/builder/navigation', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        if (!response.ok) {
+            throw new Error('Failed to load navigation data');
+        }
+        
+        currentNavigationData = await response.json();
+        console.log('[DEBUG] Loaded navigation data:', currentNavigationData);
+        
+    } catch (error) {
+        console.error('[ERROR] Failed to load navigation data:', error);
+        currentNavigationData = [];
+    }
+}
+
+// Function to save navigation data to API
+async function saveNavigationData() {
+    try {
+        const response = await fetch('/api/builder/navigation', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(currentNavigationData)
+        });
+        
+        if (!response.ok) {
+            throw new Error('Failed to save navigation data');
+        }
+        
+        console.log('[DEBUG] Navigation data saved successfully');
+        return true;
+        
+    } catch (error) {
+        console.error('[ERROR] Failed to save navigation data:', error);
+        return false;
+    }
+}
+
+// Function to save menus data
+async function saveMenusData() {
+    try {
+        // For now, we'll save menus as part of the global theme settings
+        // This ensures they persist with the website configuration
+        if (!currentGlobalThemeSettings.menus) {
+            currentGlobalThemeSettings.menus = {};
+        }
+        
+        // Save all menus
+        currentGlobalThemeSettings.menus = currentMenusData;
+        
+        // Mark that we have pending changes
+        hasPendingGlobalSettingsChanges = true;
+        
+        // Save immediately
+        const response = await fetch('/api/builder/websites/current/global-settings', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                globalSettings: currentGlobalThemeSettings
+            })
+        });
+        
+        if (!response.ok && response.status !== 204) {
+            throw new Error('Failed to save menus data');
+        }
+        
+        console.log('[DEBUG] Menus data saved successfully');
+        hasPendingGlobalSettingsChanges = false;
+        return true;
+        
+    } catch (error) {
+        console.error('[ERROR] Failed to save menus data:', error);
+        return false;
+    }
+}
+
+// Function to attach menus list event listeners
+function attachMenusListEventListeners() {
+    // Menu list item click
+    $('.menu-list-item').off('click').on('click', function() {
+        const menuId = $(this).data('menu-id');
+        $('.menu-list-item').removeClass('active');
+        $(this).addClass('active');
+        
+        // Update menu details panel
+        updateMenuDetailsPanel(menuId);
+    });
+    
+    // Create menu button
+    $('#create-menu-btn').off('click').on('click', function() {
+        window.switchSidebarView('createMenu');
+    });
+    
+    // Menu selector change
+    $('#menu-selector').off('change').on('change', function() {
+        const selectedMenuId = $(this).val();
+        // TODO: Filter menu list based on selection
+    });
+    
+    // Add menu item button
+    $('#add-menu-item-btn').off('click').on('click', function() {
+        openAddMenuItemModal();
+    });
+    
+    // Delete menu button
+    $('#delete-menu-btn').off('click').on('click', function() {
+        if (confirm(translations[currentLanguage]['menus.confirmDeleteMenu'] || '¿Estás seguro de eliminar este menú?')) {
+            // TODO: Delete menu
+        }
+    });
+    
+    // Duplicate menu button
+    $('#duplicate-menu-btn').off('click').on('click', function() {
+        // TODO: Duplicate menu
+    });
+}
+
+// Function to update menu details panel
+function updateMenuDetailsPanel(menuId) {
+    // TODO: Load menu details and re-render right panel
+    const $menuDetails = $('.menu-details');
+    $menuDetails.html(renderMenuDetails());
+    attachMenuDetailEventListeners();
+}
+
+// Function to attach event listeners for menu details
+function attachMenuDetailEventListeners() {
+    // Edit menu item
+    $('.edit-menu-item').off('click').on('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        const itemId = $(this).data('item-id');
+        openEditMenuItemModal(itemId);
+    });
+    
+    // Delete menu item
+    $('.delete-menu-item').off('click').on('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        const itemId = $(this).data('item-id');
+        
+        if (confirm(translations[currentLanguage]['menus.confirmDeleteItem'] || '¿Estás seguro de eliminar este elemento?')) {
+            // TODO: Delete item
+        }
+    });
+    
+    // Initialize sortable for menu items
+    initializeMenuItemsSortable();
+}
+
+// Function to initialize sortable for menu items
+function initializeMenuItemsSortable() {
+    if (typeof $.fn.sortable === 'function') {
+        $('#menu-items-container').sortable({
+            items: '.menu-item-row',
+            handle: '.drag-handle',
+            axis: 'y',
+            tolerance: 'pointer',
+            placeholder: 'sortable-placeholder',
+            helper: 'clone',
+            start: function(e, ui) {
+                ui.placeholder.css({
+                    'height': ui.item.outerHeight(),
+                    'visibility': 'visible',
+                    'background': '#e0e0e0',
+                    'border': '2px dashed #999'
+                });
+            },
+            stop: function(e, ui) {
+                // TODO: Update order in database
+                hasPendingGlobalSettingsChanges = true;
+                updateSaveButtonState();
+            }
+        });
+    }
+}
+
+// Function to attach create menu event listeners
+function attachCreateMenuEventListeners() {
+    // Cancel button
+    $('#cancel-create-menu-btn').off('click').on('click', function() {
+        window.switchSidebarView('menusList');
+    });
+    
+    // Save button
+    $('#save-create-menu-btn').off('click').on('click', function() {
+        const menuName = $('#new-menu-name').val().trim();
+        if (!menuName) {
+            alert(translations[currentLanguage]['menus.menuNameRequired'] || 'El nombre del menú es requerido');
+            return;
+        }
+        
+        // TODO: Save new menu to database
+        console.log('Creating new menu:', menuName);
+        
+        // Return to menus list
+        window.switchSidebarView('menusList');
+    });
+    
+    // Auto-generate handle from name
+    $('#new-menu-name').on('input', function() {
+        const name = $(this).val();
+        const handle = generateMenuHandle(name);
+        $('#new-menu-handle').text(handle);
+    });
+    
+    // Add first menu item button
+    $('#add-first-menu-item-btn').off('click').on('click', function() {
+        openAddMenuItemModal(true);
+    });
+}
+
+// Function to generate menu handle from name
+function generateMenuHandle(name) {
+    return name
+        .toLowerCase()
+        .replace(/[^a-z0-9\s-]/g, '')
+        .replace(/\s+/g, '-')
+        .replace(/-+/g, '-')
+        .trim();
+}
+
+// OLD: Function to attach navigation menu event listeners (keeping for reference)
+function attachNavigationMenuEventListenersOLD() {
+    // Back button
+    $('.back-to-sections-btn').off('click').on('click', function() {
+        window.switchSidebarView('blockList', window.getUpdatedPageData());
+    });
+    
+    // Add menu item button
+    $('#add-menu-item-btn').off('click').on('click', function() {
+        const newItem = {
+            id: 'nav-' + Date.now(),
+            label: translations[currentLanguage]['navigation.newMenuItem'] || 'Nuevo elemento',
+            url: '#',
+            target: '_self',
+            children: []
+        };
+        
+        currentNavigationData.push(newItem);
+        
+        // Re-render navigation items
+        $('#navigation-items-list').html(renderNavigationItems());
+        attachNavigationItemEventListeners();
+        
+        // Mark as pending changes
+        hasPendingGlobalSettingsChanges = true;
+        updateSaveButtonState();
+    });
+    
+    // Attach event listeners for navigation items
+    attachNavigationItemEventListeners();
+    
+    // Initialize sortable for drag and drop
+    initializeNavigationSortable();
+}
+
+// Function to attach navigation item event listeners
+function attachNavigationItemEventListeners() {
+    // Edit menu item
+    $('.edit-menu-item').off('click').on('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        const itemId = $(this).data('item-id');
+        openEditMenuItemModal(itemId);
+    });
+    
+    // Delete menu item
+    $('.delete-menu-item').off('click').on('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        const itemId = $(this).data('item-id');
+        
+        if (confirm(translations[currentLanguage]['navigation.confirmDelete'] || '¿Estás seguro de eliminar este elemento?')) {
+            deleteNavigationItem(itemId);
+        }
+    });
+    
+    // Expand/collapse subitems
+    $('.expand-menu-item').off('click').on('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        const itemId = $(this).data('item-id');
+        const $icon = $(this).find('i');
+        const $subitems = $(this).closest('.navigation-item').find('.navigation-subitems');
+        
+        if ($subitems.is(':visible')) {
+            $subitems.slideUp();
+            $icon.text('expand_more');
+        } else {
+            $subitems.slideDown();
+            $icon.text('expand_less');
+        }
+    });
+}
+
+// Function to initialize navigation sortable
+function initializeNavigationSortable() {
+    if (typeof $.fn.sortable === 'function') {
+        // Main navigation items
+        $('#navigation-items-list').sortable({
+            items: '.navigation-item',
+            handle: '.drag-handle',
+            axis: 'y',
+            tolerance: 'pointer',
+            placeholder: 'sortable-placeholder',
+            helper: 'clone',
+            start: function(e, ui) {
+                ui.placeholder.css({
+                    'height': ui.item.outerHeight(),
+                    'visibility': 'visible',
+                    'background': '#e0e0e0',
+                    'border': '2px dashed #999'
+                });
+            },
+            stop: function(e, ui) {
+                // Update order in currentNavigationData
+                const newOrder = [];
+                $('#navigation-items-list > .navigation-item').each(function() {
+                    const itemId = $(this).data('item-id');
+                    const item = currentNavigationData.find(i => i.id === itemId);
+                    if (item) {
+                        newOrder.push(item);
+                    }
+                });
+                currentNavigationData = newOrder;
+                
+                // Mark as pending changes
+                hasPendingGlobalSettingsChanges = true;
+                updateSaveButtonState();
+            }
+        });
+        
+        // Subitems sortable
+        $('.navigation-subitems').sortable({
+            items: '.navigation-subitem',
+            handle: '.drag-handle',
+            axis: 'y',
+            tolerance: 'pointer',
+            placeholder: 'sortable-placeholder',
+            helper: 'clone'
+        });
+    }
+}
+
+// Function to delete navigation item
+function deleteNavigationItem(itemId) {
+    // Find and remove item
+    const removeItem = (items) => {
+        const index = items.findIndex(item => item.id === itemId);
+        if (index > -1) {
+            items.splice(index, 1);
+            return true;
+        }
+        
+        // Check children
+        for (const item of items) {
+            if (item.children && removeItem(item.children)) {
+                return true;
+            }
+        }
+        return false;
+    };
+    
+    removeItem(currentNavigationData);
+    
+    // Re-render navigation items
+    $('#navigation-items-list').html(renderNavigationItems());
+    attachNavigationItemEventListeners();
+    initializeNavigationSortable();
+    
+    // Mark as pending changes
+    hasPendingGlobalSettingsChanges = true;
+    updateSaveButtonState();
+}
+
+// Function to open add menu item modal
+function openAddMenuItemModal(isFirstItem = false) {
+    // Create modal HTML for adding a new item
+    const modalHtml = `
+        <div class="menu-item-modal" id="add-menu-item-modal">
+            <div class="menu-item-modal-content">
+                <div class="menu-item-modal-header">
+                    <h3 data-i18n="menus.addMenuItem">${translations[currentLanguage]['menus.addMenuItem'] || 'Agregar elemento del menú'}</h3>
+                    <button class="menu-item-modal-close">
+                        <i class="material-icons">close</i>
+                    </button>
+                </div>
+                <div class="menu-item-modal-body">
+                    <div class="settings-field">
+                        <label data-i18n="navigation.label">${translations[currentLanguage]['navigation.label'] || 'Etiqueta'}</label>
+                        <input type="text" class="shopify-input" id="menu-item-label" placeholder="">
+                    </div>
+                    <div class="settings-field">
+                        <label data-i18n="navigation.url">${translations[currentLanguage]['navigation.url'] || 'URL'}</label>
+                        <input type="text" class="shopify-input" id="menu-item-url" placeholder="/collections/all">
+                    </div>
+                    <div class="settings-field">
+                        <label data-i18n="navigation.openIn">${translations[currentLanguage]['navigation.openIn'] || 'Abrir en'}</label>
+                        <select class="shopify-select" id="menu-item-target">
+                            <option value="_self" data-i18n="navigation.sameTab">
+                                ${translations[currentLanguage]['navigation.sameTab'] || 'Misma pestaña'}
+                            </option>
+                            <option value="_blank" data-i18n="navigation.newTab">
+                                ${translations[currentLanguage]['navigation.newTab'] || 'Nueva pestaña'}
+                            </option>
+                        </select>
+                    </div>
+                </div>
+                <div class="menu-item-modal-footer">
+                    <button class="shopify-button" id="cancel-add-item-btn">
+                        <span data-i18n="common.cancel">${translations[currentLanguage]['common.cancel'] || 'Cancelar'}</span>
+                    </button>
+                    <button class="shopify-button primary" id="save-add-item-btn" data-is-first="${isFirstItem}">
+                        <span data-i18n="menus.add">${translations[currentLanguage]['menus.add'] || 'Agregar'}</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Add modal to body
+    $('body').append(modalHtml);
+    $('#add-menu-item-modal').fadeIn();
+    
+    // Attach event listeners
+    $('#cancel-add-item-btn, .menu-item-modal-close').on('click', function() {
+        $('#add-menu-item-modal').fadeOut(function() {
+            $(this).remove();
+        });
+    });
+    
+    $('#save-add-item-btn').on('click', function() {
+        const newLabel = $('#menu-item-label').val();
+        const newUrl = $('#menu-item-url').val();
+        const newTarget = $('#menu-item-target').val();
+        const isFirst = $(this).data('is-first');
+        
+        if (!newLabel) {
+            alert(translations[currentLanguage]['menus.labelRequired'] || 'La etiqueta es requerida');
+            return;
+        }
+        
+        // TODO: Add item to current menu
+        console.log('Adding new menu item:', { label: newLabel, url: newUrl, target: newTarget });
+        
+        // Close modal
+        $('#add-menu-item-modal').fadeOut(function() {
+            $(this).remove();
+        });
+        
+        // If this is the first item in create menu view, add it to the container
+        if (isFirst) {
+            const itemHtml = `
+                <div class="menu-item-row" style="display: flex; align-items: center; padding: 12px 16px; border: 1px solid #e3e3e3; border-radius: 8px; margin-bottom: 8px;">
+                    <i class="material-icons drag-handle" style="color: #8c9196; cursor: move; margin-right: 12px;">drag_indicator</i>
+                    <div style="flex: 1;">
+                        <div style="font-size: 14px; color: #202223;">${newLabel}</div>
+                        <div style="font-size: 12px; color: #8c9196; margin-top: 2px;">${newUrl}</div>
+                    </div>
+                    <button class="btn-icon">
+                        <i class="material-icons">delete</i>
+                    </button>
+                </div>
+            `;
+            $('#new-menu-items-container').append(itemHtml);
+        }
+    });
+}
+
+// Function to open edit menu item modal
+function openEditMenuItemModal(itemId) {
+    // Find the item
+    const findItem = (items) => {
+        for (const item of items) {
+            if (item.id === itemId) {
+                return item;
+            }
+            if (item.children) {
+                const found = findItem(item.children);
+                if (found) return found;
+            }
+        }
+        return null;
+    };
+    
+    const item = findItem(currentNavigationData);
+    if (!item) return;
+    
+    // Create modal HTML
+    const modalHtml = `
+        <div class="menu-item-modal" id="edit-menu-item-modal">
+            <div class="menu-item-modal-content">
+                <div class="menu-item-modal-header">
+                    <h3 data-i18n="navigation.editMenuItem">${translations[currentLanguage]['navigation.editMenuItem'] || 'Editar elemento del menú'}</h3>
+                    <button class="menu-item-modal-close">
+                        <i class="material-icons">close</i>
+                    </button>
+                </div>
+                <div class="menu-item-modal-body">
+                    <div class="settings-field">
+                        <label data-i18n="navigation.label">${translations[currentLanguage]['navigation.label'] || 'Etiqueta'}</label>
+                        <input type="text" class="shopify-input" id="menu-item-label" value="${item.label}">
+                    </div>
+                    <div class="settings-field">
+                        <label data-i18n="navigation.url">${translations[currentLanguage]['navigation.url'] || 'URL'}</label>
+                        <input type="text" class="shopify-input" id="menu-item-url" value="${item.url}">
+                    </div>
+                    <div class="settings-field">
+                        <label data-i18n="navigation.openIn">${translations[currentLanguage]['navigation.openIn'] || 'Abrir en'}</label>
+                        <select class="shopify-select" id="menu-item-target">
+                            <option value="_self" ${item.target === '_self' ? 'selected' : ''} data-i18n="navigation.sameTab">
+                                ${translations[currentLanguage]['navigation.sameTab'] || 'Misma pestaña'}
+                            </option>
+                            <option value="_blank" ${item.target === '_blank' ? 'selected' : ''} data-i18n="navigation.newTab">
+                                ${translations[currentLanguage]['navigation.newTab'] || 'Nueva pestaña'}
+                            </option>
+                        </select>
+                    </div>
+                </div>
+                <div class="menu-item-modal-footer">
+                    <button class="shopify-button" id="cancel-menu-item-btn">
+                        <span data-i18n="common.cancel">${translations[currentLanguage]['common.cancel'] || 'Cancelar'}</span>
+                    </button>
+                    <button class="shopify-button primary" id="save-menu-item-btn" data-item-id="${itemId}">
+                        <span data-i18n="common.save">${translations[currentLanguage]['common.save'] || 'Guardar'}</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Add modal to body
+    $('body').append(modalHtml);
+    $('#edit-menu-item-modal').fadeIn();
+    
+    // Attach event listeners
+    $('#cancel-menu-item-btn, .menu-item-modal-close').on('click', function() {
+        $('#edit-menu-item-modal').fadeOut(function() {
+            $(this).remove();
+        });
+    });
+    
+    $('#save-menu-item-btn').on('click', function() {
+        const itemId = $(this).data('item-id');
+        const newLabel = $('#menu-item-label').val();
+        const newUrl = $('#menu-item-url').val();
+        const newTarget = $('#menu-item-target').val();
+        
+        // Update item
+        const updateItem = (items) => {
+            for (const item of items) {
+                if (item.id === itemId) {
+                    item.label = newLabel;
+                    item.url = newUrl;
+                    item.target = newTarget;
+                    return true;
+                }
+                if (item.children && updateItem(item.children)) {
+                    return true;
+                }
+            }
+            return false;
+        };
+        
+        updateItem(currentNavigationData);
+        
+        // Close modal
+        $('#edit-menu-item-modal').fadeOut(function() {
+            $(this).remove();
+        });
+        
+        // Re-render navigation items
+        $('#navigation-items-list').html(renderNavigationItems());
+        attachNavigationItemEventListeners();
+        initializeNavigationSortable();
+        
+        // Mark as pending changes
+        hasPendingGlobalSettingsChanges = true;
+        updateSaveButtonState();
+    });
+}
+
 $(document).ready(async function() {
     // Load current website data first
     await loadCurrentWebsite();
@@ -1118,11 +3090,11 @@ $(document).ready(async function() {
         });
     }
     
-    // Get current language from localStorage or default to Spanish
-    let currentLanguage = localStorage.getItem('preferredLanguage') || 'es';
+    // Update current language from localStorage
+    currentLanguage = localStorage.getItem('preferredLanguage') || 'es';
     
     // Translation objects
-    const translations = window.translations = {
+    translations = window.translations = {
         es: {
             exitEditorButtonText: "Salir",
             themeLabel: "Plantilla",
@@ -1161,9 +3133,13 @@ $(document).ready(async function() {
             'sections.collapsibleContent': 'Contenido desplegable',
             'sections.contactForm': 'Formulario de contacto',
             'sections.addSection': 'Agregar sección',
+            'sections.confirmDelete': '¿Estás seguro de eliminar esta sección?',
             'sections.footer': 'Pie de página',
             'sections.footerSection': 'Pie de página',
             'sections.viewPage': 'Ver página',
+            'sections.addHeaderSection': 'Agregar sección de encabezado',
+            'sections.addTemplateSection': 'Agregar sección de plantilla',
+            'sections.addFooterSection': 'Agregar sección de pie de página',
             'sections.addAnnouncement': 'Agregar anuncio',
             'sections.addBlock': 'Agregar bloque',
             // Announcement Bar translations
@@ -1241,6 +3217,7 @@ $(document).ready(async function() {
             'headerSettings.layoutLogoLeftMenuLeftBelow': 'Logo izquierda, menú izquierda debajo',
             'headerSettings.layoutDescription': 'El diseño se optimiza automáticamente para móvil',
             'headerSettings.mobileLayout': 'Diseño móvil',
+            'headerSettings.headerHeight': 'Altura del encabezado',
             'headerSettings.enableStickyHeader': 'Habilitar encabezado fijo',
             'headerSettings.showDivider': 'Mostrar divisor',
             'headerSettings.default': 'Por defecto',
@@ -1612,8 +3589,131 @@ $(document).ready(async function() {
             'sections.splitImageBanner': 'Banner de imagen dividida',
             'sections.testimonials': 'Testimonios',
             'sections.video': 'Video',
+            // Slideshow translations
+            'slideshow.layout': 'Diseño',
+            'slideshow.fullWidth': 'Ancho Completo',
+            'slideshow.page': 'Página',
+            'slideshow.height': 'Altura',
+            'slideshow.adaptToFirstImage': 'Adaptar a la Primera Imagen',
+            'slideshow.small': 'Pequeña',
+            'slideshow.medium': 'Mediana',
+            'slideshow.large': 'Grande',
+            'slideshow.autoplay': 'Reproducción automática',
+            'slideshow.autoplayInterval': 'Intervalo entre diapositivas',
+            'slideshow.showNavigationArrows': 'Mostrar flechas de navegación',
+            'slideshow.showPagination': 'Mostrar paginación',
+            'slideshow.paginationType': 'Tipo de paginación',
+            'slideshow.dots': 'Puntos',
+            'slideshow.counter': 'Contador',
+            'slideshow.numbers': 'Números',
+            'slideshow.animation': 'Animación',
+            'slideshow.animationNone': 'Ninguna',
+            'slideshow.ambientMovement': 'Movimiento de Ambientes',
+            'slideshow.slides': 'Diapositivas',
+            'slideshow.autoRotate': 'Rotar automáticamente',
+            'slideshow.changeSlidesEvery': 'Cambiar diapositivas cada',
+            'slideshow.paddings': 'Paddings',
+            'slideshow.addSidePaddings': 'Add side paddings',
+            'slideshow.topPadding': 'Top padding',
+            'slideshow.bottomPadding': 'Bottom padding',
+            'slideshow.addSlide': 'Agregar diapositiva',
+            'slideshow.slideTitle': 'Diapositiva',
+            'slideshow.confirmDeleteSlide': '¿Estás seguro de eliminar esta diapositiva?',
+            'slideshow.noSlides': 'No hay diapositivas. Agrega una para comenzar.',
+            // Slideshow Slide Settings translations
+            'slideshowSlide.desktopImage': 'Imagen de escritorio',
+            'slideshowSlide.mobileImage': 'Imagen móvil',
+            'slideshowSlide.selectImage': 'Seleccionar imagen',
+            'slideshowSlide.removeImage': 'Eliminar imagen',
+            'slideshowSlide.browseFreeImages': 'Explorar imágenes gratuitas',
+            'slideshowSlide.noImageSelected': 'No hay imagen seleccionada',
+            'slideshowSlide.title': 'Título',
+            'slideshowSlide.titlePlaceholder': 'Título de la diapositiva',
+            'slideshowSlide.titleSize': 'Tamaño del título',
+            'slideshowSlide.small': 'Pequeño',
+            'slideshowSlide.medium': 'Mediano',
+            'slideshowSlide.large': 'Grande',
+            'slideshowSlide.extraLarge': 'Extra Grande',
+            'slideshowSlide.superExtraLarge': 'Super Extra Grande',
+            'slideshowSlide.subtitle': 'Subtítulo',
+            'slideshowSlide.subtitlePlaceholder': 'Texto descriptivo',
+            'slideshowSlide.design': 'Diseño',
+            'slideshowSlide.container': 'Contenedor',
+            'slideshowSlide.contentPosition': 'Posición de contenido',
+            'slideshowSlide.topLeft': 'Arriba a la izquierda',
+            'slideshowSlide.topCenter': 'Arriba en el centro',
+            'slideshowSlide.topRight': 'Arriba a la derecha',
+            'slideshowSlide.centerLeft': 'Centrado a la izquierda',
+            'slideshowSlide.centerMiddle': 'Centrado en el medio',
+            'slideshowSlide.centerRight': 'Centrado a la derecha',
+            'slideshowSlide.bottomLeft': 'Abajo a la izquierda',
+            'slideshowSlide.bottomCenter': 'Abajo en el centro',
+            'slideshowSlide.bottomRight': 'Abajo a la derecha',
+            'slideshowSlide.contentAlignment': 'Alineación de contenido',
+            'slideshowSlide.mobileContentAlignment': 'Alineación del contenido en dispositivos móviles',
+            'slideshowSlide.alignLeft': 'Izquierda',
+            'slideshowSlide.alignCenter': 'Centrado',
+            'slideshowSlide.alignRight': 'Derecha',
+            'slideshowSlide.buttonText': 'Texto del botón',
+            'slideshowSlide.buttonTextPlaceholder': 'Agregar un botón',
+            'slideshowSlide.buttonLink': 'Enlace del botón',
+            'slideshowSlide.buttonLinkPlaceholder': 'Pegar un enlace o buscar',
+            'slideshowSlide.colorScheme': 'Esquema de color',
+            'slideshowSlide.overlay': 'Superposición',
+            'slideshowSlide.useOverlay': 'Usar superposición',
+            'slideshowSlide.overlayOpacity': 'Opacidad de superposición',
             // Common translations
             'common.cancel': 'Cancelar',
+            'common.save': 'Guardar',
+            // Navigation menu translations
+            'navigation.menuTitle': 'Menú de navegación',
+            'navigation.currentMenuItems': 'Elementos actuales del menú',
+            'navigation.addMenuItem': 'Agregar elemento de menú',
+            'navigation.menuInstructions': 'Arrastra los elementos para reordenarlos. Haz clic en cada elemento para editarlo o agregar subelementos.',
+            'navigation.noMenuItems': 'No hay elementos en el menú',
+            'navigation.newMenuItem': 'Nuevo elemento',
+            'navigation.confirmDelete': '¿Estás seguro de eliminar este elemento?',
+            'navigation.editMenuItem': 'Editar elemento del menú',
+            'navigation.label': 'Etiqueta',
+            'navigation.url': 'URL',
+            'navigation.openIn': 'Abrir en',
+            'navigation.sameTab': 'Misma pestaña',
+            'navigation.newTab': 'Nueva pestaña',
+            // Menus translations
+            'menus.title': 'Menús',
+            'menus.createMenu': 'Crear menú',
+            'menus.menu': 'Menú',
+            'menus.selectMenu': 'Selecciona un menú para ver sus detalles',
+            'menus.menuName': 'Nombre',
+            'menus.handle': 'Identificador',
+            'menus.menuItems': 'Elementos del menú',
+            'menus.addMenuItem': 'Agregar elemento del menú',
+            'menus.noItems': 'No hay elementos en este menú',
+            'menus.redirectUrl': 'Redireccionamientos de URL',
+            'menus.deleteMenu': 'Eliminar menú',
+            'menus.duplicate': 'Duplicar',
+            'menus.confirmDeleteMenu': '¿Estás seguro de eliminar este menú?',
+            'menus.confirmDeleteItem': '¿Estás seguro de eliminar este elemento?',
+            'menus.addMenu': 'Agregar menú',
+            'menus.menuNameRequired': 'El nombre del menú es requerido',
+            'menus.add': 'Agregar',
+            'menus.labelRequired': 'La etiqueta es requerida',
+            'menus.redirectsInfo': 'Redireccionamientos de URL',
+            'menus.menuLabel': 'Menú',
+            'menus.allMenus': 'Todos los menús',
+            'menus.mainMenu': 'Main menu',
+            'menus.footerMenu': 'Footer menu',
+            'menus.menuItemsTitle': 'Elementos del menú',
+            'menus.emptyMessage': 'Este menú está vacío. Agrega elementos para comenzar.',
+            'menus.moreActions': 'Más acciones',
+            'menus.itemLabel': 'Etiqueta',
+            'menus.itemUrl': 'URL',
+            'menus.itemTarget': 'Abrir en',
+            'menus.sameTab': 'Misma pestaña',
+            'menus.newTab': 'Nueva pestaña',
+            'menus.editMenuItem': 'Editar elemento del menú',
+            'common.save': 'Guardar',
+            'menus.itemLink': 'Enlace',
             'swatches.optionNamePlaceholder': 'Color',
             'swatches.optionNameHelp': 'Completa los nombres de opciones relevantes de tu administrador para activar las muestras',
             'swatches.shapeForProductCards': 'Forma para tarjetas de productos',
@@ -1673,9 +3773,13 @@ $(document).ready(async function() {
             'sections.collapsibleContent': 'Collapsible content',
             'sections.contactForm': 'Contact form',
             'sections.addSection': 'Add section',
+            'sections.confirmDelete': 'Are you sure you want to delete this section?',
             'sections.footer': 'Footer',
             'sections.footerSection': 'Footer',
             'sections.viewPage': 'View page',
+            'sections.addHeaderSection': 'Add header section',
+            'sections.addTemplateSection': 'Add template section',
+            'sections.addFooterSection': 'Add footer section',
             // Announcement Bar translations
             'announcementBar.showOnlyHomePage': 'Show only on home page',
             'announcementBar.colorScheme': 'Color scheme',
@@ -1750,6 +3854,7 @@ $(document).ready(async function() {
             'headerSettings.layoutLogoCenterMenuCenterBelow': 'Logo center, menu center below',
             'headerSettings.layoutLogoLeftMenuLeftBelow': 'Logo left, menu left below',
             'headerSettings.layoutDescription': 'Layout is auto-optimized for mobile',
+            'headerSettings.headerHeight': 'Header height',
             'headerSettings.enableStickyHeader': 'Enable sticky header',
             'headerSettings.showDivider': 'Show divider',
             'headerSettings.default': 'Default',
@@ -1969,8 +4074,116 @@ $(document).ready(async function() {
             'sections.splitImageBanner': 'Split image banner',
             'sections.testimonials': 'Testimonials',
             'sections.video': 'Video',
+            // Slideshow translations
+            'slideshow.layout': 'Layout',
+            'slideshow.fullWidth': 'Full Width',
+            'slideshow.page': 'Page',
+            'slideshow.height': 'Height',
+            'slideshow.adaptToFirstImage': 'Adapt to First Image',
+            'slideshow.small': 'Small',
+            'slideshow.medium': 'Medium',
+            'slideshow.large': 'Large',
+            'slideshow.autoplay': 'Autoplay',
+            'slideshow.autoplayInterval': 'Slide interval',
+            'slideshow.showNavigationArrows': 'Show navigation arrows',
+            'slideshow.showPagination': 'Show pagination',
+            'slideshow.paginationType': 'Pagination type',
+            'slideshow.dots': 'Dots',
+            'slideshow.counter': 'Counter',
+            'slideshow.numbers': 'Numbers',
+            'slideshow.animation': 'Animation',
+            'slideshow.animationNone': 'None',
+            'slideshow.ambientMovement': 'Ambient Movement',
+            'slideshow.slides': 'Slides',
+            'slideshow.autoRotate': 'Auto-rotate',
+            'slideshow.changeSlidesEvery': 'Change slides every',
+            'slideshow.paddings': 'Paddings',
+            'slideshow.addSidePaddings': 'Add side paddings',
+            'slideshow.topPadding': 'Top padding',
+            'slideshow.bottomPadding': 'Bottom padding',
+            'slideshow.addSlide': 'Add slide',
+            'slideshow.slideTitle': 'Slide',
+            'slideshow.confirmDeleteSlide': 'Are you sure you want to delete this slide?',
+            'slideshow.noSlides': 'No slides. Add one to get started.',
+            // Slideshow Slide Settings translations
+            'slideshowSlide.desktopImage': 'Desktop image',
+            'slideshowSlide.mobileImage': 'Mobile image',
+            'slideshowSlide.selectImage': 'Select image',
+            'slideshowSlide.removeImage': 'Remove',
+            'slideshowSlide.browseFreeImages': 'Browse free images',
+            'slideshowSlide.noImageSelected': 'No image selected',
+            'slideshowSlide.title': 'Title',
+            'slideshowSlide.titlePlaceholder': 'Slide title',
+            'slideshowSlide.titleSize': 'Title size',
+            'slideshowSlide.small': 'Small',
+            'slideshowSlide.medium': 'Medium',
+            'slideshowSlide.large': 'Large',
+            'slideshowSlide.extraLarge': 'Extra Large',
+            'slideshowSlide.superExtraLarge': 'Super Extra Large',
+            'slideshowSlide.subtitle': 'Subtitle',
+            'slideshowSlide.subtitlePlaceholder': 'Descriptive text',
+            'slideshowSlide.design': 'Design',
+            'slideshowSlide.container': 'Container',
+            'slideshowSlide.contentPosition': 'Content position',
+            'slideshowSlide.topLeft': 'Top left',
+            'slideshowSlide.topCenter': 'Top center',
+            'slideshowSlide.topRight': 'Top right',
+            'slideshowSlide.centerLeft': 'Center left',
+            'slideshowSlide.centerMiddle': 'Center middle',
+            'slideshowSlide.centerRight': 'Center right',
+            'slideshowSlide.bottomLeft': 'Bottom left',
+            'slideshowSlide.bottomCenter': 'Bottom center',
+            'slideshowSlide.bottomRight': 'Bottom right',
+            'slideshowSlide.contentAlignment': 'Content alignment',
+            'slideshowSlide.mobileContentAlignment': 'Mobile content alignment',
+            'slideshowSlide.alignLeft': 'Left',
+            'slideshowSlide.alignCenter': 'Center',
+            'slideshowSlide.alignRight': 'Right',
+            'slideshowSlide.buttonText': 'Button text',
+            'slideshowSlide.buttonTextPlaceholder': 'Add a button',
+            'slideshowSlide.buttonLink': 'Button link',
+            'slideshowSlide.buttonLinkPlaceholder': 'Paste a link or search',
+            'slideshowSlide.colorScheme': 'Color scheme',
+            'slideshowSlide.overlay': 'Overlay',
+            'slideshowSlide.useOverlay': 'Use overlay',
+            'slideshowSlide.overlayOpacity': 'Overlay opacity',
             // Common translations
             'common.cancel': 'Cancel',
+            // Menus translations
+            'menus.title': 'Menus',
+            'menus.createMenu': 'Create menu',
+            'menus.menu': 'Menu',
+            'menus.selectMenu': 'Select a menu to view its details',
+            'menus.menuName': 'Name',
+            'menus.handle': 'Handle',
+            'menus.menuItems': 'Menu items',
+            'menus.addMenuItem': 'Add menu item',
+            'menus.noItems': 'No items in this menu',
+            'menus.redirectUrl': 'URL redirects',
+            'menus.deleteMenu': 'Delete menu',
+            'menus.duplicate': 'Duplicate',
+            'menus.confirmDeleteMenu': 'Are you sure you want to delete this menu?',
+            'menus.confirmDeleteItem': 'Are you sure you want to delete this item?',
+            'menus.addMenu': 'Add menu',
+            'menus.menuNameRequired': 'Menu name is required',
+            'menus.add': 'Add',
+            'menus.labelRequired': 'Label is required',
+            'menus.redirectsInfo': 'URL redirects',
+            'menus.menuLabel': 'Menu',
+            'menus.allMenus': 'All menus',
+            'menus.mainMenu': 'Main menu',
+            'menus.footerMenu': 'Footer menu',
+            'menus.menuItemsTitle': 'Menu items',
+            'menus.emptyMessage': 'This menu is empty. Add items to get started.',
+            'menus.moreActions': 'More actions',
+            'menus.itemLabel': 'Label',
+            'menus.itemUrl': 'URL',
+            'menus.itemTarget': 'Open in',
+            'menus.sameTab': 'Same tab',
+            'menus.newTab': 'New tab',
+            'menus.editMenuItem': 'Edit menu item',
+            'common.save': 'Save',
+            'menus.itemLink': 'Link',
             'swatches.optionNamePlaceholder': 'Color',
             'swatches.optionNameHelp': 'Fill in the relevant option names from your admin to turn on swatches',
             'swatches.shapeForProductCards': 'Shape for product cards',
@@ -2208,6 +4421,30 @@ $(document).ready(async function() {
             if (data && data.id) {
                 populateAnnouncementItemFields(data.id);
             }
+        } else if (viewName === 'menusList') {
+            // Main menus list view
+            dynamicContentArea.innerHTML = renderMenusListView();
+            attachMenusListEventListeners();
+            // Apply translations after rendering
+            setTimeout(applyTranslations, 0);
+        } else if (viewName === 'createMenu') {
+            // Create menu view
+            dynamicContentArea.innerHTML = renderCreateMenuView();
+            attachCreateMenuEventListeners();
+            // Apply translations after rendering
+            setTimeout(applyTranslations, 0);
+        } else if (viewName === 'slideshowSettings') {
+            // Slideshow settings view
+            dynamicContentArea.innerHTML = renderSlideshowSettingsView();
+            attachSlideshowEventListeners();
+            // Apply translations after rendering
+            setTimeout(applyTranslations, 0);
+        } else if (viewName === 'slideshowSlideSettings') {
+            // Individual slide settings view
+            dynamicContentArea.innerHTML = renderSlideshowSlideSettingsView(data);
+            attachSlideshowSlideEventListeners();
+            // Apply translations after rendering
+            setTimeout(applyTranslations, 0);
         } else {
             dynamicContentArea.innerHTML = `<p class="sidebar-loading-text">${lang.sidebarLoadingText}</p>`;
         }
@@ -2222,7 +4459,7 @@ $(document).ready(async function() {
                     <div class="sidebar-subsection collapsible-parent" data-block-type="announcement" data-element-id="barra-anuncios">
                         <span class="subsection-text" data-i18n="sections.announcementBar">Barra de anuncios</span>
                         <div class="subsection-actions">
-                            <button class="action-icon visibility-toggle ${currentSectionsConfig.announcementBar.isHidden ? 'is-hidden' : ''}" data-section="announcement" title="Toggle visibility">
+                            <button class="action-icon visibility-toggle ${currentSectionsConfig.announcementBar?.isHidden ? 'is-hidden' : ''}" data-section="announcement" title="Toggle visibility">
                                 <i class="material-icons icon-visible">visibility</i>
                                 <i class="material-icons icon-hidden">visibility_off</i>
                             </button>
@@ -2242,7 +4479,7 @@ $(document).ready(async function() {
                     <div class="sidebar-subsection" data-block-type="header">
                         <span class="subsection-text" data-i18n="sections.headerSection">Encabezado</span>
                         <div class="subsection-actions">
-                            <button class="action-icon visibility-toggle ${currentSectionsConfig.header.isHidden ? 'is-hidden' : ''}" data-section="header" title="Toggle visibility">
+                            <button class="action-icon visibility-toggle ${currentSectionsConfig.header?.isHidden ? 'is-hidden' : ''}" data-section="header" title="Toggle visibility">
                                 <i class="material-icons icon-visible">visibility</i>
                                 <i class="material-icons icon-hidden">visibility_off</i>
                             </button>
@@ -2256,11 +4493,144 @@ $(document).ready(async function() {
             }
         };
         
+        // Only show header sections (announcement, header)
+        const headerOrder = ['announcement', 'header'];
+        
+        for (const sectionType of headerOrder) {
+            if (sections[sectionType] && currentSectionsConfig[sectionType === 'announcement' ? 'announcementBar' : sectionType]) {
+                html += sections[sectionType].html;
+                if (sections[sectionType].includeAnnouncements) {
+                    html += renderAnnouncementItems();
+                }
+            }
+        }
+        
+        return html;
+    }
+    
+    // Function to render template sections
+    function renderTemplateSections() {
+        let html = '';
+        
+        // Get template sections from sectionOrder
+        const templateSections = currentSectionsConfig.sectionOrder?.filter(sectionId => 
+            sectionId !== 'announcement' && sectionId !== 'header' && sectionId !== 'footer'
+        ) || [];
+        
+        templateSections.forEach(sectionId => {
+            if (currentSectionsConfig[sectionId]) {
+                const section = currentSectionsConfig[sectionId];
+                html += `
+                    <div class="sidebar-subsection" data-block-type="${sectionId}" data-element-id="${sectionId}">
+                        <span class="subsection-text" data-i18n="sections.${sectionId}">${getSectionTranslation(sectionId)}</span>
+                        <div class="subsection-actions">
+                            <button class="action-icon visibility-toggle ${section.isHidden ? 'is-hidden' : ''}" data-section="${sectionId}" title="Toggle visibility">
+                                <i class="material-icons icon-visible">visibility</i>
+                                <i class="material-icons icon-hidden">visibility_off</i>
+                            </button>
+                            <button class="action-icon config-icon" data-section="${sectionId}" title="Configure">
+                                <i class="material-icons">settings</i>
+                            </button>
+                            <button class="action-icon delete-icon" data-section="${sectionId}" title="Delete">
+                                <i class="material-icons">delete</i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }
+        });
+        
+        return html;
+    }
+    
+    // Helper function to get section translation
+    function getSectionTranslation(sectionId) {
+        // Try to get translation from current language translations
+        const translationKey = `sections.${sectionId}`;
+        if (translations[currentLanguage] && translations[currentLanguage][translationKey]) {
+            return translations[currentLanguage][translationKey];
+        }
+        
+        // Fallback to hardcoded translations
+        const fallbackTranslations = {
+            'slideshow': currentLanguage === 'es' ? 'Presentación de diapositivas' : 'Slideshow',
+            'featured-collection': currentLanguage === 'es' ? 'Colección destacada' : 'Featured collection',
+            'featured-product': currentLanguage === 'es' ? 'Producto destacado' : 'Featured product',
+            'image-banner': currentLanguage === 'es' ? 'Banner de imagen' : 'Image banner',
+            'multicolumn': currentLanguage === 'es' ? 'Multicolumna' : 'Multicolumn',
+            'newsletter': currentLanguage === 'es' ? 'Boletín' : 'Newsletter'
+        };
+        return fallbackTranslations[sectionId] || sectionId;
+    }
+    
+    // Function to render all main sections (header + template sections)
+    function renderAllMainSections() {
+        let html = '';
+        const sections = {
+            'announcement': {
+                html: `
+                    <div class="sidebar-subsection collapsible-parent" data-block-type="announcement" data-element-id="barra-anuncios">
+                        <span class="subsection-text" data-i18n="sections.announcementBar">Barra de anuncios</span>
+                        <div class="subsection-actions">
+                            <button class="action-icon visibility-toggle ${currentSectionsConfig.announcementBar?.isHidden ? 'is-hidden' : ''}" data-section="announcement" title="Toggle visibility">
+                                <i class="material-icons icon-visible">visibility</i>
+                                <i class="material-icons icon-hidden">visibility_off</i>
+                            </button>
+                            <button class="action-icon add-icon" data-section="announcement" title="Add">
+                                <i class="material-icons">add</i>
+                            </button>
+                            <button class="action-icon collapse-toggle" title="Collapse/Expand">
+                                <i class="material-icons collapse-indicator">expand_more</i>
+                            </button>
+                        </div>
+                    </div>
+                `,
+                includeAnnouncements: true
+            },
+            'header': {
+                html: `
+                    <div class="sidebar-subsection" data-block-type="header">
+                        <span class="subsection-text" data-i18n="sections.headerSection">Encabezado</span>
+                        <div class="subsection-actions">
+                            <button class="action-icon visibility-toggle ${currentSectionsConfig.header?.isHidden ? 'is-hidden' : ''}" data-section="header" title="Toggle visibility">
+                                <i class="material-icons icon-visible">visibility</i>
+                                <i class="material-icons icon-hidden">visibility_off</i>
+                            </button>
+                            <button class="action-icon add-icon" data-section="header" title="Add">
+                                <i class="material-icons">add</i>
+                            </button>
+                        </div>
+                    </div>
+                `,
+                includeAnnouncements: false
+            },
+            'slideshow': {
+                html: currentSectionsConfig.slideshow ? `
+                    <div class="sidebar-subsection" data-block-type="slideshow" data-element-id="slideshow">
+                        <span class="subsection-text" data-i18n="sections.slideshow">Presentación de diapositivas</span>
+                        <div class="subsection-actions">
+                            <button class="action-icon visibility-toggle ${currentSectionsConfig.slideshow.isHidden ? 'is-hidden' : ''}" data-section="slideshow" title="Toggle visibility">
+                                <i class="material-icons icon-visible">visibility</i>
+                                <i class="material-icons icon-hidden">visibility_off</i>
+                            </button>
+                            <button class="action-icon config-icon" data-section="slideshow" title="Configure">
+                                <i class="material-icons">settings</i>
+                            </button>
+                            <button class="action-icon delete-section" data-section="slideshow" title="Delete">
+                                <i class="material-icons">delete</i>
+                            </button>
+                        </div>
+                    </div>
+                ` : '',
+                includeAnnouncements: false
+            }
+        };
+        
         // Use saved order or default
         const order = currentSectionsConfig.sectionOrder || ['announcement', 'header'];
         
         for (const sectionType of order) {
-            if (sections[sectionType]) {
+            if (sections[sectionType] && sections[sectionType].html) {
                 html += sections[sectionType].html;
                 if (sections[sectionType].includeAnnouncements) {
                     html += renderAnnouncementItems();
@@ -2326,6 +4696,66 @@ $(document).ready(async function() {
         return '';
     }
     
+    // Function to render template sections
+    function renderTemplateSections() {
+        let html = '';
+        
+        // Check if slideshow exists in currentSectionsConfig
+        if (currentSectionsConfig.slideshow) {
+            html += `
+                <div class="sidebar-subsection collapsible-parent" data-block-type="slideshow" data-element-id="slideshow">
+                    <span class="subsection-text" data-i18n="sections.slideshow">Presentación de diapositivas</span>
+                    <div class="subsection-actions">
+                        <button class="action-icon visibility-toggle ${currentSectionsConfig.slideshow.isHidden ? 'is-hidden' : ''}" data-section="slideshow" title="Toggle visibility">
+                            <i class="material-icons icon-visible">visibility</i>
+                            <i class="material-icons icon-hidden">visibility_off</i>
+                        </button>
+                        <button class="action-icon add-icon" data-section="slideshow" title="Add slide">
+                            <i class="material-icons">add</i>
+                        </button>
+                        <button class="action-icon config-icon" data-section="slideshow" title="Configure">
+                            <i class="material-icons">settings</i>
+                        </button>
+                        <button class="action-icon delete-section" data-section="slideshow" title="Delete">
+                            <i class="material-icons">delete</i>
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            // Render existing slides if any
+            if (currentSectionsConfig.slideshow.slides && currentSectionsConfig.slideshow.slideOrder && currentSectionsConfig.slideshow.slideOrder.length > 0) {
+                html += '<div id="slideshow-slides-wrapper" style="position: relative;">';
+                currentSectionsConfig.slideshow.slideOrder.forEach((slideId, index) => {
+                    const slide = currentSectionsConfig.slideshow.slides[slideId];
+                    if (slide) {
+                        const slideNumber = index + 1;
+                        html += `
+                            <div class="sidebar-subsection slideshow-slide-item" data-block-type="slideshow-slide" data-element-id="${slideId}" style="padding-left: 30px; cursor: move;">
+                                <span class="subsection-text">${slide.title || translations[currentLanguage]['slideshow.slideTitle'] || 'Diapositiva'} ${slideNumber}</span>
+                                <div class="subsection-actions">
+                                    <button class="action-icon visibility-toggle ${slide.isHidden ? 'is-hidden' : ''}" data-slide-id="${slideId}" title="Toggle visibility">
+                                        <i class="material-icons icon-visible">visibility</i>
+                                        <i class="material-icons icon-hidden">visibility_off</i>
+                                    </button>
+                                    <button class="action-icon config-icon" data-slide-id="${slideId}" title="Configure">
+                                        <i class="material-icons">settings</i>
+                                    </button>
+                                    <button class="action-icon delete-slide" data-slide-id="${slideId}" title="Delete">
+                                        <i class="material-icons">delete</i>
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                    }
+                });
+                html += '</div>';
+            }
+        }
+        
+        return html;
+    }
+    
     // Function to render block list view - Shopify style
     function renderBlockListView(pageData) {
         const pageName = pageData.name || '';
@@ -2344,11 +4774,13 @@ $(document).ready(async function() {
                     </div>
                     <i class="material-icons section-expand-icon">chevron_right</i>
                 </div>
-                <div class="sidebar-section-content">
+                <div class="sidebar-section-content" id="header-sections-container">
                     ${renderHeaderSections()}
-                    <div class="add-section-button add-header-section" data-group="header">
-                        <i class="material-icons">add_circle</i>
-                        <span data-i18n="sections.addSection">Agregar sección</span>
+                    <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e3e3e3;">
+                        <div class="add-section-button add-header-section" data-group="header">
+                            <i class="material-icons">add_circle</i>
+                            <span data-i18n="sections.addHeaderSection">Agregar sección de encabezado</span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -2357,55 +4789,23 @@ $(document).ready(async function() {
             <div class="sidebar-section expanded">
                 <div class="sidebar-section-header">
                     <div class="section-title-wrapper">
-                        <div class="section-icon">
-                            <i class="material-icons">dashboard</i>
-                        </div>
                         <span class="section-title" data-i18n="sections.template">Plantilla</span>
                     </div>
                     <i class="material-icons section-expand-icon">chevron_right</i>
                 </div>
-                <div class="sidebar-section-content">
-                    <div class="sidebar-subsection" data-block-type="slideshow">
-                        <i class="material-icons" style="font-size: 16px;">view_carousel</i>
-                        <span data-i18n="sections.slideshow">Presentación de diapositivas</span>
-                    </div>
-                    <div class="sidebar-subsection" data-block-type="multicolumn">
-                        <i class="material-icons" style="font-size: 16px;">view_week</i>
-                        <span data-i18n="sections.multirow">Varias filas</span>
-                    </div>
-                    <div class="sidebar-subsection" data-block-type="multicolumn">
-                        <i class="material-icons" style="font-size: 16px;">view_module</i>
-                        <span data-i18n="sections.multicolumn">Multicolumna</span>
-                    </div>
-                    <div class="sidebar-subsection" data-block-type="image-text">
-                        <i class="material-icons" style="font-size: 16px;">image</i>
-                        <span data-i18n="sections.imageWithText">Imagen con texto</span>
-                    </div>
-                    <div class="sidebar-subsection" data-block-type="liquid">
-                        <i class="material-icons" style="font-size: 16px;">code</i>
-                        <span data-i18n="sections.customLiquid">Líquido personalizado</span>
-                    </div>
-                    <div class="sidebar-subsection" data-block-type="image-text-2">
-                        <i class="material-icons" style="font-size: 16px;">image</i>
-                        <span data-i18n="sections.imageWithText">Imagen con texto</span>
-                    </div>
-                    <div class="sidebar-subsection" data-block-type="collapsible">
-                        <i class="material-icons" style="font-size: 16px;">expand_more</i>
-                        <span data-i18n="sections.collapsibleContent">Contenido desplegable</span>
-                    </div>
-                    <div class="sidebar-subsection" data-block-type="contact">
-                        <i class="material-icons" style="font-size: 16px;">mail</i>
-                        <span data-i18n="sections.contactForm">Formulario de contacto</span>
-                    </div>
-                    <div class="add-section-button" id="add-section-btn">
-                        <i class="material-icons" style="font-size: 18px;">add</i>
-                        <span data-i18n="sections.addSection">Agregar sección</span>
+                <div class="sidebar-section-content" id="template-sections-container">
+                    ${renderTemplateSections()}
+                    <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e3e3e3;">
+                        <div class="add-section-button add-template-section" data-group="template">
+                            <i class="material-icons">add_circle</i>
+                            <span data-i18n="sections.addTemplateSection">Agregar sección de plantilla</span>
+                        </div>
                     </div>
                 </div>
             </div>
             
             <!-- Footer Section -->
-            <div class="sidebar-section">
+            <div class="sidebar-section expanded">
                 <div class="sidebar-section-header">
                     <div class="section-title-wrapper">
                         <span class="section-title" data-i18n="sections.footer">Pie de página</span>
@@ -2416,6 +4816,12 @@ $(document).ready(async function() {
                     <div class="sidebar-subsection" data-block-type="footer">
                         <i class="material-icons" style="font-size: 16px;">view_day</i>
                         <span data-i18n="sections.footerSection">Pie de página</span>
+                    </div>
+                    <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e3e3e3;">
+                        <div class="add-section-button add-footer-section" data-group="footer">
+                            <i class="material-icons">add_circle</i>
+                            <span data-i18n="sections.addFooterSection">Agregar sección de pie de página</span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -2605,6 +5011,31 @@ $(document).ready(async function() {
         `;
     }
     
+    // Function to render menu options for header settings
+    function renderMenuOptions() {
+        let options = '';
+        const currentMenuId = currentSectionsConfig.header?.navigationMenuId || 'main-menu';
+        
+        console.log('[DEBUG] renderMenuOptions - currentMenusData:', currentMenusData);
+        console.log('[DEBUG] renderMenuOptions - currentMenuId:', currentMenuId);
+        
+        if (currentMenusData && currentMenusData.length > 0) {
+            currentMenusData.forEach(menu => {
+                const selected = menu.id === currentMenuId ? 'selected' : '';
+                options += `<option value="${menu.id}" ${selected}>${menu.name}</option>`;
+            });
+        } else {
+            // Default options if no menus loaded
+            console.log('[DEBUG] No menus loaded, using default options');
+            options = `
+                <option value="main-menu" ${currentMenuId === 'main-menu' ? 'selected' : ''}>Main menu</option>
+                <option value="footer-menu" ${currentMenuId === 'footer-menu' ? 'selected' : ''}>Footer menu</option>
+            `;
+        }
+        
+        return options;
+    }
+
     // Function to render header settings view
     function renderHeaderSettingsView() {
         return `
@@ -2670,6 +5101,18 @@ $(document).ready(async function() {
                         </label>
                     </div>
                     
+                    <!-- Header Height -->
+                    <div class="settings-field">
+                        <label data-i18n="headerSettings.headerHeight">Altura del encabezado</label>
+                        <div class="range-with-inputs">
+                            <input type="range" class="shopify-range" min="50" max="200" value="80" id="header-height">
+                            <div class="range-inputs">
+                                <input type="number" class="shopify-number-input" value="80" min="50" max="200" id="header-height-value">
+                                <span class="unit">px</span>
+                            </div>
+                        </div>
+                    </div>
+                    
                     <!-- Enable sticky header -->
                     <div class="settings-field">
                         <label class="toggle-field">
@@ -2704,8 +5147,7 @@ $(document).ready(async function() {
                         <div class="settings-field">
                             <label data-i18n="headerSettings.chooseNavigationMenu">Choose navigation menu</label>
                             <select class="shopify-select" id="navigation-menu">
-                                <option value="main-menu" selected data-i18n="headerSettings.mainMenu">Main menu</option>
-                                <option value="footer-menu" data-i18n="headerSettings.footerMenu">Footer menu</option>
+                                ${renderMenuOptions()}
                             </select>
                         </div>
                     </div>
@@ -2832,6 +5274,685 @@ $(document).ready(async function() {
                 </div>
             </div>
         `;
+    }
+    
+    // Function to render slideshow settings view
+    function renderSlideshowSettingsView() {
+        const config = currentSectionsConfig.slideshow?.config || {};
+        
+        return `
+            <div style="display: flex; flex-direction: column; height: 100%; position: relative;">
+                <div class="sidebar-view-header" style="position: relative; z-index: 10;">
+                    <button class="back-to-sections-btn">
+                        <i class="material-icons">arrow_back</i>
+                    </button>
+                    <h3 data-i18n="sections.slideshow">Presentación de diapositivas</h3>
+                </div>
+                
+                <!-- Settings Content -->
+                <div style="padding: 20px; overflow-y: auto; flex: 1;">
+                    <!-- Layout -->
+                    <div class="settings-field">
+                        <label data-i18n="slideshow.layout">Diseño</label>
+                        <select id="slideshow-layout" class="shopify-select">
+                            <option value="fullWidth" ${config.layout === 'fullWidth' ? 'selected' : ''} data-i18n="slideshow.fullWidth">Ancho Completo</option>
+                            <option value="page" ${config.layout === 'page' ? 'selected' : ''} data-i18n="slideshow.page">Página</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Height -->
+                    <div class="settings-field">
+                        <label data-i18n="slideshow.height">Altura</label>
+                        <select id="slideshow-height" class="shopify-select">
+                            <option value="adaptToFirstImage" ${config.height === 'adaptToFirstImage' ? 'selected' : ''} data-i18n="slideshow.adaptToFirstImage">Adaptar a la Primera Imagen</option>
+                            <option value="small" ${config.height === 'small' ? 'selected' : ''} data-i18n="slideshow.small">Pequeña</option>
+                            <option value="medium" ${config.height === 'medium' ? 'selected' : ''} data-i18n="slideshow.medium">Mediana</option>
+                            <option value="large" ${config.height === 'large' ? 'selected' : ''} data-i18n="slideshow.large">Grande</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Autoplay -->
+                    <div class="settings-field">
+                        <label class="toggle-field">
+                            <span data-i18n="slideshow.autoplay">Reproducción automática</span>
+                            <input type="checkbox" class="shopify-toggle" id="slideshow-autoplay" ${config.autoplay ? 'checked' : ''}>
+                            <label for="slideshow-autoplay" class="toggle-slider"></label>
+                        </label>
+                    </div>
+                    
+                    <!-- Autoplay interval (only show if autoplay is enabled) -->
+                    <div class="settings-field" id="autoplay-interval-field" style="${config.autoplay ? '' : 'display: none;'}">
+                        <label data-i18n="slideshow.autoplayInterval">Intervalo entre diapositivas</label>
+                        <div class="shopify-slider-container">
+                            <input type="range" id="slideshow-autoplay-interval" min="3" max="10" value="${config.autoplayInterval || 5}" step="1" class="shopify-slider">
+                            <div class="shopify-value-box">
+                                <input type="number" id="slideshow-autoplay-interval-value" min="3" max="10" value="${config.autoplayInterval || 5}" class="shopify-value-input">
+                                <span class="shopify-unit">s</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Show navigation arrows -->
+                    <div class="settings-field">
+                        <label class="toggle-field">
+                            <span data-i18n="slideshow.showNavigationArrows">Mostrar flechas de navegación</span>
+                            <input type="checkbox" class="shopify-toggle" id="slideshow-navigation-arrows" ${config.showNavigationArrows ? 'checked' : ''}>
+                            <label for="slideshow-navigation-arrows" class="toggle-slider"></label>
+                        </label>
+                    </div>
+                    
+                    <!-- Show pagination -->
+                    <div class="settings-field">
+                        <label class="toggle-field">
+                            <span data-i18n="slideshow.showPagination">Mostrar paginación</span>
+                            <input type="checkbox" class="shopify-toggle" id="slideshow-pagination" ${config.showPagination ? 'checked' : ''}>
+                            <label for="slideshow-pagination" class="toggle-slider"></label>
+                        </label>
+                    </div>
+                    
+                    <!-- Pagination type (only show if pagination is enabled) -->
+                    <div class="settings-field" id="pagination-type-field" style="${config.showPagination ? '' : 'display: none;'}">
+                        <label data-i18n="slideshow.paginationType">Tipo de paginación</label>
+                        <select id="slideshow-pagination-type" class="shopify-select">
+                            <option value="dots" ${config.paginationType === 'dots' ? 'selected' : ''} data-i18n="slideshow.dots">Puntos</option>
+                            <option value="counter" ${config.paginationType === 'counter' ? 'selected' : ''} data-i18n="slideshow.counter">Contador</option>
+                            <option value="numbers" ${config.paginationType === 'numbers' ? 'selected' : ''} data-i18n="slideshow.numbers">Números</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Auto-rotate slides -->
+                    <div class="settings-field">
+                        <label class="toggle-field">
+                            <span data-i18n="slideshow.autoRotate">Rotar automáticamente</span>
+                            <input type="checkbox" class="shopify-toggle" id="slideshow-auto-rotate" ${config.autoRotate ? 'checked' : ''}>
+                            <label for="slideshow-auto-rotate" class="toggle-slider"></label>
+                        </label>
+                    </div>
+                    
+                    <!-- Change slides every (only show if auto-rotate is enabled) -->
+                    <div class="settings-field" id="change-slides-field" style="${config.autoRotate ? '' : 'display: none;'}">
+                        <label data-i18n="slideshow.changeSlidesEvery">Cambiar diapositivas cada</label>
+                        <div class="shopify-slider-container">
+                            <input type="range" id="slideshow-change-interval" min="3" max="10" value="${config.changeInterval || 5}" step="1" class="shopify-slider">
+                            <div class="shopify-value-box">
+                                <input type="number" id="slideshow-change-interval-value" min="3" max="10" value="${config.changeInterval || 5}" class="shopify-value-input">
+                                <span class="shopify-unit">s</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Animation -->
+                    <div class="settings-field">
+                        <label data-i18n="slideshow.animation">Animación</label>
+                        <select id="slideshow-animation" class="shopify-select">
+                            <option value="none" ${config.animation === 'none' ? 'selected' : ''} data-i18n="slideshow.animationNone">Ninguna</option>
+                            <option value="ambientMovement" ${config.animation === 'ambientMovement' ? 'selected' : ''} data-i18n="slideshow.ambientMovement">Movimiento de Ambientes</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Slides Section -->
+                    <div class="settings-section" style="margin-top: 30px;">
+                        <h4 data-i18n="slideshow.slides">Diapositivas</h4>
+                        
+                        <!-- Add slide button -->
+                        <button class="shopify-button add-slide-btn" style="margin-bottom: 16px;">
+                            <i class="material-icons" style="vertical-align: middle; margin-right: 4px; font-size: 18px;">add</i>
+                            <span data-i18n="slideshow.addSlide">Agregar diapositiva</span>
+                        </button>
+                        
+                        <!-- Slides list -->
+                        <div id="slideshow-slides-list" style="margin-bottom: 16px;">
+                            ${renderSlideshowSlides()}
+                        </div>
+                    </div>
+                    
+                    <!-- Paddings Section -->
+                    <div class="settings-section" style="margin-top: 30px;">
+                        <h4 data-i18n="slideshow.paddings">Paddings</h4>
+                        
+                        <!-- Add side paddings -->
+                        <div class="settings-field">
+                            <label class="toggle-field">
+                                <span data-i18n="slideshow.addSidePaddings">Add side paddings</span>
+                                <input type="checkbox" class="shopify-toggle" id="slideshow-add-side-paddings" ${config.addSidePaddings ? 'checked' : ''}>
+                                <label for="slideshow-add-side-paddings" class="toggle-slider"></label>
+                            </label>
+                        </div>
+                        
+                        <!-- Top padding -->
+                        <div class="settings-field">
+                            <label data-i18n="slideshow.topPadding">Top padding</label>
+                            <div class="shopify-slider-container">
+                                <input type="range" id="slideshow-top-padding" min="0" max="100" value="${config.topPadding || 38}" step="4" class="shopify-slider">
+                                <div class="shopify-value-box">
+                                    <input type="number" id="slideshow-top-padding-value" min="0" max="100" value="${config.topPadding || 38}" class="shopify-value-input">
+                                    <span class="shopify-unit">px</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Bottom padding -->
+                        <div class="settings-field">
+                            <label data-i18n="slideshow.bottomPadding">Bottom padding</label>
+                            <div class="shopify-slider-container">
+                                <input type="range" id="slideshow-bottom-padding" min="0" max="100" value="${config.bottomPadding || 48}" step="4" class="shopify-slider">
+                                <div class="shopify-value-box">
+                                    <input type="number" id="slideshow-bottom-padding-value" min="0" max="100" value="${config.bottomPadding || 48}" class="shopify-value-input">
+                                    <span class="shopify-unit">px</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    
+    // Function to render slideshow slides list
+    function renderSlideshowSlides() {
+        const slides = currentSectionsConfig.slideshow?.slides || {};
+        const slideOrder = currentSectionsConfig.slideshow?.slideOrder || [];
+        let html = '';
+        
+        if (slideOrder.length === 0) {
+            return '<p style="text-align: center; color: #8c9196; padding: 20px;" data-i18n="slideshow.noSlides">No hay diapositivas. Agrega una para comenzar.</p>';
+        }
+        
+        html = '<div id="slideshow-slides-sortable">';
+        slideOrder.forEach((slideId, index) => {
+            const slide = slides[slideId];
+            if (slide) {
+                html += `
+                    <div class="slide-item" data-slide-id="${slideId}" style="padding: 12px; border: 1px solid #e0e0e0; border-radius: 4px; margin-bottom: 8px; cursor: pointer; display: flex; align-items: center; justify-content: space-between; position: relative;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <i class="material-icons slide-drag-handle" style="color: #8c9196; cursor: move;">drag_indicator</i>
+                            <span>${slide.title || translations[currentLanguage]['slideshow.slideTitle'] || 'Diapositiva'} ${index + 1}</span>
+                        </div>
+                        <div class="slide-actions" style="display: flex; gap: 4px;">
+                            <button class="action-icon visibility-toggle ${slide.isHidden ? 'is-hidden' : ''}" data-slide-id="${slideId}" title="Toggle visibility" onclick="event.stopPropagation();">
+                                <i class="material-icons icon-visible">visibility</i>
+                                <i class="material-icons icon-hidden">visibility_off</i>
+                            </button>
+                            <button class="action-icon delete-slide" data-slide-id="${slideId}" title="Delete" onclick="event.stopPropagation();">
+                                <i class="material-icons">delete</i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }
+        });
+        html += '</div>';
+        
+        return html;
+    }
+    
+    // Function to render individual slide settings view
+    function renderSlideshowSlideSettingsView(data) {
+        const slideId = data?.slideId || 'slide-1';
+        const slide = currentSectionsConfig.slideshow?.slides?.[slideId] || {};
+        
+        return `
+            <div style="display: flex; flex-direction: column; height: 100%; position: relative;">
+                <div class="sidebar-view-header" data-slide-id="${slideId}" style="position: relative; z-index: 10; padding: 16px 20px;">
+                    <button class="back-to-sections-btn" style="margin-right: 12px;">
+                        <i class="material-icons">arrow_back</i>
+                    </button>
+                    <h3 style="margin: 0; display: inline-block;">${slide.title || translations[currentLanguage]['slideshow.slideTitle'] || 'Diapositiva'} ${slide.order || 1}</h3>
+                </div>
+                
+                <!-- Settings Content -->
+                <div style="padding: 20px; overflow-y: auto; flex: 1;">
+                    <!-- Desktop Image -->
+                    <div class="settings-field">
+                        <label data-i18n="slideshowSlide.desktopImage">Imagen de escritorio</label>
+                        <div class="image-upload-field desktop-image-upload" style="border: 2px dashed #e0e0e0; border-radius: 8px; padding: 20px; background: #fafafa;">
+                            <input type="file" id="desktop-slide-image-input" accept="image/*" style="display: none;">
+                            <div class="image-preview" style="position: relative; background: white; border-radius: 6px; overflow: hidden; height: 150px; margin-bottom: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                                ${slide.desktopImage ? 
+                                    `<img src="${slide.desktopImage}" alt="Desktop image" style="width: 100%; height: 100%; object-fit: cover;">` :
+                                    `<div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: #8c9196;">
+                                        <i class="material-symbols-outlined" style="font-size: 40px; margin-bottom: 8px;">image</i>
+                                        <span style="font-size: 13px;" data-i18n="slideshowSlide.noImageSelected">No image selected</span>
+                                    </div>`
+                                }
+                            </div>
+                            <div class="image-actions" style="display: flex; gap: 8px;">
+                                <button class="shopify-button select-slide-image-btn" data-image-type="desktop" style="flex: 1;">
+                                    <span data-i18n="slideshowSlide.selectImage">Select image</span>
+                                </button>
+                                ${slide.desktopImage ? 
+                                    `<button class="shopify-button secondary remove-slide-image-btn" data-image-type="desktop">
+                                        <span data-i18n="slideshowSlide.removeImage">Remove</span>
+                                    </button>` : ''
+                                }
+                            </div>
+                            <p style="font-size: 11px; color: #6d7175; margin: 8px 0 0 0; text-align: center;">
+                                <a href="#" style="color: #2c6ecb; text-decoration: none;" data-i18n="slideshowSlide.browseFreeImages">Browse free images</a>
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <!-- Mobile Image -->
+                    <div class="settings-field">
+                        <label data-i18n="slideshowSlide.mobileImage">Imagen móvil</label>
+                        <div class="image-upload-field mobile-image-upload" style="border: 2px dashed #e0e0e0; border-radius: 8px; padding: 20px; background: #fafafa;">
+                            <input type="file" id="mobile-slide-image-input" accept="image/*" style="display: none;">
+                            <div class="image-preview" style="position: relative; background: white; border-radius: 6px; overflow: hidden; height: 150px; margin-bottom: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                                ${slide.mobileImage ? 
+                                    `<img src="${slide.mobileImage}" alt="Mobile image" style="width: 100%; height: 100%; object-fit: cover;">` :
+                                    `<div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: #8c9196;">
+                                        <i class="material-symbols-outlined" style="font-size: 40px; margin-bottom: 8px;">phone_iphone</i>
+                                        <span style="font-size: 13px;" data-i18n="slideshowSlide.noImageSelected">No image selected</span>
+                                    </div>`
+                                }
+                            </div>
+                            <div class="image-actions" style="display: flex; gap: 8px;">
+                                <button class="shopify-button select-slide-image-btn" data-image-type="mobile" style="flex: 1;">
+                                    <span data-i18n="slideshowSlide.selectImage">Select image</span>
+                                </button>
+                                ${slide.mobileImage ? 
+                                    `<button class="shopify-button secondary remove-slide-image-btn" data-image-type="mobile">
+                                        <span data-i18n="slideshowSlide.removeImage">Remove</span>
+                                    </button>` : ''
+                                }
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Title -->
+                    <div class="settings-field">
+                        <label data-i18n="slideshowSlide.title">Título</label>
+                        <input type="text" class="shopify-input" id="slide-title" value="${slide.title || ''}" data-i18n-placeholder="slideshowSlide.titlePlaceholder" placeholder="Título de la diapositiva">
+                    </div>
+                    
+                    <!-- Title Size -->
+                    <div class="settings-field">
+                        <label data-i18n="slideshowSlide.titleSize">Tamaño del título</label>
+                        <select id="slide-title-size" class="shopify-select">
+                            <option value="pequeño" ${slide.titleSize === 'pequeño' ? 'selected' : ''} data-i18n="slideshowSlide.small">Pequeño</option>
+                            <option value="mediano" ${slide.titleSize === 'mediano' || !slide.titleSize ? 'selected' : ''} data-i18n="slideshowSlide.medium">Mediano</option>
+                            <option value="grande" ${slide.titleSize === 'grande' ? 'selected' : ''} data-i18n="slideshowSlide.large">Grande</option>
+                            <option value="extraGrande" ${slide.titleSize === 'extraGrande' ? 'selected' : ''} data-i18n="slideshowSlide.extraLarge">Extra Grande</option>
+                            <option value="superExtraGrande" ${slide.titleSize === 'superExtraGrande' ? 'selected' : ''} data-i18n="slideshowSlide.superExtraLarge">Super Extra Grande</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Subtitle -->
+                    <div class="settings-field">
+                        <label data-i18n="slideshowSlide.subtitle">Subtítulo</label>
+                        <textarea class="shopify-textarea" id="slide-subtitle" rows="3" data-i18n-placeholder="slideshowSlide.subtitlePlaceholder" placeholder="Texto descriptivo">${slide.subtitle || ''}</textarea>
+                    </div>
+                    
+                    <!-- Design Section -->
+                    <div class="settings-section" style="margin-top: 30px;">
+                        <h4 data-i18n="slideshowSlide.design">Diseño</h4>
+                        
+                        <!-- Container Toggle -->
+                        <div class="settings-field">
+                            <label class="toggle-field">
+                                <span data-i18n="slideshowSlide.container">Contenedor</span>
+                                <input type="checkbox" class="shopify-toggle" id="slide-container" ${slide.container || slide.container === undefined ? 'checked' : ''}>
+                                <label for="slide-container" class="toggle-slider"></label>
+                            </label>
+                        </div>
+                        
+                        <!-- Content Position -->
+                        <div class="settings-field">
+                            <label data-i18n="slideshowSlide.contentPosition">Posición de contenido</label>
+                            <select id="slide-content-position" class="shopify-select">
+                                <option value="arriba-izquierda" ${slide.contentPosition === 'arriba-izquierda' ? 'selected' : ''} data-i18n="slideshowSlide.topLeft">Arriba a la izquierda</option>
+                                <option value="arriba-centro" ${slide.contentPosition === 'arriba-centro' ? 'selected' : ''} data-i18n="slideshowSlide.topCenter">Arriba en el centro</option>
+                                <option value="arriba-derecha" ${slide.contentPosition === 'arriba-derecha' ? 'selected' : ''} data-i18n="slideshowSlide.topRight">Arriba a la derecha</option>
+                                <option value="centro-izquierda" ${slide.contentPosition === 'centro-izquierda' ? 'selected' : ''} data-i18n="slideshowSlide.centerLeft">Centrado a la izquierda</option>
+                                <option value="centro" ${slide.contentPosition === 'centro' ? 'selected' : ''} data-i18n="slideshowSlide.centerMiddle">Centrado en el medio</option>
+                                <option value="centro-derecha" ${slide.contentPosition === 'centro-derecha' ? 'selected' : ''} data-i18n="slideshowSlide.centerRight">Centrado a la derecha</option>
+                                <option value="abajo-izquierda" ${slide.contentPosition === 'abajo-izquierda' ? 'selected' : ''} data-i18n="slideshowSlide.bottomLeft">Abajo a la izquierda</option>
+                                <option value="abajo-centro" ${slide.contentPosition === 'abajo-centro' ? 'selected' : ''} data-i18n="slideshowSlide.bottomCenter">Abajo en el centro</option>
+                                <option value="abajo-derecha" ${slide.contentPosition === 'abajo-derecha' || !slide.contentPosition ? 'selected' : ''} data-i18n="slideshowSlide.bottomRight">Abajo a la derecha</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Content Alignment -->
+                        <div class="settings-field">
+                            <label data-i18n="slideshowSlide.contentAlignment">Alineación de contenido</label>
+                            <select id="slide-content-alignment" class="shopify-select">
+                                <option value="izquierda" ${slide.contentAlignment === 'izquierda' ? 'selected' : ''} data-i18n="slideshowSlide.alignLeft">Izquierda</option>
+                                <option value="centrado" ${slide.contentAlignment === 'centrado' || !slide.contentAlignment ? 'selected' : ''} data-i18n="slideshowSlide.alignCenter">Centrado</option>
+                                <option value="derecha" ${slide.contentAlignment === 'derecha' ? 'selected' : ''} data-i18n="slideshowSlide.alignRight">Derecha</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Mobile Content Alignment -->
+                        <div class="settings-field">
+                            <label data-i18n="slideshowSlide.mobileContentAlignment">Alineación del contenido en dispositivos móviles</label>
+                            <select id="slide-mobile-content-alignment" class="shopify-select">
+                                <option value="izquierda" ${slide.mobileContentAlignment === 'izquierda' ? 'selected' : ''} data-i18n="slideshowSlide.alignLeft">Izquierda</option>
+                                <option value="centrado" ${slide.mobileContentAlignment === 'centrado' || !slide.mobileContentAlignment ? 'selected' : ''} data-i18n="slideshowSlide.alignCenter">Centrado</option>
+                                <option value="derecha" ${slide.mobileContentAlignment === 'derecha' ? 'selected' : ''} data-i18n="slideshowSlide.alignRight">Derecha</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <!-- Button Text -->
+                    <div class="settings-field">
+                        <label data-i18n="slideshowSlide.buttonText">Texto del botón</label>
+                        <input type="text" class="shopify-input" id="slide-button-text" value="${slide.buttonText || ''}" data-i18n-placeholder="slideshowSlide.buttonTextPlaceholder" placeholder="Agregar un botón">
+                    </div>
+                    
+                    <!-- Button Link -->
+                    <div class="settings-field">
+                        <label data-i18n="slideshowSlide.buttonLink">Enlace del botón</label>
+                        <input type="text" class="shopify-input" id="slide-button-link" value="${slide.buttonLink || ''}" data-i18n-placeholder="slideshowSlide.buttonLinkPlaceholder" placeholder="Pegar un enlace o buscar">
+                    </div>
+                    
+                    <!-- Color Scheme -->
+                    <div class="settings-field">
+                        <label data-i18n="slideshowSlide.colorScheme">Esquema de color</label>
+                        <select class="shopify-select" id="slide-color-scheme">
+                            <option value="scheme1" ${slide.colorScheme === 'scheme1' ? 'selected' : ''}>Scheme 1</option>
+                            <option value="scheme2" ${slide.colorScheme === 'scheme2' ? 'selected' : ''}>Scheme 2</option>
+                            <option value="scheme3" ${slide.colorScheme === 'scheme3' ? 'selected' : ''}>Scheme 3</option>
+                            <option value="scheme4" ${slide.colorScheme === 'scheme4' ? 'selected' : ''}>Scheme 4</option>
+                            <option value="scheme5" ${slide.colorScheme === 'scheme5' ? 'selected' : ''}>Scheme 5</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Overlay Settings -->
+                    <div class="settings-section" style="margin-top: 30px;">
+                        <h4 data-i18n="slideshowSlide.overlay">Superposición</h4>
+                        
+                        <!-- Use overlay -->
+                        <div class="settings-field">
+                            <label class="toggle-field">
+                                <span data-i18n="slideshowSlide.useOverlay">Usar superposición</span>
+                                <input type="checkbox" class="shopify-toggle" id="slide-use-overlay" ${slide.useOverlay ? 'checked' : ''}>
+                                <label for="slide-use-overlay" class="toggle-slider"></label>
+                            </label>
+                        </div>
+                        
+                        <!-- Overlay opacity (only show if overlay is enabled) -->
+                        <div class="settings-field" id="overlay-opacity-field" style="${slide.useOverlay ? '' : 'display: none;'}">
+                            <label data-i18n="slideshowSlide.overlayOpacity">Opacidad de superposición</label>
+                            <div class="shopify-slider-container">
+                                <input type="range" id="slide-overlay-opacity" min="0" max="100" value="${(slide.overlayOpacity || 0.3) * 100}" step="5" class="shopify-slider">
+                                <div class="shopify-value-box">
+                                    <input type="number" id="slide-overlay-opacity-value" min="0" max="100" value="${(slide.overlayOpacity || 0.3) * 100}" class="shopify-value-input">
+                                    <span class="shopify-unit">%</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    
+    // Function to render menus list view (main view)
+    function renderMenusListView() {
+        return `
+            <div style="display: flex; flex-direction: column; height: 100%; position: relative;">
+                <div class="menus-list-header" style="display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; border-bottom: 1px solid #e3e3e3;">
+                    <h2 style="margin: 0; font-size: 20px; font-weight: 600; display: flex; align-items: center;">
+                        <i class="material-icons" style="margin-right: 8px;">menu</i>
+                        <span data-i18n="menus.title">Menús</span>
+                    </h2>
+                    <button class="shopify-button primary" id="create-menu-btn">
+                        <span data-i18n="menus.createMenu">Crear menú</span>
+                    </button>
+                </div>
+                
+                <!-- Menus List Content -->
+                <div class="menus-list-content" style="display: flex; flex: 1; overflow: hidden;">
+                    <!-- Left Column - Menu List -->
+                    <div class="menus-sidebar" style="width: 300px; border-right: 1px solid #e3e3e3; overflow-y: auto; background: #f6f6f7;">
+                        <div style="padding: 20px;">
+                            <div class="menu-dropdown-field" style="margin-bottom: 16px;">
+                                <label style="display: block; margin-bottom: 8px; font-size: 13px; color: #616161;" data-i18n="menus.menu">Menú</label>
+                                <select class="shopify-select" id="menu-selector" style="width: 100%;">
+                                    ${renderMenuOptions()}
+                                </select>
+                            </div>
+                            
+                            <div class="menu-list-items">
+                                ${renderMenusList()}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Right Column - Menu Details -->
+                    <div class="menu-details" style="flex: 1; padding: 20px; overflow-y: auto;">
+                        ${renderMenuDetails()}
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    
+    // Function to render menu options for dropdown
+    function renderMenuOptions() {
+        // TODO: Load actual menus from database
+        const menus = [
+            { id: 'main-menu', name: 'Main menu' },
+            { id: 'footer', name: 'Footer' },
+            { id: 'legal', name: 'Legal' }
+        ];
+        
+        return menus.map(menu => `
+            <option value="${menu.id}">${menu.name}</option>
+        `).join('');
+    }
+    
+    // Function to render menus list
+    function renderMenusList() {
+        // TODO: Load actual menus from database
+        const menus = [
+            { id: 'sales', name: 'Ventas' },
+            { id: 'faq', name: 'Preguntas Frecuentes' },
+            { id: 'main-menu', name: 'Main menu' },
+            { id: 'legal', name: 'Legal' },
+            { id: 'customer-account', name: 'Customer account main menu' },
+            { id: 'contact', name: 'Contacto' }
+        ];
+        
+        return menus.map(menu => `
+            <div class="menu-list-item" data-menu-id="${menu.id}" style="padding: 12px 16px; border-bottom: 1px solid #e3e3e3; cursor: pointer; transition: background 0.2s;">
+                <span style="font-size: 14px; color: #202223;">${menu.name}</span>
+            </div>
+        `).join('');
+    }
+    
+    // Function to render menu details
+    function renderMenuDetails() {
+        const currentMenu = getCurrentSelectedMenu();
+        
+        if (!currentMenu) {
+            return `
+                <div style="text-align: center; padding: 60px 20px; color: #8c9196;">
+                    <i class="material-icons" style="font-size: 48px; margin-bottom: 16px; color: #e0e0e0;">menu</i>
+                    <p data-i18n="menus.selectMenu">Selecciona un menú para ver sus detalles</p>
+                </div>
+            `;
+        }
+        
+        return `
+            <div>
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; margin-bottom: 8px; font-size: 14px; font-weight: 500;" data-i18n="menus.menuName">Nombre</label>
+                    <input type="text" class="shopify-input" id="menu-name-input" value="${currentMenu.name}" style="width: 100%; max-width: 400px;">
+                    <p style="margin-top: 4px; font-size: 12px; color: #8c9196;">
+                        <span data-i18n="menus.handle">Identificador:</span> <span id="menu-handle">${currentMenu.id}</span>
+                    </p>
+                </div>
+                
+                <div style="margin-bottom: 20px;">
+                    <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 16px;" data-i18n="menus.menuItems">Elementos del menú</h3>
+                    <div id="menu-items-container" style="border: 1px solid #e3e3e3; border-radius: 8px; min-height: 200px;">
+                        ${renderMenuItems(currentMenu.items || [])}
+                    </div>
+                </div>
+                
+                <div class="menu-actions" style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #e3e3e3;">
+                    <div style="display: flex; gap: 12px;">
+                        <a href="#" class="shopify-link" style="color: #2c6ecb;" data-i18n="menus.redirectUrl">Redireccionamientos de URL</a>
+                        <div style="flex: 1;"></div>
+                        <button class="shopify-button danger" id="delete-menu-btn">
+                            <i class="material-icons" style="vertical-align: middle; margin-right: 4px; font-size: 18px;">delete</i>
+                            <span data-i18n="menus.deleteMenu">Eliminar menú</span>
+                        </button>
+                        <button class="shopify-button" id="duplicate-menu-btn">
+                            <span data-i18n="menus.duplicate">Duplicar</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    
+    // Function to render menu items
+    function renderMenuItems(items) {
+        if (!items || items.length === 0) {
+            return `
+                <div style="padding: 40px; text-align: center; color: #8c9196;">
+                    <p data-i18n="menus.noItems">No hay elementos en este menú</p>
+                </div>
+            `;
+        }
+        
+        return items.map(item => `
+            <div class="menu-item-row" data-item-id="${item.id}" style="display: flex; align-items: center; padding: 12px 16px; border-bottom: 1px solid #e3e3e3;">
+                <i class="material-icons drag-handle" style="color: #8c9196; cursor: move; margin-right: 12px;">drag_indicator</i>
+                <div style="flex: 1;">
+                    <div style="font-size: 14px; color: #202223;">${item.label}</div>
+                    <div style="font-size: 12px; color: #8c9196; margin-top: 2px;">${item.url}</div>
+                </div>
+                <button class="btn-icon edit-menu-item" data-item-id="${item.id}" style="margin-left: 8px;">
+                    <i class="material-symbols-outlined">edit</i>
+                </button>
+                <button class="btn-icon delete-menu-item" data-item-id="${item.id}">
+                    <i class="material-symbols-outlined">delete</i>
+                </button>
+                <button class="btn-icon more-menu-item" data-item-id="${item.id}">
+                    <i class="material-symbols-outlined">more_horiz</i>
+                </button>
+            </div>
+        `).join('');
+    }
+    
+    // Function to get current selected menu
+    function getCurrentSelectedMenu() {
+        // TODO: Return actual selected menu
+        return {
+            id: 'main-menu',
+            name: 'Main menu',
+            items: [
+                { id: 'item-1', label: 'support@purrteam.com, +1 809-637-4142', url: '#' },
+                { id: 'item-2', label: 'F & Q', url: '/pages/faq' },
+                { id: 'item-3', label: 'Soluciones, Herramientas', url: '#' },
+                { id: 'item-4', label: 'Términos & Condiciones de Uso, Políticas de Privacidad, Políticas de Cookies', url: '#' },
+                { id: 'item-5', label: 'Shop, Orders', url: '#' }
+            ]
+        };
+    }
+    
+    // Function to render create menu view
+    function renderCreateMenuView() {
+        return `
+            <div style="display: flex; flex-direction: column; height: 100%; position: relative;">
+                <div class="create-menu-header" style="display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; border-bottom: 1px solid #e3e3e3; background: #f7f7f7;">
+                    <h2 style="margin: 0; font-size: 20px; font-weight: 600;">
+                        <i class="material-icons" style="vertical-align: middle; margin-right: 8px;">menu</i>
+                        <span data-i18n="menus.addMenu">Agregar menú</span>
+                    </h2>
+                    <div style="display: flex; gap: 12px;">
+                        <button class="shopify-button" id="cancel-create-menu-btn">
+                            <span data-i18n="common.cancel">Cancelar</span>
+                        </button>
+                        <button class="shopify-button primary" id="save-create-menu-btn">
+                            <span data-i18n="common.save">Guardar</span>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Create Menu Content -->
+                <div class="create-menu-content" style="padding: 30px; overflow-y: auto; flex: 1;">
+                    <div style="max-width: 600px;">
+                        <div style="margin-bottom: 24px;">
+                            <label style="display: block; margin-bottom: 8px; font-size: 14px; font-weight: 500;" data-i18n="menus.menuName">Nombre</label>
+                            <input type="text" class="shopify-input" id="new-menu-name" placeholder="p. ej., Menú de barra lateral" style="width: 100%;">
+                        </div>
+                        
+                        <div style="margin-bottom: 24px;">
+                            <p style="font-size: 12px; color: #8c9196; margin-bottom: 4px;">
+                                <span data-i18n="menus.handle">Identificador:</span> <span id="new-menu-handle"></span>
+                            </p>
+                        </div>
+                        
+                        <div style="background: #f6f6f7; padding: 24px; border-radius: 8px;">
+                            <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 16px;" data-i18n="menus.menuItems">Elementos del menú</h3>
+                            <div id="new-menu-items-container" style="min-height: 60px; margin-bottom: 16px;">
+                                <!-- Menu items will be added here -->
+                            </div>
+                            <button class="shopify-button" id="add-first-menu-item-btn">
+                                <i class="material-icons" style="vertical-align: middle; margin-right: 4px; font-size: 18px;">add_circle</i>
+                                <span data-i18n="menus.addMenuItem">Agregar elemento del menú</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    
+    // Function to render navigation items
+    function renderNavigationItems() {
+        if (!currentNavigationData || currentNavigationData.length === 0) {
+            return `
+                <div class="empty-navigation-message" style="text-align: center; padding: 40px 20px; color: #616161;">
+                    <i class="material-icons" style="font-size: 48px; color: #e0e0e0;">menu</i>
+                    <p data-i18n="navigation.noMenuItems">No hay elementos en el menú</p>
+                </div>
+            `;
+        }
+        
+        return currentNavigationData.map((item, index) => `
+            <div class="navigation-item" data-item-id="${item.id}">
+                <div class="navigation-item-content">
+                    <i class="material-icons drag-handle">drag_indicator</i>
+                    <span class="item-label">${item.label}</span>
+                    <div class="item-actions">
+                        <button class="action-icon edit-menu-item" data-item-id="${item.id}" title="Edit">
+                            <i class="material-icons">edit</i>
+                        </button>
+                        <button class="action-icon delete-menu-item" data-item-id="${item.id}" title="Delete">
+                            <i class="material-icons">delete</i>
+                        </button>
+                        ${item.children && item.children.length > 0 ? `
+                            <button class="action-icon expand-menu-item" data-item-id="${item.id}" title="Expand/Collapse">
+                                <i class="material-icons">expand_more</i>
+                            </button>
+                        ` : ''}
+                    </div>
+                </div>
+                ${item.children && item.children.length > 0 ? `
+                    <div class="navigation-subitems" style="display: none; margin-left: 40px;">
+                        ${item.children.map(subitem => `
+                            <div class="navigation-subitem" data-item-id="${subitem.id}">
+                                <i class="material-icons drag-handle">drag_indicator</i>
+                                <span class="item-label">${subitem.label}</span>
+                                <div class="item-actions">
+                                    <button class="action-icon edit-menu-item" data-item-id="${subitem.id}" title="Edit">
+                                        <i class="material-icons">edit</i>
+                                    </button>
+                                    <button class="action-icon delete-menu-item" data-item-id="${subitem.id}" title="Delete">
+                                        <i class="material-icons">delete</i>
+                                    </button>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                ` : ''}
+            </div>
+        `).join('');
     }
     
     // Function to render announcement item settings view
@@ -4823,8 +7944,8 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
             openAddSectionModal(group);
         });
         
-        // Subsection clicks
-        $('.sidebar-subsection').on('click', function(e) {
+        // Subsection clicks - Using event delegation for dynamic elements
+        $(document).on('click', '.sidebar-subsection', function(e) {
             // Don't trigger if clicking on action buttons
             if ($(e.target).closest('.subsection-actions').length) {
                 return;
@@ -4856,27 +7977,65 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                 const announcementId = $(this).data('announcement-id');
                 switchSidebarView('announcementItemSettings', { id: announcementId });
             }
-            // TODO: Handle other block types
+            // Handle slideshow click
+            else if (blockType === 'slideshow') {
+                switchSidebarView('slideshowSettings');
+            }
         });
         
         // Visibility toggle button - COMMENTED OUT TO AVOID DUPLICATE HANDLER
         // This handler is replaced by the unified one below
         
-        // Delete button for announcement
-        $(document).on('click', '.delete-icon', function(e) {
+        // Delete button for sections - use namespace to avoid duplicates
+        $(document).off('click.deleteSection').on('click.deleteSection', '.delete-icon, .delete-section', function(e) {
+            e.preventDefault();
             e.stopPropagation();
-            const section = $(this).data('section');
-            if (confirm(`¿Estás seguro de que quieres eliminar la ${section === 'announcement' ? 'barra de anuncios' : 'sección'}?`)) {
-                console.log(`Deleting ${section}`);
-                // TODO: Actually delete the section
-                $(this).closest('.sidebar-subsection').fadeOut(300, function() {
+            e.stopImmediatePropagation();
+            
+            const $button = $(this);
+            const section = $button.data('section');
+            
+            // Prevent multiple clicks
+            if ($button.data('deleting')) {
+                return false;
+            }
+            $button.data('deleting', true);
+            
+            const confirmMessage = section === 'announcement' 
+                ? translations[currentLanguage]['sections.confirmDeleteAnnouncement'] || '¿Estás seguro de que quieres eliminar la barra de anuncios?'
+                : translations[currentLanguage]['sections.confirmDelete'] || '¿Estás seguro de eliminar esta sección?';
+            
+            if (confirm(confirmMessage)) {
+                console.log(`[DEBUG] Deleting ${section}`);
+                
+                // Remove from configuration
+                if (section === 'slideshow' && currentSectionsConfig.slideshow) {
+                    delete currentSectionsConfig.slideshow;
+                    // Remove from section order
+                    const index = currentSectionsConfig.sectionOrder.indexOf('slideshow');
+                    if (index > -1) {
+                        currentSectionsConfig.sectionOrder.splice(index, 1);
+                    }
+                    // Also remove any slides wrapper
+                    $('#slideshow-slides-wrapper').remove();
+                }
+                
+                // Remove from DOM
+                $button.closest('.sidebar-subsection').fadeOut(300, function() {
                     $(this).remove();
-                    // Activar bandera de cambios pendientes
+                    // Set pending changes flag
                     hasPendingPageStructureChanges = true;
                     updateSaveButtonState();
+                    // Update preview
+                    renderPreview();
                     console.log('[DEBUG] Page structure changed - element deleted');
                 });
+            } else {
+                // Reset deleting flag if cancelled
+                $button.data('deleting', false);
             }
+            
+            return false;
         });
         
         // More options button
@@ -4966,6 +8125,164 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
             }, 100);
         });
         
+        // Add slide button - for slideshow from main view
+        $(document).off('click.addSlide').on('click.addSlide', '.add-icon[data-section="slideshow"]', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            console.log('Add slide clicked');
+            
+            // Initialize slides structure if needed
+            if (!currentSectionsConfig.slideshow) {
+                currentSectionsConfig.slideshow = {
+                    config: {},
+                    slides: {},
+                    slideOrder: []
+                };
+            }
+            if (!currentSectionsConfig.slideshow.slides) {
+                currentSectionsConfig.slideshow.slides = {};
+            }
+            if (!currentSectionsConfig.slideshow.slideOrder) {
+                currentSectionsConfig.slideshow.slideOrder = [];
+            }
+            
+            // Count existing slides
+            const slideCount = currentSectionsConfig.slideshow.slideOrder.length;
+            const slideNumber = slideCount + 1;
+            
+            // Create unique ID
+            const slideId = 'slide-' + Date.now();
+            const slideTitle = `${translations[currentLanguage]['slideshow.slideTitle'] || 'Diapositiva'} ${slideNumber}`;
+            
+            // Add new slide to configuration
+            currentSectionsConfig.slideshow.slides[slideId] = {
+                title: slideTitle,
+                titleSize: 'mediano',
+                subtitle: '',
+                container: true,
+                contentPosition: 'abajo-derecha',
+                contentAlignment: 'centrado',
+                mobileContentAlignment: 'centrado',
+                buttonText: '',
+                buttonLink: '',
+                desktopImage: '',
+                mobileImage: '',
+                colorScheme: 'scheme1',
+                useOverlay: false,
+                overlayOpacity: 0.3,
+                order: slideNumber,
+                isHidden: false
+            };
+            
+            // Add to slide order
+            currentSectionsConfig.slideshow.slideOrder.push(slideId);
+            
+            // Set pending changes flag
+            hasPendingPageStructureChanges = true;
+            updateSaveButtonState();
+            console.log('[DEBUG] Page structure changed - new slide added:', slideId);
+            
+            // Find the slideshow subsection
+            const $slideshowSection = $('.sidebar-subsection[data-element-id="slideshow"]');
+            
+            // Check if slides wrapper exists
+            let $slidesWrapper = $('#slideshow-slides-wrapper');
+            if ($slidesWrapper.length === 0) {
+                // Create wrapper if it doesn't exist
+                $slidesWrapper = $('<div id="slideshow-slides-wrapper" style="position: relative;"></div>');
+                $slideshowSection.after($slidesWrapper);
+            }
+            
+            // Create new slide element
+            const newSlide = $(`
+                <div class="sidebar-subsection slideshow-slide-item" data-block-type="slideshow-slide" data-element-id="${slideId}" style="padding-left: 30px; cursor: move;">
+                    <span class="subsection-text">${slideTitle}</span>
+                    <div class="subsection-actions">
+                        <button class="action-icon visibility-toggle" data-slide-id="${slideId}" title="Toggle visibility">
+                            <i class="material-icons icon-visible">visibility</i>
+                            <i class="material-icons icon-hidden">visibility_off</i>
+                        </button>
+                        <button class="action-icon config-icon" data-slide-id="${slideId}" title="Configure">
+                            <i class="material-icons">settings</i>
+                        </button>
+                        <button class="action-icon delete-slide" data-slide-id="${slideId}" title="Delete">
+                            <i class="material-icons">delete</i>
+                        </button>
+                    </div>
+                </div>
+            `);
+            
+            // Insert new slide at the end of the wrapper
+            $slidesWrapper.append(newSlide);
+            
+            // Initialize sortable for slides
+            setTimeout(() => {
+                initializeSlideshowSlidesSortable();
+            }, 100);
+        });
+        
+        // Click on slideshow slide to configure - BUT NOT when dragging
+        $(document).off('click.slideshowSlide').on('click.slideshowSlide', '.sidebar-subsection[data-block-type="slideshow-slide"]', function(e) {
+            const $target = $(e.target);
+            const isActionButton = $target.closest('.subsection-actions').length > 0;
+            const isDragHandle = $target.closest('.material-icons').length > 0 && $target.closest('.material-icons').text() === 'drag_indicator';
+            const isDragging = $(this).hasClass('ui-sortable-helper');
+            
+            // Don't open config when dragging or clicking drag handle
+            if (!isActionButton && !isDragHandle && !isDragging) {
+                e.preventDefault();
+                e.stopPropagation();
+                const slideId = $(this).data('element-id');
+                console.log('Navigate to slide config:', slideId);
+                window.switchSidebarView('slideshowSlideSettings', { slideId: slideId });
+            }
+        });
+        
+        // Configure button for slideshow slides
+        $(document).off('click.configSlide').on('click.configSlide', '.config-icon[data-slide-id]', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            const slideId = $(this).data('slide-id');
+            console.log('Configure slide:', slideId);
+            window.switchSidebarView('slideshowSlideSettings', { slideId: slideId });
+        });
+        
+        // Delete button for slideshow slides
+        $(document).off('click.deleteSlide').on('click.deleteSlide', '.delete-slide', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            e.stopImmediatePropagation();
+            
+            const slideId = $(this).data('slide-id');
+            const $slide = $(`.sidebar-subsection[data-element-id="${slideId}"]`);
+            
+            console.log('[DEBUG] Delete slide clicked for:', slideId);
+            
+            if (confirm(translations[currentLanguage]['slideshow.confirmDeleteSlide'] || '¿Estás seguro de eliminar esta diapositiva?')) {
+                $slide.fadeOut(300, function() {
+                    $(this).remove();
+                    
+                    // Remove from configuration
+                    if (currentSectionsConfig.slideshow && currentSectionsConfig.slideshow.slides) {
+                        delete currentSectionsConfig.slideshow.slides[slideId];
+                        // Remove from slide order
+                        const index = currentSectionsConfig.slideshow.slideOrder.indexOf(slideId);
+                        if (index > -1) {
+                            currentSectionsConfig.slideshow.slideOrder.splice(index, 1);
+                        }
+                    }
+                    
+                    // Set pending changes flag
+                    hasPendingPageStructureChanges = true;
+                    updateSaveButtonState();
+                    renderPreview();
+                    console.log('[DEBUG] Page structure changed - slide deleted:', slideId);
+                });
+            }
+            
+            return false;
+        });
         
         // Click on announcement bar to configure
         $(document).on('click', '.sidebar-subsection[data-element-id="barra-anuncios"]', function(e) {
@@ -5034,6 +8351,7 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
             
             return false; // Prevenir cualquier otro manejo del evento
         });
+        
         
         // Visibility toggle for all elements (except header toggles)
         $(document).on('click', '.visibility-toggle:not(.header-visibility-toggle)', function(e) {
@@ -5126,6 +8444,9 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
             } else if (section === 'header' || blockType === 'header') {
                 currentSectionsConfig.header.isHidden = newHiddenState;
                 console.log(`[DEBUG] Header saved as: ${newHiddenState ? 'hidden' : 'visible'}`);
+            } else if (section === 'slideshow' || blockType === 'slideshow') {
+                currentSectionsConfig.slideshow.isHidden = newHiddenState;
+                console.log(`[DEBUG] Slideshow saved as: ${newHiddenState ? 'hidden' : 'visible'}`);
             }
             
             // Activar bandera de cambios pendientes
@@ -5139,6 +8460,13 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
         
         // Initialize drag and drop directly
         initializeDragAndDropSimple();
+        
+        // Initialize sortable for slideshow slides if they exist
+        if (currentSectionsConfig.slideshow && currentSectionsConfig.slideshow.slideOrder && currentSectionsConfig.slideshow.slideOrder.length > 0) {
+            setTimeout(() => {
+                initializeSlideshowSlidesSortable();
+            }, 100);
+        }
         
         // Initialize visibility toggle states
         setTimeout(() => {
@@ -5166,6 +8494,8 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                     savedIsHidden = currentSectionsConfig.announcementBar.isHidden || false;
                 } else if (section === 'header' || blockType === 'header') {
                     savedIsHidden = currentSectionsConfig.header.isHidden || false;
+                } else if (section === 'slideshow' || blockType === 'slideshow') {
+                    savedIsHidden = currentSectionsConfig.slideshow?.isHidden || false;
                 }
                 
                 console.log('[DEBUG] Toggle initialized:', {
@@ -5269,6 +8599,73 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                 }
             }
         }, 100);
+        
+        // Handler for delete-section button
+        $(document).on('click', '.delete-section', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const section = $(this).data('section');
+            const $subsection = $(this).closest('.sidebar-subsection');
+            
+            if (confirm(translations[currentLanguage]['sections.confirmDelete'] || '¿Estás seguro de eliminar esta sección?')) {
+                // Handle slideshow deletion
+                if (section === 'slideshow') {
+                    delete currentSectionsConfig.slideshow;
+                    
+                    // Remove from section order
+                    if (currentSectionsConfig.sectionOrder) {
+                        const index = currentSectionsConfig.sectionOrder.indexOf('slideshow');
+                        if (index > -1) {
+                            currentSectionsConfig.sectionOrder.splice(index, 1);
+                        }
+                    }
+                    
+                    // Update all main sections
+                    const mainSectionsHtml = renderAllMainSections();
+                    $('#main-sections-container').html(mainSectionsHtml + `
+                        <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e3e3e3;">
+                            <div class="add-section-button add-header-section" data-group="header" style="margin-bottom: 8px;">
+                                <i class="material-icons">add_circle</i>
+                                <span data-i18n="sections.addHeaderSection">Agregar sección de encabezado</span>
+                            </div>
+                            <div class="add-section-button add-template-section" data-group="template">
+                                <i class="material-icons">add_circle</i>
+                                <span data-i18n="sections.addTemplateSection">Agregar sección de plantilla</span>
+                            </div>
+                        </div>
+                    `);
+                    
+                    // Apply translations
+                    setTimeout(applyTranslations, 0);
+                    
+                    // Set pending changes flag
+                    hasPendingPageStructureChanges = true;
+                    updateSaveButtonState();
+                    
+                    // Reinitialize drag and drop
+                    setTimeout(() => {
+                        initializeDragAndDropSimple();
+                    }, 100);
+                    
+                    // Update preview
+                    renderPreview();
+                }
+            }
+        });
+        
+        // Handler for config-icon button (settings)
+        $(document).on('click', '.config-icon', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const section = $(this).data('section');
+            
+            // Handle slideshow config
+            if (section === 'slideshow') {
+                switchSidebarView('slideshowSettings');
+            }
+        });
     }
     
     // Simple drag and drop initialization that works immediately
@@ -5306,9 +8703,9 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                     $container.sortable('destroy');
                 }
                 
-                // Main sortable for announcement bar and header only
+                // Main sortable for announcement bar, header, and slideshow
                 $container.sortable({
-                    items: '.sidebar-subsection[data-block-type="announcement"], .sidebar-subsection[data-block-type="header"]',
+                    items: '.sidebar-subsection[data-block-type="announcement"], .sidebar-subsection[data-block-type="header"], .sidebar-subsection[data-block-type="slideshow"]',
                     handle: '.drag-handle',
                     axis: 'y',
                     tolerance: 'pointer',
@@ -5362,8 +8759,8 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                             const $this = $(this);
                             const blockType = $this.data('block-type');
                             
-                            // Solo agregar announcement y header al orden principal
-                            if ((blockType === 'announcement' || blockType === 'header') && !newOrder.includes(blockType)) {
+                            // Agregar announcement, header, y slideshow al orden principal
+                            if ((blockType === 'announcement' || blockType === 'header' || blockType === 'slideshow') && !newOrder.includes(blockType)) {
                                 newOrder.push(blockType);
                             }
                         });
@@ -5568,6 +8965,10 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                 'max-height': 'calc(100% - 73px)'
             });
             
+            // Debug: Check if slideshow section exists
+            console.log('[DEBUG] Slideshow section found:', $('.section-item[data-section-id="slideshow"]').length);
+            console.log('[DEBUG] Total sections found:', $('.section-item').length);
+            
             // Attach modal event handlers after translations are applied
             attachAddSectionModalHandlers();
         }, 50);
@@ -5575,6 +8976,9 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
     
     // Function to attach event handlers for add section modal
     function attachAddSectionModalHandlers() {
+        console.log('[DEBUG] Attaching modal handlers');
+        console.log('[DEBUG] Section items found:', $('.add-section-modal .section-item').length);
+        
         // Close modal with cancel button or overlay click
         $('.cancel-button, .add-section-overlay').on('click', function(e) {
             if (e.target === this || $(e.target).hasClass('cancel-button')) {
@@ -5584,9 +8988,12 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
             }
         });
         
-        // Prevent modal close when clicking inside
+        // Prevent modal close when clicking inside - but allow clicks on section items to bubble up
         $('.add-section-modal').on('click', function(e) {
-            e.stopPropagation();
+            // Check if the click is on a section-item or its children
+            if (!$(e.target).closest('.section-item').length) {
+                e.stopPropagation();
+            }
         });
         
         // Search functionality
@@ -5598,24 +9005,8 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
             });
         });
         
-        // Event handlers are now attached globally in the main initialization
-        // This prevents duplicate handlers and ensures they work properly
-        
-        // Add section on click
-        $('body').on('click', '.add-section-modal .section-item', function() {
-            const sectionId = $(this).data('section-id');
-            const sectionName = $(this).find('span').text();
-            
-            // Add section to page
-            console.log('Adding section:', sectionId, sectionName);
-            
-            // Close modal
-            $('.add-section-overlay').fadeOut(200, function() {
-                $(this).remove();
-            });
-            
-            // TODO: Actually add the section to the page
-        });
+        // Note: Click handler for section items is now handled globally in the main initialization
+        // This prevents issues with duplicate handlers and ensures it works for dynamic content
     }
     
     // Function to update section preview
@@ -5865,7 +9256,7 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                     </div>
                 </div>
             `,
-            'slideshow': '<div class="section-preview-image"><img src="/images/slideshow-preview.png" alt="Slideshow"></div>',
+            'slideshow': '<div class="section-preview-image"><img src="/TestImages/slideshowpreview.png" alt="Slideshow"></div>',
             // Add more previews as needed
         };
         
@@ -5958,6 +9349,98 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
         }
     });
     
+    // Global click handler for section items - This will work for all dynamically created modals
+    $(document).on('click', '.add-section-modal .section-item', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        const sectionId = $(this).data('section-id');
+        const sectionName = $(this).find('span').text();
+        const group = $('.add-section-button.active').data('group') || 'template';
+        
+        console.log('[DEBUG] Section item clicked (global handler)');
+        console.log('Adding section:', sectionId, 'to group:', group);
+        
+        // Handle template sections (slideshow for now)
+        if (group === 'template' && sectionId === 'slideshow') {
+            // Initialize slideshow configuration if it doesn't exist
+            if (!currentSectionsConfig.slideshow) {
+                currentSectionsConfig.slideshow = {
+                    id: 'slideshow',
+                    isHidden: false,
+                    config: {
+                        layout: 'fullWidth',
+                        height: 'adaptToFirstImage',
+                        autoplay: false,
+                        autoplayInterval: 5,
+                        showNavigationArrows: true,
+                        showPagination: true,
+                        paginationType: 'dots',
+                        transitionEffect: 'slide',
+                        animation: 'none'
+                    },
+                    slides: {},
+                    slideOrder: []
+                };
+                
+                // Add slideshow to section order if not already present
+                if (!currentSectionsConfig.sectionOrder) {
+                    currentSectionsConfig.sectionOrder = [];
+                }
+                if (!currentSectionsConfig.sectionOrder.includes('slideshow')) {
+                    const headerIndex = currentSectionsConfig.sectionOrder.indexOf('header');
+                    if (headerIndex >= 0) {
+                        currentSectionsConfig.sectionOrder.splice(headerIndex + 1, 0, 'slideshow');
+                    } else {
+                        currentSectionsConfig.sectionOrder.push('slideshow');
+                    }
+                }
+                
+                // Update template sections only
+                const templateSectionsHtml = renderTemplateSections();
+                $('#template-sections-container').html(templateSectionsHtml + `
+                    <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e3e3e3;">
+                        <div class="add-section-button add-template-section" data-group="template">
+                            <i class="material-icons">add_circle</i>
+                            <span data-i18n="sections.addTemplateSection">Agregar sección de plantilla</span>
+                        </div>
+                    </div>
+                `);
+                
+                // Apply translations
+                setTimeout(applyTranslations, 0);
+                
+                // Initialize sortable for slides if slideshow exists
+                if (currentSectionsConfig.slideshow && currentSectionsConfig.slideshow.slideOrder && currentSectionsConfig.slideshow.slideOrder.length > 0) {
+                    setTimeout(() => {
+                        initializeSlideshowSlidesSortable();
+                    }, 100);
+                }
+                
+                // Set pending changes flag
+                hasPendingPageStructureChanges = true;
+                updateSaveButtonState();
+                
+                // Reinitialize drag and drop
+                setTimeout(() => {
+                    initializeDragAndDropSimple();
+                }, 100);
+                
+                // Render preview
+                renderPreview();
+                
+                console.log('[DEBUG] Slideshow added successfully');
+            }
+        }
+        
+        // Close modal
+        console.log('[DEBUG] Closing add section modal');
+        $('.add-section-overlay').fadeOut(200, function() {
+            console.log('[DEBUG] Modal closed and removed');
+            $(this).remove();
+        });
+    });
+    
     
     // Listen for language changes from the main layout
     document.addEventListener('languageChanged', function(e) {
@@ -5993,14 +9476,21 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
     
     // Topbar navigation icon clicks
     $('.topbar-nav-icon').on('click', function() {
-        $('.topbar-nav-icon').removeClass('active');
-        $(this).addClass('active');
-        
         const view = $(this).data('view');
-        if (view === 'sections') {
-            switchSidebarView('blockList', currentPageData);
-        } else if (view === 'settings') {
-            switchSidebarView('themeSettingsView');
+        
+        if (view === 'menus') {
+            // Don't change active state for menus - open modal instead
+            openMenuFullscreenModal();
+        } else {
+            // Change active state for other views
+            $('.topbar-nav-icon').removeClass('active');
+            $(this).addClass('active');
+            
+            if (view === 'sections') {
+                switchSidebarView('blockList', currentPageData);
+            } else if (view === 'settings') {
+                switchSidebarView('themeSettingsView');
+            }
         }
     });
     
@@ -8763,11 +12253,13 @@ document.head.appendChild(style);
         $('.font-search-input[data-font-type="menu"]').on('change', function() {
             currentGlobalThemeSettings.typography.menu.font = $(this).data('font-value') || $(this).val();
             handleGlobalSettingChange('typography.menu.font', currentGlobalThemeSettings.typography.menu.font);
+            renderPreview(); // Re-render to apply menu font changes
         });
         
         $('#menuUppercase').on('change', function() {
             currentGlobalThemeSettings.typography.menu.uppercase = $(this).is(':checked');
             handleGlobalSettingChange('typography.menu.uppercase', currentGlobalThemeSettings.typography.menu.uppercase);
+            renderPreview(); // Re-render to apply uppercase changes
         });
         
         $('#menuFontSize, #menuFontSizeValue').on('input change', function() {
@@ -8776,6 +12268,7 @@ document.head.appendChild(style);
             $('#menuFontSizeValue').val(value);
             currentGlobalThemeSettings.typography.menu.fontSize = value;
             handleGlobalSettingChange('typography.menu.fontSize', value);
+            renderPreview(); // Re-render to apply font size changes
         });
         
         $('#menuLetterSpacing, #menuLetterSpacingValue').on('input change', function() {
@@ -8784,6 +12277,7 @@ document.head.appendChild(style);
             $('#menuLetterSpacingValue').val(value);
             currentGlobalThemeSettings.typography.menu.letterSpacing = parseFloat(value);
             handleGlobalSettingChange('typography.menu.letterSpacing', value);
+            renderPreview(); // Re-render to apply letter spacing changes
         });
         
         // Product typography
@@ -9739,6 +13233,28 @@ document.head.appendChild(style);
         });
     }
     
+    // Function to update navigation menu select with current menus
+    function updateNavigationMenuSelect() {
+        const $select = $('#navigation-menu');
+        if ($select.length === 0) return;
+        
+        console.log('[DEBUG] Updating navigation menu select');
+        
+        // Clear current options
+        $select.empty();
+        
+        // Add options from current menus data
+        if (currentMenusData && currentMenusData.length > 0) {
+            currentMenusData.forEach(menu => {
+                $select.append(`<option value="${menu.id}">${menu.name}</option>`);
+            });
+        } else {
+            // Add default options
+            $select.append('<option value="main-menu">Main menu</option>');
+            $select.append('<option value="footer-menu">Footer menu</option>');
+        }
+    }
+    
     // Function to populate header settings fields with current values
     function populateHeaderSettingsFields() {
         const config = currentSectionsConfig.header;
@@ -9746,6 +13262,8 @@ document.head.appendChild(style);
         $('#header-width').val(config.width);
         $('#header-layout').val(config.layout);
         $('#show-separator').prop('checked', config.showDivider);
+        $('#header-height').val(config.headerHeight || 80);
+        $('#header-height-value').val(config.headerHeight || 80);
         $('#logo-alignment').val(config.logoAlignment);
         $('#menu-select').val(config.menu);
         $('#desktop-logo-size').val(config.desktopLogoSize);
@@ -9756,8 +13274,11 @@ document.head.appendChild(style);
         $('#icon-style').val(config.iconStyle);
         $('#cart-type-select').val(config.cartType);
         $('#enable-sticky').prop('checked', config.enableStickyHeader);
-        $('#open-menu-dropdown').val(config.openMenuDropdown);
-        $('#navigation-menu').val(config.navigationMenu);
+        $('#open-menu-dropdown').val(config.openMenuDropdown || 'hover');
+        
+        // Update navigation menu select with current menus
+        updateNavigationMenuSelect();
+        $('#navigation-menu').val(config.navigationMenuId || 'main-menu');
         
         // Load logos if they exist
         if (config.desktopLogoUrl) {
@@ -9832,6 +13353,48 @@ document.head.appendChild(style);
             hasPendingPageStructureChanges = true;
             updateSaveButtonState();
             console.log('[DEBUG] Header config changed - showDivider');
+        });
+        
+        // Header height
+        $('#header-height').on('input', function() {
+            const value = $(this).val();
+            currentSectionsConfig.header.headerHeight = parseInt(value);
+            $('#header-height-value').val(value);
+            hasPendingPageStructureChanges = true;
+            updateSaveButtonState();
+            console.log('[DEBUG] Header config changed - headerHeight:', value);
+            // Re-render to apply height changes
+            renderPreview();
+        });
+        
+        // Header height number input sync
+        $('#header-height-value').on('input', function() {
+            const value = $(this).val();
+            $('#header-height').val(value);
+            currentSectionsConfig.header.headerHeight = parseInt(value);
+            hasPendingPageStructureChanges = true;
+            updateSaveButtonState();
+            console.log('[DEBUG] Header config changed - headerHeight:', value);
+            // Re-render to apply height changes
+            renderPreview();
+        });
+        
+        // Navigation menu selection
+        $('#navigation-menu').on('change', function() {
+            currentSectionsConfig.header.navigationMenuId = $(this).val();
+            hasPendingPageStructureChanges = true;
+            updateSaveButtonState();
+            console.log('[DEBUG] Header config changed - navigationMenuId:', currentSectionsConfig.header.navigationMenuId);
+            // Re-render to show new menu items
+            renderPreview();
+        });
+        
+        // Open menu dropdown behavior
+        $('#open-menu-dropdown').on('change', function() {
+            currentSectionsConfig.header.openMenuDropdown = $(this).val();
+            hasPendingPageStructureChanges = true;
+            updateSaveButtonState();
+            console.log('[DEBUG] Header config changed - openMenuDropdown:', currentSectionsConfig.header.openMenuDropdown);
         });
         
         // Logo alignment
@@ -10011,9 +13574,17 @@ document.head.appendChild(style);
                         const result = await response.json();
                         currentSectionsConfig.header.desktopLogoUrl = result.logoUrl;
                         
-                        // Update preview
+                        // Update preview with high-quality image
                         $upload.find('.logo-placeholder').hide();
-                        $upload.find('.logo-image').attr('src', result.logoUrl).show();
+                        const $logoImage = $upload.find('.logo-image');
+                        $logoImage.attr('src', result.logoUrl)
+                            .css({
+                                'image-rendering': '-webkit-optimize-contrast',
+                                'image-rendering': 'crisp-edges',
+                                '-webkit-backface-visibility': 'hidden',
+                                'transform': 'translateZ(0)'
+                            })
+                            .show();
                         $upload.find('.select-logo-btn').html('<span data-i18n="headerSettings.changeImage">Change image</span>').prop('disabled', false);
                         
                         hasPendingPageStructureChanges = true;
@@ -10070,9 +13641,17 @@ document.head.appendChild(style);
                         const result = await response.json();
                         currentSectionsConfig.header.mobileLogoUrl = result.logoUrl;
                         
-                        // Update preview
+                        // Update preview with high-quality image
                         $upload.find('.logo-placeholder').hide();
-                        $upload.find('.logo-image').attr('src', result.logoUrl).show();
+                        const $logoImage = $upload.find('.logo-image');
+                        $logoImage.attr('src', result.logoUrl)
+                            .css({
+                                'image-rendering': '-webkit-optimize-contrast',
+                                'image-rendering': 'crisp-edges',
+                                '-webkit-backface-visibility': 'hidden',
+                                'transform': 'translateZ(0)'
+                            })
+                            .show();
                         $upload.find('.select-logo-btn').html('<span data-i18n="headerSettings.changeImage">Change image</span>').prop('disabled', false);
                         
                         hasPendingPageStructureChanges = true;
@@ -10133,6 +13712,1314 @@ document.head.appendChild(style);
         hasPendingPageStructureChanges = true;
         updateSaveButtonState();
     };
+    
+    // Function to open fullscreen menu modal
+    function openMenuFullscreenModal() {
+        console.log('[MENU] Opening fullscreen menu modal');
+        const modal = document.getElementById('menu-fullscreen-modal');
+        if (!modal) {
+            console.error('[MENU] Modal element not found');
+            return;
+        }
+        
+        // Show modal with fade-in effect
+        $(modal).fadeIn(300);
+        
+        // Load menu data
+        loadMenusData();
+        
+        // Apply translations
+        setTimeout(applyTranslations, 50);
+    }
+    
+    // Function to close fullscreen menu modal
+    function closeMenuFullscreenModal() {
+        console.log('[MENU] Closing fullscreen menu modal');
+        const modal = document.getElementById('menu-fullscreen-modal');
+        if (!modal) return;
+        
+        // Hide modal with fade-out effect
+        $(modal).fadeOut(300);
+    }
+    
+    // Function to initialize slideshow sortable
+    function initializeSlideshowSortable() {
+        const $sortableContainer = $('#slideshow-slides-sortable');
+        if ($sortableContainer.length === 0) return;
+        
+        // Destroy any existing sortable
+        if ($sortableContainer.data('ui-sortable')) {
+            $sortableContainer.sortable('destroy');
+        }
+        
+        // Initialize sortable
+        $sortableContainer.sortable({
+            items: '.slide-item',
+            handle: '.slide-drag-handle',
+            placeholder: 'slide-item-placeholder',
+            tolerance: 'pointer',
+            cursor: 'move',
+            start: function(e, ui) {
+                ui.placeholder.css({
+                    'height': ui.item.outerHeight(),
+                    'visibility': 'visible',
+                    'background': '#f0f0f0',
+                    'border': '1px dashed #999',
+                    'border-radius': '4px',
+                    'margin-bottom': '8px'
+                });
+            },
+            stop: function(e, ui) {
+                // Update slide order
+                const newOrder = [];
+                $('#slideshow-slides-sortable .slide-item').each(function() {
+                    const slideId = $(this).data('slide-id');
+                    newOrder.push(slideId);
+                });
+                
+                currentSectionsConfig.slideshow.slideOrder = newOrder;
+                
+                // Update slide indexes in display
+                $('#slideshow-slides-sortable .slide-item').each(function(index) {
+                    const slideId = $(this).data('slide-id');
+                    const slide = currentSectionsConfig.slideshow.slides[slideId];
+                    if (slide) {
+                        const displayTitle = slide.title || translations[currentLanguage]['slideshow.slideTitle'] || 'Diapositiva';
+                        $(this).find('span').text(`${displayTitle} ${index + 1}`);
+                    }
+                });
+                
+                hasPendingPageStructureChanges = true;
+                updateSaveButtonState();
+                renderPreview();
+            }
+        });
+    }
+    
+    // Function to initialize slideshow slides sortable
+    function initializeSlideshowSlidesSortable() {
+        const $wrapper = $('#slideshow-slides-wrapper');
+        if ($wrapper.length === 0) return;
+        
+        // Destroy any existing sortable
+        if ($wrapper.data('ui-sortable')) {
+            $wrapper.sortable('destroy');
+        }
+        
+        // Initialize sortable
+        $wrapper.sortable({
+            items: '.slideshow-slide-item',
+            handle: '.material-icons:contains("drag_indicator")',
+            axis: 'y',
+            placeholder: 'slide-item-placeholder',
+            tolerance: 'pointer',
+            cursor: 'move',
+            start: function(e, ui) {
+                ui.placeholder.css({
+                    'height': ui.item.outerHeight(),
+                    'visibility': 'visible',
+                    'background': '#f0f0f0',
+                    'border': '1px dashed #999',
+                    'border-radius': '4px',
+                    'margin-bottom': '4px',
+                    'margin-left': '30px'
+                });
+            },
+            stop: function(e, ui) {
+                // Update slide order
+                const newOrder = [];
+                $('#slideshow-slides-wrapper .slideshow-slide-item').each(function() {
+                    const slideId = $(this).attr('data-element-id');
+                    if (slideId) {
+                        newOrder.push(slideId);
+                    }
+                });
+                
+                currentSectionsConfig.slideshow.slideOrder = newOrder;
+                
+                // Update slide numbers in display
+                $('#slideshow-slides-wrapper .slideshow-slide-item').each(function(index) {
+                    const slideId = $(this).attr('data-element-id');
+                    const slide = currentSectionsConfig.slideshow.slides[slideId];
+                    if (slide) {
+                        const displayTitle = slide.title || translations[currentLanguage]['slideshow.slideTitle'] || 'Diapositiva';
+                        $(this).find('.subsection-text').text(`${displayTitle} ${index + 1}`);
+                    }
+                });
+                
+                hasPendingPageStructureChanges = true;
+                updateSaveButtonState();
+                renderPreview();
+            }
+        });
+    }
+    
+    // Function to load menus data
+    // Function to attach slideshow event listeners
+    function attachSlideshowEventListeners() {
+        // Back button
+        $('.back-to-sections-btn').on('click', function() {
+            window.switchSidebarView('blockList', window.getUpdatedPageData());
+        });
+        
+        
+        // Layout change
+        $('#slideshow-layout').on('change', function() {
+            currentSectionsConfig.slideshow.config.layout = $(this).val();
+            hasPendingPageStructureChanges = true;
+            updateSaveButtonState();
+            renderPreview();
+        });
+        
+        // Height change
+        $('#slideshow-height').on('change', function() {
+            currentSectionsConfig.slideshow.config.height = $(this).val();
+            hasPendingPageStructureChanges = true;
+            updateSaveButtonState();
+            renderPreview();
+        });
+        
+        // Autoplay toggle
+        $('#slideshow-autoplay').on('change', function() {
+            const isChecked = $(this).is(':checked');
+            currentSectionsConfig.slideshow.config.autoplay = isChecked;
+            $('#autoplay-interval-field').toggle(isChecked);
+            hasPendingPageStructureChanges = true;
+            updateSaveButtonState();
+        });
+        
+        // Autoplay interval slider
+        $('#slideshow-autoplay-interval').on('input', function() {
+            const value = $(this).val();
+            currentSectionsConfig.slideshow.config.autoplayInterval = parseInt(value);
+            $('#slideshow-autoplay-interval-value').val(value);
+            hasPendingPageStructureChanges = true;
+            updateSaveButtonState();
+        });
+        
+        // Autoplay interval number input
+        $('#slideshow-autoplay-interval-value').on('input', function() {
+            const value = $(this).val();
+            currentSectionsConfig.slideshow.config.autoplayInterval = parseInt(value);
+            $('#slideshow-autoplay-interval').val(value);
+            hasPendingPageStructureChanges = true;
+            updateSaveButtonState();
+        });
+        
+        // Navigation arrows toggle
+        $('#slideshow-navigation-arrows').on('change', function() {
+            currentSectionsConfig.slideshow.config.showNavigationArrows = $(this).is(':checked');
+            hasPendingPageStructureChanges = true;
+            updateSaveButtonState();
+            renderPreview();
+        });
+        
+        // Pagination toggle
+        $('#slideshow-pagination').on('change', function() {
+            const isChecked = $(this).is(':checked');
+            currentSectionsConfig.slideshow.config.showPagination = isChecked;
+            $('#pagination-type-field').toggle(isChecked);
+            hasPendingPageStructureChanges = true;
+            updateSaveButtonState();
+            renderPreview();
+        });
+        
+        // Pagination type
+        $('#slideshow-pagination-type').on('change', function() {
+            currentSectionsConfig.slideshow.config.paginationType = $(this).val();
+            hasPendingPageStructureChanges = true;
+            updateSaveButtonState();
+            renderPreview();
+        });
+        
+        // Animation type
+        $('#slideshow-animation').on('change', function() {
+            currentSectionsConfig.slideshow.config.animation = $(this).val();
+            hasPendingPageStructureChanges = true;
+            updateSaveButtonState();
+            renderPreview();
+        });
+        
+        // Auto-rotate toggle
+        $('#slideshow-auto-rotate').on('change', function() {
+            const isChecked = $(this).is(':checked');
+            currentSectionsConfig.slideshow.config.autoRotate = isChecked;
+            $('#change-slides-field').toggle(isChecked);
+            hasPendingPageStructureChanges = true;
+            updateSaveButtonState();
+        });
+        
+        // Change slides interval slider
+        $('#slideshow-change-interval').on('input', function() {
+            const value = $(this).val();
+            currentSectionsConfig.slideshow.config.changeInterval = parseInt(value);
+            $('#slideshow-change-interval-value').val(value);
+            hasPendingPageStructureChanges = true;
+            updateSaveButtonState();
+        });
+        
+        // Change slides interval number input
+        $('#slideshow-change-interval-value').on('input', function() {
+            const value = $(this).val();
+            currentSectionsConfig.slideshow.config.changeInterval = parseInt(value);
+            $('#slideshow-change-interval').val(value);
+            hasPendingPageStructureChanges = true;
+            updateSaveButtonState();
+        });
+        
+        // Add side paddings toggle
+        $('#slideshow-add-side-paddings').on('change', function() {
+            currentSectionsConfig.slideshow.config.addSidePaddings = $(this).is(':checked');
+            hasPendingPageStructureChanges = true;
+            updateSaveButtonState();
+        });
+        
+        // Top padding slider
+        $('#slideshow-top-padding').on('input', function() {
+            const value = $(this).val();
+            currentSectionsConfig.slideshow.config.topPadding = parseInt(value);
+            $('#slideshow-top-padding-value').val(value);
+            hasPendingPageStructureChanges = true;
+            updateSaveButtonState();
+            renderPreview();
+        });
+        
+        // Top padding number input
+        $('#slideshow-top-padding-value').on('input', function() {
+            const value = $(this).val();
+            currentSectionsConfig.slideshow.config.topPadding = parseInt(value);
+            $('#slideshow-top-padding').val(value);
+            hasPendingPageStructureChanges = true;
+            updateSaveButtonState();
+            renderPreview();
+        });
+        
+        // Bottom padding slider
+        $('#slideshow-bottom-padding').on('input', function() {
+            const value = $(this).val();
+            currentSectionsConfig.slideshow.config.bottomPadding = parseInt(value);
+            $('#slideshow-bottom-padding-value').val(value);
+            hasPendingPageStructureChanges = true;
+            updateSaveButtonState();
+            renderPreview();
+        });
+        
+        // Bottom padding number input
+        $('#slideshow-bottom-padding-value').on('input', function() {
+            const value = $(this).val();
+            currentSectionsConfig.slideshow.config.bottomPadding = parseInt(value);
+            $('#slideshow-bottom-padding').val(value);
+            hasPendingPageStructureChanges = true;
+            updateSaveButtonState();
+            renderPreview();
+        });
+        
+        // Add slide button
+        $('.add-slide-btn').on('click', function() {
+            const slideId = 'slide-' + Date.now();
+            const slideCount = Object.keys(currentSectionsConfig.slideshow.slides).length;
+            
+            currentSectionsConfig.slideshow.slides[slideId] = {
+                id: slideId,
+                order: slideCount + 1,
+                isHidden: false,
+                desktopImage: '',
+                mobileImage: '',
+                title: '',
+                titleSize: 'mediano',
+                subtitle: '',
+                container: true,
+                contentPosition: 'abajo-derecha',
+                contentAlignment: 'centrado',
+                mobileContentAlignment: 'centrado',
+                buttonText: '',
+                buttonLink: '',
+                colorScheme: 'scheme1',
+                useOverlay: false,
+                overlayOpacity: 0.3
+            };
+            
+            currentSectionsConfig.slideshow.slideOrder.push(slideId);
+            
+            // Re-render slides list
+            $('#slideshow-slides-list').html(renderSlideshowSlides());
+            
+            // Initialize sortable for slides
+            initializeSlideshowSortable();
+            
+            hasPendingPageStructureChanges = true;
+            updateSaveButtonState();
+        });
+        
+        // Slide item click - open slide settings (but not when dragging)
+        $(document).on('click', '.slide-item', function(e) {
+            // Don't open settings if clicking on actions or drag handle
+            if ($(e.target).closest('.slide-actions').length || 
+                $(e.target).hasClass('slide-drag-handle') ||
+                $(this).hasClass('ui-sortable-helper')) {
+                return;
+            }
+            const slideId = $(this).data('slide-id');
+            window.switchSidebarView('slideshowSlideSettings', { slideId: slideId });
+        });
+        
+        // Toggle slide visibility
+        $(document).on('click', '.slide-actions .visibility-toggle', function(e) {
+            e.stopPropagation();
+            const slideId = $(this).data('slide-id');
+            const $button = $(this);
+            
+            if (currentSectionsConfig.slideshow.slides[slideId]) {
+                // Toggle the visibility state
+                const isCurrentlyHidden = currentSectionsConfig.slideshow.slides[slideId].isHidden || false;
+                const newHiddenState = !isCurrentlyHidden;
+                
+                currentSectionsConfig.slideshow.slides[slideId].isHidden = newHiddenState;
+                
+                // Update button state
+                if (newHiddenState) {
+                    $button.addClass('is-hidden');
+                } else {
+                    $button.removeClass('is-hidden');
+                }
+                
+                hasPendingPageStructureChanges = true;
+                updateSaveButtonState();
+                renderPreview();
+                
+                console.log(`[DEBUG] Slide ${slideId} visibility toggled to: ${newHiddenState ? 'hidden' : 'visible'}`);
+            }
+        });
+        
+        // Delete slide
+        $(document).on('click', '.delete-slide', function(e) {
+            e.stopPropagation();
+            const slideId = $(this).data('slide-id');
+            
+            if (confirm(translations[currentLanguage]['slideshow.confirmDeleteSlide'] || '¿Estás seguro de eliminar esta diapositiva?')) {
+                delete currentSectionsConfig.slideshow.slides[slideId];
+                currentSectionsConfig.slideshow.slideOrder = currentSectionsConfig.slideshow.slideOrder.filter(id => id !== slideId);
+                
+                // Re-render slides list
+                $('#slideshow-slides-list').html(renderSlideshowSlides());
+                
+                // Re-initialize sortable
+                initializeSlideshowSortable();
+                
+                hasPendingPageStructureChanges = true;
+                updateSaveButtonState();
+                renderPreview();
+            }
+        });
+        
+        // Initialize sortable when the view loads
+        setTimeout(() => {
+            initializeSlideshowSortable();
+        }, 100);
+    }
+    
+    // Function to attach event listeners for individual slide settings
+    function attachSlideshowSlideEventListeners() {
+        const slideId = $('.sidebar-view-header').find('button.back-to-slideshow-settings-btn').parent().data('slide-id') || 
+                       currentSidebarView === 'slideshowSlideSettings' && window.currentSlideId;
+        
+        if (!slideId) {
+            console.error('[ERROR] No slide ID found for event listeners');
+            return;
+        }
+        
+        // Store current slide ID globally for reference
+        window.currentSlideId = slideId;
+        
+        // Back button - Go back to slideshow settings
+        $('.back-to-sections-btn').on('click', function() {
+            window.switchSidebarView('slideshowSettings');
+        });
+        
+        // Title change
+        $('#slide-title').on('input', function() {
+            const value = $(this).val();
+            if (currentSectionsConfig.slideshow.slides[slideId]) {
+                currentSectionsConfig.slideshow.slides[slideId].title = value;
+                hasPendingPageStructureChanges = true;
+                updateSaveButtonState();
+                // Update the slide name in the list without re-rendering everything
+                const slideIndex = currentSectionsConfig.slideshow.slideOrder.indexOf(slideId);
+                const displayTitle = value || translations[currentLanguage]['slideshow.slideTitle'] || 'Diapositiva';
+                $(`.sidebar-subsection[data-element-id="${slideId}"] .subsection-text`).text(`${displayTitle} ${slideIndex + 1}`);
+            }
+        });
+        
+        // Subtitle change
+        $('#slide-subtitle').on('input', function() {
+            const value = $(this).val();
+            if (currentSectionsConfig.slideshow.slides[slideId]) {
+                currentSectionsConfig.slideshow.slides[slideId].subtitle = value;
+                hasPendingPageStructureChanges = true;
+                updateSaveButtonState();
+                renderPreview();
+            }
+        });
+        
+        // Title size change
+        $('#slide-title-size').on('change', function() {
+            const value = $(this).val();
+            if (currentSectionsConfig.slideshow.slides[slideId]) {
+                currentSectionsConfig.slideshow.slides[slideId].titleSize = value;
+                hasPendingPageStructureChanges = true;
+                updateSaveButtonState();
+                renderPreview();
+            }
+        });
+        
+        // Container toggle
+        $('#slide-container').on('change', function() {
+            const isChecked = $(this).is(':checked');
+            if (currentSectionsConfig.slideshow.slides[slideId]) {
+                currentSectionsConfig.slideshow.slides[slideId].container = isChecked;
+                hasPendingPageStructureChanges = true;
+                updateSaveButtonState();
+                renderPreview();
+            }
+        });
+        
+        // Content position change
+        $('#slide-content-position').on('change', function() {
+            const value = $(this).val();
+            if (currentSectionsConfig.slideshow.slides[slideId]) {
+                currentSectionsConfig.slideshow.slides[slideId].contentPosition = value;
+                hasPendingPageStructureChanges = true;
+                updateSaveButtonState();
+                renderPreview();
+            }
+        });
+        
+        // Content alignment change
+        $('#slide-content-alignment').on('change', function() {
+            const value = $(this).val();
+            if (currentSectionsConfig.slideshow.slides[slideId]) {
+                currentSectionsConfig.slideshow.slides[slideId].contentAlignment = value;
+                hasPendingPageStructureChanges = true;
+                updateSaveButtonState();
+                renderPreview();
+            }
+        });
+        
+        // Mobile content alignment change
+        $('#slide-mobile-content-alignment').on('change', function() {
+            const value = $(this).val();
+            if (currentSectionsConfig.slideshow.slides[slideId]) {
+                currentSectionsConfig.slideshow.slides[slideId].mobileContentAlignment = value;
+                hasPendingPageStructureChanges = true;
+                updateSaveButtonState();
+                renderPreview();
+            }
+        });
+        
+        // Button text change
+        $('#slide-button-text').on('input', function() {
+            const value = $(this).val();
+            if (currentSectionsConfig.slideshow.slides[slideId]) {
+                currentSectionsConfig.slideshow.slides[slideId].buttonText = value;
+                hasPendingPageStructureChanges = true;
+                updateSaveButtonState();
+                renderPreview();
+            }
+        });
+        
+        // Button link change
+        $('#slide-button-link').on('input', function() {
+            const value = $(this).val();
+            if (currentSectionsConfig.slideshow.slides[slideId]) {
+                currentSectionsConfig.slideshow.slides[slideId].buttonLink = value;
+                hasPendingPageStructureChanges = true;
+                updateSaveButtonState();
+            }
+        });
+        
+        // Color scheme change
+        $('#slide-color-scheme').on('change', function() {
+            const value = $(this).val();
+            if (currentSectionsConfig.slideshow.slides[slideId]) {
+                currentSectionsConfig.slideshow.slides[slideId].colorScheme = value;
+                hasPendingPageStructureChanges = true;
+                updateSaveButtonState();
+                renderPreview();
+            }
+        });
+        
+        // Use overlay toggle
+        $('#slide-use-overlay').on('change', function() {
+            const isChecked = $(this).is(':checked');
+            if (currentSectionsConfig.slideshow.slides[slideId]) {
+                currentSectionsConfig.slideshow.slides[slideId].useOverlay = isChecked;
+                $('#overlay-opacity-field').toggle(isChecked);
+                hasPendingPageStructureChanges = true;
+                updateSaveButtonState();
+                renderPreview();
+            }
+        });
+        
+        // Overlay opacity slider
+        $('#slide-overlay-opacity').on('input', function() {
+            const value = parseInt($(this).val());
+            $('#slide-overlay-opacity-value').val(value);
+            if (currentSectionsConfig.slideshow.slides[slideId]) {
+                currentSectionsConfig.slideshow.slides[slideId].overlayOpacity = value / 100;
+                hasPendingPageStructureChanges = true;
+                updateSaveButtonState();
+                renderPreview();
+            }
+        });
+        
+        // Overlay opacity input
+        $('#slide-overlay-opacity-value').on('input', function() {
+            const value = Math.min(100, Math.max(0, parseInt($(this).val()) || 0));
+            $(this).val(value);
+            $('#slide-overlay-opacity').val(value);
+            if (currentSectionsConfig.slideshow.slides[slideId]) {
+                currentSectionsConfig.slideshow.slides[slideId].overlayOpacity = value / 100;
+                hasPendingPageStructureChanges = true;
+                updateSaveButtonState();
+                renderPreview();
+            }
+        });
+        
+        // Image selection buttons
+        $('.select-slide-image-btn').on('click', function() {
+            const imageType = $(this).data('image-type');
+            const inputId = imageType === 'desktop' ? '#desktop-slide-image-input' : '#mobile-slide-image-input';
+            $(inputId).click();
+        });
+        
+        // Image file inputs
+        $('#desktop-slide-image-input, #mobile-slide-image-input').on('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const imageType = $(this).attr('id').includes('desktop') ? 'desktop' : 'mobile';
+                handleSlideImageUpload(file, imageType, slideId);
+            }
+        });
+        
+        // Remove image buttons
+        $('.remove-slide-image-btn').on('click', function() {
+            const imageType = $(this).data('image-type');
+            if (currentSectionsConfig.slideshow.slides[slideId]) {
+                if (imageType === 'desktop') {
+                    currentSectionsConfig.slideshow.slides[slideId].desktopImage = '';
+                } else {
+                    currentSectionsConfig.slideshow.slides[slideId].mobileImage = '';
+                }
+                hasPendingPageStructureChanges = true;
+                updateSaveButtonState();
+                renderPreview();
+                // Re-render the slide settings view to update UI
+                window.switchSidebarView('slideshowSlideSettings', { slideId: slideId });
+            }
+        });
+    }
+    
+    // Function to handle slide image upload
+    function handleSlideImageUpload(file, imageType, slideId) {
+        // For now, we'll use a data URL. In production, you'd upload to a server
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            if (currentSectionsConfig.slideshow.slides[slideId]) {
+                if (imageType === 'desktop') {
+                    currentSectionsConfig.slideshow.slides[slideId].desktopImage = e.target.result;
+                } else {
+                    currentSectionsConfig.slideshow.slides[slideId].mobileImage = e.target.result;
+                }
+                hasPendingPageStructureChanges = true;
+                updateSaveButtonState();
+                renderPreview();
+                // Re-render the slide settings view to update UI
+                window.switchSidebarView('slideshowSlideSettings', { slideId: slideId });
+            }
+        };
+        reader.readAsDataURL(file);
+    }
+    
+    async function loadMenusData() {
+        console.log('[MENU] Loading menus data');
+        
+        try {
+            // Clear the menu list
+            $('#menu-items-list').empty();
+            
+            // Check if menus are saved in global theme settings
+            if (currentGlobalThemeSettings.menus && Array.isArray(currentGlobalThemeSettings.menus)) {
+                currentMenusData = currentGlobalThemeSettings.menus;
+                console.log('[MENU] Loaded menus from global settings:', JSON.stringify(currentMenusData, null, 2));
+            } else if (currentSectionsConfig.menus && Array.isArray(currentSectionsConfig.menus)) {
+                // Check in sections config
+                currentMenusData = currentSectionsConfig.menus;
+                console.log('[MENU] Loaded menus from sections config:', JSON.stringify(currentMenusData, null, 2));
+            } else {
+                // Load navigation data for backward compatibility
+                if (!currentNavigationData || currentNavigationData.length === 0) {
+                    await loadNavigationData();
+                }
+                
+                // Initialize with default menus if empty
+                if (currentMenusData.length === 0) {
+                    currentMenusData = [
+                        {
+                            id: 'main-menu',
+                            name: translations[currentLanguage]['menus.mainMenu'] || 'Main menu',
+                            handle: 'main-menu',
+                            items: currentNavigationData || [
+                                {
+                                    id: 'item-1',
+                                    label: 'Room',
+                                    url: '/room',
+                                    target: '_self',
+                                    submenus: [
+                                        { id: 'sub-1-1', label: 'Single Room', url: '/room/single', target: '_self' },
+                                        { id: 'sub-1-2', label: 'Double Room', url: '/room/double', target: '_self' },
+                                        { id: 'sub-1-3', label: 'Suite', url: '/room/suite', target: '_self' }
+                                    ]
+                                },
+                                {
+                                    id: 'item-2',
+                                    label: 'Amenidades',
+                                    url: '/amenidades',
+                                    target: '_self',
+                                    submenus: []
+                                }
+                            ]
+                        },
+                        {
+                            id: 'footer-menu',
+                            name: translations[currentLanguage]['menus.footerMenu'] || 'Footer menu',
+                            handle: 'footer-menu',
+                            items: []
+                        }
+                    ];
+                    
+                    // Save the default menus
+                    await saveMenusData();
+                }
+            }
+            
+            // Render menu list - showing menus, not items
+            renderMenuList(currentMenusData);
+            
+            // Don't auto-select menu in index view
+            // Clear the details panel to show empty state
+            $('#menu-details-content').html(`
+                <div class="menu-empty-state">
+                    <p class="menu-empty-state-text" data-i18n="menus.selectOrCreateMenu">Selecciona un menú para editar</p>
+                </div>
+            `);
+            
+        } catch (error) {
+            console.error('[ERROR] Failed to load menus data:', error);
+            // Show error state
+            $('#menu-items-list').html(`
+                <div class="menu-empty-state">
+                    <i class="material-icons menu-empty-state-icon">error_outline</i>
+                    <p class="menu-empty-state-text" data-i18n="menus.errorLoading">Error al cargar los menús</p>
+                </div>
+            `);
+        }
+    }
+    
+    // Function to render menu list
+    function renderMenuList(menus) {
+        const menuListContainer = document.getElementById('menu-items-list');
+        if (!menuListContainer) return;
+        
+        let html = '';
+        menus.forEach(menu => {
+            const itemCount = menu.items ? menu.items.length : 0;
+            html += `
+                <div class="menu-list-item" data-menu-id="${menu.id}">
+                    <div class="menu-item-content">
+                        <span class="menu-list-item-name">${menu.name}</span>
+                        <span class="menu-list-item-count">${itemCount}</span>
+                    </div>
+                    <div class="menu-item-actions">
+                        <button class="menu-action-btn edit-menu-btn" data-menu-id="${menu.id}" title="Editar">
+                            <i class="material-symbols-outlined">edit</i>
+                        </button>
+                        <button class="menu-action-btn delete-menu-btn" data-menu-id="${menu.id}" title="Eliminar">
+                            <i class="material-symbols-outlined">delete</i>
+                        </button>
+                    </div>
+                </div>
+            `;
+        });
+        
+        menuListContainer.innerHTML = html;
+        
+        // Attach click handlers for menu selection
+        $('.menu-list-item').off('click.select').on('click.select', function(e) {
+            // Only select if not clicking on action buttons
+            if (!$(e.target).closest('.menu-item-actions').length) {
+                const menuId = $(this).data('menu-id');
+                const menu = menus.find(m => m.id === menuId);
+                if (menu) {
+                    selectMenu(menu);
+                }
+            }
+        });
+        
+        // Attach handlers for edit buttons
+        $('.edit-menu-btn').off('click.edit').on('click.edit', function(e) {
+            e.stopPropagation();
+            const menuId = $(this).data('menu-id');
+            const menu = menus.find(m => m.id === menuId);
+            if (menu) {
+                openEditMenuView(menu);
+            }
+        });
+        
+        // Attach handlers for delete buttons
+        $('.delete-menu-btn').off('click.delete').on('click.delete', function(e) {
+            e.stopPropagation();
+            const menuId = $(this).data('menu-id');
+            if (confirm(translations[currentLanguage]['menus.confirmDelete'] || '¿Estás seguro de que deseas eliminar este menú?')) {
+                deleteMenu(menuId);
+            }
+        });
+    }
+    
+    // Function to select a menu
+    function selectMenu(menu) {
+        console.log('[MENU] Selecting menu:', menu.name);
+        currentSelectedMenu = menu;
+        
+        // Update active state
+        $('.menu-list-item').removeClass('active');
+        $(`.menu-list-item[data-menu-id="${menu.id}"]`).addClass('active');
+        
+        // Render menu details
+        renderMenuDetails(menu);
+    }
+    
+    // Function to render menu details
+    function renderMenuDetails(menu) {
+        const detailsContainer = document.getElementById('menu-details-content');
+        if (!detailsContainer) return;
+        
+        let html = '';
+        
+        if (menu.items && menu.items.length > 0) {
+            menu.items.forEach((item, index) => {
+                const hasSubmenus = item.submenus && item.submenus.length > 0;
+                html += `
+                    <div class="menu-item-card ${hasSubmenus ? 'has-submenus' : ''}" data-item-id="${item.id}">
+                        <div class="menu-item-header">
+                            <i class="material-icons menu-item-drag-handle">drag_indicator</i>
+                            ${hasSubmenus ? '<i class="material-symbols-outlined collapse-icon">expand_more</i>' : ''}
+                            <div class="menu-item-info">
+                                <div class="menu-item-label">${item.label}</div>
+                                <div class="menu-item-url">${item.url}</div>
+                            </div>
+                            <div class="menu-item-actions">
+                                <button class="menu-item-action edit" data-item-id="${item.id}" title="Editar">
+                                    <i class="material-symbols-outlined">edit</i>
+                                </button>
+                                <button class="menu-item-action delete" data-item-id="${item.id}" title="Eliminar">
+                                    <i class="material-symbols-outlined">delete</i>
+                                </button>
+                                <button class="menu-item-action more" data-item-id="${item.id}" title="Más opciones">
+                                    <i class="material-symbols-outlined">more_horiz</i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                // Render submenus if any
+                if (hasSubmenus) {
+                    html += '<div class="submenu-container">';
+                    item.submenus.forEach(submenu => {
+                        html += `
+                            <div class="menu-item-card submenu-item" data-item-id="${submenu.id}" data-parent-id="${item.id}">
+                                <div class="submenu-indent"></div>
+                                <div class="menu-item-header">
+                                    <i class="material-icons menu-item-drag-handle">drag_indicator</i>
+                                    <div class="menu-item-info">
+                                        <div class="menu-item-label">${submenu.label}</div>
+                                        <div class="menu-item-url">${submenu.url}</div>
+                                    </div>
+                                    <div class="menu-item-actions">
+                                        <button class="menu-item-action edit" data-item-id="${submenu.id}" title="Editar">
+                                            <i class="material-symbols-outlined">edit</i>
+                                        </button>
+                                        <button class="menu-item-action delete" data-item-id="${submenu.id}" title="Eliminar">
+                                            <i class="material-symbols-outlined">delete</i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    html += '</div>';
+                }
+            });
+            // No add button in index view
+        } else {
+            // Empty state
+            html = `
+                <div class="menu-empty-state">
+                    <i class="material-icons menu-empty-state-icon">menu</i>
+                    <p class="menu-empty-state-text" data-i18n="menus.emptyMessage">
+                        Este menú está vacío. Haz clic en el menú para editarlo y agregar elementos.
+                    </p>
+                </div>
+            `;
+        }
+        
+        detailsContainer.innerHTML = html;
+        
+        // Attach event handlers
+        attachMenuDetailsEventHandlers();
+        
+        // Apply translations
+        setTimeout(applyTranslations, 50);
+    }
+    
+    // Function to attach menu details event handlers
+    function attachMenuDetailsEventHandlers() {
+        // Edit menu item
+        $('.menu-item-action.edit').off('click').on('click', function(e) {
+            e.preventDefault();
+            const itemId = $(this).data('item-id');
+            console.log('[MENU] Edit item:', itemId);
+            showEditMenuView(currentSelectedMenu);
+        });
+        
+        // Delete menu item
+        $('.menu-item-action.delete').off('click').on('click', function(e) {
+            e.preventDefault();
+            const itemId = $(this).data('item-id');
+            console.log('[MENU] Delete item:', itemId);
+            // TODO: Confirm and delete
+        });
+        
+        // Add menu item in main view - redirect to edit view
+        $('.add-menu-item-btn').off('click').on('click', function(e) {
+            e.preventDefault();
+            console.log('[MENU] Add new menu item - redirecting to edit view');
+            if (currentSelectedMenu) {
+                showEditMenuView(currentSelectedMenu);
+                // After view loads, trigger the add item form
+                setTimeout(() => {
+                    $('#add-menu-item-edit').click();
+                }, 100);
+            }
+        });
+        
+        // Collapse/expand handler for menu items in index view
+        $('#menu-details-content').off('click.collapse').on('click.collapse', '.collapse-icon', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            const $card = $(this).closest('.menu-item-card');
+            const $submenuContainer = $card.next('.submenu-container');
+            
+            if ($card.hasClass('collapsed')) {
+                $card.removeClass('collapsed');
+                $submenuContainer.slideDown(200);
+            } else {
+                $card.addClass('collapsed');
+                $submenuContainer.slideUp(200);
+            }
+        });
+        
+        // Initialize sortable after a small delay to ensure DOM is ready
+        setTimeout(() => {
+            // First, prepare menu items with submenu references
+            $('.menu-item-card.has-submenus').each(function() {
+                const $item = $(this);
+                const itemId = $item.data('item-id');
+                const $nextElement = $item.next();
+                
+                if ($nextElement.hasClass('submenu-container')) {
+                    // Store reference to submenu container on the item itself
+                    $item.data('submenu-container-ref', $nextElement);
+                    console.log('[MENU] Pre-stored submenu reference for item:', itemId);
+                }
+            });
+            
+            // Destroy any existing sortable first
+            if ($('#menu-details-content').data('ui-sortable')) {
+                $('#menu-details-content').sortable('destroy');
+            }
+            
+            // Make items sortable with parent-child support
+            $('#menu-details-content').sortable({
+                items: '> .menu-item-card:not(.submenu-item)',
+                handle: '.menu-item-drag-handle',
+                placeholder: 'menu-item-placeholder',
+                tolerance: 'pointer',
+                cursor: 'move',
+                helper: function(e, item) {
+                    // Create a helper that includes visual feedback
+                    const helper = item.clone();
+                    helper.css({
+                        'opacity': '0.8',
+                        'background': '#f0f0f0'
+                    });
+                    return helper;
+                },
+                start: function(e, ui) {
+                    console.log('[MENU] Drag started for item:', ui.item.data('item-id'));
+                    console.log('[MENU] Item classes:', ui.item.attr('class'));
+                    
+                    // Add placeholder styling
+                    ui.placeholder.css({
+                        'height': ui.item.outerHeight(),
+                        'visibility': 'visible',
+                        'background': '#e0e0e0',
+                        'border': '2px dashed #999'
+                    });
+                    
+                    // Check if the dragged item has submenus
+                    const hasSubmenus = ui.item.hasClass('has-submenus');
+                    console.log('[MENU] Item has submenus:', hasSubmenus);
+                    
+                    if (hasSubmenus) {
+                        // Get the pre-stored submenu container reference
+                        const $submenuContainer = ui.item.data('submenu-container-ref');
+                        
+                        console.log('[MENU] Using pre-stored submenu container:', $submenuContainer ? $submenuContainer.length : 0);
+                        
+                        if ($submenuContainer && $submenuContainer.length > 0) {
+                            const submenuCount = $submenuContainer.find('.submenu-item').length;
+                            console.log('[MENU] Submenu container has', submenuCount, 'items');
+                            
+                            // Hide and detach the entire container to prevent interference
+                            $submenuContainer.hide();
+                            ui.item.data('detached-submenu', $submenuContainer.detach());
+                            console.log('[MENU] Submenu container detached successfully');
+                        }
+                    }
+                },
+                stop: function(e, ui) {
+                    console.log('[MENU] Drag stopped, reordering items');
+                    
+                    // If we moved an item with submenus, reattach its container after it
+                    const $detachedSubmenu = ui.item.data('detached-submenu');
+                    if ($detachedSubmenu && $detachedSubmenu.length > 0) {
+                        console.log('[MENU] Reattaching submenu container');
+                        // Insert submenu container after the moved item
+                        $detachedSubmenu.insertAfter(ui.item).show();
+                        console.log('[MENU] Submenu container reattached');
+                    }
+                    
+                    // Clean up data
+                    ui.item.removeData('detached-submenu');
+                    
+                    // Re-establish submenu references after reordering
+                    setTimeout(() => {
+                        $('.menu-item-card.has-submenus').each(function() {
+                            const $item = $(this);
+                            const itemId = $item.data('item-id');
+                            const $nextElement = $item.next();
+                            
+                            if ($nextElement.hasClass('submenu-container')) {
+                                $item.data('submenu-container-ref', $nextElement);
+                            }
+                        });
+                    }, 50);
+                    
+                    // Update the order in the data structure
+                    updateMenuOrderInIndexView();
+                }
+            });
+            
+            console.log('[MENU] Sortable initialized for menu details');
+            
+            // Make submenus sortable within their container
+            $('.submenu-container').each(function() {
+                $(this).sortable({
+                    items: '.submenu-item',
+                    handle: '.menu-item-drag-handle',
+                    placeholder: 'menu-item-placeholder',
+                    tolerance: 'pointer',
+                    cursor: 'move',
+                    start: function(e, ui) {
+                        ui.placeholder.height(ui.item.height());
+                    },
+                    stop: function(e, ui) {
+                        console.log('[MENU] Submenu items reordered in index view');
+                        // Update the order
+                        updateMenuOrderInIndexView();
+                    }
+                });
+            });
+        }, 100);
+    }
+    
+    // Function to update menu order in index view after drag & drop
+    function updateMenuOrderInIndexView() {
+        if (!currentSelectedMenu) return;
+        
+        const newOrder = [];
+        $('#menu-details-content > .menu-item-card').each(function() {
+            const $card = $(this);
+            const itemId = $card.data('item-id');
+            const item = currentSelectedMenu.items.find(i => i.id == itemId);
+            if (item) {
+                // Check if this item has a submenu container after it
+                const $nextSubmenuContainer = $card.next('.submenu-container');
+                if ($nextSubmenuContainer.length > 0) {
+                    // Update submenu order for this item
+                    const submenus = [];
+                    $nextSubmenuContainer.find('.submenu-item').each(function() {
+                        const submenuId = $(this).data('item-id');
+                        const submenu = item.submenus ? item.submenus.find(s => s.id == submenuId) : null;
+                        if (submenu) {
+                            submenus.push(submenu);
+                        }
+                    });
+                    item.submenus = submenus.length > 0 ? submenus : undefined;
+                }
+                newOrder.push(item);
+            }
+        });
+        
+        currentSelectedMenu.items = newOrder;
+        console.log('[MENU] Updated items order in index view:', newOrder);
+        
+        // Update in the global menus array
+        const index = currentMenusData.findIndex(m => m.id === currentSelectedMenu.id);
+        if (index > -1) {
+            currentMenusData[index] = currentSelectedMenu;
+        }
+        
+        // Mark as having pending changes
+        hasPendingGlobalSettingsChanges = true;
+        
+        // Note: We don't update the save button state here because we're in the index view
+        // The user will need to go to edit view to save changes
+    }
+    
+    // Variable to store current selected menu
+    // Function to show create menu view
+    function showCreateMenuView() {
+        console.log('[MENU] Showing create menu view');
+        $('#menu-main-view').hide();
+        $('#menu-edit-view').hide();
+        $('#menu-create-view').show();
+        
+        // Clear form
+        $('#new-menu-name').val('');
+        $('#new-menu-handle').text('');
+        
+        // Apply translations
+        setTimeout(applyTranslations, 50);
+    }
+    
+    // Function to show edit menu view
+    function showEditMenuView(menu) {
+        console.log('[MENU] Showing edit menu view for:', menu.name);
+        currentSelectedMenu = menu;
+        
+        $('#menu-main-view').hide();
+        $('#menu-create-view').hide();
+        $('#menu-edit-view').show();
+        
+        // Set menu name in header
+        $('#edit-menu-title').html(`<i class="material-icons">menu</i> ${menu.name}`);
+        
+        // Populate form
+        $('#edit-menu-name').val(menu.name);
+        $('#edit-menu-handle').text(menu.handle || generateMenuHandle(menu.name));
+        
+        // Render menu items
+        renderEditMenuItems(menu);
+        
+        // Apply translations
+        setTimeout(applyTranslations, 50);
+    }
+    
+    // Function to show menu list view
+    function showMenuListView() {
+        console.log('[MENU] Showing menu list view');
+        $('#menu-create-view').hide();
+        $('#menu-edit-view').hide();
+        $('#menu-main-view').show();
+    }
+    
+    // Function to generate menu handle from name
+    function generateMenuHandle(name) {
+        return name.toLowerCase()
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/^-+|-+$/g, '');
+    }
+    
+    // Function to render menu items in edit view
+    function renderEditMenuItems(menu) {
+        const container = $('#edit-menu-items-container');
+        let html = '';
+        
+        if (menu.items && menu.items.length > 0) {
+            menu.items.forEach(item => {
+                const hasSubmenus = item.submenus && item.submenus.length > 0;
+                html += `
+                    <div class="menu-item-edit-card ${hasSubmenus ? 'has-submenus' : ''}" data-item-id="${item.id}">
+                        <i class="material-icons drag-handle">drag_indicator</i>
+                        ${hasSubmenus ? '<i class="material-symbols-outlined collapse-icon">expand_more</i>' : ''}
+                        <div class="item-info">
+                            <div class="item-label">${item.label}</div>
+                            <div class="item-url">${item.url}</div>
+                        </div>
+                        <div class="item-actions">
+                            <button class="menu-item-action-btn edit-menu-item-btn" data-item-id="${item.id}" title="Editar">
+                                <i class="material-symbols-outlined">edit</i>
+                            </button>
+                            <button class="menu-item-action-btn delete-menu-item-btn" data-item-id="${item.id}" title="Eliminar">
+                                <i class="material-symbols-outlined">delete</i>
+                            </button>
+                            <button class="menu-item-action-btn add-submenu-btn" data-item-id="${item.id}" title="Agregar submenú">
+                                <i class="material-symbols-outlined">add</i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+                
+                // Render submenus if any
+                if (hasSubmenus) {
+                    html += '<div class="submenu-container">';
+                    item.submenus.forEach(submenu => {
+                        html += `
+                            <div class="menu-item-edit-card submenu-item" data-item-id="${submenu.id}" data-parent-id="${item.id}">
+                                <div class="submenu-indent"></div>
+                                <i class="material-icons drag-handle">drag_indicator</i>
+                                <div class="item-info">
+                                    <div class="item-label">${submenu.label}</div>
+                                    <div class="item-url">${submenu.url}</div>
+                                </div>
+                                <div class="item-actions">
+                                    <button class="menu-item-action-btn edit-submenu-btn" data-item-id="${submenu.id}" title="Editar">
+                                        <i class="material-symbols-outlined">edit</i>
+                                    </button>
+                                    <button class="menu-item-action-btn delete-submenu-btn" data-item-id="${submenu.id}" data-parent-id="${item.id}" title="Eliminar">
+                                        <i class="material-symbols-outlined">delete</i>
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    html += '</div>';
+                }
+            });
+        }
+        
+        container.html(html);
+        
+        // Make sortable with parent-child support
+        container.sortable({
+            items: '.menu-item-edit-card:not(.submenu-item)',
+            handle: '.drag-handle',
+            placeholder: 'menu-item-placeholder',
+            tolerance: 'pointer',
+            cursor: 'move',
+            start: function(e, ui) {
+                ui.placeholder.height(ui.item.height());
+                
+                // Check if the dragged item has submenus
+                const itemId = ui.item.data('item-id');
+                const $submenuContainer = ui.item.next('.submenu-container');
+                
+                if ($submenuContainer.length > 0) {
+                    // Store reference to the submenu container
+                    ui.item.data('submenu-container', $submenuContainer);
+                    // Hide the submenu container during drag
+                    $submenuContainer.hide();
+                }
+            },
+            stop: function(e, ui) {
+                console.log('[MENU] Edit view items reordered');
+                
+                // Check if we need to move the submenu container
+                const $submenuContainer = ui.item.data('submenu-container');
+                if ($submenuContainer) {
+                    // Insert the submenu container after the moved item
+                    $submenuContainer.insertAfter(ui.item);
+                    // Show the submenu container
+                    $submenuContainer.show();
+                    // Clear the stored reference
+                    ui.item.removeData('submenu-container');
+                }
+                
+                updateMenuItemsOrder();
+            }
+        });
+        
+        // Make submenus sortable within their container
+        $('.submenu-container').sortable({
+            items: '.submenu-item',
+            handle: '.drag-handle',
+            placeholder: 'menu-item-placeholder',
+            tolerance: 'pointer',
+            cursor: 'move',
+            connectWith: '.submenu-container',
+            start: function(e, ui) {
+                ui.placeholder.height(ui.item.height());
+            },
+            stop: function(e, ui) {
+                console.log('[MENU] Submenu items reordered');
+                // Update submenu order
+                updateMenuItemsOrder();
+            }
+        });
+    }
+    
+    // Function to update menu items order after drag & drop
+    function updateMenuItemsOrder() {
+        if (!currentSelectedMenu) return;
+        
+        const newOrder = [];
+        $('#edit-menu-items-container > .menu-item-edit-card').each(function() {
+            const $card = $(this);
+            const itemId = $card.data('item-id');
+            const item = currentSelectedMenu.items.find(i => i.id == itemId);
+            if (item) {
+                // Check if this item has a submenu container after it
+                const $nextSubmenuContainer = $card.next('.submenu-container');
+                if ($nextSubmenuContainer.length > 0) {
+                    // Update submenu order for this item
+                    const submenus = [];
+                    $nextSubmenuContainer.find('.submenu-item').each(function() {
+                        const submenuId = $(this).data('item-id');
+                        const submenu = item.submenus ? item.submenus.find(s => s.id == submenuId) : null;
+                        if (submenu) {
+                            submenus.push(submenu);
+                        }
+                    });
+                    item.submenus = submenus;
+                }
+                newOrder.push(item);
+            }
+        });
+        
+        currentSelectedMenu.items = newOrder;
+        currentSelectedMenu.itemCount = newOrder.length;
+        console.log('[MENU] Updated items order:', newOrder);
+        
+        // Sync with currentNavigationData if this is the main menu
+        if (currentSelectedMenu.id === 'main-menu') {
+            currentNavigationData = newOrder;
+            updateMenuListItemCount();
+        }
+        
+        // Mark as having pending changes
+        hasPendingGlobalSettingsChanges = true;
+        updateSaveButtonState();
+    }
+    
+    // Function to update menu list item count
+    function updateMenuListItemCount() {
+        if (currentSelectedMenu) {
+            const itemCount = currentSelectedMenu.items ? currentSelectedMenu.items.length : 0;
+            $(`.menu-list-item[data-menu-id="${currentSelectedMenu.id}"] .menu-list-item-count`).text(itemCount);
+        }
+    }
     
     // Function to update save button state
     function updateSaveButtonState() {
@@ -10213,6 +15100,20 @@ document.head.appendChild(style);
                     console.error('[ERROR] Failed to save page structure:', error);
                     throw error;
                 })
+            );
+        }
+        
+        // Save navigation data if we're in navigation view
+        if (currentSidebarView === 'navigationMenu' && currentNavigationData) {
+            console.log('[INFO] Saving navigation data...');
+            savePromises.push(
+                saveNavigationData()
+                    .then(success => {
+                        if (!success) {
+                            throw new Error('Failed to save navigation data');
+                        }
+                        return { ok: true };
+                    })
             );
         }
         
@@ -10299,6 +15200,17 @@ document.head.appendChild(style);
                         console.log('[DEBUG] Staying in theme settings view after save');
                         // Guardar el estado actual antes de recargar
                         sessionStorage.setItem('websiteBuilderLastView', 'themeSettingsView');
+                    } else if (currentSidebarView === 'navigationMenu') {
+                        // Recargar la vista de navegación
+                        console.log('[DEBUG] Reloading navigation menu view after save');
+                        window.switchSidebarView('navigationMenu');
+                    } else if (currentSidebarView === 'slideshowSettings') {
+                        // Recargar la vista de configuración de slideshow
+                        console.log('[DEBUG] Reloading slideshow settings view after save');
+                        window.switchSidebarView('slideshowSettings');
+                    } else if (currentSidebarView === 'slideshowSlideSettings') {
+                        // Permanecer en la vista de configuración de slide individual
+                        console.log('[DEBUG] Staying in slideshow slide settings view after save');
                     }
                     
                     setTimeout(() => {
@@ -10373,3 +15285,1062 @@ document.head.appendChild(style);
             });
         }
     });
+    
+    // Menu Modal Event Listeners
+    $(document).on('click', '#close-menu-modal', function() {
+        closeMenuFullscreenModal();
+    });
+    
+    // Menu selector change handler
+    $(document).on('change', '#menu-selector', function() {
+        const selectedValue = $(this).val();
+        console.log('[MENU] Menu selector changed:', selectedValue);
+        // TODO: Filter menus based on selection
+    });
+    
+    // Create menu button handler  
+    $(document).on('click', '#menu-fullscreen-modal #create-menu-btn', function() {
+        console.log('[MENU] Create menu button clicked');
+        showCreateMenuView();
+    });
+    
+    // Back to menus button handler
+    $(document).on('click', '#back-to-menus', function() {
+        showMenuListView();
+    });
+    
+    // Cancel create menu handler
+    $(document).on('click', '#cancel-create-menu', function() {
+        showMenuListView();
+    });
+    
+    // New menu name input handler - generate handle
+    $(document).on('input', '#new-menu-name', function() {
+        const name = $(this).val();
+        const handle = generateMenuHandle(name);
+        $('#new-menu-handle').text(handle);
+    });
+    
+    // Save new menu handler
+    $(document).on('click', '#save-new-menu', async function() {
+        const name = $('#new-menu-name').val().trim();
+        if (!name) {
+            alert(translations[currentLanguage]['menus.menuNameRequired'] || 'El nombre del menú es requerido');
+            return;
+        }
+        
+        const handle = generateMenuHandle(name);
+        
+        // Get items from the temporary items container
+        const items = [];
+        $('#create-menu-items-container .menu-item-edit-card').each(function() {
+            const $card = $(this);
+            items.push({
+                id: Date.now() + Math.random(), // Generate unique ID
+                label: $card.find('.item-label').text(),
+                url: $card.find('.item-url').text(),
+                target: '_self'
+            });
+        });
+        
+        const newMenu = {
+            id: 'menu-' + Date.now(),
+            name: name,
+            handle: handle,
+            items: items
+        };
+        
+        // Add to menus data
+        currentMenusData.push(newMenu);
+        
+        try {
+            // Save to API
+            console.log('[MENU] Saving new menu:', newMenu);
+            const saved = await saveMenusData();
+            
+            if (saved) {
+                // Show success message
+                alert(translations[currentLanguage]['menus.menuCreated'] || 'Menú creado exitosamente');
+                
+                // Clear form
+                $('#new-menu-name').val('');
+                $('#new-menu-handle').text('');
+                $('#create-menu-items-container').empty();
+                
+                // Go back to list and reload
+                showMenuListView();
+                await loadMenusData();
+            } else {
+                throw new Error('Failed to save menu');
+            }
+        } catch (error) {
+            console.error('[ERROR] Failed to save menu:', error);
+            M.toast({html: translations[currentLanguage]['menus.errorSaving'] || 'Error al guardar el menú'});
+        }
+    });
+    
+    // Add first item handler (Create view) - Now only shows/hides form
+    $(document).on('click', '#add-first-item', function() {
+        const $form = $('#add-item-form-create');
+        
+        if ($form.is(':visible')) {
+            // Hide form
+            $form.slideUp(200);
+        } else {
+            // Show form
+            $form.slideDown(200, function() {
+                $('#new-item-label-create').focus();
+            });
+        }
+    });
+    
+    // Confirm add item handler (Create view)
+    $(document).on('click', '#confirm-add-item-create', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        console.log('[MENU] Confirm add item clicked');
+        
+        const label = $('#new-item-label-create').val().trim();
+        const url = $('#new-item-url-create').val().trim();
+        
+        if (!label) {
+            alert(translations[currentLanguage]['menus.labelRequired'] || 'La etiqueta es requerida');
+            $('#new-item-label-create').focus();
+            return;
+        }
+        
+        // Add item to temporary list
+        const newItem = {
+            id: Date.now(),
+            label: label,
+            url: url || '#',
+            target: '_self'
+        };
+        
+        // Add to display
+        const itemHtml = `
+            <div class="menu-item-edit-card" data-item-id="${newItem.id}">
+                <i class="material-icons drag-handle">drag_indicator</i>
+                <div class="item-info">
+                    <div class="item-label">${newItem.label}</div>
+                    <div class="item-url">${newItem.url}</div>
+                </div>
+                <button class="menu-item-action-btn remove-temp-item delete-menu-item-btn" data-item-id="${newItem.id}" title="Eliminar">
+                    <i class="material-symbols-outlined">delete</i>
+                </button>
+            </div>
+        `;
+        $('#create-menu-items-container').append(itemHtml);
+        
+        // Clear form and hide
+        $('#new-item-label-create').val('');
+        $('#new-item-url-create').val('');
+        $('#add-item-form-create').slideUp(200);
+    });
+    
+    // Handle Enter key in create form
+    $(document).on('keypress', '#new-item-label-create, #new-item-url-create', function(e) {
+        if (e.which === 13) {
+            e.preventDefault();
+            $('#confirm-add-item-create').click();
+        }
+    });
+    
+    // Remove temporary item
+    $(document).on('click', '.remove-temp-item', function() {
+        $(this).closest('.menu-item-edit-card').fadeOut(200, function() {
+            $(this).remove();
+        });
+    });
+    
+    // Cancel add item - hide form and clear fields
+    $(document).on('click', '.cancel-add-item-btn', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        // Find which form we're in (create or edit)
+        const $form = $(this).closest('.add-item-inline-form');
+        const isCreateForm = $form.attr('id') === 'add-item-form-create';
+        
+        // Clear form fields
+        if (isCreateForm) {
+            $('#new-item-label-create').val('');
+            $('#new-item-url-create').val('');
+        } else {
+            $('#new-item-label-edit').val('');
+            $('#new-item-url-edit').val('');
+        }
+        
+        // Hide the form
+        $form.slideUp(200);
+        
+        // Hide any open dropdowns
+        $('.link-suggestions-dropdown').hide();
+    });
+    
+    // Function to open edit menu view from index
+    function openEditMenuView(menu) {
+        console.log('[MENU] Opening edit menu view for:', menu.name);
+        showEditMenuView(menu);
+    }
+    
+    // Function to delete a menu
+    async function deleteMenu(menuId) {
+        console.log('[MENU] Deleting menu:', menuId);
+        
+        // Remove from currentMenusData
+        const index = currentMenusData.findIndex(m => m.id === menuId);
+        if (index > -1) {
+            currentMenusData.splice(index, 1);
+        }
+        
+        // Save to API
+        try {
+            const saved = await saveMenusData();
+            if (saved) {
+                console.log('[MENU] Menu deleted successfully');
+            }
+        } catch (error) {
+            console.error('[ERROR] Failed to save after deleting menu:', error);
+        }
+        
+        // Reload menu list
+        renderMenuList(currentMenusData);
+        
+        // Clear details panel
+        $('#menu-details-content').html(`
+            <div class="menu-empty-state">
+                <p class="menu-empty-state-text" data-i18n="menus.selectOrCreateMenu">Selecciona un menú para editar</p>
+            </div>
+        `);
+        
+        // Apply translations
+        setTimeout(applyTranslations, 50);
+    }
+    
+    // Function to save all pending changes
+    async function saveAllChanges() {
+        console.log('[SAVE] Starting save process...');
+        let savePromises = [];
+        
+        // Save page structure changes if any
+        if (hasPendingPageStructureChanges && currentWebsiteId) {
+            console.log('[SAVE] Saving page structure...');
+            const pageData = {
+                blocks: currentPageBlocks,
+                sectionsConfig: currentSectionsConfig
+            };
+            const pagePayload = {
+                pageStructureJson: JSON.stringify(pageData)
+            };
+            savePromises.push(
+                fetch(`/api/builder/websites/${currentWebsiteId}/pages/${currentPageId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(pagePayload)
+                })
+            );
+        }
+        
+        // Save global settings changes if any
+        if (hasPendingGlobalSettingsChanges) {
+            console.log('[SAVE] Saving global settings...');
+            const globalPayload = {
+                globalSettings: currentGlobalThemeSettings
+            };
+            savePromises.push(
+                fetch('/api/builder/websites/current/global-settings', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(globalPayload)
+                })
+            );
+        }
+        
+        if (savePromises.length > 0) {
+            try {
+                await Promise.all(savePromises);
+                console.log('[SAVE] All changes saved successfully');
+                hasPendingGlobalSettingsChanges = false;
+                hasPendingPageStructureChanges = false;
+                updateSaveButtonState();
+                return true;
+            } catch (error) {
+                console.error('[SAVE] Error saving changes:', error);
+                return false;
+            }
+        }
+        return true;
+    }
+    
+    // Preview button handler
+    $(document).on('click', '#preview-button', async function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        console.log('[PREVIEW] Opening preview in new tab');
+        
+        // Save changes before opening preview
+        if (hasPendingGlobalSettingsChanges || hasPendingPageStructureChanges) {
+            console.log('[PREVIEW] Saving pending changes before preview');
+            
+            const saved = await saveAllChanges();
+            
+            // Wait a moment for save to complete
+            setTimeout(() => {
+                window.open('/WebsiteBuilder/Preview', '_blank');
+            }, saved ? 500 : 0);
+        } else {
+            // No pending changes, open directly
+            window.open('/WebsiteBuilder/Preview', '_blank');
+        }
+    });
+    
+    // Viewport toggle handlers
+    $(document).on('click', '.viewport-toggle', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        console.log('[VIEWPORT] Click detected on viewport toggle');
+        
+        const $button = $(this);
+        const viewport = $button.data('viewport');
+        
+        console.log('[VIEWPORT] Button:', $button);
+        console.log('[VIEWPORT] Viewport data:', viewport);
+        
+        // Remove active class from all viewport buttons
+        $('.viewport-toggle').removeClass('active');
+        
+        // Add active to clicked button
+        $button.addClass('active');
+        
+        // Toggle the preview area class
+        const $previewArea = $('#editor-preview-area');
+        console.log('[VIEWPORT] Preview area found:', $previewArea.length);
+        
+        if (viewport === 'mobile') {
+            $previewArea.addClass('mobile-view');
+            console.log('[VIEWPORT] Added mobile-view class');
+        } else {
+            $previewArea.removeClass('mobile-view');
+            console.log('[VIEWPORT] Removed mobile-view class');
+        }
+        
+        console.log('[VIEWPORT] Switched to:', viewport);
+    });
+    
+    // Edit menu handlers
+    $(document).on('click', '.menu-item-action.edit', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        const itemId = $(this).data('item-id');
+        console.log('[MENU] Edit item clicked:', itemId);
+        if (currentSelectedMenu) {
+            showEditMenuView(currentSelectedMenu);
+        }
+    });
+    
+    // Back from edit handler
+    $(document).on('click', '#back-from-edit', function() {
+        showMenuListView();
+    });
+    
+    // Cancel edit menu handler
+    $(document).on('click', '#cancel-edit-menu', function() {
+        showMenuListView();
+    });
+    
+    // Edit menu name input handler
+    $(document).on('input', '#edit-menu-name', function() {
+        const name = $(this).val();
+        const handle = generateMenuHandle(name);
+        $('#edit-menu-handle').text(handle);
+    });
+    
+    // Save edit menu handler
+    $(document).on('click', '#save-edit-menu', async function() {
+        const name = $('#edit-menu-name').val().trim();
+        if (!name) {
+            alert(translations[currentLanguage]['menus.menuNameRequired'] || 'El nombre del menú es requerido');
+            return;
+        }
+        
+        // Update current menu
+        if (currentSelectedMenu) {
+            currentSelectedMenu.name = name;
+            currentSelectedMenu.handle = generateMenuHandle(name);
+            
+            // Get updated items from the edit form - only parent items, not submenus
+            const items = [];
+            $('#edit-menu-items-container > .menu-item-edit-card').each(function() {
+                const $card = $(this);
+                const itemId = $card.data('item-id');
+                
+                // Create the item object
+                const item = {
+                    id: itemId,
+                    label: $card.find('.item-label').text(),
+                    url: $card.find('.item-url').text(),
+                    target: '_self'
+                };
+                
+                // Check if this item has submenus
+                const $submenuContainer = $card.next('.submenu-container');
+                if ($submenuContainer.length > 0) {
+                    const submenus = [];
+                    $submenuContainer.find('.submenu-item').each(function() {
+                        const $submenu = $(this);
+                        submenus.push({
+                            id: $submenu.data('item-id'),
+                            label: $submenu.find('.item-label').text(),
+                            url: $submenu.find('.item-url').text(),
+                            target: '_self'
+                        });
+                    });
+                    if (submenus.length > 0) {
+                        item.submenus = submenus;
+                    }
+                }
+                
+                items.push(item);
+            });
+            currentSelectedMenu.items = items;
+            
+            // Debug log to verify structure
+            console.log('[MENU] Items structure before saving:', JSON.stringify(items, null, 2));
+            
+            // Update in the array
+            const index = currentMenusData.findIndex(m => m.id === currentSelectedMenu.id);
+            if (index > -1) {
+                currentMenusData[index] = currentSelectedMenu;
+            }
+            
+            // Save to API
+            try {
+                const saved = await saveMenusData();
+                if (saved) {
+                    console.log('[MENU] Menu updated successfully');
+                    alert(translations[currentLanguage]['menus.menuUpdated'] || 'Menú actualizado exitosamente');
+                }
+            } catch (error) {
+                console.error('[ERROR] Failed to save menu:', error);
+                alert(translations[currentLanguage]['menus.errorSaving'] || 'Error al guardar el menú');
+            }
+        }
+        
+        showMenuListView();
+        loadMenusData();
+    });
+    
+    // Dropdown toggle handler
+    $(document).on('click', '#menu-actions-btn', function(e) {
+        e.stopPropagation();
+        $('#menu-actions-dropdown').toggle();
+    });
+    
+    // Close dropdown when clicking outside
+    $(document).on('click', function() {
+        $('#menu-actions-dropdown').hide();
+    });
+    
+    // Delete menu action handler
+    $(document).on('click', '#delete-menu-action', async function(e) {
+        e.preventDefault();
+        if (confirm(translations[currentLanguage]['menus.confirmDeleteMenu'] || '¿Estás seguro de eliminar este menú?')) {
+            if (currentSelectedMenu) {
+                await deleteMenu(currentSelectedMenu.id);
+                showMenuListView();
+            }
+        }
+    });
+    
+    // Duplicate menu handler
+    $(document).on('click', '#duplicate-menu-btn', function() {
+        // TODO: Duplicate menu
+        console.log('[MENU] Duplicating menu');
+    });
+    
+    // Add menu item in edit view handler - Now only shows/hides form
+    $(document).on('click', '#add-menu-item-edit', function() {
+        const $form = $('#add-item-form-edit');
+        
+        if ($form.is(':visible')) {
+            // Hide form
+            $form.slideUp(200);
+        } else {
+            // Show form
+            $form.slideDown(200, function() {
+                $('#new-item-label-edit').focus();
+            });
+        }
+    });
+    
+    // Confirm add item handler (Edit view)
+    $(document).on('click', '#confirm-add-item-edit', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        console.log('[MENU] Confirm add item edit clicked');
+        
+        const label = $('#new-item-label-edit').val().trim();
+        const url = $('#new-item-url-edit').val().trim();
+        
+        if (!label) {
+            alert(translations[currentLanguage]['menus.labelRequired'] || 'La etiqueta es requerida');
+            $('#new-item-label-edit').focus();
+            return;
+        }
+        
+        // Add item to current menu
+        const newItem = {
+            id: Date.now(),
+            label: label,
+            url: url || '#',
+            target: '_self'
+        };
+        
+        if (currentSelectedMenu) {
+            if (!currentSelectedMenu.items) {
+                currentSelectedMenu.items = [];
+            }
+            currentSelectedMenu.items.push(newItem);
+            currentSelectedMenu.itemCount = currentSelectedMenu.items.length;
+            
+            // Sync with currentNavigationData if this is the main menu
+            if (currentSelectedMenu.id === 'main-menu') {
+                currentNavigationData = currentSelectedMenu.items;
+                updateMenuListItemCount();
+            }
+            
+            // Re-render items
+            renderEditMenuItems(currentSelectedMenu);
+        }
+        
+        // Clear form and hide
+        $('#new-item-label-edit').val('');
+        $('#new-item-url-edit').val('');
+        $('#add-item-form-edit').slideUp(200);
+    });
+    
+    // Handle Enter key in edit form
+    $(document).on('keypress', '#new-item-label-edit, #new-item-url-edit', function(e) {
+        if (e.which === 13) {
+            e.preventDefault();
+            $('#confirm-add-item-edit').click();
+        }
+    });
+    
+    // Link suggestions handlers - Updated to include submenu inputs
+    $(document).on('focus', '#new-item-url-create, #new-item-url-edit, .submenu-url-input', function() {
+        let dropdownId;
+        if ($(this).hasClass('submenu-url-input')) {
+            // For submenu inputs, get the parent ID from the input ID
+            const inputId = $(this).attr('id');
+            const parentId = inputId.replace('submenu-url-', '');
+            dropdownId = `link-suggestions-submenu-${parentId}`;
+        } else {
+            dropdownId = $(this).attr('id') === 'new-item-url-create' ? 'link-suggestions-create' : 'link-suggestions-edit';
+        }
+        $('#' + dropdownId).fadeIn(200);
+    });
+    
+    $(document).on('blur', '#new-item-url-create, #new-item-url-edit, .submenu-url-input', function() {
+        let dropdownId;
+        if ($(this).hasClass('submenu-url-input')) {
+            // For submenu inputs, get the parent ID from the input ID
+            const inputId = $(this).attr('id');
+            const parentId = inputId.replace('submenu-url-', '');
+            dropdownId = `link-suggestions-submenu-${parentId}`;
+        } else {
+            dropdownId = $(this).attr('id') === 'new-item-url-create' ? 'link-suggestions-create' : 'link-suggestions-edit';
+        }
+        // Delay to allow click on dropdown items
+        setTimeout(() => {
+            $('#' + dropdownId).fadeOut(200);
+        }, 200);
+    });
+    
+    // Handle link suggestion click - Updated to support submenu dropdowns
+    $(document).on('click', '.link-suggestions-dropdown li:not(.has-submenu)', function() {
+        const url = $(this).data('url');
+        const $dropdown = $(this).closest('.link-suggestions-dropdown');
+        const dropdownId = $dropdown.attr('id');
+        
+        let inputId;
+        if (dropdownId.startsWith('link-suggestions-submenu-')) {
+            // Extract parent ID from dropdown ID
+            const parentId = dropdownId.replace('link-suggestions-submenu-', '');
+            inputId = `submenu-url-${parentId}`;
+        } else {
+            inputId = dropdownId === 'link-suggestions-create' ? 'new-item-url-create' : 'new-item-url-edit';
+        }
+        
+        $('#' + inputId).val(url);
+        $dropdown.fadeOut(200);
+    });
+    
+    // Handle search/filter in link input - Updated to include submenu inputs
+    $(document).on('input', '#new-item-url-create, #new-item-url-edit, .submenu-url-input', function() {
+        const value = $(this).val().toLowerCase();
+        let dropdownId;
+        
+        if ($(this).hasClass('submenu-url-input')) {
+            // For submenu inputs, get the parent ID from the input ID
+            const inputId = $(this).attr('id');
+            const parentId = inputId.replace('submenu-url-', '');
+            dropdownId = `link-suggestions-submenu-${parentId}`;
+        } else {
+            dropdownId = $(this).attr('id') === 'new-item-url-create' ? 'link-suggestions-create' : 'link-suggestions-edit';
+        }
+        
+        const $dropdown = $('#' + dropdownId);
+        
+        if (value) {
+            // Filter items
+            $dropdown.find('li').each(function() {
+                const text = $(this).find('span').text().toLowerCase();
+                const url = $(this).data('url') || '';
+                if (text.includes(value) || url.toLowerCase().includes(value)) {
+                    $(this).show();
+                } else {
+                    $(this).hide();
+                }
+            });
+            
+            // Hide empty categories
+            $dropdown.find('.link-category').each(function() {
+                const hasVisibleItems = $(this).find('li:visible').length > 0;
+                $(this).toggle(hasVisibleItems);
+            });
+        } else {
+            // Show all
+            $dropdown.find('li').show();
+            $dropdown.find('.link-category').show();
+        }
+    });
+    
+    // Edit menu item handler
+    $(document).on('click', '.edit-menu-item-btn', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        const itemId = $(this).data('item-id');
+        const $card = $(this).closest('.menu-item-edit-card');
+        const label = $card.find('.item-label').text();
+        const url = $card.find('.item-url').text();
+        
+        // Create inline edit form
+        const editFormHtml = `
+            <div class="inline-edit-form" data-item-id="${itemId}">
+                <div class="inline-form-row">
+                    <div class="inline-form-field">
+                        <input type="text" class="menu-item-input edit-item-label" value="${label}" placeholder="Etiqueta">
+                    </div>
+                    <div class="inline-form-field">
+                        <input type="text" class="menu-item-input edit-item-url" value="${url}" placeholder="Enlace">
+                    </div>
+                    <div class="inline-form-actions">
+                        <button class="confirm-add-item-btn save-edit-btn" title="Guardar">
+                            <i class="material-symbols-outlined">check</i>
+                        </button>
+                        <button class="menu-item-action-btn cancel-edit-btn" title="Cancelar">
+                            <i class="material-symbols-outlined">close</i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        // Hide original content and show edit form
+        $card.find('.item-info, .item-actions').hide();
+        $card.append(editFormHtml);
+        
+        // Focus on label input
+        $card.find('.edit-item-label').focus().select();
+    });
+    
+    // Delete menu item handler
+    $(document).on('click', '.delete-menu-item-btn', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        const itemId = $(this).data('item-id');
+        const $card = $(this).closest('.menu-item-edit-card');
+        
+        if (confirm(translations[currentLanguage]['menus.confirmDelete'] || '¿Estás seguro de que deseas eliminar este elemento?')) {
+            // Remove from UI
+            $card.fadeOut(200, function() {
+                $(this).remove();
+                
+                // Update menu data
+                if (currentSelectedMenu && currentSelectedMenu.items) {
+                    currentSelectedMenu.items = currentSelectedMenu.items.filter(item => item.id !== itemId);
+                    currentSelectedMenu.itemCount = currentSelectedMenu.items.length;
+                    
+                    // Sync with currentNavigationData if this is the main menu
+                    if (currentSelectedMenu.id === 'main-menu') {
+                        currentNavigationData = currentSelectedMenu.items;
+                        updateMenuListItemCount();
+                    }
+                }
+                
+                // TODO: Save changes
+                console.log('[MENU] Deleted item:', itemId);
+            });
+        }
+    });
+    
+    // Save inline edit handler
+    $(document).on('click', '.save-edit-btn', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        const $form = $(this).closest('.inline-edit-form');
+        const itemId = $form.data('item-id');
+        const $card = $form.closest('.menu-item-edit-card');
+        const newLabel = $form.find('.edit-item-label').val().trim();
+        const newUrl = $form.find('.edit-item-url').val().trim();
+        
+        if (!newLabel) {
+            alert(translations[currentLanguage]['menus.labelRequired'] || 'La etiqueta es requerida');
+            return;
+        }
+        
+        // Update UI
+        $card.find('.item-label').text(newLabel);
+        $card.find('.item-url').text(newUrl || '#');
+        
+        // Update data
+        if (currentSelectedMenu && currentSelectedMenu.items) {
+            const item = currentSelectedMenu.items.find(i => i.id == itemId);
+            if (item) {
+                item.label = newLabel;
+                item.url = newUrl || '#';
+            }
+        }
+        
+        // Remove edit form and show original content
+        $form.remove();
+        $card.find('.item-info, .item-actions').show();
+        
+        console.log('[MENU] Item updated:', itemId);
+    });
+    
+    // Cancel inline edit handler
+    $(document).on('click', '.cancel-edit-btn', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        const $form = $(this).closest('.inline-edit-form');
+        const $card = $form.closest('.menu-item-edit-card');
+        
+        // Remove edit form and show original content
+        $form.remove();
+        $card.find('.item-info, .item-actions').show();
+    });
+    
+    // Handle Enter key in inline edit form
+    $(document).on('keypress', '.inline-edit-form input', function(e) {
+        if (e.which === 13) {
+            e.preventDefault();
+            $(this).closest('.inline-edit-form').find('.save-edit-btn').click();
+        }
+    });
+    
+    // Handle Escape key in inline edit form
+    $(document).on('keydown', '.inline-edit-form input', function(e) {
+        if (e.which === 27) {
+            e.preventDefault();
+            $(this).closest('.inline-edit-form').find('.cancel-edit-btn').click();
+        }
+    });
+    
+    // Add submenu handler
+    $(document).on('click', '.add-submenu-btn', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        const parentId = $(this).data('item-id');
+        const $card = $(this).closest('.menu-item-edit-card');
+        
+        // Check if submenu form already exists
+        if ($card.next('.submenu-form-container').length > 0) {
+            $card.next('.submenu-form-container').slideToggle(200);
+            return;
+        }
+        
+        // Create submenu form
+        const submenuFormHtml = `
+            <div class="submenu-form-container" data-parent-id="${parentId}">
+                <div class="add-item-inline-form submenu-form">
+                    <div class="inline-form-row">
+                        <div class="submenu-indent"></div>
+                        <div class="inline-form-field">
+                            <input type="text" class="menu-item-input" id="submenu-label-${parentId}" placeholder="Etiqueta del submenú">
+                        </div>
+                        <div class="inline-form-field">
+                            <div class="link-input-wrapper">
+                                <input type="text" class="menu-item-input submenu-url-input" id="submenu-url-${parentId}" placeholder="Enlace del submenú">
+                                <button class="link-action-btn cancel-submenu-btn" title="Cancelar">
+                                    <i class="material-symbols-outlined">delete</i>
+                                </button>
+                                <div class="link-suggestions-dropdown" id="link-suggestions-submenu-${parentId}" style="display: none;">
+                                    <div class="link-category">
+                                        <h4 data-i18n="menus.linkSuggestions.onlineStore">Tienda online</h4>
+                                        <ul>
+                                            <li data-url="/"><i class="material-icons">home</i><span data-i18n="menus.linkSuggestions.homePage">Página de inicio</span></li>
+                                            <li data-url="/search"><i class="material-icons">search</i><span data-i18n="menus.linkSuggestions.search">Búsqueda</span></li>
+                                            <li data-url="/collections" class="has-submenu">
+                                                <i class="material-icons">collections</i>
+                                                <span data-i18n="menus.linkSuggestions.collections">Colecciones</span>
+                                                <i class="material-icons submenu-arrow">chevron_right</i>
+                                            </li>
+                                            <li data-url="/products" class="has-submenu">
+                                                <i class="material-icons">inventory_2</i>
+                                                <span data-i18n="menus.linkSuggestions.products">Productos</span>
+                                                <i class="material-icons submenu-arrow">chevron_right</i>
+                                            </li>
+                                            <li data-url="/pages" class="has-submenu">
+                                                <i class="material-icons">description</i>
+                                                <span data-i18n="menus.linkSuggestions.pages">Páginas</span>
+                                                <i class="material-icons submenu-arrow">chevron_right</i>
+                                            </li>
+                                            <li data-url="/blogs" class="has-submenu">
+                                                <i class="material-icons">article</i>
+                                                <span data-i18n="menus.linkSuggestions.blogs">Blogs</span>
+                                                <i class="material-icons submenu-arrow">chevron_right</i>
+                                            </li>
+                                            <li data-url="/blog/news" class="has-submenu">
+                                                <i class="material-icons">article</i>
+                                                <span data-i18n="menus.linkSuggestions.blogPosts">Artículos del blog</span>
+                                                <i class="material-icons submenu-arrow">chevron_right</i>
+                                            </li>
+                                            <li data-url="/policies" class="has-submenu">
+                                                <i class="material-icons">gavel</i>
+                                                <span data-i18n="menus.linkSuggestions.policies">Políticas</span>
+                                                <i class="material-icons submenu-arrow">chevron_right</i>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                    <div class="link-category">
+                                        <h4 data-i18n="menus.linkSuggestions.customerAccount">Cuentas de cliente</h4>
+                                        <ul>
+                                            <li data-url="/account/orders"><i class="material-icons">receipt_long</i><span data-i18n="menus.linkSuggestions.orders">Pedidos</span></li>
+                                            <li data-url="/account/profile"><i class="material-icons">person</i><span data-i18n="menus.linkSuggestions.profile">Perfil</span></li>
+                                            <li data-url="/account/settings"><i class="material-icons">settings</i><span data-i18n="menus.linkSuggestions.settings">Configuración</span></li>
+                                            <li data-url="/apps" class="has-submenu">
+                                                <i class="material-icons">apps</i>
+                                                <span data-i18n="menus.linkSuggestions.apps">Apps</span>
+                                                <i class="material-icons submenu-arrow">chevron_right</i>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="inline-form-actions">
+                            <button class="confirm-add-item-btn add-submenu-confirm-btn" data-parent-id="${parentId}" title="Agregar">
+                                <i class="material-symbols-outlined">check</i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        // Insert form after the parent card
+        $card.after(submenuFormHtml);
+        $(`#submenu-label-${parentId}`).focus();
+        
+        // Apply translations to the new form
+        setTimeout(applyTranslations, 50);
+    });
+    
+    // Confirm add submenu handler
+    $(document).on('click', '.add-submenu-confirm-btn', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        const parentId = $(this).data('parent-id');
+        const label = $(`#submenu-label-${parentId}`).val().trim();
+        const url = $(`#submenu-url-${parentId}`).val().trim();
+        
+        if (!label) {
+            alert(translations[currentLanguage]['menus.labelRequired'] || 'La etiqueta es requerida');
+            return;
+        }
+        
+        // Create new submenu item
+        const newSubmenu = {
+            id: Date.now(),
+            label: label,
+            url: url || '#',
+            parentId: parentId,
+            target: '_self'
+        };
+        
+        // Find parent item and add submenu
+        if (currentSelectedMenu && currentSelectedMenu.items) {
+            const parentItem = currentSelectedMenu.items.find(i => i.id == parentId);
+            if (parentItem) {
+                if (!parentItem.submenus) {
+                    parentItem.submenus = [];
+                }
+                parentItem.submenus.push(newSubmenu);
+                
+                // Re-render the menu items to show the new structure
+                renderEditMenuItems(currentSelectedMenu);
+                
+                // Mark as having pending changes
+                hasPendingGlobalSettingsChanges = true;
+                updateSaveButtonState();
+            }
+        }
+        
+        console.log('[MENU] Submenu added:', newSubmenu);
+    });
+    
+    // Cancel submenu form
+    $(document).on('click', '.cancel-submenu-btn', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        $(this).closest('.submenu-form-container').slideUp(200, function() {
+            $(this).remove();
+        });
+    });
+    
+    // Collapse/expand submenu handler for menu items
+    $(document).on('click', '.menu-item-edit-card .collapse-icon', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        const $card = $(this).closest('.menu-item-edit-card');
+        const $submenuContainer = $card.next('.submenu-container');
+        
+        if ($card.hasClass('collapsed')) {
+            $card.removeClass('collapsed');
+            $submenuContainer.slideDown(200);
+        } else {
+            $card.addClass('collapsed');
+            $submenuContainer.slideUp(200);
+        }
+    });
+    
+    // Edit submenu handler
+    $(document).on('click', '.edit-submenu-btn', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        const itemId = $(this).data('item-id');
+        const $card = $(this).closest('.menu-item-edit-card');
+        const label = $card.find('.item-label').text();
+        const url = $card.find('.item-url').text();
+        
+        // Reuse the same inline edit form
+        const editFormHtml = `
+            <div class="inline-edit-form" data-item-id="${itemId}">
+                <div class="inline-form-row">
+                    <div class="submenu-indent"></div>
+                    <div class="inline-form-field">
+                        <input type="text" class="menu-item-input edit-item-label" value="${label}" placeholder="Etiqueta">
+                    </div>
+                    <div class="inline-form-field">
+                        <input type="text" class="menu-item-input edit-item-url" value="${url}" placeholder="Enlace">
+                    </div>
+                    <div class="inline-form-actions">
+                        <button class="confirm-add-item-btn save-submenu-edit-btn" title="Guardar">
+                            <i class="material-symbols-outlined">check</i>
+                        </button>
+                        <button class="menu-item-action-btn cancel-edit-btn" title="Cancelar">
+                            <i class="material-symbols-outlined">close</i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        // Hide original content and show edit form
+        $card.find('.item-info, .item-actions').hide();
+        $card.append(editFormHtml);
+        
+        // Focus on label input
+        $card.find('.edit-item-label').focus().select();
+    });
+    
+    // Save submenu edit handler
+    $(document).on('click', '.save-submenu-edit-btn', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        const $form = $(this).closest('.inline-edit-form');
+        const itemId = $form.data('item-id');
+        const $card = $form.closest('.menu-item-edit-card');
+        const parentId = $card.data('parent-id');
+        const newLabel = $form.find('.edit-item-label').val().trim();
+        const newUrl = $form.find('.edit-item-url').val().trim();
+        
+        if (!newLabel) {
+            alert(translations[currentLanguage]['menus.labelRequired'] || 'La etiqueta es requerida');
+            return;
+        }
+        
+        // Update UI
+        $card.find('.item-label').text(newLabel);
+        $card.find('.item-url').text(newUrl || '#');
+        
+        // Update data
+        if (currentSelectedMenu && currentSelectedMenu.items) {
+            const parentItem = currentSelectedMenu.items.find(i => i.id == parentId);
+            if (parentItem && parentItem.submenus) {
+                const submenu = parentItem.submenus.find(s => s.id == itemId);
+                if (submenu) {
+                    submenu.label = newLabel;
+                    submenu.url = newUrl || '#';
+                    
+                    // Mark as having pending changes
+                    hasPendingGlobalSettingsChanges = true;
+                    updateSaveButtonState();
+                }
+            }
+        }
+        
+        // Remove edit form and show original content
+        $form.remove();
+        $card.find('.item-info, .item-actions').show();
+        
+        console.log('[MENU] Submenu updated:', itemId);
+    });
+    
+    // Delete submenu handler
+    $(document).on('click', '.delete-submenu-btn', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        const itemId = $(this).data('item-id');
+        const parentId = $(this).data('parent-id');
+        const $card = $(this).closest('.menu-item-edit-card');
+        
+        if (confirm(translations[currentLanguage]['menus.confirmDelete'] || '¿Estás seguro de que deseas eliminar este submenú?')) {
+            // Remove from UI
+            $card.fadeOut(200, function() {
+                $(this).remove();
+                
+                // Update menu data
+                if (currentSelectedMenu && currentSelectedMenu.items) {
+                    const parentItem = currentSelectedMenu.items.find(i => i.id == parentId);
+                    if (parentItem && parentItem.submenus) {
+                        parentItem.submenus = parentItem.submenus.filter(s => s.id != itemId);
+                        
+                        // If no more submenus, re-render to remove collapse icon
+                        if (parentItem.submenus.length === 0) {
+                            delete parentItem.submenus;
+                            renderEditMenuItems(currentSelectedMenu);
+                        }
+                        
+                        // Mark as having pending changes
+                        hasPendingGlobalSettingsChanges = true;
+                        updateSaveButtonState();
+                    }
+                }
+                
+                console.log('[MENU] Deleted submenu:', itemId);
+            });
+        }
+    });
+    
