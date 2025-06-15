@@ -399,6 +399,10 @@
 
 @section Scripts {
     <script src="~/js/website-builder.js?v=@DateTime.Now.Ticks"></script>
+    
+    <!-- Módulos del Website Builder -->
+    <script src="~/js/website-builder/modules/multicolumn.js?v=@DateTime.Now.Ticks" defer></script>
+    
     <script>
         // Dynamic font loading
         const loadedFonts = new Set(['Inter', 'Roboto', 'Open Sans', 'Playfair Display', 'Montserrat', 'Lato', 'Poppins']);

@@ -1582,6 +1582,90 @@ function attachDropdownMenuListeners(doc) {
     });
 }
 
+// Función para generar el contenido de una slide
+function generateSlideContent(slide, schemeColors) {
+    if (!slide.container) {
+        return ''; // No content if container is false
+    }
+    
+    // Get typography settings
+    const headingTypography = currentGlobalThemeSettings?.typography?.heading || {};
+    const bodyTypography = currentGlobalThemeSettings?.typography?.body || {};
+    
+    const headingFontValue = headingTypography.font || 'helvetica';
+    const headingFontFamily = window.getFontNameFromValueSafe ? window.getFontNameFromValueSafe(headingFontValue) : headingFontValue;
+    const headingUppercase = headingTypography.uppercase || false;
+    const headingLetterSpacing = headingTypography.letterSpacing || 0;
+    
+    // Get title size based on slide configuration
+    let headingFontSize = '36px'; // Default
+    if (slide.titleSize === 'small' || slide.titleSize === 'pequeño') {
+        headingFontSize = '24px';
+    } else if (slide.titleSize === 'medium' || slide.titleSize === 'mediano') {
+        headingFontSize = '36px';
+    } else if (slide.titleSize === 'large' || slide.titleSize === 'grande') {
+        headingFontSize = '48px';
+    } else if (slide.titleSize === 'extraLarge' || slide.titleSize === 'extraGrande') {
+        headingFontSize = '64px';
+    } else if (slide.titleSize === 'superExtraLarge' || slide.titleSize === 'superExtraGrande') {
+        headingFontSize = '80px';
+    }
+    
+    const bodyFontValue = bodyTypography.font || 'roboto';
+    const bodyFontFamily = window.getFontNameFromValueSafe ? window.getFontNameFromValueSafe(bodyFontValue) : bodyFontValue;
+    const bodyFontSize = bodyTypography.fontSize || '16px';
+    
+    // Determine content position (grid alignment)
+    let gridAlign = 'center'; // Default
+    let gridJustify = 'center'; // Default
+    
+    // Map content position values
+    if (slide.contentPosition) {
+        const positionMap = {
+            'arriba-izquierda': { align: 'start', justify: 'start' },
+            'arriba-centro': { align: 'start', justify: 'center' },
+            'arriba-derecha': { align: 'start', justify: 'end' },
+            'centro-izquierda': { align: 'center', justify: 'start' },
+            'centro-centro': { align: 'center', justify: 'center' },
+            'centro-derecha': { align: 'center', justify: 'end' },
+            'abajo-izquierda': { align: 'end', justify: 'start' },
+            'abajo-centro': { align: 'end', justify: 'center' },
+            'abajo-derecha': { align: 'end', justify: 'end' }
+        };
+        
+        const position = positionMap[slide.contentPosition];
+        if (position) {
+            gridAlign = position.align;
+            gridJustify = position.justify;
+        }
+    }
+    
+    // Determine text alignment
+    let textAlign = 'left'; // Default
+    if (slide.contentAlignment) {
+        const alignmentMap = {
+            'izquierda': 'left',
+            'centrado': 'center',
+            'derecha': 'right'
+        };
+        textAlign = alignmentMap[slide.contentAlignment] || 'left';
+    }
+    
+    return `
+        <div class="slide-content" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; display: flex; align-items: ${gridAlign}; justify-content: ${gridJustify}; padding: 40px; z-index: 2;">
+            <div class="slide-content-inner" style="max-width: 600px; text-align: ${textAlign};" data-mobile-align="${slide.mobileContentAlignment || 'centrado'}">
+                ${slide.title ? `<h2 style="margin: 0 0 20px 0; font-family: ${headingFontFamily}, -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: ${headingFontSize}; color: ${schemeColors.text}; ${headingUppercase ? 'text-transform: uppercase;' : ''} letter-spacing: ${headingLetterSpacing}px; font-weight: 600;">${slide.title}</h2>` : ''}
+                ${slide.subtitle ? `<p style="margin: 0 0 30px 0; font-family: ${bodyFontFamily}, -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: ${bodyFontSize}; color: ${schemeColors.text}; opacity: 0.8; line-height: 1.5;">${slide.subtitle}</p>` : ''}
+                ${slide.buttonText ? `
+                    <a href="${slide.buttonLink || '#'}" class="slide-button" style="display: inline-block; padding: 12px 30px; background: ${schemeColors['solid-button'] || schemeColors.primary || '#121212'}; color: ${schemeColors['solid-button-text'] || '#FFFFFF'}; border: none; border-radius: 4px; font-family: ${bodyFontFamily}, -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 16px; cursor: pointer; font-weight: 500; transition: all 0.3s ease; text-decoration: none;">
+                        ${slide.buttonText}
+                    </a>
+                ` : ''}
+            </div>
+        </div>
+    `;
+}
+
 // Función para renderizar el slideshow
 function renderSlideshow(config) {
     console.log('[SLIDESHOW] Rendering slideshow with config:', config);
@@ -1603,9 +1687,12 @@ function renderSlideshow(config) {
         return '';
     }
     
-    // Get current slide
-    const currentSlideId = visibleSlides[0]; // Por ahora mostrar la primera slide
+    // Get current slide (will be managed by JavaScript for autorotate)
+    const currentSlideId = visibleSlides[0];
     const currentSlide = slides[currentSlideId];
+    
+    // Generate unique ID for this slideshow instance
+    const slideshowId = 'slideshow-' + Date.now();
     
     // Get color scheme
     const colorScheme = currentSlide.colorScheme || 'scheme1';
@@ -1676,10 +1763,10 @@ function renderSlideshow(config) {
     
     // Build navigation arrows
     const navigationArrowsHtml = (slideshowConfig.showNavigationArrows && visibleSlides.length > 1) ? `
-        <button style="position: absolute; left: 20px; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.8); border: none; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 3;">
+        <button class="slideshow-nav-prev" style="position: absolute; left: 20px; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.8); border: none; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 3;">
             <span class="material-symbols-outlined">chevron_left</span>
         </button>
-        <button style="position: absolute; right: 20px; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.8); border: none; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 3;">
+        <button class="slideshow-nav-next" style="position: absolute; right: 20px; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.8); border: none; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 3;">
             <span class="material-symbols-outlined">chevron_right</span>
         </button>
     ` : '';
@@ -1689,16 +1776,47 @@ function renderSlideshow(config) {
     if (slideshowConfig.showPagination && visibleSlides.length > 1) {
         if (slideshowConfig.paginationType === 'dots') {
             paginationHtml = `
-                <div style="position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); display: flex; gap: 8px; z-index: 3;">
-                    ${visibleSlides.map((slideId, index) => `
-                        <div style="width: 8px; height: 8px; border-radius: 50%; background: ${index === 0 ? schemeColors.text : 'rgba(255,255,255,0.5)'}; cursor: pointer;"></div>
-                    `).join('')}
+                <div class="slideshow-pagination-container" style="position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(to top, rgba(0,0,0,0.5), transparent); padding: 20px 0 15px; z-index: 3;">
+                    <div class="slideshow-pagination-dots" style="display: flex; gap: 10px; justify-content: center; align-items: center;">
+                        ${visibleSlides.map((slideId, index) => {
+                            const slide = slides[slideId];
+                            const slideColorScheme = slide.colorScheme || 'scheme1';
+                            const slideSchemeColors = getColorSchemeValues(slideColorScheme);
+                            
+                            return `
+                                <button class="pagination-dot" 
+                                        data-slide-index="${index}" 
+                                        style="width: 10px; height: 10px; border-radius: 50%; border: none; background: ${slideSchemeColors.text}; opacity: ${index === 0 ? '1' : '0.3'}; cursor: pointer; padding: 0; transition: opacity 0.3s ease;">
+                                </button>
+                            `;
+                        }).join('')}
+                    </div>
                 </div>
             `;
         } else if (slideshowConfig.paginationType === 'counter') {
             paginationHtml = `
-                <div style="position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); color: ${schemeColors.text}; font-family: ${bodyFontFamily}; z-index: 3;">
+                <div class="slideshow-pagination" style="position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); color: ${schemeColors.text}; font-family: ${bodyFontFamily}; z-index: 3;">
                     1 / ${visibleSlides.length}
+                </div>
+            `;
+        } else if (slideshowConfig.paginationType === 'numbers') {
+            paginationHtml = `
+                <div class="slideshow-pagination-container" style="position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(to top, rgba(0,0,0,0.5), transparent); padding: 20px 0 15px; z-index: 3;">
+                    <div class="slideshow-pagination-numbers" style="display: flex; gap: 15px; justify-content: center; align-items: center;">
+                        ${visibleSlides.map((slideId, index) => {
+                            const slide = slides[slideId];
+                            const slideColorScheme = slide.colorScheme || 'scheme1';
+                            const slideSchemeColors = getColorSchemeValues(slideColorScheme);
+                            
+                            return `
+                                <button class="pagination-number" 
+                                        data-slide-index="${index}" 
+                                        style="width: 30px; height: 30px; border-radius: 4px; border: none; background: ${index === 0 ? slideSchemeColors.text : 'transparent'}; color: ${index === 0 ? slideSchemeColors.background : slideSchemeColors.text}; cursor: pointer; padding: 0; font-family: ${bodyFontFamily}; font-size: 14px; font-weight: 500; transition: all 0.3s ease;">
+                                    ${index + 1}
+                                </button>
+                            `;
+                        }).join('')}
+                    </div>
                 </div>
             `;
         }
@@ -1712,27 +1830,376 @@ function renderSlideshow(config) {
     const bottomPadding = slideshowConfig.bottomPadding || 0;
     const paddingStyle = `padding-top: ${topPadding}px; padding-bottom: ${bottomPadding}px;`;
     
+    // Generate unique styles for mobile responsiveness
+    const mobileStyles = `
+        <style>
+            /* Mobile responsiveness for slideshow */
+            @media (max-width: 768px) {
+                /* Adjust slideshow height on mobile */
+                .slideshow-container {
+                    height: 350px !important;
+                    min-height: 350px !important;
+                }
+                
+                /* Adjust slide content padding */
+                .slide-content {
+                    padding: 20px !important;
+                }
+                
+                /* Adjust content inner container */
+                .slide-content-inner {
+                    max-width: 100% !important;
+                    padding: 0 10px;
+                }
+                
+                /* Mobile text alignment */
+                .slide-content-inner[data-mobile-align="izquierda"] {
+                    text-align: left !important;
+                }
+                .slide-content-inner[data-mobile-align="centrado"] {
+                    text-align: center !important;
+                }
+                .slide-content-inner[data-mobile-align="derecha"] {
+                    text-align: right !important;
+                }
+                
+                /* Adjust title sizes for mobile */
+                .slide-content-inner h2 {
+                    font-size: 24px !important;
+                    margin-bottom: 15px !important;
+                }
+                
+                /* Adjust subtitle for mobile */
+                .slide-content-inner p {
+                    font-size: 14px !important;
+                    margin-bottom: 20px !important;
+                    line-height: 1.4 !important;
+                }
+                
+                /* Adjust button for mobile */
+                .slide-button {
+                    padding: 10px 24px !important;
+                    font-size: 14px !important;
+                }
+                
+                /* Adjust navigation arrows for mobile */
+                .slideshow-nav-prev,
+                .slideshow-nav-next {
+                    width: 35px !important;
+                    height: 35px !important;
+                    left: 10px !important;
+                    right: 10px !important;
+                }
+                
+                .slideshow-nav-prev {
+                    left: 10px !important;
+                }
+                
+                .slideshow-nav-next {
+                    right: 10px !important;
+                }
+                
+                /* Adjust pagination for mobile */
+                .slideshow-pagination-container {
+                    padding: 15px 0 10px !important;
+                }
+                
+                .pagination-dot {
+                    width: 8px !important;
+                    height: 8px !important;
+                }
+                
+                .slideshow-pagination-dots {
+                    gap: 8px !important;
+                }
+                
+                /* Ensure images are responsive */
+                .slide-wrapper img {
+                    object-position: center !important;
+                }
+            }
+            
+            /* Extra small devices */
+            @media (max-width: 480px) {
+                .slideshow-container {
+                    height: 280px !important;
+                    min-height: 280px !important;
+                }
+                
+                .slide-content-inner h2 {
+                    font-size: 20px !important;
+                }
+                
+                .slide-content-inner p {
+                    font-size: 13px !important;
+                }
+            }
+        </style>
+    `;
+    
     return `
+        ${mobileStyles}
         <div class="slideshow-wrapper" style="${paddingStyle}">
-            <div class="slideshow-container" ${containerClass} style="position: relative; ${heightStyle} background: ${schemeColors.background}; overflow: hidden;">
-                ${currentSlide.desktopImage ? `
-                    <img src="${currentSlide.desktopImage}" 
-                         alt="${currentSlide.title || 'Slide image'}"
-                         style="width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; 
-                                image-rendering: -webkit-optimize-contrast; 
-                                image-rendering: crisp-edges;
-                                -webkit-backface-visibility: hidden;
-                                transform: translateZ(0);">
-                ` : `
-                    <div style="width: 100%; height: 100%; background: ${schemeColors.foreground || schemeColors.background}; position: absolute; top: 0; left: 0;"></div>
-                `}
-                ${currentSlide.useOverlay && currentSlide.overlayOpacity ? `
-                    <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, ${currentSlide.overlayOpacity}); z-index: 1;"></div>
-                ` : ''}
-                ${slideContentHtml}
+            <div class="slideshow-container" 
+                 id="${slideshowId}"
+                 data-autorotate="${slideshowConfig.autoRotate || false}"
+                 data-interval="${slideshowConfig.changeInterval || 5}"
+                 data-current-slide="0"
+                 data-total-slides="${visibleSlides.length}"
+                 data-slide-ids='${JSON.stringify(visibleSlides)}'
+                 data-slides='${JSON.stringify(slides)}'
+                 ${containerClass} 
+                 style="position: relative; ${heightStyle} background: ${schemeColors.background}; overflow: hidden;">
+                <!-- All slides -->
+                ${visibleSlides.map((slideId, index) => {
+                    const slide = slides[slideId];
+                    const slideColorScheme = slide.colorScheme || 'scheme1';
+                    const slideSchemeColors = getColorSchemeValues(slideColorScheme);
+                    const isActive = index === 0;
+                    
+                    return `
+                        <div class="slide-wrapper" data-slide-index="${index}" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; ${isActive ? '' : 'display: none;'}">
+                            ${slide.desktopImage ? `
+                                <!-- Desktop image -->
+                                <picture>
+                                    ${slide.mobileImage ? `<source media="(max-width: 768px)" srcset="${slide.mobileImage}">` : ''}
+                                    <img src="${slide.desktopImage}" 
+                                         alt="${slide.title || 'Slide image'}"
+                                         class="slide-image"
+                                         style="width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; 
+                                                image-rendering: -webkit-optimize-contrast; 
+                                                image-rendering: crisp-edges;
+                                                -webkit-backface-visibility: hidden;
+                                                transform: translateZ(0);">
+                                </picture>
+                            ` : `
+                                <div style="width: 100%; height: 100%; background: ${slideSchemeColors.foreground || slideSchemeColors.background}; position: absolute; top: 0; left: 0;"></div>
+                            `}
+                            ${slide.useOverlay && slide.overlayOpacity ? `
+                                <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, ${slide.overlayOpacity}); z-index: 1;"></div>
+                            ` : ''}
+                            ${generateSlideContent(slide, slideSchemeColors)}
+                        </div>
+                    `;
+                }).join('')}
                 ${navigationArrowsHtml}
                 ${paginationHtml}
             </div>
         </div>
     `;
+}
+
+/**
+ * Renderiza la sección multicolumn
+ */
+function renderMulticolumn(config) {
+    console.log('[MULTICOLUMN] Rendering multicolumn with config:', config);
+    
+    if (!config || config.isHidden) {
+        console.log('[MULTICOLUMN] Section is hidden or config is null');
+        return '';
+    }
+    
+    const schemeColors = getColorSchemeValues(config.config?.colorScheme || 'scheme1');
+    const columns = config.columns || {};
+    const columnOrder = config.columnOrder || [];
+    
+    // Filter visible columns
+    const visibleColumns = columnOrder.filter(columnId => 
+        columns[columnId] && !columns[columnId].isHidden
+    );
+    
+    if (visibleColumns.length === 0) {
+        return '';
+    }
+    
+    // Generate columns HTML
+    const columnsHtml = visibleColumns.map((columnId, index) => {
+        const column = columns[columnId];
+        const isEven = index % 2 === 0;
+        const imagePosition = config.config?.imagePosition === 'alternating' ? 
+            (isEven ? 'left' : 'right') : config.config?.imagePosition || 'left';
+        
+        return `
+            <div class="multicolumn-row" style="display: flex; align-items: center; margin-bottom: 40px; ${imagePosition === 'right' ? 'flex-direction: row-reverse;' : ''}">
+                ${config.config?.showImages !== false ? `
+                    <div class="multicolumn-image" style="flex: 0 0 50%; ${imagePosition === 'left' ? 'padding-right: 40px;' : 'padding-left: 40px;'}">
+                        ${column.imageUrl ? 
+                            `<img src="${column.imageUrl}" alt="${column.title || ''}" style="width: 100%; height: auto; display: block;">` :
+                            `<div style="background: ${schemeColors.foreground || '#e0e0e0'}; aspect-ratio: 4/3; display: flex; align-items: center; justify-content: center;">
+                                <i class="material-icons" style="font-size: 48px; color: ${schemeColors.background};">image</i>
+                            </div>`
+                        }
+                    </div>
+                ` : ''}
+                <div class="multicolumn-content" style="flex: 1; color: ${schemeColors.text};">
+                    ${column.title ? `<h3 style="font-size: 24px; margin: 0 0 16px 0; color: ${schemeColors.text};">${column.title}</h3>` : ''}
+                    ${column.content ? `<p style="margin: 0 0 16px 0; line-height: 1.6;">${column.content}</p>` : ''}
+                    ${column.buttonText ? `
+                        <a href="${column.buttonLink || '#'}" 
+                           style="display: inline-block; padding: 12px 24px; background: ${schemeColors.buttonBackground || schemeColors.text}; 
+                                  color: ${schemeColors.buttonText || schemeColors.background}; text-decoration: none; 
+                                  border-radius: 4px; font-weight: 500;">
+                            ${column.buttonText}
+                        </a>
+                    ` : ''}
+                </div>
+            </div>
+        `;
+    }).join('');
+    
+    // Get translations
+    const sectionTitle = (typeof translations !== 'undefined' && translations[currentLanguage]?.['sections.multicolumn']) || 
+                        (typeof lang !== 'undefined' && lang['sections.multicolumn']) || 
+                        'Multicolumn';
+    
+    return `
+        <div class="section-wrapper" data-section-id="multicolumn" style="padding: 40px 0;">
+            <div class="section-header-tag">
+                <span class="material-symbols-outlined" style="font-size: 16px;">view_week</span>
+                ${sectionTitle}
+            </div>
+            <div class="multicolumn-container" style="max-width: 1200px; margin: 0 auto; padding: 0 20px;">
+                ${config.config?.title ? `
+                    <h2 style="text-align: center; font-size: 32px; margin: 0 0 40px 0; color: ${schemeColors.text};">
+                        ${config.config.title}
+                    </h2>
+                ` : ''}
+                ${columnsHtml}
+            </div>
+        </div>
+    `;
+}
+
+// Función para inicializar slideshows
+function initializeSlideshows() {
+    // Inicializar TODOS los slideshows, no solo los que tienen autorotate
+    const slideshows = document.querySelectorAll('.slideshow-container');
+    
+    slideshows.forEach(slideshow => {
+        const isAutorotate = slideshow.dataset.autorotate === 'true';
+        const interval = parseInt(slideshow.dataset.interval) * 1000; // Convert to milliseconds
+        const slideIds = JSON.parse(slideshow.dataset.slideIds || '[]');
+        const slidesData = JSON.parse(slideshow.dataset.slides || '{}');
+        let currentIndex = 0;
+        
+        if (slideIds.length <= 1) return; // No need to rotate if only one slide
+        
+        // Function to update slide
+        function updateSlide(index) {
+            // Hide all slides with smooth transition
+            const allSlides = slideshow.querySelectorAll('.slide-wrapper');
+            allSlides.forEach((slide, i) => {
+                if (i === index) {
+                    slide.style.display = 'block';
+                    // Force mobile image update if needed
+                    const img = slide.querySelector('img');
+                    if (img) {
+                        img.style.objectFit = 'cover';
+                        img.style.objectPosition = 'center';
+                    }
+                } else {
+                    slide.style.display = 'none';
+                }
+            });
+            
+            // Update pagination if exists
+            const paginationText = slideshow.querySelector('.slideshow-pagination');
+            if (paginationText) {
+                paginationText.textContent = `${index + 1} / ${slideIds.length}`;
+            }
+            
+            // Update dots if exist
+            const dots = slideshow.querySelectorAll('.pagination-dot');
+            dots.forEach((dot, i) => {
+                if (i === index) {
+                    dot.style.opacity = '1';
+                } else {
+                    dot.style.opacity = '0.3';
+                }
+            });
+            
+            // Update pagination numbers if exist
+            const numbers = slideshow.querySelectorAll('.pagination-number');
+            numbers.forEach((num, i) => {
+                const slideId = slideIds[index]; // Current slide for colors
+                const slide = slidesData[slideId];
+                const colorScheme = slide?.colorScheme || 'scheme1';
+                const schemeColors = getColorSchemeValues(colorScheme);
+                
+                if (i === index) {
+                    num.style.background = schemeColors.text;
+                    num.style.color = schemeColors.background;
+                } else {
+                    num.style.background = 'transparent';
+                    num.style.color = schemeColors.text;
+                }
+            });
+            
+            // Update data attribute
+            slideshow.dataset.currentSlide = index;
+        }
+        
+        // Set up rotation interval ONLY if autorotate is enabled
+        let rotationInterval = null;
+        if (isAutorotate) {
+            rotationInterval = setInterval(() => {
+                currentIndex = (currentIndex + 1) % slideIds.length;
+                updateSlide(currentIndex);
+            }, interval);
+            
+            // Store interval ID for cleanup
+            slideshow.dataset.intervalId = rotationInterval;
+        }
+        
+        // Handle navigation arrows if they exist
+        const prevArrow = slideshow.querySelector('.slideshow-nav-prev');
+        const nextArrow = slideshow.querySelector('.slideshow-nav-next');
+        
+        if (prevArrow) {
+            prevArrow.addEventListener('click', () => {
+                if (rotationInterval) clearInterval(rotationInterval);
+                currentIndex = (currentIndex - 1 + slideIds.length) % slideIds.length;
+                updateSlide(currentIndex);
+            });
+        }
+        
+        if (nextArrow) {
+            nextArrow.addEventListener('click', () => {
+                if (rotationInterval) clearInterval(rotationInterval);
+                currentIndex = (currentIndex + 1) % slideIds.length;
+                updateSlide(currentIndex);
+            });
+        }
+        
+        // Handle pagination dots clicks
+        const paginationDots = slideshow.querySelectorAll('.pagination-dot');
+        paginationDots.forEach((dot, i) => {
+            dot.addEventListener('click', () => {
+                if (rotationInterval) clearInterval(rotationInterval);
+                currentIndex = i;
+                updateSlide(currentIndex);
+            });
+        });
+        
+        // Handle pagination numbers clicks
+        const paginationNumbers = slideshow.querySelectorAll('.pagination-number');
+        paginationNumbers.forEach((num, i) => {
+            num.addEventListener('click', () => {
+                if (rotationInterval) clearInterval(rotationInterval);
+                currentIndex = i;
+                updateSlide(currentIndex);
+            });
+        })
+    });
+}
+
+// Auto-initialize when DOM is ready
+if (typeof document !== 'undefined') {
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initializeSlideshows);
+    } else {
+        // DOM is already loaded
+        setTimeout(initializeSlideshows, 100);
+    }
 }

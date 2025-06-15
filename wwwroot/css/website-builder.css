@@ -1007,6 +1007,38 @@
     padding-left: 0;
 }
 
+/* Specific styling for multicolumn column items */
+.multicolumn-column-item {
+    display: flex !important;
+    align-items: center !important;
+}
+
+.multicolumn-column-item .drag-handle {
+    position: relative;
+    left: 0;
+    top: 0;
+    transform: none;
+    margin-right: 12px !important;
+    font-size: 16px !important;
+    color: #8c9196;
+    opacity: 0.6;
+    display: inline-flex;
+    align-items: center;
+    vertical-align: middle;
+}
+
+.multicolumn-column-item:hover .drag-handle {
+    opacity: 1;
+    color: #202223;
+}
+
+.multicolumn-column-item .subsection-text {
+    margin-left: 0;
+    padding-left: 0;
+    display: inline-flex;
+    align-items: center;
+}
+
 /* Hide ALL menu icons that are direct children of subsections except drag and collapse */
 .sidebar-subsection > i.material-icons:not(.drag-handle):not(.collapse-indicator) {
     display: none !important;
@@ -3020,11 +3052,13 @@
 .section-preview-image {
     width: 100%;
     max-width: 400px;
+    margin: 0 auto;
 }
 
 .section-preview-image img {
     width: 100%;
     height: auto;
+    display: block;
     border-radius: 4px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }

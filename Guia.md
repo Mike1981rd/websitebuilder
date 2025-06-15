@@ -325,4 +325,604 @@ window.loadGoogleFont = function(fontName) {
 ### Nota importante:
 Esta soluci�n es espec�fica para la tipograf�a del men� en el header. Cada secci�n que use tipograf�a personalizada debe implementar un patr�n similar para asegurar que las fuentes se carguen y apliquen correctamente en el editor.
 
+## 11. Sincronizaci�n entre Editor y Preview - Arquitectura
+
+### C�mo funciona la sincronizaci�n:
+
+#### 1. **Editor (Panel principal)**
+El editor corre en la p�gina principal (`Index.cshtml`) y tiene un iframe que muestra el preview:
+```html
+<iframe id="preview-iframe" src="/WebsiteBuilder/PreviewTemplate"></iframe>
+```
+
+#### 2. **Renderizado del Preview**
+Cuando se hace un cambio en el editor:
+
+```javascript
+// En website-builder.js
+function renderPreview() {
+    const previewFrame = document.getElementById('preview-iframe');
+    const previewDoc = previewFrame.contentDocument;
+    
+    // 1. Verificar que el iframe tenga las funciones de renderizado
+    if (iframeWindow.renderHeader) {
+        // Usar funciones del iframe
+        finalHtml += iframeWindow.renderHeader(config);
+    }
+    
+    // 2. Actualizar el HTML
+    previewBody.innerHTML = finalHtml;
+    
+    // 3. Inicializar funcionalidades (ej: slideshows)
+    if (iframeWindow.initializeSlideshows) {
+        iframeWindow.initializeSlideshows();
+    }
+}
+```
+
+#### 3. **Flujo de datos**
+```
+Usuario hace cambio → Event Listener → Actualiza currentSectionsConfig → renderPreview() → Iframe se actualiza
+```
+
+#### 4. **Funciones compartidas**
+El archivo `website-render-functions.js` contiene funciones de renderizado que se usan tanto en:
+- **Editor**: Para el preview del iframe
+- **Preview externo**: Cuando se abre con el �cono del ojo
+
+#### 5. **Inicializaci�n de funcionalidades**
+Despu�s de renderizar HTML est�tico, se deben inicializar funcionalidades din�micas:
+
+```javascript
+// En website-builder.js (para el editor)
+if (iframeWindow && iframeWindow.initializeSlideshows) {
+    iframeWindow.initializeSlideshows();
+}
+
+// En Preview.cshtml (para preview externo)
+if (typeof initializeSlideshows === 'function') {
+    setTimeout(() => {
+        initializeSlideshows();
+    }, 100);
+}
+```
+
+### Puntos clave para mantener sincronizaci�n:
+
+1. **Variables globales**: Usar `window.variable` para compartir datos entre contextos
+2. **Event Listeners**: Llamar `renderPreview()` despu�s de cada cambio
+3. **Funciones de inicializaci�n**: Ejecutar despu�s de actualizar HTML
+4. **Timeout**: A veces necesario para asegurar que el DOM est� listo
+
+### Ejemplo pr�ctico - Slideshow Autorotate:
+
+1. **Cambio en configuraci�n**:
+```javascript
+$('#slideshow-auto-rotate').on('change', function() {
+    currentSectionsConfig.slideshow.config.autoRotate = isChecked;
+    renderPreview(); // Actualiza el preview
+});
+```
+
+2. **Renderizado con data attributes**:
+```javascript
+<div class="slideshow-container" 
+     data-autorotate="${slideshowConfig.autoRotate || false}"
+     data-interval="${slideshowConfig.changeInterval || 5}">
+```
+
+3. **Inicializaci�n post-render**:
+```javascript
+function initializeSlideshows() {
+    const slideshows = document.querySelectorAll('.slideshow-container');
+    slideshows.forEach(slideshow => {
+        const isAutorotate = slideshow.dataset.autorotate === 'true';
+        if (isAutorotate) {
+            // Iniciar rotaci�n autom�tica
+        }
+    });
+}
+```
+
+Esta arquitectura asegura que cualquier cambio en el editor se refleje inmediatamente en el preview, manteniendo ambos sincronizados.
+
+## 12. TAREA PENDIENTE: Modularizaci�n del C�digo
+
+### Problema actual:
+- `website-builder.js` tiene m�s de 15,000 l�neas
+- Dif�cil mantenimiento y debugging
+- Alto riesgo al agregar nuevas funcionalidades
+
+### Soluci�n propuesta - Arquitectura modular:
+
+#### Estructura de archivos:
+```
+/wwwroot/js/website-builder/
+├── modules/
+│   ├── image-text.js
+│   ├── columns.js
+│   ├── logo-list.js
+│   ├── rich-text.js
+│   └── [otros-modulos].js
+├── core/
+│   ├── module-loader.js
+│   └── module-base.js
+└── website-builder.js (existente - NO MODIFICAR)
+```
+
+#### Patr�n de m�dulo:
+```javascript
+// Ejemplo: image-text.js
+window.WebsiteBuilderModules = window.WebsiteBuilderModules || {};
+window.WebsiteBuilderModules.ImageText = {
+    render: function(config) { 
+        // Renderizar secci�n
+    },
+    renderSettings: function(config) { 
+        // Renderizar panel de configuraci�n
+    },
+    attachEventListeners: function() { 
+        // Adjuntar event listeners
+    },
+    initialize: function() { 
+        // Inicializaci�n del m�dulo
+    }
+};
+```
+
+#### Integraci�n m�nima con c�digo existente:
+```javascript
+// �nica modificaci�n en website-builder.js (al final)
+function executeModuleFunction(moduleName, functionName, ...args) {
+    if (window.WebsiteBuilderModules?.[moduleName]?.[functionName]) {
+        return window.WebsiteBuilderModules[moduleName][functionName](...args);
+    }
+}
+
+// En switchSidebarView agregar casos nuevos:
+case 'imageTextSettings':
+    executeModuleFunction('ImageText', 'renderSettings', data);
+    break;
+```
+
+#### Carga en Index.cshtml:
+```html
+<!-- Despu�s de website-builder.js -->
+<script src="~/js/website-builder/core/module-loader.js"></script>
+<script src="~/js/website-builder/modules/image-text.js" defer></script>
+<!-- Otros m�dulos -->
+```
+
+### Beneficios:
+1. **Mantenimiento f�cil**: Cada m�dulo en su archivo
+2. **Sin riesgo**: No se modifica c�digo existente
+3. **Escalable**: Nuevos m�dulos se agregan sin tocar otros
+4. **Debugging mejorado**: Archivos peque�os y espec�ficos
+
+### Pr�ximos pasos:
+1. Crear estructura de carpetas
+2. Implementar primer m�dulo (image-text) como prueba
+3. Validar funcionamiento
+4. Migrar gradualmente funcionalidades nuevas a m�dulos
+
+## 13. PROBLEMA CR�TICO: M�dulos Nuevos DEBEN Seguir Arquitectura Modular
+
+### Problema Documentado:
+Al implementar multicolumn siguiendo el flujo del slideshow, fall� porque:
+1. El preview no se mostraba (problema con la ruta de imagen)
+2. El click no agregaba la secci�n al panel
+3. Se agreg� c�digo directamente a website-builder.js (15,000+ l�neas)
+
+### Soluci�n Correcta - Arquitectura Modular:
+**TODOS los m�dulos nuevos DEBEN implementarse como archivos separados**
+
+#### Ejemplo Implementado - Multicolumn:
+```
+/wwwroot/js/website-builder/modules/multicolumn.js
+```
+
+#### Patr�n del M�dulo:
+```javascript
+window.WebsiteBuilderModules = window.WebsiteBuilderModules || {};
+window.WebsiteBuilderModules.Multicolumn = {
+    render: function(config) { /* renderizar secci�n */ },
+    renderSettings: function(config) { /* panel configuraci�n */ },
+    attachEventListeners: function() { /* event listeners */ },
+    renderRowSettings: function(data) { /* configuraci�n individual */ },
+    attachRowEventListeners: function(columnId) { /* eventos de fila */ }
+};
+```
+
+#### Integraci�n con C�digo Existente:
+1. **En website-builder.js** - Agregar executeModuleFunction (ya agregada)
+2. **En switchSidebarView** - Usar executeModuleFunction
+3. **En renderPreview** - Verificar si existe el m�dulo
+4. **Cargar scripts en**:
+   - Index.cshtml
+   - PreviewTemplate.cshtml
+   - Preview.cshtml
+
+#### Ventajas:
+- C�digo aislado y mantenible
+- F�cil debugging
+- No modifica website-builder.js
+- Reutilizable en diferentes contextos
+
+## 14. GU�A DE IMPLEMENTACI�N EST�NDAR PARA NUEVOS M�DULOS
+
+### FLUJO CR�TICO: Agregar Nueva Secci�n desde Modal de Plantillas
+
+#### Problema Documentado:
+Al hacer click en una opci�n del modal de plantillas, no suced�a nada. Se perd�a mucho tiempo porque no se segu�a el flujo correcto.
+
+#### Flujo Correcto (Implementado en Slideshow - L�neas 9595-9690):
+
+1. **Event Handler Global para Clicks del Modal:**
+```javascript
+// L�nea 9595 - DEBE estar fuera de $(document).ready() para funcionar con modales din�micos
+$(document).on('click', '.add-section-modal .section-item', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const sectionId = $(this).data('section-id');
+    const group = $('.add-section-button.active').data('group') || 'template';
+```
+
+2. **Verificar el Grupo y Secci�n:**
+```javascript
+// L�nea 9607
+if (group === 'template' && sectionId === 'slideshow') {
+    // Procesar agregado de slideshow
+}
+```
+
+3. **Inicializar Configuraci�n de la Secci�n:**
+```javascript
+// L�nea 9609-9652
+if (!currentSectionsConfig.slideshow) {
+    const defaultSlideId = 'slide-' + Date.now();
+    
+    currentSectionsConfig.slideshow = {
+        id: 'slideshow',
+        isHidden: false,
+        config: {
+            // Configuraci�n por defecto
+        },
+        slides: {
+            [defaultSlideId]: {
+                // Slide por defecto
+            }
+        },
+        slideOrder: [defaultSlideId]
+    };
+}
+```
+
+4. **Agregar a sectionOrder (CR�TICO):**
+```javascript
+// L�nea 9654-9664
+if (!currentSectionsConfig.sectionOrder) {
+    currentSectionsConfig.sectionOrder = [];
+}
+if (!currentSectionsConfig.sectionOrder.includes('slideshow')) {
+    // Insertar despu�s del header si existe
+    const headerIndex = currentSectionsConfig.sectionOrder.indexOf('header');
+    if (headerIndex >= 0) {
+        currentSectionsConfig.sectionOrder.splice(headerIndex + 1, 0, 'slideshow');
+    } else {
+        currentSectionsConfig.sectionOrder.push('slideshow');
+    }
+}
+```
+
+5. **Actualizar UI del Panel Lateral:**
+```javascript
+// L�nea 9666-9675
+const templateSectionsHtml = renderTemplateSections();
+$('#template-sections-container').html(templateSectionsHtml + `
+    <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e3e3e3;">
+        <div class="add-section-button add-template-section" data-group="template">
+            <i class="material-icons">add_circle</i>
+            <span data-i18n="sections.addTemplateSection">Agregar secci�n de plantilla</span>
+        </div>
+    </div>
+`);
+```
+
+6. **Post-Procesamiento:**
+```javascript
+// L�nea 9677-9690
+// Aplicar traducciones
+setTimeout(applyTranslations, 0);
+
+// Inicializar funcionalidades espec�ficas (si aplica)
+if (currentSectionsConfig.slideshow && currentSectionsConfig.slideshow.slideOrder) {
+    setTimeout(() => {
+        initializeSlideshowSlidesSortable();
+    }, 100);
+}
+
+// Marcar cambios pendientes
+hasPendingPageStructureChanges = true;
+updateSaveButtonState();
+
+// Actualizar preview
+renderPreview();
+
+// Cerrar modal
+M.Modal.getInstance(document.querySelector('.add-section-modal')).close();
+```
+
+#### PROBLEMAS CR�TICOS ENCONTRADOS AL IMPLEMENTAR MULTICOLUMN:
+
+1. **Preview no se muestra al hover**:
+   - **Causa REAL**: Existen DOS objetos de previews diferentes en el c�digo
+   - **Objeto 1**: L�neas 9611-9743 (completo pero NO usado)
+   - **Objeto 2**: L�neas 9619-9864 (usado por updateSectionPreview)
+   - **Problema**: Multicolumn solo estaba en el objeto 1, no en el 2
+   - **Soluci�n**: Agregar preview en el objeto correcto (l�nea 9863)
+   - **Nota**: Los espacios en nombres requieren %20 en URLs
+
+2. **Click no agrega la secci�n al panel**:
+   - **Causa**: El handler global SOLO tiene c�digo para 'slideshow' (l�nea 9968)
+   - **Problema**: `if (group === 'template' && sectionId === 'slideshow')` - NO HAY ELSE IF para otras secciones
+   - **Resultado**: Multicolumn se ignora completamente al hacer click
+
+3. **C�digo agregado incorrectamente**:
+   - **Error**: Se agreg� renderMulticolumn() al c�digo principal (l�neas 1593-1665)
+   - **Problema**: website-builder.js ya tiene 17,000+ l�neas
+   - **Soluci�n correcta**: Usar arquitectura modular (ver secci�n 12)
+
+#### Puntos Clave para Evitar Problemas:
+
+1. **Event Handler Global**: DEBE incluir TODAS las secciones nuevas, no solo slideshow
+
+2. **Im�genes con espacios**: Siempre usar %20 en URLs para espacios
+
+3. **Arquitectura modular**: NUNCA agregar c�digo nuevo a website-builder.js
+
+4. **Verificaci�n de Grupo**: Siempre verificar `data('group')` del bot�n activo para saber d�nde agregar
+
+5. **sectionOrder**: SIEMPRE actualizar `currentSectionsConfig.sectionOrder` o la secci�n no aparecer�
+
+6. **Renderizar Template Sections**: Llamar a `renderTemplateSections()` para actualizar la lista visual
+
+7. **Flags de Cambio**: Establecer `hasPendingPageStructureChanges = true` para habilitar guardado
+
+8. **Preview**: Llamar `renderPreview()` para actualizar el iframe
+
+9. **Cerrar Modal**: No olvidar cerrar el modal despu�s de agregar
+
+#### Ejemplo para Nueva Secci�n (Image & Text):
+```javascript
+// Agregar dentro del handler global existente
+if (group === 'template' && sectionId === 'image-text') {
+    if (!currentSectionsConfig.imageText) {
+        currentSectionsConfig.imageText = {
+            id: 'image-text',
+            isHidden: false,
+            config: {
+                layout: 'image-left',
+                imageUrl: '',
+                title: 'T�tulo de ejemplo',
+                content: 'Contenido de ejemplo',
+                colorScheme: 'scheme1'
+            }
+        };
+    }
+    
+    // Agregar a sectionOrder
+    if (!currentSectionsConfig.sectionOrder.includes('image-text')) {
+        currentSectionsConfig.sectionOrder.push('image-text');
+    }
+    
+    // Actualizar UI y preview
+    const templateSectionsHtml = renderTemplateSections();
+    $('#template-sections-container').html(templateSectionsHtml + /* bot�n agregar */);
+    
+    hasPendingPageStructureChanges = true;
+    updateSaveButtonState();
+    renderPreview();
+    
+    // Cerrar modal
+    M.Modal.getInstance(document.querySelector('.add-section-modal')).close();
+}
+```
+
+## 13. GU�A DE IMPLEMENTACI�N EST�NDAR PARA NUEVOS M�DULOS
+
+### 1. Drag & Drop Est�ndar (PROBADO Y FUNCIONAL)
+
+#### Para elementos simples:
+```javascript
+$('#container').sortable({
+    items: '.draggable-item',
+    handle: '.drag-handle',
+    placeholder: 'sortable-placeholder',
+    forcePlaceholderSize: true,
+    tolerance: 'pointer',
+    start: function(e, ui) {
+        ui.placeholder.height(ui.item.outerHeight());
+    },
+    stop: function(e, ui) {
+        // Actualizar orden
+        const newOrder = [];
+        $('.draggable-item').each(function() {
+            newOrder.push($(this).data('element-id'));
+        });
+        currentSectionsConfig.sectionOrder = newOrder;
+        hasPendingPageStructureChanges = true;
+        updateSaveButtonState();
+        renderPreview();
+    }
+});
+```
+
+#### Para elementos con hijos (CR�TICO - Ver CLAUDE.md secci�n Drag & Drop):
+- Usar Pre-Reference Method para men�s
+- Usar Wrapper Method para secciones
+- SIEMPRE detach/reattach elementos hijos durante el drag
+
+### 2. Colapsadores Est�ndar
+
+```javascript
+// HTML
+<div class="collapsible-header" data-target="content-id">
+    <span class="material-icons collapse-icon">expand_more</span>
+    <span>T�tulo</span>
+</div>
+<div id="content-id" class="collapsible-content" style="display: none;">
+    <!-- Contenido -->
+</div>
+
+// JavaScript
+$(document).on('click', '.collapsible-header', function() {
+    const $header = $(this);
+    const targetId = $header.data('target');
+    const $content = $('#' + targetId);
+    const $icon = $header.find('.collapse-icon');
+    
+    $content.slideToggle(200);
+    $icon.text($icon.text() === 'expand_more' ? 'expand_less' : 'expand_more');
+});
+```
+
+### 3. CRUD de Elementos Est�ndar
+
+#### Agregar elemento:
+```javascript
+function addElement() {
+    const elementId = 'element-' + Date.now();
+    const newElement = {
+        id: elementId,
+        // propiedades por defecto
+    };
+    
+    // Agregar a datos
+    currentSectionsConfig.elements[elementId] = newElement;
+    currentSectionsConfig.elementOrder.push(elementId);
+    
+    // Actualizar UI
+    hasPendingPageStructureChanges = true;
+    updateSaveButtonState();
+    renderPreview();
+    
+    // Re-renderizar vista
+    switchSidebarView('currentView');
+}
+```
+
+#### Eliminar elemento:
+```javascript
+function deleteElement(elementId) {
+    // Remover de datos
+    delete currentSectionsConfig.elements[elementId];
+    const index = currentSectionsConfig.elementOrder.indexOf(elementId);
+    if (index > -1) {
+        currentSectionsConfig.elementOrder.splice(index, 1);
+    }
+    
+    // Actualizar UI
+    hasPendingPageStructureChanges = true;
+    updateSaveButtonState();
+    renderPreview();
+}
+```
+
+### 4. Event Listeners Est�ndar
+
+#### Para inputs/selects:
+```javascript
+// Usar delegaci�n de eventos SIEMPRE
+$(document).on('change', '#element-setting', function() {
+    const value = $(this).val();
+    if (currentSectionsConfig.element) {
+        currentSectionsConfig.element.setting = value;
+        hasPendingPageStructureChanges = true;
+        updateSaveButtonState();
+        renderPreview();
+    }
+});
+```
+
+#### Prevenir duplicados:
+```javascript
+// Usar namespaces
+$element.off('click.module').on('click.module', handler);
+```
+
+### 5. Renderizado de Configuraci�n
+
+```javascript
+function renderModuleSettings(config) {
+    return `
+        <div class="settings-container">
+            <div class="settings-header">
+                <button class="back-button" onclick="window.switchSidebarView('blockList')">
+                    <i class="material-icons">arrow_back</i>
+                </button>
+                <h3>Configuraci�n</h3>
+            </div>
+            
+            <div class="settings-content">
+                <!-- Campos de configuraci�n -->
+            </div>
+        </div>
+    `;
+}
+```
+
+### 6. Integraci�n con Color Schemes
+
+```javascript
+// Siempre obtener colores del scheme seleccionado
+const schemeColors = getColorSchemeValues(config.colorScheme || 'scheme1');
+
+// Aplicar en estilos
+style="background: ${schemeColors.background}; color: ${schemeColors.text};"
+```
+
+### 7. Responsividad M�vil
+
+```javascript
+// Incluir media queries en el render
+const mobileStyles = `
+    @media (max-width: 768px) {
+        .module-container {
+            /* Ajustes m�viles */
+        }
+    }
+`;
+```
+
+### 8. Toggle de Visibilidad
+
+```javascript
+// HTML
+<button class="visibility-toggle" data-element-id="${elementId}">
+    <span class="material-icons">visibility</span>
+    <span class="material-icons" style="display: none;">visibility_off</span>
+</button>
+
+// Usar funci�n existente initializeVisibilityToggles()
+```
+
+### 9. Guardado de Cambios
+
+```javascript
+// Siempre actualizar estas variables al hacer cambios:
+hasPendingPageStructureChanges = true;
+updateSaveButtonState();
+renderPreview(); // Para actualizar preview
+```
+
+### 10. Errores Comunes a Evitar
+
+1. **NO** crear event listeners dentro de loops
+2. **NO** usar IDs duplicados 
+3. **NO** olvidar `renderPreview()` despu�s de cambios
+4. **NO** modificar DOM directamente sin actualizar `currentSectionsConfig`
+5. **SIEMPRE** verificar que los datos existan antes de acceder
+6. **SIEMPRE** usar delegaci�n de eventos para elementos din�micos
+
 Esta gu�a debe actualizarse con cada problema cr�tico resuelto para mantener un registro hist�rico de soluciones.

@@ -168,6 +168,9 @@
     <!-- Funciones de renderizado compartidas -->
     <script src="~/js/website-render-functions.js?v=@DateTime.Now.Ticks"></script>
     
+    <!-- Módulos del Website Builder -->
+    <script src="~/js/website-builder/modules/multicolumn.js?v=@DateTime.Now.Ticks"></script>
+    
     <script>
         // Variables globales necesarias para el renderizado
         let currentSectionsConfig = {};
@@ -482,6 +485,14 @@
             
             // Adjuntar event listeners después del renderizado
             attachPreviewEventListeners();
+            
+            // Inicializar slideshows con autorotate
+            if (typeof initializeSlideshows === 'function') {
+                setTimeout(() => {
+                    initializeSlideshows();
+                    console.log('[PREVIEW] Slideshows initialized');
+                }, 100);
+            }
         }
         
         // Función para adjuntar event listeners

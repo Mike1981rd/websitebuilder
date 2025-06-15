@@ -129,6 +129,10 @@ let currentSectionsConfig = {
     announcementOrder: [], // Orden de los anuncios
     sectionOrder: ['announcement', 'header'] // Orden de las secciones principales
 };
+
+// Make currentSectionsConfig globally accessible
+window.currentSectionsConfig = currentSectionsConfig;
+
 let currentGlobalThemeSettings = {
     primaryColor: "#1976d2",
     secondaryColor: "#424242",
@@ -353,6 +357,7 @@ async function loadCurrentWebsite() {
                         
                         // Deep merge saved config with defaults
                         currentSectionsConfig = $.extend(true, {}, defaultConfig, sectionsData);
+                        window.currentSectionsConfig = currentSectionsConfig;
                         
                         console.log('[DEBUG] Merged sections config:', currentSectionsConfig);
                         // Ensure header has logo URL properties and section visibility
@@ -438,6 +443,7 @@ async function loadCurrentWebsite() {
                     announcementOrder: [],
                     sectionOrder: ['announcement', 'header']
                 };
+                window.currentSectionsConfig = currentSectionsConfig;
             }
         } else {
             // Initialize with defaults if no data
@@ -449,6 +455,7 @@ async function loadCurrentWebsite() {
                 announcementOrder: [],
                 sectionOrder: ['announcement', 'header']
             };
+            window.currentSectionsConfig = currentSectionsConfig;
         }
         
         // Clean up any old colors structure
@@ -480,6 +487,7 @@ async function loadCurrentWebsite() {
                     // If we didn't get sections from pagesJson, use this
                     if (!currentSectionsConfig.sectionOrder) {
                         currentSectionsConfig = sectionsData;
+                        window.currentSectionsConfig = currentSectionsConfig;
                         console.log('[DEBUG] Using sections from sectionsConfigJson');
                     }
                 }
@@ -1588,6 +1596,83 @@ function renderSlideshow(config) {
 }
 
 /**
+ * Renderiza la sección multicolumn en el preview
+ */
+function renderMulticolumn(config) {
+    console.log('[MULTICOLUMN] Rendering multicolumn with config:', config);
+    
+    if (!config || config.isHidden) {
+        console.log('[MULTICOLUMN] Section is hidden or config is null');
+        return '';
+    }
+    
+    const schemeColors = getColorSchemeValues(config.config?.colorScheme || 'scheme1');
+    const columns = config.columns || {};
+    const columnOrder = config.columnOrder || [];
+    
+    // Filter visible columns
+    const visibleColumns = columnOrder.filter(columnId => 
+        columns[columnId] && !columns[columnId].isHidden
+    );
+    
+    if (visibleColumns.length === 0) {
+        return '';
+    }
+    
+    // Generate columns HTML
+    const columnsHtml = visibleColumns.map((columnId, index) => {
+        const column = columns[columnId];
+        const isEven = index % 2 === 0;
+        const imagePosition = config.config?.imagePosition === 'alternating' ? 
+            (isEven ? 'left' : 'right') : config.config?.imagePosition || 'left';
+        
+        return `
+            <div class="multicolumn-row" style="display: flex; align-items: center; margin-bottom: 40px; ${imagePosition === 'right' ? 'flex-direction: row-reverse;' : ''}">
+                ${config.config?.showImages !== false ? `
+                    <div class="multicolumn-image" style="flex: 0 0 50%; ${imagePosition === 'left' ? 'padding-right: 40px;' : 'padding-left: 40px;'}">
+                        ${column.imageUrl ? 
+                            `<img src="${column.imageUrl}" alt="${column.title || ''}" style="width: 100%; height: auto; display: block;">` :
+                            `<div style="background: ${schemeColors.foreground || '#e0e0e0'}; aspect-ratio: 4/3; display: flex; align-items: center; justify-content: center;">
+                                <i class="material-icons" style="font-size: 48px; color: ${schemeColors.background};">image</i>
+                            </div>`
+                        }
+                    </div>
+                ` : ''}
+                <div class="multicolumn-content" style="flex: 1; color: ${schemeColors.text};">
+                    ${column.title ? `<h3 style="font-size: 24px; margin: 0 0 16px 0; color: ${schemeColors.text};">${column.title}</h3>` : ''}
+                    ${column.content ? `<p style="margin: 0 0 16px 0; line-height: 1.6;">${column.content}</p>` : ''}
+                    ${column.buttonText ? `
+                        <a href="${column.buttonLink || '#'}" 
+                           style="display: inline-block; padding: 12px 24px; background: ${schemeColors.buttonBackground || schemeColors.text}; 
+                                  color: ${schemeColors.buttonText || schemeColors.background}; text-decoration: none; 
+                                  border-radius: 4px; font-weight: 500;">
+                            ${column.buttonText}
+                        </a>
+                    ` : ''}
+                </div>
+            </div>
+        `;
+    }).join('');
+    
+    return `
+        <div class="section-wrapper" data-section-id="multicolumn" style="padding: 40px 0;">
+            <div class="section-header-tag">
+                <span class="material-symbols-outlined" style="font-size: 16px;">view_week</span>
+                ${translations[currentLanguage]?.['sections.multicolumn'] || 'Multicolumn'}
+            </div>
+            <div class="multicolumn-container" style="max-width: 1200px; margin: 0 auto; padding: 0 20px;">
+                ${config.config?.title ? `
+                    <h2 style="text-align: center; font-size: 32px; margin: 0 0 40px 0; color: ${schemeColors.text};">
+                        ${config.config.title}
+                    </h2>
+                ` : ''}
+                ${columnsHtml}
+            </div>
+        </div>
+    `;
+}
+
+/**
  * Renderiza todas las secciones de la página en el iframe de previsualización.
  */
 function renderPreview() {
@@ -1623,7 +1708,7 @@ function renderPreview() {
     
     // Verificar si las funciones de renderizado están disponibles en el iframe
     const iframeWindow = previewIframe.contentWindow;
-    const hasRenderFunctions = iframeWindow.renderHeader && iframeWindow.renderAnnouncementBar && iframeWindow.renderSlideshow;
+    const hasRenderFunctions = iframeWindow.renderHeader && iframeWindow.renderAnnouncementBar && iframeWindow.renderSlideshow && iframeWindow.renderMulticolumn;
     
     if (hasRenderFunctions) {
         // Usar las funciones de renderizado del iframe
@@ -1650,6 +1735,17 @@ function renderPreview() {
                     if (config && !config.isHidden) {
                         finalHtml += iframeWindow.renderSlideshow(config);
                     }
+                } else if (sectionId === 'multicolumn') {
+                    const config = currentSectionsConfig.multicolumn;
+                    if (config && !config.isHidden) {
+                        // Intentar usar el módulo primero
+                        const moduleRender = iframeWindow.WebsiteBuilderModules?.Multicolumn?.render;
+                        if (moduleRender) {
+                            finalHtml += moduleRender(config);
+                        } else if (iframeWindow.renderMulticolumn) {
+                            finalHtml += iframeWindow.renderMulticolumn(config);
+                        }
+                    }
                 }
             });
         }
@@ -1659,7 +1755,8 @@ function renderPreview() {
         const renderers = {
             'announcement': renderAnnouncementBar,
             'header': renderHeader,
-            'slideshow': renderSlideshow
+            'slideshow': renderSlideshow,
+            'multicolumn': window.WebsiteBuilderModules?.Multicolumn?.render || renderMulticolumn
         };
 
         // Renderizar secciones según el orden definido
@@ -1676,6 +1773,12 @@ function renderPreview() {
     
     previewBody.innerHTML = finalHtml;
     console.log('[PREVIEW] Renderizado completado.');
+    
+    // Initialize slideshows with autorotate
+    if (iframeWindow && iframeWindow.initializeSlideshows) {
+        iframeWindow.initializeSlideshows();
+        console.log('[PREVIEW] Slideshows initialized.');
+    }
     
     // Attach click listeners to the newly rendered section wrappers
     const sectionWrappers = previewDoc.querySelectorAll('.section-wrapper');
@@ -1706,6 +1809,11 @@ function renderPreview() {
                 $('.topbar-nav-icon').removeClass('active');
                 $('.topbar-nav-icon[data-view="sections"]').addClass('active');
                 window.switchSidebarView('slideshowSettings');
+            } else if (sectionId === 'multicolumn') {
+                // Lógica para multicolumn
+                $('.topbar-nav-icon').removeClass('active');
+                $('.topbar-nav-icon[data-view="sections"]').addClass('active');
+                window.switchSidebarView('multicolumnSettings');
             }
             // Aquí añadiremos más 'else if' para otras secciones en el futuro.
         });
@@ -4651,6 +4759,37 @@ $(document).ready(async function() {
             attachSlideshowEventListeners();
             // Apply translations after rendering
             setTimeout(applyTranslations, 0);
+        } else if (viewName === 'multicolumnSettings') {
+            // Multicolumn settings view - usar módulo
+            const html = executeModuleFunction('Multicolumn', 'renderSettings', window.currentSectionsConfig?.multicolumn);
+            if (html) {
+                dynamicContentArea.innerHTML = html;
+                executeModuleFunction('Multicolumn', 'attachEventListeners');
+                setTimeout(applyTranslations, 0);
+            } else {
+                // Fallback al código anterior si el módulo no está cargado
+                dynamicContentArea.innerHTML = renderMulticolumnSettingsView();
+                attachMulticolumnEventListeners();
+                setTimeout(applyTranslations, 0);
+            }
+        } else if (viewName === 'multicolumnRowSettings' || viewName === 'multicolumnColumnSettings') {
+            // Multicolumn column settings - usar módulo
+            console.log('[DEBUG] Attempting to render multicolumn column settings');
+            console.log('[DEBUG] Data passed:', data);
+            console.log('[DEBUG] WebsiteBuilderModules:', window.WebsiteBuilderModules);
+            console.log('[DEBUG] Multicolumn module:', window.WebsiteBuilderModules?.Multicolumn);
+            
+            const html = executeModuleFunction('Multicolumn', 'renderColumnSettings', data);
+            console.log('[DEBUG] HTML returned:', html ? 'HTML content received' : 'No HTML returned');
+            
+            if (html) {
+                dynamicContentArea.innerHTML = html;
+                executeModuleFunction('Multicolumn', 'attachColumnEventListeners', data?.columnId);
+                setTimeout(applyTranslations, 0);
+            } else {
+                console.error('[DEBUG] Failed to render column settings');
+                dynamicContentArea.innerHTML = '<p>Error: Failed to load column settings</p>';
+            }
         } else if (viewName === 'slideshowSlideSettings') {
             // Individual slide settings view
             dynamicContentArea.innerHTML = renderSlideshowSlideSettingsView(data);
@@ -4961,6 +5100,67 @@ $(document).ready(async function() {
                                         <i class="material-icons">settings</i>
                                     </button>
                                     <button class="action-icon delete-slide" data-slide-id="${slideId}" title="Delete">
+                                        <i class="material-icons">delete</i>
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                    }
+                });
+                html += '</div>';
+            }
+        }
+        
+        // Check if multicolumn exists in currentSectionsConfig
+        if (currentSectionsConfig.multicolumn) {
+            const hasColumns = currentSectionsConfig.multicolumn.columns && currentSectionsConfig.multicolumn.columnOrder && currentSectionsConfig.multicolumn.columnOrder.length > 0;
+            
+            html += `
+                <div class="sidebar-subsection collapsible-parent" data-block-type="multicolumn" data-element-id="multicolumn">
+                    <span class="subsection-text" data-i18n="sections.multicolumn">Multicolumna</span>
+                    <div class="subsection-actions">
+                        <button class="action-icon visibility-toggle ${currentSectionsConfig.multicolumn.isHidden ? 'is-hidden' : ''}" data-section="multicolumn" title="Toggle visibility">
+                            <i class="material-icons icon-visible">visibility</i>
+                            <i class="material-icons icon-hidden">visibility_off</i>
+                        </button>
+                        <button class="action-icon add-icon" data-section="multicolumn" title="Add column">
+                            <i class="material-icons">add</i>
+                        </button>
+                        <button class="action-icon config-icon" data-section="multicolumn" title="Configure">
+                            <i class="material-icons">settings</i>
+                        </button>
+                        <button class="action-icon delete-section" data-section="multicolumn" title="Delete">
+                            <i class="material-icons">delete</i>
+                        </button>
+                        ${hasColumns ? `
+                            <button class="action-icon collapse-toggle" title="Collapse/Expand">
+                                <i class="material-icons collapse-indicator">expand_more</i>
+                            </button>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+            
+            // Render existing columns if any
+            if (hasColumns) {
+                html += '<div id="multicolumn-columns-wrapper" style="position: relative;">';
+                currentSectionsConfig.multicolumn.columnOrder.forEach((columnId, index) => {
+                    const column = currentSectionsConfig.multicolumn.columns[columnId];
+                    if (column) {
+                        const columnNumber = index + 1;
+                        html += `
+                            <div class="sidebar-subsection multicolumn-column-item" data-block-type="multicolumn-column" data-element-id="${columnId}" style="padding-left: 30px;">
+                                <i class="material-icons drag-handle">drag_handle</i>
+                                <span class="subsection-text" data-i18n="multicolumn.column">${translations[currentLanguage]?.['multicolumn.column'] || 'Column'} ${columnNumber}</span>
+                                <div class="subsection-actions">
+                                    <button class="action-icon visibility-toggle ${column.isHidden ? 'is-hidden' : ''}" data-column-id="${columnId}" title="Toggle visibility">
+                                        <i class="material-icons icon-visible">visibility</i>
+                                        <i class="material-icons icon-hidden">visibility_off</i>
+                                    </button>
+                                    <button class="action-icon config-icon" data-column-id="${columnId}" title="Configure">
+                                        <i class="material-icons">settings</i>
+                                    </button>
+                                    <button class="action-icon delete-column" data-column-id="${columnId}" title="Delete">
                                         <i class="material-icons">delete</i>
                                     </button>
                                 </div>
@@ -5626,8 +5826,8 @@ $(document).ready(async function() {
                         </div>
                     </div>
                     
-                    <!-- Slides Section -->
-                    <div class="settings-section" style="margin-top: 30px;">
+                    <!-- Slides Section - Hidden as slides are managed as child elements -->
+                    <div class="settings-section" style="margin-top: 30px; display: none;">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
                             <h4 data-i18n="slideshow.slides">Diapositivas</h4>
                             <button class="shopify-button primary" id="add-slide-btn">
@@ -5680,6 +5880,263 @@ $(document).ready(async function() {
         html += '</div>';
         
         return html;
+    }
+    
+    // Function to render multicolumn settings view
+    function renderMulticolumnSettingsView() {
+        const multicolumnConfig = currentSectionsConfig.multicolumn || {};
+        const config = multicolumnConfig.config || {};
+        const columns = multicolumnConfig.columns || {};
+        const columnOrder = multicolumnConfig.columnOrder || [];
+        
+        let html = `
+            <div style="display: flex; flex-direction: column; height: 100%; position: relative;">
+                <div class="sidebar-view-header" style="position: relative; z-index: 10;">
+                    <button class="back-button" onclick="window.switchSidebarView('blockList')">
+                        <i class="material-icons">arrow_back</i>
+                    </button>
+                    <h3 data-i18n="sections.multicolumn">Multicolumna</h3>
+                </div>
+                
+                <div style="padding: 20px; overflow-y: auto; flex: 1;">
+                    <!-- Title -->
+                    <div class="settings-field">
+                        <label data-i18n="multicolumn.title">Título</label>
+                        <input type="text" id="multicolumn-title" value="${config.title || ''}" 
+                            placeholder="Ej: Nuestros servicios">
+                    </div>
+                    
+                    <!-- Layout -->
+                    <div class="settings-field">
+                        <label data-i18n="multicolumn.layout">Diseño</label>
+                        <select id="multicolumn-layout" class="shopify-select">
+                            <option value="alternating" ${config.layout === 'alternating' ? 'selected' : ''} 
+                                data-i18n="multicolumn.alternating">Alternado</option>
+                            <option value="grid" ${config.layout === 'grid' ? 'selected' : ''} 
+                                data-i18n="multicolumn.grid">Cuadrícula</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Color Scheme -->
+                    <div class="settings-field">
+                        <label data-i18n="common.colorScheme">Esquema de color</label>
+                        <select id="multicolumn-color-scheme" class="shopify-select">
+                            <option value="scheme1" ${config.colorScheme === 'scheme1' ? 'selected' : ''}>Scheme 1</option>
+                            <option value="scheme2" ${config.colorScheme === 'scheme2' ? 'selected' : ''}>Scheme 2</option>
+                            <option value="scheme3" ${config.colorScheme === 'scheme3' ? 'selected' : ''}>Scheme 3</option>
+                            <option value="scheme4" ${config.colorScheme === 'scheme4' ? 'selected' : ''}>Scheme 4</option>
+                            <option value="scheme5" ${config.colorScheme === 'scheme5' ? 'selected' : ''}>Scheme 5</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Show Images -->
+                    <div class="settings-field checkbox-field">
+                        <label>
+                            <input type="checkbox" id="multicolumn-show-images" 
+                                ${config.showImages !== false ? 'checked' : ''}>
+                            <span data-i18n="multicolumn.showImages">Mostrar imágenes</span>
+                        </label>
+                    </div>
+                    
+                    <!-- Image Position -->
+                    <div class="settings-field" id="multicolumn-image-position-field" 
+                        style="${config.showImages === false ? 'display: none;' : ''}">
+                        <label data-i18n="multicolumn.imagePosition">Posición de imagen</label>
+                        <select id="multicolumn-image-position" class="shopify-select">
+                            <option value="alternating" ${config.imagePosition === 'alternating' ? 'selected' : ''} 
+                                data-i18n="multicolumn.alternating">Alternado</option>
+                            <option value="left" ${config.imagePosition === 'left' ? 'selected' : ''} 
+                                data-i18n="multicolumn.left">Izquierda</option>
+                            <option value="right" ${config.imagePosition === 'right' ? 'selected' : ''} 
+                                data-i18n="multicolumn.right">Derecha</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Columns -->
+                    <div class="section-divider"></div>
+                    <div class="settings-header">
+                        <h4 data-i18n="multicolumn.columns">Columnas</h4>
+                        <button class="add-button" id="add-multicolumn-row">
+                            <i class="material-icons">add</i>
+                            <span data-i18n="multicolumn.addRow">Agregar fila</span>
+                        </button>
+                    </div>
+                    
+                    <div id="multicolumn-rows-container">
+        `;
+        
+        // Render columns
+        columnOrder.forEach((columnId, index) => {
+            const column = columns[columnId];
+            if (column) {
+                html += `
+                    <div class="multicolumn-row-item" data-column-id="${columnId}">
+                        <div class="drag-handle">
+                            <i class="material-icons">drag_indicator</i>
+                        </div>
+                        <div class="row-content">
+                            <span class="row-title">${column.title || `Fila ${index + 1}`}</span>
+                            <div class="row-actions">
+                                <button class="action-icon visibility-toggle ${column.isHidden ? 'is-hidden' : ''}" 
+                                    data-column-id="${columnId}" title="Toggle visibility">
+                                    <i class="material-icons icon-visible">visibility</i>
+                                    <i class="material-icons icon-hidden">visibility_off</i>
+                                </button>
+                                <button class="action-icon edit-icon" data-column-id="${columnId}" 
+                                    title="Edit">
+                                    <i class="material-icons">edit</i>
+                                </button>
+                                <button class="action-icon delete-icon" data-column-id="${columnId}" 
+                                    title="Delete">
+                                    <i class="material-icons">delete</i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+        });
+        
+        html += `
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        return html;
+    }
+    
+    // Function to attach multicolumn event listeners
+    function attachMulticolumnEventListeners() {
+        // Title change
+        $('#multicolumn-title').on('input', function() {
+            if (currentSectionsConfig.multicolumn && currentSectionsConfig.multicolumn.config) {
+                currentSectionsConfig.multicolumn.config.title = $(this).val();
+                hasPendingPageStructureChanges = true;
+                updateSaveButtonState();
+                renderPreview();
+            }
+        });
+        
+        // Layout change
+        $('#multicolumn-layout').on('change', function() {
+            if (currentSectionsConfig.multicolumn && currentSectionsConfig.multicolumn.config) {
+                currentSectionsConfig.multicolumn.config.layout = $(this).val();
+                hasPendingPageStructureChanges = true;
+                updateSaveButtonState();
+                renderPreview();
+            }
+        });
+        
+        // Color scheme change
+        $('#multicolumn-color-scheme').on('change', function() {
+            if (currentSectionsConfig.multicolumn && currentSectionsConfig.multicolumn.config) {
+                currentSectionsConfig.multicolumn.config.colorScheme = $(this).val();
+                hasPendingPageStructureChanges = true;
+                updateSaveButtonState();
+                renderPreview();
+            }
+        });
+        
+        // Show images toggle
+        $('#multicolumn-show-images').on('change', function() {
+            const showImages = $(this).is(':checked');
+            if (currentSectionsConfig.multicolumn && currentSectionsConfig.multicolumn.config) {
+                currentSectionsConfig.multicolumn.config.showImages = showImages;
+                $('#multicolumn-image-position-field').toggle(showImages);
+                hasPendingPageStructureChanges = true;
+                updateSaveButtonState();
+                renderPreview();
+            }
+        });
+        
+        // Image position change
+        $('#multicolumn-image-position').on('change', function() {
+            if (currentSectionsConfig.multicolumn && currentSectionsConfig.multicolumn.config) {
+                currentSectionsConfig.multicolumn.config.imagePosition = $(this).val();
+                hasPendingPageStructureChanges = true;
+                updateSaveButtonState();
+                renderPreview();
+            }
+        });
+        
+        // Add row button
+        $('#add-multicolumn-row').on('click', function() {
+            const columnId = 'column-' + Date.now();
+            if (!currentSectionsConfig.multicolumn.columns) {
+                currentSectionsConfig.multicolumn.columns = {};
+            }
+            if (!currentSectionsConfig.multicolumn.columnOrder) {
+                currentSectionsConfig.multicolumn.columnOrder = [];
+            }
+            
+            currentSectionsConfig.multicolumn.columns[columnId] = {
+                id: columnId,
+                imageUrl: '',
+                title: 'Nueva fila',
+                content: 'Contenido de la nueva fila',
+                buttonText: '',
+                buttonLink: '',
+                isHidden: false
+            };
+            currentSectionsConfig.multicolumn.columnOrder.push(columnId);
+            
+            hasPendingPageStructureChanges = true;
+            updateSaveButtonState();
+            renderPreview();
+            
+            // Refresh the view
+            window.switchSidebarView('multicolumnSettings');
+        });
+        
+        // Edit row button
+        $(document).on('click', '#multicolumn-rows-container .edit-icon', function() {
+            const columnId = $(this).data('column-id');
+            window.switchSidebarView('multicolumnRowSettings', { columnId });
+        });
+        
+        // Delete row button
+        $(document).on('click', '#multicolumn-rows-container .delete-icon', function() {
+            const columnId = $(this).data('column-id');
+            if (confirm('¿Estás seguro de eliminar esta fila?')) {
+                delete currentSectionsConfig.multicolumn.columns[columnId];
+                currentSectionsConfig.multicolumn.columnOrder = 
+                    currentSectionsConfig.multicolumn.columnOrder.filter(id => id !== columnId);
+                
+                hasPendingPageStructureChanges = true;
+                updateSaveButtonState();
+                renderPreview();
+                
+                // Refresh the view
+                window.switchSidebarView('multicolumnSettings');
+            }
+        });
+        
+        // Initialize sortable for rows
+        $('#multicolumn-rows-container').sortable({
+            items: '.multicolumn-row-item',
+            handle: '.drag-handle',
+            placeholder: 'sortable-placeholder',
+            forcePlaceholderSize: true,
+            tolerance: 'pointer',
+            start: function(e, ui) {
+                ui.placeholder.height(ui.item.outerHeight());
+            },
+            stop: function(e, ui) {
+                // Update order
+                const newOrder = [];
+                $('.multicolumn-row-item').each(function() {
+                    newOrder.push($(this).data('column-id'));
+                });
+                currentSectionsConfig.multicolumn.columnOrder = newOrder;
+                hasPendingPageStructureChanges = true;
+                updateSaveButtonState();
+                renderPreview();
+            }
+        });
+        
+        // Initialize visibility toggles
+        initializeVisibilityToggles();
     }
     
     // Function to render individual slide settings view
@@ -8177,6 +8634,10 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
             else if (blockType === 'slideshow') {
                 switchSidebarView('slideshowSettings');
             }
+            // Handle multicolumn click
+            else if (blockType === 'multicolumn') {
+                switchSidebarView('multicolumnSettings');
+            }
         });
         
         // Visibility toggle button - COMMENTED OUT TO AVOID DUPLICATE HANDLER
@@ -8214,6 +8675,13 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                     }
                     // Also remove any slides wrapper
                     $('#slideshow-slides-wrapper').remove();
+                } else if (section === 'multicolumn' && currentSectionsConfig.multicolumn) {
+                    delete currentSectionsConfig.multicolumn;
+                    // Remove from section order
+                    const index = currentSectionsConfig.sectionOrder.indexOf('multicolumn');
+                    if (index > -1) {
+                        currentSectionsConfig.sectionOrder.splice(index, 1);
+                    }
                 }
                 
                 // Remove from DOM
@@ -8451,6 +8919,145 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
             setTimeout(() => {
                 initializeSlideshowSlidesSortable();
             }, 100);
+        });
+        
+        // Add column button for multicolumn
+        $(document).off('click.addColumn').on('click.addColumn', '.add-icon[data-section="multicolumn"]', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            console.log('Add column clicked');
+            
+            // Initialize multicolumn if needed
+            if (!currentSectionsConfig.multicolumn) {
+                currentSectionsConfig.multicolumn = {
+                    id: 'multicolumn',
+                    isHidden: false,
+                    config: {
+                        heading: 'Multicolumna',
+                        body: '',
+                        colorScheme: 'scheme1',
+                        width: 'large',
+                        desktopLayout: 'grid',
+                        mobileLayout: '1column'
+                    },
+                    columns: {},
+                    columnOrder: []
+                };
+            }
+            
+            // Ensure columns object exists
+            if (!currentSectionsConfig.multicolumn.columns) {
+                currentSectionsConfig.multicolumn.columns = {};
+            }
+            if (!currentSectionsConfig.multicolumn.columnOrder) {
+                currentSectionsConfig.multicolumn.columnOrder = [];
+            }
+            
+            // Create new column
+            const columnId = 'column-' + Date.now();
+            const columnNumber = currentSectionsConfig.multicolumn.columnOrder.length + 1;
+            
+            currentSectionsConfig.multicolumn.columns[columnId] = {
+                id: columnId,
+                icon: 'barcode',
+                customIcon: '',
+                iconSize: 64,
+                heading: 'Columna ' + columnNumber,
+                body: 'Contenido de ejemplo para la columna ' + columnNumber,
+                linkLabel: 'Ver más',
+                link: '',
+                isHidden: false
+            };
+            
+            currentSectionsConfig.multicolumn.columnOrder.push(columnId);
+            
+            // Update UI
+            hasPendingPageStructureChanges = true;
+            updateSaveButtonState();
+            renderPreview();
+            
+            console.log('Column added:', columnId);
+            
+            // Refresh the template sections view
+            const templateSectionsHtml = renderTemplateSections();
+            $('#template-sections-container').html(templateSectionsHtml + `
+                <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e3e3e3;">
+                    <div class="add-section-button add-template-section" data-group="template">
+                        <i class="material-icons">add_circle</i>
+                        <span data-i18n="sections.addTemplateSection">Agregar sección de plantilla</span>
+                    </div>
+                </div>
+            `);
+            
+            setTimeout(applyTranslations, 0);
+        });
+        
+        // Click on multicolumn column to configure - BUT NOT when dragging
+        $(document).off('click.multicolumnColumn').on('click.multicolumnColumn', '.sidebar-subsection.multicolumn-column-item', function(e) {
+            console.log('[MULTICOLUMN] Column clicked');
+            const $target = $(e.target);
+            const isActionButton = $target.closest('.subsection-actions').length > 0;
+            const isDragHandle = $target.closest('.material-icons').length > 0 && $target.closest('.material-icons').text() === 'drag_handle';
+            const isDragging = $(this).hasClass('ui-sortable-helper');
+            
+            console.log('[MULTICOLUMN] Click details:', {
+                isActionButton,
+                isDragHandle,
+                isDragging,
+                element: $(this).html()
+            });
+            
+            // Don't open config when dragging or clicking drag handle
+            if (!isActionButton && !isDragHandle && !isDragging) {
+                e.preventDefault();
+                e.stopPropagation();
+                const columnId = $(this).data('element-id');
+                console.log('[MULTICOLUMN] Navigate to column config, columnId:', columnId);
+                console.log('[MULTICOLUMN] Column element data:', $(this).data());
+                window.switchSidebarView('multicolumnColumnSettings', { columnId: columnId });
+            }
+        });
+        
+        // Configure button for multicolumn columns
+        $(document).off('click.configColumn').on('click.configColumn', '.config-icon[data-column-id]', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            const columnId = $(this).data('column-id');
+            console.log('Configure column:', columnId);
+            window.switchSidebarView('multicolumnColumnSettings', { columnId: columnId });
+        });
+        
+        // Delete button for multicolumn columns
+        $(document).off('click.deleteColumn').on('click.deleteColumn', '.delete-column[data-column-id]', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            const columnId = $(this).data('column-id');
+            
+            if (confirm(translations[currentLanguage]?.['multicolumn.confirmDeleteColumn'] || '¿Estás seguro de eliminar esta columna?')) {
+                // Remove column
+                delete currentSectionsConfig.multicolumn.columns[columnId];
+                currentSectionsConfig.multicolumn.columnOrder = 
+                    currentSectionsConfig.multicolumn.columnOrder.filter(id => id !== columnId);
+                
+                // Update UI
+                hasPendingPageStructureChanges = true;
+                updateSaveButtonState();
+                renderPreview();
+                
+                // Refresh template sections
+                const templateSectionsHtml = renderTemplateSections();
+                $('#template-sections-container').html(templateSectionsHtml + `
+                    <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e3e3e3;">
+                        <div class="add-section-button add-template-section" data-group="template">
+                            <i class="material-icons">add_circle</i>
+                            <span data-i18n="sections.addTemplateSection">Agregar sección de plantilla</span>
+                        </div>
+                    </div>
+                `);
+                
+                setTimeout(applyTranslations, 0);
+            }
         });
         
         // Click on slideshow slide to configure - BUT NOT when dragging
@@ -9350,30 +9957,6 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                     </div>
                 </div>
             `,
-            'multicolumn': `
-                <div class="multicolumn-preview">
-                    <div class="preview-container">
-                        <div class="preview-title-bar">
-                            <span class="preview-title-text">Multicolumn</span>
-                        </div>
-                        <div class="multicolumn-description">
-                            Share multiple columns of text paired with images or icons to share useful information about your store: shipping and return conditions, special offers and upcoming sales.
-                        </div>
-                        <div class="columns-grid">
-                            ${Array(3).fill().map(() => `
-                                <div class="column-item">
-                                    <div class="column-icon">
-                                        <i class="material-icons">stars</i>
-                                    </div>
-                                    <h3 class="column-title">Icon column</h3>
-                                    <p class="column-text">Pair text with an icon to draw attention to your chosen product, collection or store of news. Add details on shipping or return conditions, product availability, care instructions, charting specs and standards.</p>
-                                    <a href="#" class="column-link">Learn more</a>
-                                </div>
-                            `).join('')}
-                        </div>
-                    </div>
-                </div>
-            `,
             'accordion': `
                 <div class="accordion-preview">
                     <div class="preview-container">
@@ -9493,6 +10076,7 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                 </div>
             `,
             'slideshow': '<div class="section-preview-image"><img src="/TestImages/slideshowpreview.png" alt="Slideshow"></div>',
+            'multicolumn': '<div class="section-preview-image"><img src="/TestImages/multicolumimage.png" alt="Multicolumn"></div>',
             // Add more previews as needed
         };
         
@@ -9649,12 +10233,8 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                     currentSectionsConfig.sectionOrder = [];
                 }
                 if (!currentSectionsConfig.sectionOrder.includes('slideshow')) {
-                    const headerIndex = currentSectionsConfig.sectionOrder.indexOf('header');
-                    if (headerIndex >= 0) {
-                        currentSectionsConfig.sectionOrder.splice(headerIndex + 1, 0, 'slideshow');
-                    } else {
-                        currentSectionsConfig.sectionOrder.push('slideshow');
-                    }
+                    // Agregar al final del array para respetar el orden visual
+                    currentSectionsConfig.sectionOrder.push('slideshow');
                 }
                 
                 // Update template sections only
@@ -9691,6 +10271,80 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                 renderPreview();
                 
                 console.log('[DEBUG] Slideshow added successfully');
+            }
+        }
+        
+        // Handle multicolumn section
+        if (group === 'template' && sectionId === 'multicolumn') {
+            console.log('[DEBUG] Adding multicolumn section');
+            
+            // Initialize multicolumn configuration if it doesn't exist
+            if (!currentSectionsConfig.multicolumn) {
+                currentSectionsConfig.multicolumn = {
+                    id: 'multicolumn',
+                    isHidden: false,
+                    config: {
+                        heading: 'Multicolumna',
+                        body: '',
+                        colorScheme: 'scheme1',
+                        width: 'large',
+                        desktopLayout: 'grid',
+                        mobileLayout: '1column',
+                        contentAlignment: 'center',
+                        columnContentAlignment: 'center'
+                    },
+                    columns: {},
+                    columnOrder: []
+                };
+                
+                // Add 3 default columns
+                for (let i = 0; i < 3; i++) {
+                    const columnId = 'column-' + Date.now() + '-' + i;
+                    currentSectionsConfig.multicolumn.columns[columnId] = {
+                        id: columnId,
+                        icon: 'barcode',
+                        customIcon: '',
+                        iconSize: 64,
+                        heading: 'Columna ' + (i + 1),
+                        body: 'Contenido de ejemplo para la columna ' + (i + 1),
+                        linkLabel: 'Ver más',
+                        link: '',
+                        isHidden: false
+                    };
+                    currentSectionsConfig.multicolumn.columnOrder.push(columnId);
+                }
+                
+                // Add multicolumn to section order if not already present
+                if (!currentSectionsConfig.sectionOrder) {
+                    currentSectionsConfig.sectionOrder = [];
+                }
+                if (!currentSectionsConfig.sectionOrder.includes('multicolumn')) {
+                    // Agregar al final del array para respetar el orden visual
+                    currentSectionsConfig.sectionOrder.push('multicolumn');
+                }
+                
+                // Update template sections only
+                const templateSectionsHtml = renderTemplateSections();
+                $('#template-sections-container').html(templateSectionsHtml + `
+                    <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e3e3e3;">
+                        <div class="add-section-button add-template-section" data-group="template">
+                            <i class="material-icons">add_circle</i>
+                            <span data-i18n="sections.addTemplateSection">Agregar sección de plantilla</span>
+                        </div>
+                    </div>
+                `);
+                
+                // Apply translations
+                setTimeout(applyTranslations, 0);
+                
+                // Set pending changes flag
+                hasPendingPageStructureChanges = true;
+                updateSaveButtonState();
+                
+                // Update preview
+                renderPreview();
+                
+                console.log('[DEBUG] Multicolumn added successfully');
             }
         }
         
@@ -16642,5 +17296,35 @@ document.head.appendChild(style);
             });
         }
     });
+    
+    // Función para ejecutar funciones de módulos externos
+    window.executeModuleFunction = function(moduleName, functionName, ...args) {
+        console.log(`[MODULE] Executing ${moduleName}.${functionName}`, args);
+        
+        if (!window.WebsiteBuilderModules) {
+            console.error('[MODULE] WebsiteBuilderModules not found');
+            return null;
+        }
+        
+        if (!window.WebsiteBuilderModules[moduleName]) {
+            console.error(`[MODULE] Module ${moduleName} not found`);
+            return null;
+        }
+        
+        if (typeof window.WebsiteBuilderModules[moduleName][functionName] !== 'function') {
+            console.error(`[MODULE] Function ${functionName} not found in module ${moduleName}`);
+            console.log('[MODULE] Available functions:', Object.keys(window.WebsiteBuilderModules[moduleName]));
+            return null;
+        }
+        
+        try {
+            const result = window.WebsiteBuilderModules[moduleName][functionName](...args);
+            console.log(`[MODULE] ${moduleName}.${functionName} returned:`, result ? 'content' : 'null/undefined');
+            return result;
+        } catch (error) {
+            console.error(`[MODULE] Error executing ${moduleName}.${functionName}:`, error);
+            return null;
+        }
+    };
     
 
