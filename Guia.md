@@ -426,6 +426,38 @@ function initializeSlideshows() {
 
 Esta arquitectura asegura que cualquier cambio en el editor se refleje inmediatamente en el preview, manteniendo ambos sincronizados.
 
+## 14. Problema: Slideshow altura "large" se ve cortada en preview real
+
+### Síntomas:
+- En el editor, el slideshow con altura "large" (700px) se muestra perfectamente
+- En el preview real (nueva pestaña), la imagen aparece cortada en la parte superior
+- Solo ocurre con la configuración "large", otras alturas funcionan bien
+
+### Causa Raíz:
+Existe una diferencia de renderizado entre el contexto del editor (iframe) y el preview real. El preview real necesita altura adicional para mostrar correctamente las imágenes grandes del slideshow.
+
+### Solución Aplicada:
+
+#### En website-render-functions.js (línea ~1801):
+```javascript
+} else if (slideshowConfig.height === 'large') {
+    // Check if we're in the preview real (not in editor iframe)
+    const isInEditor = (typeof window !== 'undefined' && 
+                       window.parent !== window && 
+                       window.parent.document && 
+                       window.parent.document.getElementById('preview-iframe'));
+    
+    // Use 900px for preview real, 700px for editor
+    heightStyle = isInEditor ? 'height: 700px;' : 'height: 900px;';
+}
+```
+
+### Resultado:
+- **Editor**: Mantiene 700px (aspecto visual sin cambios)
+- **Preview real**: Usa 900px (compensación que permite ver la imagen completa)
+
+Esta solución es permanente y resuelve el problema de visualización sin afectar la experiencia en el editor.
+
 ## 12. TAREA PENDIENTE: Modularizaci�n del C�digo
 
 ### Problema actual:

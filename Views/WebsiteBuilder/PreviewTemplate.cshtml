@@ -28,7 +28,7 @@
         }
         
         body {
-            padding-top: 20px; /* Espacio para separar del header de la página */
+            padding-top: 0; /* Sin espacio superior */
         }
         
         /* Mobile-first responsive design */
@@ -118,7 +118,7 @@
             font-weight: 500;
             border-radius: 6px;
             cursor: pointer;
-            z-index: 10;
+            z-index: 9999; /* Increased z-index to ensure labels are always on top */
             user-select: none;
             align-items: center;
             gap: 6px;
@@ -128,11 +128,55 @@
             transition: opacity 0.2s ease, visibility 0.2s ease;
         }
         
+        /* Fix para multicolumn - mover la pestaña dentro del área visible */
+        .section-wrapper[data-section-id="multicolumn"] > .section-header-tag {
+            top: 50px !important; /* Bien dentro del área visible del contenido */
+            left: 10px !important;
+            z-index: 999999 !important;
+        }
+        
         /* Hacemos visible la etiqueta con hover */
         .section-wrapper:hover .section-header-tag {
             display: flex !important;
             opacity: 1;
             visibility: visible;
+        }
+        
+        /* Estilos específicos para columnas de multicolumn */
+        .multicolumn-column.section-wrapper {
+            box-shadow: none;
+            border-radius: 4px;
+            overflow: visible !important; /* Ensure overflow is visible for hover labels */
+        }
+        
+        .multicolumn-column.section-wrapper:hover {
+            box-shadow: 0 0 0 2px #2962ff;
+        }
+        
+        /* Ajustar la posición de la etiqueta para columnas */
+        .multicolumn-column .section-header-tag {
+            top: 5px;
+            left: 5px;
+            font-size: 12px;
+            padding: 3px 8px;
+            z-index: 9999; /* Ensure column labels are also on top */
+        }
+        
+        /* Prevenir hover en el contenedor padre cuando se hace hover en columna */
+        .multicolumn-container:hover .multicolumn-column.section-wrapper {
+            box-shadow: none;
+        }
+        
+        .multicolumn-column.section-wrapper:hover {
+            box-shadow: 0 0 0 2px #2962ff !important;
+        }
+        
+        /* Ensure parent containers don't hide overflow */
+        .multicolumn-container,
+        .multicolumn-row,
+        .icon-columns-container {
+            overflow: visible !important;
+            position: relative;
         }
 
         /* Estilo para los nuevos iconos de Material Symbols */

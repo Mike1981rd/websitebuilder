@@ -4,6 +4,15 @@
 let hasPendingGlobalSettingsChanges = false;
 let hasPendingPageStructureChanges = false;
 let currentWebsiteId = null;
+
+// Functions to manage pending changes - accessible from modules
+window.setHasPendingPageStructureChanges = function(value) {
+    hasPendingPageStructureChanges = value;
+};
+
+window.getHasPendingPageStructureChanges = function() {
+    return hasPendingPageStructureChanges;
+};
 let currentPageId = 1; // Default to home page
 let currentPageBlocks = [];
 let currentSelectedColorScheme = 'scheme1'; // Track which color scheme is being edited
@@ -150,6 +159,7 @@ const colorSchemes = {
         background: '#FFFFFF', 
         foreground: '#F0F0F0',
         border: '#DDDDDD',
+        link: '#2c6ecb',
         'solid-button': '#121212',
         'solid-button-text': '#FFFFFF',
         'outline-button': '#DDDDDD',
@@ -161,6 +171,7 @@ const colorSchemes = {
         background: '#F3F3F3',
         foreground: '#E8E8E8',
         border: '#CCCCCC',
+        link: '#1a73e8',
         'solid-button': '#666666',
         'solid-button-text': '#FFFFFF',
         'outline-button': '#999999',
@@ -172,6 +183,7 @@ const colorSchemes = {
         background: '#121212',
         foreground: '#1E1E1E',
         border: '#333333',
+        link: '#4d9fff',
         'solid-button': '#FFFFFF',
         'solid-button-text': '#121212',
         'outline-button': '#666666',
@@ -183,6 +195,7 @@ const colorSchemes = {
         background: '#36454F',
         foreground: '#2C3A44',
         border: '#5A6B75',
+        link: '#87CEEB',
         'solid-button': '#AEC6CF',
         'solid-button-text': '#121212',
         'outline-button': '#8FA9B5',
@@ -194,6 +207,7 @@ const colorSchemes = {
         background: '#EADDCA',
         foreground: '#E5D4BD',
         border: '#D4B896',
+        link: '#8B4513',
         'solid-button': '#8B4513',
         'solid-button-text': '#FFFFFF',
         'outline-button': '#A0826D',
@@ -1814,6 +1828,17 @@ function renderPreview() {
                 $('.topbar-nav-icon').removeClass('active');
                 $('.topbar-nav-icon[data-view="sections"]').addClass('active');
                 window.switchSidebarView('multicolumnSettings');
+            } else if (sectionId === 'multicolumn-column') {
+                // Lógica para columna individual de multicolumn
+                const columnId = this.dataset.columnId;
+                console.log(`[PREVIEW CLICK] Multicolumn column clicked: ${columnId}`);
+                $('.topbar-nav-icon').removeClass('active');
+                $('.topbar-nav-icon[data-view="sections"]').addClass('active');
+                
+                // Check if multicolumn module has the method
+                if (window.WebsiteBuilderModules && window.WebsiteBuilderModules.Multicolumn) {
+                    window.switchSidebarView('multicolumnColumnSettings', { columnId: columnId });
+                }
             }
             // Aquí añadiremos más 'else if' para otras secciones en el futuro.
         });
@@ -1867,6 +1892,9 @@ function renderPreview() {
     // Load Google Fonts in preview iframe
     loadFontsInPreview();
 }
+
+// Make renderPreview globally accessible for modules
+window.renderPreview = renderPreview;
 
 // Function to open drawer menu dropdown for drawer layout
 function openDrawerMenuModal(isHover = false) {
@@ -5065,9 +5093,6 @@ $(document).ready(async function() {
                         <button class="action-icon add-icon" data-section="slideshow" title="Add slide">
                             <i class="material-icons">add</i>
                         </button>
-                        <button class="action-icon config-icon" data-section="slideshow" title="Configure">
-                            <i class="material-icons">settings</i>
-                        </button>
                         <button class="action-icon delete-section" data-section="slideshow" title="Delete">
                             <i class="material-icons">delete</i>
                         </button>
@@ -5096,9 +5121,6 @@ $(document).ready(async function() {
                                         <i class="material-icons icon-visible">visibility</i>
                                         <i class="material-icons icon-hidden">visibility_off</i>
                                     </button>
-                                    <button class="action-icon config-icon" data-slide-id="${slideId}" title="Configure">
-                                        <i class="material-icons">settings</i>
-                                    </button>
                                     <button class="action-icon delete-slide" data-slide-id="${slideId}" title="Delete">
                                         <i class="material-icons">delete</i>
                                     </button>
@@ -5126,9 +5148,6 @@ $(document).ready(async function() {
                         <button class="action-icon add-icon" data-section="multicolumn" title="Add column">
                             <i class="material-icons">add</i>
                         </button>
-                        <button class="action-icon config-icon" data-section="multicolumn" title="Configure">
-                            <i class="material-icons">settings</i>
-                        </button>
                         <button class="action-icon delete-section" data-section="multicolumn" title="Delete">
                             <i class="material-icons">delete</i>
                         </button>
@@ -5151,14 +5170,11 @@ $(document).ready(async function() {
                         html += `
                             <div class="sidebar-subsection multicolumn-column-item" data-block-type="multicolumn-column" data-element-id="${columnId}" style="padding-left: 30px;">
                                 <i class="material-icons drag-handle">drag_handle</i>
-                                <span class="subsection-text" data-i18n="multicolumn.column">${translations[currentLanguage]?.['multicolumn.column'] || 'Column'} ${columnNumber}</span>
+                                <span class="subsection-text">${column.heading || `${translations[currentLanguage]?.['multicolumn.column'] || 'Column'} ${columnNumber}`}</span>
                                 <div class="subsection-actions">
                                     <button class="action-icon visibility-toggle ${column.isHidden ? 'is-hidden' : ''}" data-column-id="${columnId}" title="Toggle visibility">
                                         <i class="material-icons icon-visible">visibility</i>
                                         <i class="material-icons icon-hidden">visibility_off</i>
-                                    </button>
-                                    <button class="action-icon config-icon" data-column-id="${columnId}" title="Configure">
-                                        <i class="material-icons">settings</i>
                                     </button>
                                     <button class="action-icon delete-column" data-column-id="${columnId}" title="Delete">
                                         <i class="material-icons">delete</i>
@@ -8682,6 +8698,12 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                     if (index > -1) {
                         currentSectionsConfig.sectionOrder.splice(index, 1);
                     }
+                    // Also remove any columns wrapper - buscar el wrapper de columnas que sigue al multicolumn
+                    const $multicolumnElement = $button.closest('.sidebar-subsection');
+                    const $nextElement = $multicolumnElement.next();
+                    if ($nextElement.attr('id') === 'multicolumn-columns-wrapper') {
+                        $nextElement.remove();
+                    }
                 }
                 
                 // Remove from DOM
@@ -8902,9 +8924,6 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                             <i class="material-icons icon-visible">visibility</i>
                             <i class="material-icons icon-hidden">visibility_off</i>
                         </button>
-                        <button class="action-icon config-icon" data-slide-id="${slideId}" title="Configure">
-                            <i class="material-icons">settings</i>
-                        </button>
                         <button class="action-icon delete-slide" data-slide-id="${slideId}" title="Delete">
                             <i class="material-icons">delete</i>
                         </button>
@@ -8960,12 +8979,12 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
             
             currentSectionsConfig.multicolumn.columns[columnId] = {
                 id: columnId,
-                icon: 'barcode',
+                icon: 'check_circle',
                 customIcon: '',
-                iconSize: 64,
-                heading: 'Columna ' + columnNumber,
-                body: 'Contenido de ejemplo para la columna ' + columnNumber,
-                linkLabel: 'Ver más',
+                iconSize: 48,
+                heading: 'Icon column',
+                body: 'Pair text with an icon to focus on your chosen product, collection or piece of news. Add details on shipping and return conditions, product availability, care instructions, matching colors and accessories.',
+                linkLabel: 'Link label',
                 link: '',
                 isHidden: false
             };
@@ -8991,6 +9010,11 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
             `);
             
             setTimeout(applyTranslations, 0);
+            
+            // Initialize sortable for multicolumn columns
+            setTimeout(() => {
+                initializeMulticolumnColumnsSortable();
+            }, 100);
         });
         
         // Click on multicolumn column to configure - BUT NOT when dragging
@@ -9057,6 +9081,13 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                 `);
                 
                 setTimeout(applyTranslations, 0);
+                
+                // Initialize sortable for multicolumn columns after deletion
+                if (currentSectionsConfig.multicolumn && currentSectionsConfig.multicolumn.columnOrder && currentSectionsConfig.multicolumn.columnOrder.length > 0) {
+                    setTimeout(() => {
+                        initializeMulticolumnColumnsSortable();
+                    }, 100);
+                }
             }
         });
         
@@ -9285,6 +9316,15 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
             } else if (section === 'slideshow' || blockType === 'slideshow') {
                 currentSectionsConfig.slideshow.isHidden = newHiddenState;
                 console.log(`[DEBUG] Slideshow saved as: ${newHiddenState ? 'hidden' : 'visible'}`);
+            } else if (blockType === 'multicolumn-column' && elementId) {
+                // Handle multicolumn column visibility
+                if (currentSectionsConfig.multicolumn && currentSectionsConfig.multicolumn.columns && currentSectionsConfig.multicolumn.columns[elementId]) {
+                    currentSectionsConfig.multicolumn.columns[elementId].isHidden = newHiddenState;
+                    console.log(`[DEBUG] Multicolumn column ${elementId} saved as: ${newHiddenState ? 'hidden' : 'visible'}`);
+                    
+                    // Update preview immediately
+                    renderPreview();
+                }
             }
             
             // Activar bandera de cambios pendientes
@@ -9303,6 +9343,15 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
         if (currentSectionsConfig.slideshow && currentSectionsConfig.slideshow.slideOrder && currentSectionsConfig.slideshow.slideOrder.length > 0) {
             setTimeout(() => {
                 initializeSlideshowSlidesSortable();
+            }, 100);
+        }
+        
+        // Initialize sortable for multicolumn columns if they exist
+        if (currentSectionsConfig.multicolumn && currentSectionsConfig.multicolumn.columnOrder && currentSectionsConfig.multicolumn.columnOrder.length > 0) {
+            console.log('[MULTICOLUMN] Initializing sortable from attachBlockListEventListeners');
+            console.log('[MULTICOLUMN] Current column order:', currentSectionsConfig.multicolumn.columnOrder);
+            setTimeout(() => {
+                initializeMulticolumnColumnsSortable();
             }, 100);
         }
         
@@ -9334,6 +9383,8 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                     savedIsHidden = currentSectionsConfig.header.isHidden || false;
                 } else if (section === 'slideshow' || blockType === 'slideshow') {
                     savedIsHidden = currentSectionsConfig.slideshow?.isHidden || false;
+                } else if (blockType === 'multicolumn-column' && elementId && currentSectionsConfig.multicolumn?.columns?.[elementId]) {
+                    savedIsHidden = currentSectionsConfig.multicolumn.columns[elementId].isHidden || false;
                 }
                 
                 console.log('[DEBUG] Toggle initialized:', {
@@ -10284,8 +10335,8 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                     id: 'multicolumn',
                     isHidden: false,
                     config: {
-                        heading: 'Multicolumna',
-                        body: '',
+                        heading: 'Multicolumn',
+                        body: 'Show multiple columns of text paired with images or icons to share useful information about your store: shipping and return conditions, special offers and upcoming sales.',
                         colorScheme: 'scheme1',
                         width: 'large',
                         desktopLayout: 'grid',
@@ -10302,12 +10353,12 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                     const columnId = 'column-' + Date.now() + '-' + i;
                     currentSectionsConfig.multicolumn.columns[columnId] = {
                         id: columnId,
-                        icon: 'barcode',
+                        icon: 'check_circle',
                         customIcon: '',
-                        iconSize: 64,
-                        heading: 'Columna ' + (i + 1),
-                        body: 'Contenido de ejemplo para la columna ' + (i + 1),
-                        linkLabel: 'Ver más',
+                        iconSize: 48,
+                        heading: 'Icon column',
+                        body: 'Pair text with an icon to focus on your chosen product, collection or piece of news. Add details on shipping and return conditions, product availability, care instructions, matching colors and accessories.',
+                        linkLabel: 'Link label',
                         link: '',
                         isHidden: false
                     };
@@ -11959,6 +12010,7 @@ document.head.appendChild(style);
             { name: 'background', label: 'Background', type: 'color' },
             { name: 'foreground', label: 'Foreground', type: 'color' },
             { name: 'border', label: 'Border', type: 'color' },
+            { name: 'link', label: 'Link', type: 'color' },
             { name: 'solid-button', label: 'Solid button', type: 'color' },
             { name: 'solid-button-text', label: 'Solid button text', type: 'color' },
             { name: 'outline-button', label: 'Outline button', type: 'color' },
@@ -12039,6 +12091,7 @@ document.head.appendChild(style);
                     background: existingScheme.primary?.background || existingScheme.background || '#FFFFFF',
                     foreground: existingScheme.primary?.foreground || existingScheme.foreground || '#F0F0F0',
                     border: existingScheme.primary?.border || existingScheme.border || '#DDDDDD',
+                    link: existingScheme.primary?.link || existingScheme.link || '#2c6ecb',
                     'solid-button': existingScheme.primary?.['solid-button'] || existingScheme['solid-button'] || '#000000',
                     'solid-button-text': existingScheme.primary?.['solid-button-text'] || existingScheme['solid-button-text'] || '#FFFFFF',
                     'outline-button': existingScheme.primary?.['outline-button'] || existingScheme['outline-button'] || '#DDDDDD',
@@ -12069,6 +12122,7 @@ document.head.appendChild(style);
                     background: '#FFFFFF',
                     foreground: '#F0F0F0',
                     border: '#DDDDDD',
+                    link: '#2c6ecb',
                     'solid-button': '#000000',
                     'solid-button-text': '#FFFFFF',
                     'outline-button': '#DDDDDD',
@@ -14769,6 +14823,77 @@ document.head.appendChild(style);
         });
     }
     
+    // Function to initialize multicolumn columns sortable
+    function initializeMulticolumnColumnsSortable() {
+        console.log('[MULTICOLUMN] initializeMulticolumnColumnsSortable called');
+        const $wrapper = $('#multicolumn-columns-wrapper');
+        if ($wrapper.length === 0) {
+            console.log('[MULTICOLUMN] Wrapper not found, exiting');
+            return;
+        }
+        console.log('[MULTICOLUMN] Wrapper found, initializing sortable');
+        
+        // Destroy any existing sortable
+        if ($wrapper.data('ui-sortable')) {
+            $wrapper.sortable('destroy');
+        }
+        
+        // Initialize sortable
+        $wrapper.sortable({
+            items: '.multicolumn-column-item',
+            handle: '.drag-handle',
+            axis: 'y',
+            placeholder: 'column-item-placeholder',
+            tolerance: 'pointer',
+            cursor: 'move',
+            start: function(e, ui) {
+                ui.placeholder.css({
+                    'height': ui.item.outerHeight(),
+                    'visibility': 'visible',
+                    'background': '#f0f0f0',
+                    'border': '1px dashed #999',
+                    'border-radius': '4px',
+                    'margin-bottom': '4px',
+                    'margin-left': '30px'
+                });
+            },
+            stop: function(e, ui) {
+                // Update column order
+                const newOrder = [];
+                $('#multicolumn-columns-wrapper .multicolumn-column-item').each(function() {
+                    const columnId = $(this).attr('data-element-id');
+                    if (columnId) {
+                        newOrder.push(columnId);
+                    }
+                });
+                
+                console.log('[MULTICOLUMN] Before updating columnOrder:', [...currentSectionsConfig.multicolumn.columnOrder]);
+                currentSectionsConfig.multicolumn.columnOrder = newOrder;
+                console.log('[MULTICOLUMN] After updating columnOrder:', [...currentSectionsConfig.multicolumn.columnOrder]);
+                
+                // Update column display with heading or default text
+                $('#multicolumn-columns-wrapper .multicolumn-column-item').each(function(index) {
+                    const columnId = $(this).attr('data-element-id');
+                    const column = currentSectionsConfig.multicolumn.columns[columnId];
+                    if (column) {
+                        const columnNumber = index + 1;
+                        const displayText = column.heading || `${translations[currentLanguage]?.['multicolumn.column'] || 'Column'} ${columnNumber}`;
+                        $(this).find('.subsection-text').text(displayText);
+                    }
+                });
+                
+                hasPendingPageStructureChanges = true;
+                updateSaveButtonState();
+                renderPreview();
+                
+                // Debug log to verify the order is being saved
+                console.log('[MULTICOLUMN] New column order:', newOrder);
+                console.log('[MULTICOLUMN] Saved in config:', currentSectionsConfig.multicolumn.columnOrder);
+                console.log('[MULTICOLUMN] Full multicolumn config:', JSON.stringify(currentSectionsConfig.multicolumn, null, 2));
+            }
+        });
+    }
+    
     // Function to load menus data
     // Function to attach slideshow event listeners
     function attachSlideshowEventListeners() {
@@ -15966,6 +16091,9 @@ document.head.appendChild(style);
             $saveButton.find('.btn-text').text('Guardado');
         }
     }
+    
+    // Make updateSaveButtonState globally accessible for modules
+    window.updateSaveButtonState = updateSaveButtonState;
     
     // Modify the save button click handler
     $('#save-builder-btn-topbar').on('click', async function() {

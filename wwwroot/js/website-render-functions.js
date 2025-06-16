@@ -343,7 +343,29 @@ function renderHeader(config) {
             `;
     }
     
-    return headerContent;
+    // Get translations for section title
+    const headerTitle = (typeof translations !== 'undefined' && translations[currentLanguage]?.['sections.header']) || 
+                       (typeof lang !== 'undefined' && lang['sections.header']) || 
+                       'Header';
+    
+    // Check if we're in editor context (iframe with parent that has preview-iframe)
+    const isInEditor = (typeof window !== 'undefined' && 
+                       window.parent !== window && 
+                       window.parent.document && 
+                       window.parent.document.getElementById('preview-iframe'));
+    
+    // Wrap in section-wrapper with header tag (only show tag in editor)
+    return `
+        <div class="section-wrapper" data-section-id="header">
+            ${isInEditor ? `
+                <div class="section-header-tag">
+                    <span class="material-symbols-outlined" style="font-size: 16px;">web_asset</span>
+                    ${headerTitle}
+                </div>
+            ` : ''}
+            ${headerContent}
+        </div>
+    `;
 }
 
 // Función para renderizar la barra de anuncios
@@ -470,11 +492,30 @@ function renderAnnouncementBar(config) {
     
     const marqueeClass = isMarquee ? 'announcement-marquee-content' : 'announcement-bar-content';
     
+    // Get translations for section title
+    const announcementTitle = (typeof translations !== 'undefined' && translations[currentLanguage]?.['sections.announcementBar']) || 
+                             (typeof lang !== 'undefined' && lang['sections.announcementBar']) || 
+                             'Announcement bar';
+    
+    // Check if we're in editor context
+    const isInEditor = (typeof window !== 'undefined' && 
+                       window.parent !== window && 
+                       window.parent.document && 
+                       window.parent.document.getElementById('preview-iframe'));
+    
     return `
-        ${marqueeStyles}
-        <div class="announcement-bar" style="${barStyles}">
-            <div class="${marqueeClass}">
-                ${announcementContent}
+        <div class="section-wrapper" data-section-id="announcement">
+            ${isInEditor ? `
+                <div class="section-header-tag">
+                    <span class="material-symbols-outlined" style="font-size: 16px;">campaign</span>
+                    ${announcementTitle}
+                </div>
+            ` : ''}
+            ${marqueeStyles}
+            <div class="announcement-bar" style="${barStyles}">
+                <div class="${marqueeClass}">
+                    ${announcementContent}
+                </div>
             </div>
         </div>
     `;
@@ -1758,8 +1799,23 @@ function renderSlideshow(config) {
     } else if (slideshowConfig.height === 'medium') {
         heightStyle = 'height: 500px;';
     } else if (slideshowConfig.height === 'large') {
-        heightStyle = 'height: 700px;';
+        // Check if we're in the preview real (not in editor iframe)
+        const isInEditor = (typeof window !== 'undefined' && 
+                           window.parent !== window && 
+                           window.parent.document && 
+                           window.parent.document.getElementById('preview-iframe'));
+        
+        // Use 900px for preview real, 700px for editor
+        heightStyle = isInEditor ? 'height: 700px;' : 'height: 900px;';
     }
+    
+    // Debug log para verificar la altura en el preview real
+    console.log('[SLIDESHOW] Height Debug:', {
+        configuredHeight: slideshowConfig.height,
+        appliedHeightStyle: heightStyle,
+        isInEditor: (typeof window !== 'undefined' && window.parent !== window),
+        context: (typeof window !== 'undefined' && window.parent !== window) ? 'Editor' : 'Preview Real'
+    });
     
     // Build navigation arrows
     const navigationArrowsHtml = (slideshowConfig.showNavigationArrows && visibleSlides.length > 1) ? `
@@ -1937,10 +1993,28 @@ function renderSlideshow(config) {
         </style>
     `;
     
+    // Get translations for section title
+    const slideshowTitle = (typeof translations !== 'undefined' && translations[currentLanguage]?.['sections.slideshow']) || 
+                          (typeof lang !== 'undefined' && lang['sections.slideshow']) || 
+                          'Slideshow';
+    
+    // Check if we're in editor context
+    const isInEditor = (typeof window !== 'undefined' && 
+                       window.parent !== window && 
+                       window.parent.document && 
+                       window.parent.document.getElementById('preview-iframe'));
+    
     return `
-        ${mobileStyles}
-        <div class="slideshow-wrapper" style="${paddingStyle}">
-            <div class="slideshow-container" 
+        <div class="section-wrapper" data-section-id="slideshow" style="margin-top: ${parseInt(slideshowConfig.topPadding) === 1 ? '-2' : (slideshowConfig.topPadding || 0)}px; margin-bottom: ${slideshowConfig.bottomPadding || 0}px;">
+            ${isInEditor ? `
+                <div class="section-header-tag">
+                    <span class="material-symbols-outlined" style="font-size: 16px;">view_carousel</span>
+                    ${slideshowTitle}
+                </div>
+            ` : ''}
+            ${mobileStyles}
+            <div class="slideshow-wrapper" style="${paddingStyle}">
+                <div class="slideshow-container" 
                  id="${slideshowId}"
                  data-autorotate="${slideshowConfig.autoRotate || false}"
                  data-interval="${slideshowConfig.changeInterval || 5}"
@@ -1985,6 +2059,7 @@ function renderSlideshow(config) {
                 ${navigationArrowsHtml}
                 ${paginationHtml}
             </div>
+        </div>
         </div>
     `;
 }
@@ -2053,12 +2128,20 @@ function renderMulticolumn(config) {
                         (typeof lang !== 'undefined' && lang['sections.multicolumn']) || 
                         'Multicolumn';
     
+    // Check if we're in editor context
+    const isInEditor = (typeof window !== 'undefined' && 
+                       window.parent !== window && 
+                       window.parent.document && 
+                       window.parent.document.getElementById('preview-iframe'));
+    
     return `
         <div class="section-wrapper" data-section-id="multicolumn" style="padding: 40px 0;">
-            <div class="section-header-tag">
-                <span class="material-symbols-outlined" style="font-size: 16px;">view_week</span>
-                ${sectionTitle}
-            </div>
+            ${isInEditor ? `
+                <div class="section-header-tag">
+                    <span class="material-symbols-outlined" style="font-size: 16px;">view_week</span>
+                    ${sectionTitle}
+                </div>
+            ` : ''}
             <div class="multicolumn-container" style="max-width: 1200px; margin: 0 auto; padding: 0 20px;">
                 ${config.config?.title ? `
                     <h2 style="text-align: center; font-size: 32px; margin: 0 0 40px 0; color: ${schemeColors.text};">

@@ -40,6 +40,19 @@
             height: auto;
         }
         
+        /* Slideshow specific overrides to ensure proper display */
+        .slideshow-container {
+            position: relative !important;
+            overflow: hidden !important;
+        }
+        
+        .slideshow-container .slide-image {
+            max-width: none !important;
+            width: 100% !important;
+            height: 100% !important;
+            object-fit: cover !important;
+        }
+        
         /* Container responsive */
         .container {
             width: 100%;
@@ -114,6 +127,19 @@
             image-rendering: auto;
             -webkit-font-smoothing: subpixel-antialiased;
             -moz-osx-font-smoothing: auto;
+        }
+        
+        /* Slideshow specific overrides to ensure proper display */
+        .slideshow-container {
+            position: relative !important;
+            overflow: hidden !important;
+        }
+        
+        .slideshow-container .slide-image {
+            max-width: none !important;
+            width: 100% !important;
+            height: 100% !important;
+            object-fit: cover !important;
         }
         
         /* Header logo specific styles for HD quality */
@@ -463,6 +489,16 @@
                         if (slideshowConfig && !slideshowConfig.isHidden) {
                             finalHtml += renderSlideshow(slideshowConfig);
                         }
+                    } else if (sectionId === 'multicolumn') {
+                        const multicolumnConfig = currentSectionsConfig.multicolumn;
+                        if (multicolumnConfig && !multicolumnConfig.isHidden) {
+                            // Use the module's render function if available, otherwise use the default
+                            if (window.WebsiteBuilderModules && window.WebsiteBuilderModules.Multicolumn && window.WebsiteBuilderModules.Multicolumn.render) {
+                                finalHtml += window.WebsiteBuilderModules.Multicolumn.render(multicolumnConfig);
+                            } else {
+                                finalHtml += renderMulticolumn(multicolumnConfig);
+                            }
+                        }
                     }
                     // Aquí se agregarán más secciones en el futuro
                 });
@@ -491,6 +527,19 @@
                 setTimeout(() => {
                     initializeSlideshows();
                     console.log('[PREVIEW] Slideshows initialized');
+                    
+                    // Debug: Verificar altura real del slideshow después de renderizar
+                    const slideshowContainer = document.querySelector('.slideshow-container');
+                    if (slideshowContainer) {
+                        const computedStyle = window.getComputedStyle(slideshowContainer);
+                        console.log('[SLIDESHOW] Rendered Height Check:', {
+                            computedHeight: computedStyle.height,
+                            computedMinHeight: computedStyle.minHeight,
+                            offsetHeight: slideshowContainer.offsetHeight,
+                            clientHeight: slideshowContainer.clientHeight,
+                            styleAttribute: slideshowContainer.getAttribute('style')
+                        });
+                    }
                 }, 100);
             }
         }
