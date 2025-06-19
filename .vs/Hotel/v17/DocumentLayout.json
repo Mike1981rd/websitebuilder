@@ -52,22 +52,10 @@
               "RelativeDocumentMoniker": "Views\\WebsiteBuilder\\Index.cshtml",
               "ToolTip": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\Views\\WebsiteBuilder\\Index.cshtml",
               "RelativeToolTip": "Views\\WebsiteBuilder\\Index.cshtml",
-              "ViewState": "AgIAAA0CAAAAAAAAAAAuwBMCAAABAAAAAAAAAA==",
+              "ViewState": "AgIAABACAAAAAAAAAAAgwBQCAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
               "WhenOpened": "2025-06-11T16:18:03.647Z",
               "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 2,
-              "Title": "website-builder.js",
-              "DocumentMoniker": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\js\\website-builder.js",
-              "RelativeDocumentMoniker": "wwwroot\\js\\website-builder.js",
-              "ToolTip": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\js\\website-builder.js",
-              "RelativeToolTip": "wwwroot\\js\\website-builder.js",
-              "ViewState": "AgIAANkxAAAAAAAAAAAwwLw1AAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
-              "WhenOpened": "2025-06-11T16:11:08.663Z"
             },
             {
               "$type": "Document",
@@ -104,6 +92,18 @@
               "ViewState": "AgIAABkAAAAAAAAAAAAIwDkAAAAHAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
               "WhenOpened": "2025-06-11T16:15:50.255Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "website-builder.js",
+              "DocumentMoniker": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\js\\website-builder.js",
+              "RelativeDocumentMoniker": "wwwroot\\js\\website-builder.js",
+              "ToolTip": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\js\\website-builder.js",
+              "RelativeToolTip": "wwwroot\\js\\website-builder.js",
+              "ViewState": "AgIAANkxAAAAAAAAAAAwwLw1AAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
+              "WhenOpened": "2025-06-11T16:11:08.663Z"
             }
           ]
         }

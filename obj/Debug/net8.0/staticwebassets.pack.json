@@ -9,6 +9,14 @@
       "PackagePath": "staticwebassets\\TestImages\\VariasFilas.png"
     },
     {
+      "Id": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\TestImages\\imagewithtexthoverpreview.png",
+      "PackagePath": "staticwebassets\\TestImages\\imagewithtexthoverpreview.png"
+    },
+    {
+      "Id": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\TestImages\\multicolumimage.png",
+      "PackagePath": "staticwebassets\\TestImages\\multicolumimage.png"
+    },
+    {
       "Id": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\TestImages\\slideshowpreview.png",
       "PackagePath": "staticwebassets\\TestImages\\slideshowpreview.png"
     },
@@ -71,6 +79,10 @@
     {
       "Id": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\js\\website-builder.js.backup",
       "PackagePath": "staticwebassets\\js\\website-builder.js.backup"
+    },
+    {
+      "Id": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\js\\website-builder\\modules\\image-with-text.js",
+      "PackagePath": "staticwebassets\\js\\website-builder\\modules\\image-with-text.js"
     },
     {
       "Id": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\js\\website-builder\\modules\\multicolumn.js",

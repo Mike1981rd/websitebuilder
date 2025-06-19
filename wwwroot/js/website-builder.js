@@ -340,6 +340,7 @@ async function loadCurrentWebsite() {
         if (website.sectionsConfigJson) {
             try {
                 const sectionsData = JSON.parse(website.sectionsConfigJson);
+                console.log('[DEBUG] Raw sectionsData from server:', JSON.stringify(sectionsData, null, 2));
                 if (sectionsData && typeof sectionsData === 'object') {
                         // Merge with defaults instead of replacing completely
                         const defaultConfig = {
@@ -353,16 +354,16 @@ async function loadCurrentWebsite() {
                                 animationStyle: 'none',
                                 showLanguageSelector: false,
                                 showCurrencySelector: false,
-                                showSocialMediaIcons: false,
-                                isHidden: false
+                                showSocialMediaIcons: false
+                                // Removed isHidden: false to avoid overwriting saved values
                             },
                             header: {
                                 colorScheme: 'scheme1',
                                 width: 'large',
                                 layout: 'logo-center-menu-left-inline',
                                 showDivider: true,
-                                stickyHeader: 'on-scroll-up',
-                                isHidden: false
+                                stickyHeader: 'on-scroll-up'
+                                // Removed isHidden: false to avoid overwriting saved values
                             },
                             announcements: {},
                             announcementOrder: [],
@@ -371,9 +372,39 @@ async function loadCurrentWebsite() {
                         
                         // Deep merge saved config with defaults
                         currentSectionsConfig = $.extend(true, {}, defaultConfig, sectionsData);
+                        
+                        // CRITICAL: Preserve isHidden values from saved data
+                        // The deep merge may have overwritten isHidden with defaults
+                        if (sectionsData.announcementBar && sectionsData.announcementBar.hasOwnProperty('isHidden')) {
+                            currentSectionsConfig.announcementBar.isHidden = sectionsData.announcementBar.isHidden;
+                        }
+                        if (sectionsData.header && sectionsData.header.hasOwnProperty('isHidden')) {
+                            currentSectionsConfig.header.isHidden = sectionsData.header.isHidden;
+                        }
+                        // Also preserve isHidden for other sections
+                        ['slideshow', 'multicolumn', 'imageWithText'].forEach(sectionType => {
+                            if (sectionsData[sectionType] && sectionsData[sectionType].hasOwnProperty('isHidden')) {
+                                currentSectionsConfig[sectionType].isHidden = sectionsData[sectionType].isHidden;
+                                console.log(`[DEBUG] Preserved ${sectionType}.isHidden:`, sectionsData[sectionType].isHidden);
+                            }
+                            
+                            // Preserve isHidden for imageWithText blocks
+                            if (sectionType === 'imageWithText' && sectionsData[sectionType] && sectionsData[sectionType].blocks) {
+                                Object.keys(sectionsData[sectionType].blocks).forEach(blockId => {
+                                    if (sectionsData[sectionType].blocks[blockId].hasOwnProperty('isHidden') && 
+                                        currentSectionsConfig[sectionType] && 
+                                        currentSectionsConfig[sectionType].blocks && 
+                                        currentSectionsConfig[sectionType].blocks[blockId]) {
+                                        currentSectionsConfig[sectionType].blocks[blockId].isHidden = sectionsData[sectionType].blocks[blockId].isHidden;
+                                        console.log(`[DEBUG] Preserved ${sectionType}.blocks[${blockId}].isHidden:`, sectionsData[sectionType].blocks[blockId].isHidden);
+                                    }
+                                });
+                            }
+                        });
+                        
                         window.currentSectionsConfig = currentSectionsConfig;
                         
-                        console.log('[DEBUG] Merged sections config:', currentSectionsConfig);
+                        console.log('[DEBUG] Merged sections config (with preserved isHidden):', currentSectionsConfig);
                         // Ensure header has logo URL properties and section visibility
                         if (currentSectionsConfig.header) {
                             if (!currentSectionsConfig.header.hasOwnProperty('colorScheme')) {
@@ -1687,6 +1718,30 @@ function renderMulticolumn(config) {
 }
 
 /**
+ * Renderiza la sección image with text en el preview (fallback)
+ */
+function renderImageWithText(config) {
+    console.log('[IMAGE-WITH-TEXT FALLBACK] Rendering with config:', config);
+    
+    if (!config || config.isHidden) {
+        return '';
+    }
+    
+    // This is just a simple fallback - the module should handle the actual rendering
+    return `
+        <div class="section-wrapper image-with-text-section" data-section-id="imageWithText" style="padding: 40px 0; background: #f5f5f5;">
+            <div class="container" style="max-width: 1200px; margin: 0 auto; padding: 0 20px;">
+                <div style="text-align: center; color: #666;">
+                    <i class="material-icons" style="font-size: 48px; margin-bottom: 16px;">image</i>
+                    <h3>Image with Text</h3>
+                    <p>This section will display your image with text content.</p>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+/**
  * Renderiza todas las secciones de la página en el iframe de previsualización.
  */
 function renderPreview() {
@@ -1760,6 +1815,17 @@ function renderPreview() {
                             finalHtml += iframeWindow.renderMulticolumn(config);
                         }
                     }
+                } else if (sectionId === 'imageWithText' || sectionId === 'images-with-text') {
+                    const config = currentSectionsConfig.imageWithText;
+                    if (config && !config.isHidden) {
+                        // Try to use the module first
+                        const moduleRender = iframeWindow.WebsiteBuilderModules?.ImageWithText?.render;
+                        if (moduleRender) {
+                            finalHtml += moduleRender(config);
+                        } else if (iframeWindow.renderImageWithText) {
+                            finalHtml += iframeWindow.renderImageWithText(config);
+                        }
+                    }
                 }
             });
         }
@@ -1770,14 +1836,24 @@ function renderPreview() {
             'announcement': renderAnnouncementBar,
             'header': renderHeader,
             'slideshow': renderSlideshow,
-            'multicolumn': window.WebsiteBuilderModules?.Multicolumn?.render || renderMulticolumn
+            'multicolumn': window.WebsiteBuilderModules?.Multicolumn?.render || renderMulticolumn,
+            'imageWithText': window.WebsiteBuilderModules?.ImageWithText?.render || renderImageWithText,
+            'images-with-text': window.WebsiteBuilderModules?.ImageWithText?.render || renderImageWithText
         };
-
+        
         // Renderizar secciones según el orden definido
         if (currentSectionsConfig && currentSectionsConfig.sectionOrder) {
             currentSectionsConfig.sectionOrder.forEach(sectionId => {
                 const renderer = renderers[sectionId];
-                const config = currentSectionsConfig[sectionId === 'announcement' ? 'announcementBar' : sectionId];
+                // Map section IDs to their config keys
+                let configKey = sectionId;
+                if (sectionId === 'announcement') {
+                    configKey = 'announcementBar';
+                } else if (sectionId === 'images-with-text') {
+                    configKey = 'imageWithText';
+                }
+                const config = currentSectionsConfig[configKey];
+                
                 if (renderer && config) {
                     finalHtml += renderer(config);
                 }
@@ -1839,6 +1915,11 @@ function renderPreview() {
                 if (window.WebsiteBuilderModules && window.WebsiteBuilderModules.Multicolumn) {
                     window.switchSidebarView('multicolumnColumnSettings', { columnId: columnId });
                 }
+            } else if (sectionId === 'imageWithText') {
+                // Logic for imageWithText section
+                $('.topbar-nav-icon').removeClass('active');
+                $('.topbar-nav-icon[data-view="sections"]').addClass('active');
+                window.switchSidebarView('imageWithTextSettings');
             }
             // Aquí añadiremos más 'else if' para otras secciones en el futuro.
         });
@@ -4006,6 +4087,52 @@ $(document).ready(async function() {
             'slideshowSlide.overlay': 'Superposición',
             'slideshowSlide.useOverlay': 'Usar superposición',
             'slideshowSlide.overlayOpacity': 'Opacidad de superposición',
+            
+            // Image with Text translations
+            'imageWithText.settings.title': 'Imagen con texto',
+            'imageWithText.settings.image': 'Imagen',
+            'imageWithText.settings.content': 'Contenido',
+            'imageWithText.settings.colors': 'Colores',
+            'imageWithText.settings.padding': 'Relleno',
+            'imageWithText.settings.theme': 'Configuración del tema',
+            'imageWithText.fields.selectImage': 'Seleccionar',
+            'imageWithText.fields.browseFree': 'Explorar imágenes gratuitas',
+            'imageWithText.fields.height': 'Altura',
+            'imageWithText.fields.width': 'Ancho',
+            'imageWithText.fields.placement': 'Colocación',
+            'imageWithText.fields.animation': 'Animación',
+            'imageWithText.fields.design': 'Diseño',
+            'imageWithText.fields.position': 'Posición',
+            'imageWithText.fields.alignment': 'Alineación',
+            'imageWithText.fields.mobileAlignment': 'Alineación móvil',
+            'imageWithText.fields.colorScheme': 'Esquema de colores',
+            'imageWithText.fields.containerColorScheme': 'Esquema de color del contenedor',
+            'imageWithText.fields.topPadding': 'Arriba',
+            'imageWithText.fields.bottomPadding': 'Abajo',
+            'imageWithText.fields.thickness': 'Grosor',
+            'imageWithText.fields.opacity': 'Opacidad',
+            'imageWithText.fields.revealOnScroll': 'Revelar secciones al desplazarse',
+            'imageWithText.blocks.title': 'Bloques de contenido',
+            'imageWithText.blocks.add': 'Agregar bloque',
+            'imageWithText.blocks.empty': 'No hay bloques. Haz clic en "Agregar bloque" para comenzar.',
+            'imageWithText.blockSettings.title': 'Configuración del bloque',
+            'imageWithText.blockSettings.text': 'Texto',
+            'imageWithText.blockSettings.button': 'Botón',
+            'imageWithText.blockSettings.image': 'Imagen',
+            'imageWithText.blockFields.title': 'Título',
+            'imageWithText.blockFields.titleSize': 'Tamaño del título',
+            'imageWithText.blockFields.text': 'Texto',
+            'imageWithText.blockFields.textStyle': 'Estilo',
+            'imageWithText.blockFields.buttonLabel': 'Etiqueta',
+            'imageWithText.blockFields.buttonHint': 'Dejar en blanco para ocultar',
+            'imageWithText.blockFields.buttonLink': 'Enlace',
+            'imageWithText.blockFields.outlineStyle': 'Estilo de contorno',
+            'imageWithText.blockFields.selectImage': 'Seleccionar imagen',
+            'imageWithText.blockFields.changeImage': 'Cambiar',
+            'imageWithText.blockFields.removeImage': 'Eliminar',
+            'imageWithText.blockFields.browseFree': 'Explorar imágenes gratuitas',
+            'imageWithText.blockFields.altText': 'Texto alternativo',
+            
             // Common translations
             'common.cancel': 'Cancelar',
             'common.save': 'Guardar',
@@ -4491,6 +4618,52 @@ $(document).ready(async function() {
             'slideshowSlide.overlay': 'Overlay',
             'slideshowSlide.useOverlay': 'Use overlay',
             'slideshowSlide.overlayOpacity': 'Overlay opacity',
+            
+            // Image with Text translations
+            'imageWithText.settings.title': 'Image with text',
+            'imageWithText.settings.image': 'Image',
+            'imageWithText.settings.content': 'Content',
+            'imageWithText.settings.colors': 'Colors',
+            'imageWithText.settings.padding': 'Padding',
+            'imageWithText.settings.theme': 'Theme settings',
+            'imageWithText.fields.selectImage': 'Select',
+            'imageWithText.fields.browseFree': 'Browse free images',
+            'imageWithText.fields.height': 'Height',
+            'imageWithText.fields.width': 'Width',
+            'imageWithText.fields.placement': 'Placement',
+            'imageWithText.fields.animation': 'Animation',
+            'imageWithText.fields.design': 'Design',
+            'imageWithText.fields.position': 'Position',
+            'imageWithText.fields.alignment': 'Alignment',
+            'imageWithText.fields.mobileAlignment': 'Mobile alignment',
+            'imageWithText.fields.colorScheme': 'Color scheme',
+            'imageWithText.fields.containerColorScheme': 'Container color scheme',
+            'imageWithText.fields.topPadding': 'Top',
+            'imageWithText.fields.bottomPadding': 'Bottom',
+            'imageWithText.fields.thickness': 'Thickness',
+            'imageWithText.fields.opacity': 'Opacity',
+            'imageWithText.fields.revealOnScroll': 'Reveal sections on scroll',
+            'imageWithText.blocks.title': 'Content blocks',
+            'imageWithText.blocks.add': 'Add block',
+            'imageWithText.blocks.empty': 'No blocks. Click "Add block" to get started.',
+            'imageWithText.blockSettings.title': 'Block settings',
+            'imageWithText.blockSettings.text': 'Text',
+            'imageWithText.blockSettings.button': 'Button',
+            'imageWithText.blockSettings.image': 'Image',
+            'imageWithText.blockFields.title': 'Title',
+            'imageWithText.blockFields.titleSize': 'Title size',
+            'imageWithText.blockFields.text': 'Text',
+            'imageWithText.blockFields.textStyle': 'Style',
+            'imageWithText.blockFields.buttonLabel': 'Label',
+            'imageWithText.blockFields.buttonHint': 'Leave blank to hide',
+            'imageWithText.blockFields.buttonLink': 'Link',
+            'imageWithText.blockFields.outlineStyle': 'Outline style',
+            'imageWithText.blockFields.selectImage': 'Select image',
+            'imageWithText.blockFields.changeImage': 'Change',
+            'imageWithText.blockFields.removeImage': 'Remove',
+            'imageWithText.blockFields.browseFree': 'Browse free images',
+            'imageWithText.blockFields.altText': 'Alt text',
+            
             // Common translations
             'common.cancel': 'Cancel',
             // Menus translations
@@ -4659,6 +4832,29 @@ $(document).ready(async function() {
             attachBlockListEventListeners();
             // Apply translations after rendering
             setTimeout(applyTranslations, 0);
+            
+            // Ensure visibility toggles are synced after rendering
+            setTimeout(() => {
+                syncVisibilityToggleStates();
+                
+                // Double-check imageWithText specifically
+                if (currentSectionsConfig.imageWithText) {
+                    const isHidden = currentSectionsConfig.imageWithText.isHidden || false;
+                    window.forceVisibilitySync('imageWithText', isHidden);
+                    
+                    // Also sync all child blocks
+                    if (currentSectionsConfig.imageWithText.blocks && currentSectionsConfig.imageWithText.blockOrder) {
+                        currentSectionsConfig.imageWithText.blockOrder.forEach(blockId => {
+                            if (currentSectionsConfig.imageWithText.blocks[blockId]) {
+                                const blockHidden = currentSectionsConfig.imageWithText.blocks[blockId].isHidden || false;
+                                window.forceChildVisibilitySync(blockId, blockHidden);
+                            }
+                        });
+                    }
+                }
+                
+                console.log('[DEBUG] Visibility toggles synced after rendering blockList');
+            }, 100);
         } else if (viewName === 'blockSettings') {
             dynamicContentArea.innerHTML = renderBlockSettingsView(data);
         } else if (viewName === 'addSectionView') {
@@ -4800,6 +4996,36 @@ $(document).ready(async function() {
                 attachMulticolumnEventListeners();
                 setTimeout(applyTranslations, 0);
             }
+        } else if (viewName === 'imageWithTextSettings') {
+            // Image with text settings view - usar módulo
+            console.log('[DEBUG] Rendering imageWithTextSettings view');
+            console.log('[DEBUG] Current config:', window.currentSectionsConfig?.imageWithText);
+            
+            const html = executeModuleFunction('ImageWithText', 'renderSettings', window.currentSectionsConfig?.imageWithText);
+            console.log('[DEBUG] HTML returned:', html ? 'HTML received' : 'NO HTML');
+            
+            if (html) {
+                dynamicContentArea.innerHTML = html;
+                console.log('[DEBUG] HTML set to dynamicContentArea');
+                
+                // Verify container exists after setting HTML
+                setTimeout(() => {
+                    const $container = $('#children-container');
+                    console.log('[DEBUG] After innerHTML, container exists:', $container.length > 0);
+                    if ($container.length === 0) {
+                        console.log('[DEBUG] Dynamic content HTML:', $('#sidebar-dynamic-content').html().substring(0, 500));
+                    }
+                }, 50);
+                
+                executeModuleFunction('ImageWithText', 'attachEventListeners');
+                setTimeout(applyTranslations, 0);
+                // Initialize sortable after rendering
+                setTimeout(() => {
+                    initializeImageWithTextBlocksSortable();
+                }, 100);
+            } else {
+                console.error('[DEBUG] No HTML returned from renderSettings');
+            }
         } else if (viewName === 'multicolumnRowSettings' || viewName === 'multicolumnColumnSettings') {
             // Multicolumn column settings - usar módulo
             console.log('[DEBUG] Attempting to render multicolumn column settings');
@@ -4825,6 +5051,18 @@ $(document).ready(async function() {
             attachSlideshowSlideEventListeners(data?.slideId, previousSidebarView);
             // Apply translations after rendering
             setTimeout(applyTranslations, 0);
+        } else if (viewName === 'imageWithTextBlockSettings') {
+            // Image with Text block settings using module system
+            const blockId = data?.blockId;
+            const parentConfig = currentSectionsConfig.imageWithText;
+            const block = parentConfig?.blocks?.[blockId] || {};
+            
+            const html = executeModuleFunction('ImageWithText', 'renderBlockSettings', block, parentConfig);
+            if (html) {
+                dynamicContentArea.innerHTML = html;
+                executeModuleFunction('ImageWithText', 'attachBlockEventListeners', blockId);
+                setTimeout(applyTranslations, 0);
+            }
         } else {
             dynamicContentArea.innerHTML = `<p class="sidebar-loading-text">${lang.sidebarLoadingText}</p>`;
         }
@@ -5177,6 +5415,61 @@ $(document).ready(async function() {
                                         <i class="material-icons icon-hidden">visibility_off</i>
                                     </button>
                                     <button class="action-icon delete-column" data-column-id="${columnId}" title="Delete">
+                                        <i class="material-icons">delete</i>
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                    }
+                });
+                html += '</div>';
+            }
+        }
+        
+        // Check if imageWithText exists in currentSectionsConfig
+        if (currentSectionsConfig.imageWithText) {
+            const hasBlocks = currentSectionsConfig.imageWithText.blockOrder && currentSectionsConfig.imageWithText.blockOrder.length > 0;
+            
+            html += `
+                <div class="sidebar-subsection collapsible-parent" data-block-type="imageWithText" data-element-id="imageWithText">
+                    <span class="subsection-text" data-i18n="sections.imageWithText">Imagen con texto</span>
+                    <div class="subsection-actions">
+                        <button class="action-icon visibility-toggle ${currentSectionsConfig.imageWithText.isHidden ? 'is-hidden' : ''}" data-section="imageWithText" title="Toggle visibility">
+                            <i class="material-icons icon-visible">visibility</i>
+                            <i class="material-icons icon-hidden">visibility_off</i>
+                        </button>
+                        <button class="action-icon add-icon" data-section="imageWithText" title="Add block">
+                            <i class="material-icons">add</i>
+                        </button>
+                        <button class="action-icon delete-section" data-section="imageWithText" title="Delete">
+                            <i class="material-icons">delete</i>
+                        </button>
+                        ${hasBlocks ? `
+                            <button class="action-icon collapse-toggle" title="Collapse/Expand">
+                                <i class="material-icons collapse-indicator">expand_more</i>
+                            </button>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+            
+            // Render existing blocks if any
+            if (hasBlocks) {
+                html += '<div id="imageWithText-blocks-wrapper" style="position: relative;">';
+                currentSectionsConfig.imageWithText.blockOrder.forEach((blockId, index) => {
+                    const block = currentSectionsConfig.imageWithText.blocks[blockId];
+                    if (block) {
+                        const blockNumber = index + 1;
+                        html += `
+                            <div class="sidebar-subsection imageWithText-block-item" data-block-type="imageWithText-block" data-element-id="${blockId}" style="padding-left: 30px;">
+                                <i class="material-icons drag-handle">drag_handle</i>
+                                <span class="subsection-text">Image ${blockNumber}</span>
+                                <div class="subsection-actions">
+                                    <button class="action-icon visibility-toggle ${block.isHidden ? 'is-hidden' : ''}" data-block-id="${blockId}" title="Toggle visibility">
+                                        <i class="material-icons icon-visible">visibility</i>
+                                        <i class="material-icons icon-hidden">visibility_off</i>
+                                    </button>
+                                    <button class="action-icon delete-block" data-block-id="${blockId}" title="Delete">
                                         <i class="material-icons">delete</i>
                                     </button>
                                 </div>
@@ -6150,6 +6443,7 @@ $(document).ready(async function() {
                 renderPreview();
             }
         });
+        
         
         // Initialize visibility toggles
         initializeVisibilityToggles();
@@ -8599,6 +8893,64 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
         
     }
     
+    // Function to sync visibility toggle states with the current configuration
+    function syncVisibilityToggleStates() {
+        console.log('[DEBUG] Syncing visibility toggle states...');
+        
+        // Sync all visibility toggles with their current state
+        $('.visibility-toggle').each(function() {
+            const $button = $(this);
+            const section = $button.data('section');
+            const elementType = $button.data('element-type');
+            const elementId = $button.data('element-id');
+            const $subsection = $button.closest('.sidebar-subsection');
+            const blockType = $subsection.data('block-type');
+            let isHidden = false;
+            
+            // Get the current hidden state from configuration
+            if (section === 'announcement') {
+                isHidden = currentSectionsConfig.announcementBar?.isHidden || false;
+            } else if (section === 'header') {
+                isHidden = currentSectionsConfig.header?.isHidden || false;
+            } else if (section === 'slideshow') {
+                isHidden = currentSectionsConfig.slideshow?.isHidden || false;
+            } else if (section === 'multicolumn') {
+                isHidden = currentSectionsConfig.multicolumn?.isHidden || false;
+            } else if (section === 'imageWithText') {
+                isHidden = currentSectionsConfig.imageWithText?.isHidden || false;
+            } else if (blockType === 'image-with-text-block' && elementId) {
+                // Handle image with text blocks
+                isHidden = currentSectionsConfig.imageWithText?.blocks?.[elementId]?.isHidden || false;
+            } else if (elementType === 'block' && elementId) {
+                // Generic handler for other block types
+                isHidden = currentSectionsConfig.imageWithText?.blocks?.[elementId]?.isHidden || false;
+            } else if ($subsection.hasClass('image-with-text-block-item')) {
+                // Additional check for image-with-text blocks using class
+                const blockId = $button.attr('data-block-id') || $button.data('block-id');
+                if (blockId) {
+                    isHidden = currentSectionsConfig.imageWithText?.blocks?.[blockId]?.isHidden || false;
+                }
+            }
+            
+            // Clean up any inline styles that might interfere
+            $button.find('.icon-visible, .icon-hidden').removeAttr('style');
+            
+            // Apply the correct class based on state
+            if (isHidden) {
+                $button.addClass('is-hidden');
+            } else {
+                $button.removeClass('is-hidden');
+            }
+            
+            console.log(`[DEBUG] Synced visibility toggle: section=${section}, blockType=${blockType}, elementId=${elementId}, isHidden=${isHidden}`);
+            
+            // Use the forceChildVisibilitySync for child elements
+            if (elementId && window.forceChildVisibilitySync) {
+                window.forceChildVisibilitySync(elementId, isHidden);
+            }
+        });
+    }
+    
     // Function to attach event listeners for block list view
     function attachBlockListEventListeners() {
         // Section expand/collapse
@@ -8654,10 +9006,17 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
             else if (blockType === 'multicolumn') {
                 switchSidebarView('multicolumnSettings');
             }
+            // Handle imageWithText click
+            else if (blockType === 'imageWithText') {
+                switchSidebarView('imageWithTextSettings');
+            }
         });
         
         // Visibility toggle button - COMMENTED OUT TO AVOID DUPLICATE HANDLER
         // This handler is replaced by the unified one below
+        
+        // Sync visibility toggle states after rendering
+        syncVisibilityToggleStates();
         
         // Delete button for sections - use namespace to avoid duplicates
         $(document).off('click.deleteSection').on('click.deleteSection', '.delete-icon, .delete-section', function(e) {
@@ -8704,11 +9063,54 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                     if ($nextElement.attr('id') === 'multicolumn-columns-wrapper') {
                         $nextElement.remove();
                     }
+                } else if (section === 'imageWithText' && currentSectionsConfig.imageWithText) {
+                    console.log('[DEBUG] Deleting imageWithText section from first handler');
+                    
+                    // First remove all child block elements from the DOM
+                    $('#imageWithText-blocks-wrapper').remove();
+                    $('.imageWithText-block-item').remove();
+                    
+                    // Delete the imageWithText data (this includes all blocks)
+                    delete currentSectionsConfig.imageWithText;
+                    
+                    // Remove from section order - check both naming conventions
+                    if (currentSectionsConfig.sectionOrder) {
+                        let index = currentSectionsConfig.sectionOrder.indexOf('imageWithText');
+                        if (index > -1) {
+                            currentSectionsConfig.sectionOrder.splice(index, 1);
+                        }
+                        // Also check for the hyphenated version
+                        // Also check for the correct camelCase naming
+                        index = currentSectionsConfig.sectionOrder.indexOf('imageWithText');
+                        if (index > -1) {
+                            currentSectionsConfig.sectionOrder.splice(index, 1);
+                        }
+                        // Fallback: also check for hyphenated version in case of legacy data
+                        index = currentSectionsConfig.sectionOrder.indexOf('images-with-text');
+                        if (index > -1) {
+                            currentSectionsConfig.sectionOrder.splice(index, 1);
+                        }
+                    }
                 }
                 
-                // Remove from DOM
+                // Remove from DOM and update UI
                 $button.closest('.sidebar-subsection').fadeOut(300, function() {
                     $(this).remove();
+                    
+                    // For template sections, update the template sections container
+                    if (section === 'imageWithText' || section === 'multicolumn' || section === 'slideshow') {
+                        const templateSectionsHtml = renderTemplateSections();
+                        $('#template-sections-container').html(templateSectionsHtml + `
+                            <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e3e3e3;">
+                                <div class="add-section-button add-template-section" data-group="template">
+                                    <i class="material-icons">add_circle</i>
+                                    <span data-i18n="sections.addTemplateSection">Agregar sección de plantilla</span>
+                                </div>
+                            </div>
+                        `);
+                        setTimeout(applyTranslations, 0);
+                    }
+                    
                     // Set pending changes flag
                     hasPendingPageStructureChanges = true;
                     updateSaveButtonState();
@@ -9017,6 +9419,213 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
             }, 100);
         });
         
+        // Click on image with text block to open settings
+        $(document).off('click.imageTextBlock').on('click.imageTextBlock', '.imageWithText-block-item .subsection-text', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const blockId = $(this).closest('.imageWithText-block-item').data('element-id');
+            console.log('Opening image with text block settings:', blockId);
+            
+            window.switchSidebarView('imageWithTextBlockSettings', { blockId: blockId });
+        });
+        
+        // Toggle visibility for image with text blocks
+        $(document).off('click.toggleImageTextBlock').on('click.toggleImageTextBlock', '.imageWithText-block-item .visibility-toggle', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const blockId = $(this).data('block-id');
+            const $button = $(this);
+            
+            if (currentSectionsConfig.imageWithText?.blocks?.[blockId]) {
+                const block = currentSectionsConfig.imageWithText.blocks[blockId];
+                block.isHidden = !block.isHidden;
+                
+                // Update UI
+                if (block.isHidden) {
+                    $button.addClass('is-hidden');
+                } else {
+                    $button.removeClass('is-hidden');
+                }
+                
+                // Update flags
+                hasPendingPageStructureChanges = true;
+                updateSaveButtonState();
+                renderPreview();
+            }
+        });
+        
+        // Delete image with text block
+        $(document).off('click.deleteImageTextBlock').on('click.deleteImageTextBlock', '.imageWithText-block-item .delete-block', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const blockId = $(this).data('block-id');
+            
+            if (confirm('¿Estás seguro de que quieres eliminar este bloque?')) {
+                if (currentSectionsConfig.imageWithText?.blocks?.[blockId]) {
+                    // Remove from blocks
+                    delete currentSectionsConfig.imageWithText.blocks[blockId];
+                    
+                    // Remove from blockOrder
+                    const index = currentSectionsConfig.imageWithText.blockOrder.indexOf(blockId);
+                    if (index > -1) {
+                        currentSectionsConfig.imageWithText.blockOrder.splice(index, 1);
+                    }
+                    
+                    // Remove from DOM
+                    $(this).closest('.imageWithText-block-item').fadeOut(300, function() {
+                        $(this).remove();
+                        
+                        // Update remaining block numbers
+                        $('#imageWithText-blocks-wrapper .imageWithText-block-item').each(function(index) {
+                            const blockNumber = index + 1;
+                            $(this).find('.subsection-text').text(`Image ${blockNumber}`);
+                        });
+                        
+                        // If no blocks left, remove wrapper and collapse button
+                        if ($('#imageWithText-blocks-wrapper .imageWithText-block-item').length === 0) {
+                            $('#imageWithText-blocks-wrapper').remove();
+                            $('.sidebar-subsection[data-element-id="imageWithText"] .collapse-toggle').remove();
+                        }
+                        
+                        // Update flags after DOM manipulation is complete
+                        hasPendingPageStructureChanges = true;
+                        updateSaveButtonState();
+                        
+                        // Update preview after a slight delay to ensure DOM is ready
+                        setTimeout(() => {
+                            renderPreview();
+                        }, 100);
+                    });
+                }
+            }
+        });
+        
+        // Add block button for image with text
+        $(document).off('click.addImageTextBlock').on('click.addImageTextBlock', '.add-icon[data-section="imageWithText"]', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            console.log('Add image with text block clicked');
+            
+            // Initialize blocks if needed
+            if (!currentSectionsConfig.imageWithText.blocks) {
+                currentSectionsConfig.imageWithText.blocks = {};
+                currentSectionsConfig.imageWithText.blockOrder = [];
+            }
+            
+            // Create new block
+            const blockId = 'block-' + Date.now();
+            currentSectionsConfig.imageWithText.blocks[blockId] = {
+                id: blockId,
+                heading: 'New block',
+                text: 'Add your content here',
+                buttonText: 'Button label',
+                buttonLink: '',
+                buttonOutline: false,
+                image: '',
+                imageAlt: '',
+                titleSize: 'medium',
+                textStyle: 'body',
+                isHidden: false
+            };
+            
+            // Add to blockOrder
+            currentSectionsConfig.imageWithText.blockOrder.push(blockId);
+            
+            // Set flags
+            hasPendingPageStructureChanges = true;
+            updateSaveButtonState();
+            
+            // Update preview
+            renderPreview();
+            
+            // Find the imageWithText section
+            const $imageWithTextSection = $('.sidebar-subsection[data-element-id="imageWithText"]');
+            
+            // Check if blocks wrapper exists
+            let $blocksWrapper = $('#imageWithText-blocks-wrapper');
+            if ($blocksWrapper.length === 0) {
+                // Create wrapper if it doesn't exist
+                $blocksWrapper = $('<div id="imageWithText-blocks-wrapper" style="position: relative;"></div>');
+                $imageWithTextSection.after($blocksWrapper);
+                
+                // Also add collapse button if it doesn't exist
+                if (!$imageWithTextSection.find('.collapse-toggle').length) {
+                    $imageWithTextSection.find('.subsection-actions').append(`
+                        <button class="action-icon collapse-toggle" title="Collapse/Expand">
+                            <i class="material-icons collapse-indicator">expand_more</i>
+                        </button>
+                    `);
+                }
+            }
+            
+            // Create new block element
+            const blockNumber = currentSectionsConfig.imageWithText.blockOrder.length;
+            const newBlockHtml = `
+                <div class="sidebar-subsection imageWithText-block-item" data-block-type="imageWithText-block" data-element-id="${blockId}" style="padding-left: 30px;">
+                    <i class="material-icons drag-handle">drag_handle</i>
+                    <span class="subsection-text">Image ${blockNumber}</span>
+                    <div class="subsection-actions">
+                        <button class="action-icon visibility-toggle" data-block-id="${blockId}" title="Toggle visibility">
+                            <i class="material-icons icon-visible">visibility</i>
+                            <i class="material-icons icon-hidden">visibility_off</i>
+                        </button>
+                        <button class="action-icon delete-block" data-block-id="${blockId}" title="Delete">
+                            <i class="material-icons">delete</i>
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            // Append the new block to the wrapper
+            $blocksWrapper.append(newBlockHtml);
+            
+            setTimeout(applyTranslations, 0);
+            
+            // Initialize sortable for image with text blocks
+            setTimeout(() => {
+                initializeImageWithTextBlocksSortable();
+            }, 100);
+        });
+        
+        // Toggle visibility for image-with-text blocks
+        $(document).off('click.imageWithTextVisibility').on('click.imageWithTextVisibility', '.image-with-text-block-item .visibility-toggle', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            const $button = $(this);
+            const blockId = $button.attr('data-block-id');
+            
+            if (window.toggleImageWithTextBlockVisibility) {
+                window.toggleImageWithTextBlockVisibility(blockId);
+            }
+        });
+        
+        // Delete image-with-text blocks
+        $(document).off('click.imageWithTextDelete').on('click.imageWithTextDelete', '.image-with-text-block-item .delete-block', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            const blockId = $(this).attr('data-block-id');
+            
+            if (window.deleteImageWithTextBlock) {
+                window.deleteImageWithTextBlock(blockId);
+            }
+        });
+        
+        // Alternative drag implementation using mousedown
+        $(document).off('mousedown.imageWithTextDrag').on('mousedown.imageWithTextDrag', '#children-container .drag-handle', function(e) {
+            console.log('[IMAGE-WITH-TEXT] Drag handle mousedown detected');
+            
+            // Check if sortable is initialized
+            const $container = $('#children-container');
+            if (!$container.hasClass('ui-sortable')) {
+                console.log('[IMAGE-WITH-TEXT] Sortable not initialized, attempting to initialize...');
+                initializeImageWithTextBlocksSortable();
+            }
+        });
+        
         // Click on multicolumn column to configure - BUT NOT when dragging
         $(document).off('click.multicolumnColumn').on('click.multicolumnColumn', '.sidebar-subsection.multicolumn-column-item', function(e) {
             console.log('[MULTICOLUMN] Column clicked');
@@ -9316,6 +9925,25 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
             } else if (section === 'slideshow' || blockType === 'slideshow') {
                 currentSectionsConfig.slideshow.isHidden = newHiddenState;
                 console.log(`[DEBUG] Slideshow saved as: ${newHiddenState ? 'hidden' : 'visible'}`);
+            } else if (section === 'imageWithText' || blockType === 'imageWithText') {
+                currentSectionsConfig.imageWithText.isHidden = newHiddenState;
+                console.log(`[DEBUG] Image with text saved as: ${newHiddenState ? 'hidden' : 'visible'}`);
+                
+                // Force sync the visibility toggle state
+                if (window.forceVisibilitySync) {
+                    window.forceVisibilitySync('imageWithText', newHiddenState);
+                }
+            } else if (blockType === 'image-with-text-block' && elementId) {
+                // Handle image with text block visibility
+                if (currentSectionsConfig.imageWithText && currentSectionsConfig.imageWithText.blocks && currentSectionsConfig.imageWithText.blocks[elementId]) {
+                    currentSectionsConfig.imageWithText.blocks[elementId].isHidden = newHiddenState;
+                    console.log(`[DEBUG] Image with text block ${elementId} saved as: ${newHiddenState ? 'hidden' : 'visible'}`);
+                    
+                    // Force sync the child visibility toggle state
+                    if (window.forceChildVisibilitySync) {
+                        window.forceChildVisibilitySync(elementId, newHiddenState);
+                    }
+                }
             } else if (blockType === 'multicolumn-column' && elementId) {
                 // Handle multicolumn column visibility
                 if (currentSectionsConfig.multicolumn && currentSectionsConfig.multicolumn.columns && currentSectionsConfig.multicolumn.columns[elementId]) {
@@ -9330,6 +9958,7 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
             // Activar bandera de cambios pendientes
             hasPendingPageStructureChanges = true;
             updateSaveButtonState();
+            renderPreview(); // Update preview immediately
             console.log('[DEBUG] Page structure changed - element visibility toggled');
         });
         
@@ -9352,6 +9981,15 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
             console.log('[MULTICOLUMN] Current column order:', currentSectionsConfig.multicolumn.columnOrder);
             setTimeout(() => {
                 initializeMulticolumnColumnsSortable();
+            }, 100);
+        }
+        
+        // Initialize sortable for image-with-text blocks if they exist
+        if (currentSectionsConfig.imageWithText && currentSectionsConfig.imageWithText.blockOrder && currentSectionsConfig.imageWithText.blockOrder.length > 0) {
+            console.log('[IMAGE-WITH-TEXT] Initializing sortable from attachBlockListEventListeners');
+            console.log('[IMAGE-WITH-TEXT] Current block order:', currentSectionsConfig.imageWithText.blockOrder);
+            setTimeout(() => {
+                initializeImageWithTextBlocksSortable();
             }, 100);
         }
         
@@ -9489,64 +10127,8 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
             }
         }, 100);
         
-        // Handler for delete-section button
-        $(document).on('click', '.delete-section', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            
-            const section = $(this).data('section');
-            const $subsection = $(this).closest('.sidebar-subsection');
-            
-            if (confirm(translations[currentLanguage]['sections.confirmDelete'] || '¿Estás seguro de eliminar esta sección?')) {
-                // Handle slideshow deletion
-                if (section === 'slideshow') {
-                    // First remove all slide elements from the DOM
-                    $('#slideshow-slides-wrapper').remove();
-                    $('.slideshow-slide-item').remove();
-                    
-                    // Then delete the slideshow data
-                    delete currentSectionsConfig.slideshow;
-                    
-                    // Remove from section order
-                    if (currentSectionsConfig.sectionOrder) {
-                        const index = currentSectionsConfig.sectionOrder.indexOf('slideshow');
-                        if (index > -1) {
-                            currentSectionsConfig.sectionOrder.splice(index, 1);
-                        }
-                    }
-                    
-                    // Update all main sections
-                    const mainSectionsHtml = renderAllMainSections();
-                    $('#main-sections-container').html(mainSectionsHtml + `
-                        <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e3e3e3;">
-                            <div class="add-section-button add-header-section" data-group="header" style="margin-bottom: 8px;">
-                                <i class="material-icons">add_circle</i>
-                                <span data-i18n="sections.addHeaderSection">Agregar sección de encabezado</span>
-                            </div>
-                            <div class="add-section-button add-template-section" data-group="template">
-                                <i class="material-icons">add_circle</i>
-                                <span data-i18n="sections.addTemplateSection">Agregar sección de plantilla</span>
-                            </div>
-                        </div>
-                    `);
-                    
-                    // Apply translations
-                    setTimeout(applyTranslations, 0);
-                    
-                    // Set pending changes flag
-                    hasPendingPageStructureChanges = true;
-                    updateSaveButtonState();
-                    
-                    // Reinitialize drag and drop
-                    setTimeout(() => {
-                        initializeDragAndDropSimple();
-                    }, 100);
-                    
-                    // Update preview
-                    renderPreview();
-                }
-            }
-        });
+        // COMMENTED OUT - This handler is now consolidated with the one above to avoid conflicts
+        // The delete functionality for all sections is now handled by the single handler at line 8988
         
         // Handler for config-icon button (settings)
         $(document).on('click', '.config-icon', function(e) {
@@ -10128,6 +10710,7 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
             `,
             'slideshow': '<div class="section-preview-image"><img src="/TestImages/slideshowpreview.png" alt="Slideshow"></div>',
             'multicolumn': '<div class="section-preview-image"><img src="/TestImages/multicolumimage.png" alt="Multicolumn"></div>',
+            'images-with-text': '<div class="section-preview-image"><img src="/TestImages/imagewithtexthoverpreview.png" alt="Image with Text"></div>',
             // Add more previews as needed
         };
         
@@ -10396,6 +10979,89 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                 renderPreview();
                 
                 console.log('[DEBUG] Multicolumn added successfully');
+            }
+        }
+        
+        // Handle images with text section (using new naming convention)
+        if (group === 'template' && sectionId === 'images-with-text') {
+            console.log('[DEBUG] Adding image with text section');
+            
+            // Initialize image with text configuration if it doesn't exist
+            if (!currentSectionsConfig.imageWithText) {
+                currentSectionsConfig.imageWithText = {
+                    id: 'imageWithText',
+                    isHidden: false,
+                    // Main section settings
+                    imageHeight: 'adapt',
+                    imageWidth: 'medium',
+                    imagePosition: 'left',
+                    imageAnimation: 'none',
+                    contentLayout: 'no-overlap',
+                    contentPosition: 'center',
+                    contentAlignment: 'left',
+                    mobileContentAlignment: 'left',
+                    colorScheme: 'scheme1',
+                    containerColorScheme: 'scheme1',
+                    topPadding: 36,
+                    bottomPadding: 36,
+                    themeOverlayThickness: 0,
+                    themeOverlayOpacity: 30,
+                    revealOnScroll: false,
+                    // Blocks structure
+                    blocks: {},
+                    blockOrder: []
+                };
+                
+                // Add a default block with placeholder ID for editor preview
+                const blockId = 'placeholder';
+                currentSectionsConfig.imageWithText.blocks[blockId] = {
+                    id: blockId,
+                    heading: 'Image with text',
+                    text: 'Pair text with an image to focus on your chosen product, collection, or blog post. Add details on availability, style, or even provide a review.',
+                    buttonText: 'Button label',
+                    buttonLink: '',
+                    buttonOutline: false,
+                    image: '',
+                    imageAlt: '',
+                    titleSize: 'medium',
+                    textStyle: 'body',
+                    isHidden: false
+                };
+                // CRITICAL: Add the block to blockOrder so it renders
+                currentSectionsConfig.imageWithText.blockOrder.push(blockId);
+                
+                // Add imageWithText to section order if not already present
+                if (!currentSectionsConfig.sectionOrder) {
+                    currentSectionsConfig.sectionOrder = [];
+                }
+                // Use consistent naming - imageWithText (camelCase) not images-with-text
+                if (!currentSectionsConfig.sectionOrder.includes('imageWithText')) {
+                    // Add at the end of array to respect visual order
+                    currentSectionsConfig.sectionOrder.push('imageWithText');
+                }
+                
+                // Update template sections only
+                const templateSectionsHtml = renderTemplateSections();
+                $('#template-sections-container').html(templateSectionsHtml + `
+                    <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e3e3e3;">
+                        <div class="add-section-button add-template-section" data-group="template">
+                            <i class="material-icons">add_circle</i>
+                            <span data-i18n="sections.addTemplateSection">Agregar sección de plantilla</span>
+                        </div>
+                    </div>
+                `);
+                
+                // Apply translations
+                setTimeout(applyTranslations, 0);
+                
+                // Set pending changes flag
+                hasPendingPageStructureChanges = true;
+                updateSaveButtonState();
+                
+                // Update preview
+                renderPreview();
+                
+                console.log('[DEBUG] Image with text added successfully');
             }
         }
         
@@ -14823,6 +15489,73 @@ document.head.appendChild(style);
         });
     }
     
+    // Function to initialize image with text blocks sortable
+    function initializeImageWithTextBlocksSortable() {
+        console.log('[IMAGETEXT] initializeImageWithTextBlocksSortable called');
+        const $wrapper = $('#imageWithText-blocks-wrapper');
+        if ($wrapper.length === 0) {
+            console.log('[IMAGETEXT] Wrapper not found, exiting');
+            return;
+        }
+        console.log('[IMAGETEXT] Wrapper found, initializing sortable');
+        
+        // Destroy any existing sortable
+        if ($wrapper.data('ui-sortable')) {
+            $wrapper.sortable('destroy');
+        }
+        
+        // Initialize sortable
+        $wrapper.sortable({
+            items: '.imageWithText-block-item',
+            handle: '.drag-handle',
+            axis: 'y',
+            placeholder: 'block-item-placeholder',
+            tolerance: 'pointer',
+            cursor: 'move',
+            start: function(e, ui) {
+                ui.placeholder.css({
+                    'height': ui.item.outerHeight(),
+                    'visibility': 'visible',
+                    'background': '#f0f0f0',
+                    'border': '1px dashed #999',
+                    'border-radius': '4px',
+                    'margin-bottom': '4px',
+                    'margin-left': '30px'
+                });
+            },
+            stop: function(e, ui) {
+                // Update block order
+                const newOrder = [];
+                $('#imageWithText-blocks-wrapper .imageWithText-block-item').each(function() {
+                    const blockId = $(this).attr('data-element-id');
+                    if (blockId) {
+                        newOrder.push(blockId);
+                    }
+                });
+                
+                console.log('[IMAGETEXT] Before updating blockOrder:', [...currentSectionsConfig.imageWithText.blockOrder]);
+                currentSectionsConfig.imageWithText.blockOrder = newOrder;
+                console.log('[IMAGETEXT] After updating blockOrder:', [...currentSectionsConfig.imageWithText.blockOrder]);
+                
+                // Update block display with heading or default text
+                $('#imageWithText-blocks-wrapper .imageWithText-block-item').each(function(index) {
+                    const blockId = $(this).attr('data-element-id');
+                    const block = currentSectionsConfig.imageWithText.blocks[blockId];
+                    if (block) {
+                        const blockNumber = index + 1;
+                        const displayText = block.heading || `Block ${blockNumber}`;
+                        $(this).find('.subsection-text').text(displayText);
+                    }
+                });
+                
+                // Mark as changed
+                hasPendingPageStructureChanges = true;
+                updateSaveButtonState();
+                renderPreview();
+            }
+        });
+    }
+    
     // Function to initialize multicolumn columns sortable
     function initializeMulticolumnColumnsSortable() {
         console.log('[MULTICOLUMN] initializeMulticolumnColumnsSortable called');
@@ -14892,6 +15625,198 @@ document.head.appendChild(style);
                 console.log('[MULTICOLUMN] Full multicolumn config:', JSON.stringify(currentSectionsConfig.multicolumn, null, 2));
             }
         });
+    }
+    
+    // Initialize sortable for Image with Text blocks with robust implementation
+    let imageWithTextSortableObserver = null;
+    
+    function initializeImageWithTextBlocksSortable() {
+        console.log('[IMAGE-WITH-TEXT] Initializing blocks sortable - ROBUST VERSION');
+        
+        // Clean up any existing observer
+        if (imageWithTextSortableObserver) {
+            imageWithTextSortableObserver.disconnect();
+            imageWithTextSortableObserver = null;
+        }
+        
+        const initSortable = () => {
+            // Check which wrapper exists - either from blockList or from settings view
+            let $wrapper = $('#imageWithText-blocks-wrapper');
+            if ($wrapper.length === 0) {
+                $wrapper = $('#children-container');
+            }
+            
+            if ($wrapper.length === 0) {
+                console.log('[IMAGE-WITH-TEXT] Container not found, will retry...');
+                return false;
+            }
+            
+            // Check if we have items - handle both blockList view and settings view
+            let $items = $wrapper.find('.imageWithText-block-item'); // blockList view class
+            if ($items.length === 0) {
+                $items = $wrapper.find('.image-with-text-block-item'); // settings view class
+            }
+            if ($items.length === 0) {
+                console.log('[IMAGE-WITH-TEXT] No items found yet');
+                return false;
+            }
+            
+            console.log('[IMAGE-WITH-TEXT] Found container and', $items.length, 'items');
+            
+            // Force destroy any existing sortable
+            try {
+                if ($wrapper.hasClass('ui-sortable') || $wrapper.data('ui-sortable')) {
+                    $wrapper.sortable('destroy');
+                    console.log('[IMAGE-WITH-TEXT] Destroyed existing sortable');
+                }
+            } catch (e) {
+                console.log('[IMAGE-WITH-TEXT] No sortable to destroy');
+            }
+            
+            // Clean up classes and data
+            $wrapper.removeClass('ui-sortable ui-sortable-disabled');
+            $wrapper.removeData('sortable').removeData('uiSortable');
+            
+            // Wait a bit for DOM to settle
+            setTimeout(() => {
+                console.log('[IMAGE-WITH-TEXT] Initializing fresh sortable');
+                
+                try {
+                    // Determine which item selector to use based on what exists
+                    const itemSelector = $wrapper.find('.imageWithText-block-item').length > 0 
+                        ? '> .imageWithText-block-item' 
+                        : '> .image-with-text-block-item';
+                    
+                    $wrapper.sortable({
+                        items: itemSelector,
+                        handle: '.drag-handle',
+                        axis: 'y',
+                        placeholder: 'ui-state-highlight',
+                        tolerance: 'pointer',
+                        cursor: 'move',
+                        revert: 200,
+                        delay: 150, // Add delay to prevent accidental drags
+                        distance: 5, // Minimum distance before drag starts
+                        create: function(event, ui) {
+                            console.log('[IMAGE-WITH-TEXT] Sortable created successfully');
+                            // Log all handles
+                            const $handles = $wrapper.find('.drag-handle');
+                            console.log('[IMAGE-WITH-TEXT] Drag handles after create:', $handles.length);
+                            $handles.each(function(i) {
+                                console.log(`[IMAGE-WITH-TEXT] Handle ${i}:`, {
+                                    classes: $(this).attr('class'),
+                                    hasSortableHandle: $(this).hasClass('ui-sortable-handle'),
+                                    parent: $(this).parent().attr('class')
+                                });
+                            });
+                        },
+                        start: function(e, ui) {
+                            console.log('[IMAGE-WITH-TEXT] Drag started');
+                            console.log('[IMAGE-WITH-TEXT] Dragging item:', ui.item.attr('data-element-id'));
+                            ui.placeholder.height(ui.item.height());
+                            ui.placeholder.css({
+                                'visibility': 'visible',
+                                'background': '#f0f0f0',
+                                'border': '1px dashed #999',
+                                'border-radius': '4px',
+                                'margin-bottom': '4px',
+                                'margin-left': '30px'
+                            });
+                        },
+                        beforeStop: function(e, ui) {
+                            console.log('[IMAGE-WITH-TEXT] Before stop - position:', ui.position);
+                        },
+                        stop: function(e, ui) {
+                            console.log('[IMAGE-WITH-TEXT] Drag stopped');
+                            
+                            // Update block order - check for both possible item classes
+                            const newOrder = [];
+                            let $items = $wrapper.find('.imageWithText-block-item');
+                            if ($items.length === 0) {
+                                $items = $wrapper.find('.image-with-text-block-item');
+                            }
+                            
+                            $items.each(function() {
+                                const blockId = $(this).attr('data-element-id');
+                                if (blockId) {
+                                    newOrder.push(blockId);
+                                }
+                            });
+                            
+                            console.log('[IMAGE-WITH-TEXT] New order:', newOrder);
+                            
+                            if (!currentSectionsConfig.imageWithText) {
+                                currentSectionsConfig.imageWithText = {};
+                            }
+                            currentSectionsConfig.imageWithText.blockOrder = newOrder;
+                            
+                            hasPendingPageStructureChanges = true;
+                            updateSaveButtonState();
+                            renderPreview();
+                        }
+                    });
+                    
+                    // Force refresh sortable
+                    $wrapper.sortable('refresh');
+                    
+                    // Verify it worked
+                    const isSortable = $wrapper.hasClass('ui-sortable');
+                    console.log('[IMAGE-WITH-TEXT] Sortable initialized:', isSortable);
+                    
+                    if (isSortable) {
+                        // Make sure handles are interactive
+                        $wrapper.find('.drag-handle').each(function() {
+                            $(this).css({
+                                'cursor': 'move',
+                                'pointer-events': 'auto'
+                            });
+                        });
+                    }
+                    
+                    return true;
+                } catch (error) {
+                    console.error('[IMAGE-WITH-TEXT] Error initializing sortable:', error);
+                    return false;
+                }
+            }, 200);
+            
+            return true;
+        };
+        
+        // Try to initialize immediately
+        if (!initSortable()) {
+            // If failed, set up observer to watch for changes
+            console.log('[IMAGE-WITH-TEXT] Setting up MutationObserver');
+            
+            const targetNode = document.getElementById('sidebar-dynamic-content');
+            if (targetNode) {
+                imageWithTextSortableObserver = new MutationObserver((mutations) => {
+                    // Check for both possible containers
+                    let $container = $('#imageWithText-blocks-wrapper');
+                    if ($container.length === 0) {
+                        $container = $('#children-container');
+                    }
+                    
+                    if ($container.length > 0) {
+                        // Check for items with both possible class names
+                        const hasItems = $container.find('.imageWithText-block-item').length > 0 || 
+                                       $container.find('.image-with-text-block-item').length > 0;
+                        
+                        if (hasItems) {
+                            console.log('[IMAGE-WITH-TEXT] Container populated, initializing sortable');
+                            imageWithTextSortableObserver.disconnect();
+                            imageWithTextSortableObserver = null;
+                            initSortable();
+                        }
+                    }
+                });
+                
+                imageWithTextSortableObserver.observe(targetNode, {
+                    childList: true,
+                    subtree: true
+                });
+            }
+        }
     }
     
     // Function to load menus data
@@ -16095,6 +17020,62 @@ document.head.appendChild(style);
     // Make updateSaveButtonState globally accessible for modules
     window.updateSaveButtonState = updateSaveButtonState;
     
+    // Function to force sync visibility toggles after any changes
+    window.forceVisibilitySync = function(section, isHidden) {
+        console.log(`[DEBUG] Force syncing visibility for section: ${section}, isHidden: ${isHidden}`);
+        
+        // Find the visibility toggle button for this section
+        const $toggle = $(`.visibility-toggle[data-section="${section}"]`);
+        if ($toggle.length > 0) {
+            // Remove any inline styles
+            $toggle.find('.icon-visible, .icon-hidden').removeAttr('style');
+            
+            // Force the correct state
+            if (isHidden) {
+                $toggle.addClass('is-hidden');
+            } else {
+                $toggle.removeClass('is-hidden');
+            }
+            
+            console.log(`[DEBUG] Forced visibility toggle state for ${section}: ${isHidden}`);
+        }
+    };
+    
+    // Function to force sync visibility for child elements
+    window.forceChildVisibilitySync = function(blockId, isHidden) {
+        console.log(`[DEBUG] Force syncing visibility for child block: ${blockId}, isHidden: ${isHidden}`);
+        
+        // Try multiple selectors to find the toggle button
+        const selectors = [
+            `.visibility-toggle[data-block-id="${blockId}"]`,
+            `.visibility-toggle[data-element-id="${blockId}"]`,
+            `.image-with-text-block-item[data-block-id="${blockId}"] .visibility-toggle`,
+            `.image-with-text-block-item[data-element-id="${blockId}"] .visibility-toggle`
+        ];
+        
+        let $toggle = null;
+        for (const selector of selectors) {
+            $toggle = $(selector);
+            if ($toggle.length > 0) break;
+        }
+        
+        if ($toggle && $toggle.length > 0) {
+            // Remove any inline styles
+            $toggle.find('.icon-visible, .icon-hidden').removeAttr('style');
+            
+            // Force the correct state
+            if (isHidden) {
+                $toggle.addClass('is-hidden');
+            } else {
+                $toggle.removeClass('is-hidden');
+            }
+            
+            console.log(`[DEBUG] Forced child visibility toggle state for ${blockId}: ${isHidden}`);
+        } else {
+            console.log(`[DEBUG] Could not find visibility toggle for child block: ${blockId}`);
+        }
+    };
+    
     // Modify the save button click handler
     $('#save-builder-btn-topbar').on('click', async function() {
         console.log('[DEBUG] Save button clicked.');
@@ -16134,6 +17115,8 @@ document.head.appendChild(style);
             };
             console.log('[DEBUG] Saving pageData:', pageData);
             console.log('[DEBUG] SectionOrder being saved:', currentSectionsConfig.sectionOrder);
+            console.log('[DEBUG] AnnouncementBar isHidden being saved:', currentSectionsConfig.announcementBar?.isHidden);
+            console.log('[DEBUG] Header isHidden being saved:', currentSectionsConfig.header?.isHidden);
             const pagePayload = {
                 pageStructureJson: JSON.stringify(pageData)
             };
@@ -16236,7 +17219,15 @@ document.head.appendChild(style);
                             loadCurrentWebsite().then(() => {
                                 console.log('[DEBUG] Data reloaded, refreshing blockList view');
                                 console.log('[DEBUG] Current sections config after reload:', JSON.stringify(currentSectionsConfig, null, 2));
+                                console.log('[DEBUG] Announcement bar isHidden:', currentSectionsConfig.announcementBar?.isHidden);
+                                console.log('[DEBUG] Header isHidden:', currentSectionsConfig.header?.isHidden);
                                 window.switchSidebarView('blockList', window.getUpdatedPageData());
+                                // Sync visibility toggle states after view is refreshed
+                                setTimeout(() => {
+                                    if (typeof syncVisibilityToggleStates === 'function') {
+                                        syncVisibilityToggleStates();
+                                    }
+                                }, 100);
                             });
                         }, 500);
                     } else if (currentSidebarView === 'headerSettings') {
@@ -16266,6 +17257,76 @@ document.head.appendChild(style);
                     } else if (currentSidebarView === 'slideshowSlideSettings') {
                         // Permanecer en la vista de configuración de slide individual
                         console.log('[DEBUG] Staying in slideshow slide settings view after save');
+                    } else if (currentSidebarView === 'imageWithTextSettings') {
+                        // Recargar la vista de configuración de image with text
+                        console.log('[DEBUG] Reloading image with text settings view after save');
+                        console.log('[DEBUG] Current imageWithText config BEFORE reload:', JSON.stringify(currentSectionsConfig.imageWithText, null, 2));
+                        
+                        // Reload data from server first
+                        loadCurrentWebsite().then(() => {
+                            console.log('[DEBUG] Data reloaded from server');
+                            console.log('[DEBUG] imageWithText config AFTER server reload:', JSON.stringify(currentSectionsConfig.imageWithText, null, 2));
+                            
+                            // Return to block list view with updated data
+                            window.switchSidebarView('blockList', window.getUpdatedPageData());
+                            
+                            // Force visibility sync after view is rendered
+                            setTimeout(() => {
+                                console.log('[DEBUG] Force syncing visibility toggle states for imageWithText');
+                                
+                                // Specifically sync imageWithText visibility toggle
+                                const $imageWithTextToggle = $('.visibility-toggle[data-section="imageWithText"]');
+                                if ($imageWithTextToggle.length > 0) {
+                                    const isHidden = currentSectionsConfig.imageWithText?.isHidden || false;
+                                    
+                                    // Remove any inline styles that might interfere
+                                    $imageWithTextToggle.find('.icon-visible, .icon-hidden').removeAttr('style');
+                                    
+                                    // Force the correct state
+                                    if (isHidden) {
+                                        $imageWithTextToggle.addClass('is-hidden');
+                                    } else {
+                                        $imageWithTextToggle.removeClass('is-hidden');
+                                    }
+                                    
+                                    console.log('[DEBUG] Forced imageWithText toggle state:', isHidden);
+                                }
+                                
+                                // Also sync child blocks using the new function
+                                if (currentSectionsConfig.imageWithText?.blocks && currentSectionsConfig.imageWithText?.blockOrder) {
+                                    currentSectionsConfig.imageWithText.blockOrder.forEach(blockId => {
+                                        if (currentSectionsConfig.imageWithText.blocks[blockId]) {
+                                            const blockHidden = currentSectionsConfig.imageWithText.blocks[blockId].isHidden || false;
+                                            window.forceChildVisibilitySync(blockId, blockHidden);
+                                        }
+                                    });
+                                }
+                                
+                                // Call general sync as well
+                                if (typeof syncVisibilityToggleStates === 'function') {
+                                    syncVisibilityToggleStates();
+                                }
+                            }, 200); // Slightly longer delay to ensure DOM is ready
+                        });
+                    } else if (currentSidebarView === 'imageWithTextBlockSettings') {
+                        // Permanecer en la vista de configuración de bloque individual
+                        console.log('[DEBUG] Staying in image with text block settings view after save');
+                        
+                        // Force sync visibility states for all blocks after save
+                        setTimeout(() => {
+                            if (currentSectionsConfig.imageWithText?.blocks && currentSectionsConfig.imageWithText?.blockOrder) {
+                                currentSectionsConfig.imageWithText.blockOrder.forEach(blockId => {
+                                    if (currentSectionsConfig.imageWithText.blocks[blockId]) {
+                                        const blockHidden = currentSectionsConfig.imageWithText.blocks[blockId].isHidden || false;
+                                        window.forceChildVisibilitySync(blockId, blockHidden);
+                                    }
+                                });
+                            }
+                        }, 100);
+                    } else if (currentSidebarView === 'multicolumnSettings') {
+                        // Recargar la vista de configuración de multicolumn
+                        console.log('[DEBUG] Reloading multicolumn settings view after save');
+                        window.switchSidebarView('multicolumnSettings');
                     }
                     
                     setTimeout(() => {
@@ -17426,6 +18487,367 @@ document.head.appendChild(style);
     });
     
     // Función para ejecutar funciones de módulos externos
+    // Image with Text - Funciones globales para manejo de bloques
+    window.addImageWithTextBlock = function() {
+        const blockId = 'block-' + Date.now();
+        
+        if (!currentSectionsConfig.imageWithText) {
+            currentSectionsConfig.imageWithText = {};
+        }
+        if (!currentSectionsConfig.imageWithText.blocks) {
+            currentSectionsConfig.imageWithText.blocks = {};
+        }
+        if (!currentSectionsConfig.imageWithText.blockOrder) {
+            currentSectionsConfig.imageWithText.blockOrder = [];
+        }
+        
+        // Crear nuevo bloque con estructura por defecto
+        currentSectionsConfig.imageWithText.blocks[blockId] = {
+            id: blockId,
+            heading: 'Nuevo bloque',
+            subheading: '',
+            body: 'Contenido del bloque',
+            image: '',
+            isHidden: false
+        };
+        
+        currentSectionsConfig.imageWithText.blockOrder.push(blockId);
+        
+        hasPendingPageStructureChanges = true;
+        updateSaveButtonState();
+        renderPreview();
+        
+        // Refrescar la vista
+        window.switchSidebarView('imageWithTextSettings');
+        
+        // Reinicializar sortable después de agregar nuevo bloque - COMO SLIDESHOW
+        setTimeout(() => {
+            if (window.WebsiteBuilderModules && window.WebsiteBuilderModules.ImageWithText) {
+                window.WebsiteBuilderModules.ImageWithText.initializeChildrenSortable();
+            }
+        }, 100);
+    };
+    
+    window.toggleImageWithTextBlockVisibility = function(blockId) {
+        if (currentSectionsConfig.imageWithText?.blocks?.[blockId]) {
+            currentSectionsConfig.imageWithText.blocks[blockId].isHidden = 
+                !currentSectionsConfig.imageWithText.blocks[blockId].isHidden;
+            
+            hasPendingPageStructureChanges = true;
+            updateSaveButtonState();
+            renderPreview();
+        }
+    };
+    
+    window.deleteImageWithTextBlock = function(blockId) {
+        if (confirm('¿Eliminar este bloque?')) {
+            if (currentSectionsConfig.imageWithText?.blocks?.[blockId]) {
+                // Eliminar del objeto
+                delete currentSectionsConfig.imageWithText.blocks[blockId];
+                
+                // Eliminar del array de orden
+                const index = currentSectionsConfig.imageWithText.blockOrder.indexOf(blockId);
+                if (index > -1) {
+                    currentSectionsConfig.imageWithText.blockOrder.splice(index, 1);
+                }
+                
+                hasPendingPageStructureChanges = true;
+                updateSaveButtonState();
+                renderPreview();
+                
+                // Refrescar la vista
+                window.switchSidebarView('imageWithTextSettings');
+                
+                // Reinicializar sortable después de eliminar - COMO SLIDESHOW
+                setTimeout(() => {
+                    if (window.WebsiteBuilderModules && window.WebsiteBuilderModules.ImageWithText) {
+                        window.WebsiteBuilderModules.ImageWithText.initializeChildrenSortable();
+                    }
+                }, 100);
+            }
+        }
+    };
+    
+    // Función para regresar a imageWithTextSettings y reinicializar sortable
+    window.backToImageWithTextSettings = function() {
+        window.switchSidebarView('imageWithTextSettings');
+        // Reinicializar sortable al regresar - Ahora desde el archivo principal
+        setTimeout(() => {
+            initializeImageWithTextBlocksSortable();
+        }, 100);
+    };
+    
+    // Función global para forzar reinicialización del sortable
+    window.forceImageWithTextSortable = function() {
+        console.log('[IMAGE-WITH-TEXT] Force reinitializing sortable...');
+        initializeImageWithTextBlocksSortable();
+    };
+    
+    // Debug simplificado sin dependencias internas
+    window.testImageWithTextDrag = function() {
+        console.log('=== TESTING IMAGE-WITH-TEXT DRAG & DROP ===');
+        
+        const $container = $('#children-container');
+        console.log('1. Container found:', $container.length > 0);
+        
+        if ($container.length === 0) {
+            console.log('ERROR: No container found!');
+            return;
+        }
+        
+        const $items = $container.find('.image-with-text-block-item');
+        console.log('2. Items found:', $items.length);
+        
+        const $handles = $container.find('.drag-handle');
+        console.log('3. Drag handles found:', $handles.length);
+        
+        // Check handles in detail
+        $handles.each(function(i) {
+            const $h = $(this);
+            console.log(`   Handle ${i}:`, {
+                text: $h.text(),
+                classes: $h.attr('class'),
+                parent: $h.parent().attr('class')
+            });
+        });
+        
+        console.log('4. Container sortable status:', {
+            hasClass: $container.hasClass('ui-sortable'),
+            hasSortableMethod: typeof $container.sortable === 'function'
+        });
+        
+        // Compare with multicolumn
+        const $multicolWrapper = $('#multicolumn-columns-wrapper');
+        if ($multicolWrapper.length > 0) {
+            console.log('5. Multicolumn comparison:', {
+                hasClass: $multicolWrapper.hasClass('ui-sortable'),
+                items: $multicolWrapper.find('.multicolumn-column-item').length,
+                handles: $multicolWrapper.find('.drag-handle').length
+            });
+        }
+        
+        // Test if we can initialize sortable
+        try {
+            console.log('6. Attempting to destroy and recreate sortable...');
+            
+            // Destroy if exists
+            if ($container.hasClass('ui-sortable')) {
+                $container.sortable('destroy');
+                console.log('   - Destroyed existing sortable');
+            }
+            
+            // Create new with minimal options
+            $container.sortable({
+                items: '.image-with-text-block-item',
+                handle: '.drag-handle',
+                tolerance: 'pointer'
+            });
+            
+            console.log('   - Created new sortable');
+            console.log('7. Final status:', $container.hasClass('ui-sortable'));
+            
+            // Force enable
+            $container.sortable('enable');
+            console.log('8. After enable:', $container.sortable('option', 'disabled'));
+            
+        } catch (error) {
+            console.error('ERROR creating sortable:', error);
+        }
+        
+        console.log('=== END TEST ===');
+    };
+    
+    // Test con delay para esperar renderizado
+    window.testImageWithTextDragDelayed = function() {
+        console.log('=== DELAYED TEST - Waiting for render... ===');
+        
+        setTimeout(() => {
+            console.log('1. Looking for container after delay...');
+            const $container = $('#children-container');
+            console.log('   Container found:', $container.length > 0);
+            
+            if ($container.length > 0) {
+                console.log('2. Container HTML:', $container.html() ? 'Has content' : 'Empty');
+                console.log('3. Parent structure:', $container.parent().attr('class'));
+                
+                // Look for items with different selectors
+                console.log('4. Looking for items with different selectors:');
+                console.log('   .image-with-text-block-item:', $container.find('.image-with-text-block-item').length);
+                console.log('   .sidebar-subsection:', $container.find('.sidebar-subsection').length);
+                console.log('   [data-element-id]:', $container.find('[data-element-id]').length);
+                console.log('   Direct children:', $container.children().length);
+                
+                // Check if we're in the right view
+                console.log('5. Current view:', window.currentSidebarView);
+                
+                // Try to find multicolumn for comparison
+                const $multicolumn = $('#multicolumn-columns-wrapper');
+                if ($multicolumn.length > 0) {
+                    console.log('6. Multicolumn found for comparison');
+                    console.log('   Structure:', $multicolumn.html().substring(0, 200) + '...');
+                }
+            } else {
+                // Look for container anywhere
+                console.log('Container not found in expected location, searching...');
+                const $anyContainer = $('[id*="children"]');
+                console.log('Containers with "children" in ID:', $anyContainer.length);
+                $anyContainer.each(function() {
+                    console.log('  -', $(this).attr('id'), 'in', $(this).parent().attr('class'));
+                });
+                
+                // Check current view and content
+                console.log('Current sidebar view:', window.currentSidebarView);
+                console.log('Dynamic content area exists:', $('#sidebar-dynamic-content').length > 0);
+                
+                // Check what's actually in the dynamic content
+                const $dynamicContent = $('#sidebar-dynamic-content');
+                if ($dynamicContent.length > 0) {
+                    console.log('Dynamic content HTML preview:', $dynamicContent.html().substring(0, 300) + '...');
+                    
+                    // Look for any image-with-text related content
+                    console.log('Image with text elements found:', $dynamicContent.find('[class*="image-with-text"]').length);
+                }
+            }
+        }, 1000);
+    };
+    
+    // Force navigation to image with text settings
+    window.goToImageWithText = function() {
+        console.log('Navigating to Image with Text settings...');
+        // Find the image with text section
+        const $section = $('.sidebar-subsection[data-block-type="image-with-text"]');
+        if ($section.length > 0) {
+            console.log('Found image-with-text section, clicking...');
+            $section.click();
+        } else {
+            console.log('Image with text section not found in sidebar');
+            // Try to switch view directly
+            window.switchSidebarView('imageWithTextSettings');
+        }
+    };
+    
+    // Check for sortable conflicts
+    // Manual drag test
+    window.testDragManually = function() {
+        console.log('=== MANUAL DRAG TEST ===');
+        const $container = $('#children-container');
+        console.log('Container found:', $container.length > 0);
+        console.log('Container HTML length:', $container.html() ? $container.html().length : 0);
+        
+        // Try different selectors
+        console.log('Items by different selectors:');
+        console.log('- .image-with-text-block-item:', $container.find('.image-with-text-block-item').length);
+        console.log('- .sidebar-subsection:', $container.find('.sidebar-subsection').length);
+        console.log('- [data-element-id]:', $container.find('[data-element-id]').length);
+        console.log('- Direct children:', $container.children().length);
+        
+        // Check what's actually in the container
+        if ($container.children().length > 0) {
+            console.log('First child:', $container.children().first().attr('class'));
+        }
+        
+        const $firstItem = $container.find('.sidebar-subsection').first();
+        
+        if ($firstItem.length === 0) {
+            console.log('No items to test');
+            return;
+        }
+        
+        console.log('Testing drag programmatically...');
+        
+        // Check if sortable is enabled
+        const isDisabled = $container.sortable('option', 'disabled');
+        console.log('Sortable disabled:', isDisabled);
+        
+        // Check CSS of handle
+        const $handle = $firstItem.find('.drag-handle');
+        console.log('Handle CSS:', {
+            cursor: $handle.css('cursor'),
+            pointerEvents: $handle.css('pointer-events'),
+            userSelect: $handle.css('user-select')
+        });
+        
+        // Check for event blockers
+        const events = $._data ? $._data($handle[0], 'events') : null;
+        console.log('Events on handle:', events);
+        
+        // Try to trigger sortable
+        try {
+            $container.sortable('refresh');
+            console.log('Sortable refreshed');
+        } catch (e) {
+            console.error('Error refreshing:', e);
+        }
+        
+        console.log('=== END TEST ===');
+    };
+    
+    window.checkSortableConflicts = function() {
+        console.log('=== CHECKING SORTABLE CONFLICTS ===');
+        
+        // Find all sortables
+        const $allSortables = $('.ui-sortable');
+        console.log('Total sortables found:', $allSortables.length);
+        
+        $allSortables.each(function(index) {
+            const $sortable = $(this);
+            console.log(`\nSortable ${index}:`, {
+                id: $sortable.attr('id'),
+                classes: $sortable.attr('class'),
+                items: $sortable.find('.ui-sortable-handle').length,
+                parent: $sortable.parent().attr('id') || $sortable.parent().attr('class')
+            });
+            
+            // Check handles
+            const $handles = $sortable.find('.ui-sortable-handle');
+            if ($handles.length > 0) {
+                console.log(`  Handles in sortable ${index}:`);
+                $handles.each(function(i) {
+                    if (i < 3) { // Only show first 3
+                        console.log(`    - Handle ${i}:`, {
+                            parent: $(this).parent().attr('class'),
+                            text: $(this).text().trim()
+                        });
+                    }
+                });
+            }
+        });
+        
+        // Specific check for image-with-text
+        const $iwt = $('#children-container');
+        if ($iwt.length > 0) {
+            console.log('\nImage-with-text container analysis:');
+            console.log('- Container exists: YES');
+            console.log('- Is sortable:', $iwt.hasClass('ui-sortable'));
+            console.log('- Items:', $iwt.find('.image-with-text-block-item').length);
+            console.log('- Handles:', $iwt.find('.drag-handle').length);
+            console.log('- Handles with ui-sortable-handle:', $iwt.find('.drag-handle.ui-sortable-handle').length);
+            
+            // Check if handles are part of another sortable
+            $iwt.find('.drag-handle').each(function(i) {
+                const $handle = $(this);
+                const $parentSortable = $handle.closest('.ui-sortable');
+                console.log(`  Handle ${i} parent sortable:`, {
+                    found: $parentSortable.length > 0,
+                    id: $parentSortable.attr('id'),
+                    isChildrenContainer: $parentSortable.attr('id') === 'children-container'
+                });
+            });
+            
+            // Try to initialize if not sortable
+            if (!$iwt.hasClass('ui-sortable')) {
+                console.log('\nAttempting to initialize sortable now...');
+                window.forceImageWithTextSortable();
+            }
+        } else {
+            console.log('\nImage-with-text container NOT FOUND!');
+            // Check if we're in the right view
+            console.log('Current view:', window.currentSidebarView);
+        }
+        
+        console.log('=== END CHECK ===');
+    };
+    
     window.executeModuleFunction = function(moduleName, functionName, ...args) {
         console.log(`[MODULE] Executing ${moduleName}.${functionName}`, args);
         

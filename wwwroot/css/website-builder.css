@@ -1039,6 +1039,38 @@
     align-items: center;
 }
 
+/* Specific styling for imageWithText block items */
+.imageWithText-block-item {
+    display: flex !important;
+    align-items: center !important;
+}
+
+.imageWithText-block-item .drag-handle {
+    position: relative;
+    left: 0;
+    top: 0;
+    transform: none;
+    margin-right: 12px !important;
+    font-size: 16px !important;
+    color: #8c9196;
+    opacity: 0.6;
+    display: inline-flex;
+    align-items: center;
+    vertical-align: middle;
+}
+
+.imageWithText-block-item:hover .drag-handle {
+    opacity: 1;
+    color: #202223;
+}
+
+.imageWithText-block-item .subsection-text {
+    margin-left: 0;
+    padding-left: 0;
+    display: inline-flex;
+    align-items: center;
+}
+
 /* Hide ALL menu icons that are direct children of subsections except drag and collapse */
 .sidebar-subsection > i.material-icons:not(.drag-handle):not(.collapse-indicator) {
     display: none !important;
@@ -7014,3 +7046,106 @@
     overflow-y: auto !important;
 }
 /* ===== End of Slideshow Settings Scroll Fix ===== */
+
+/* ===== Multicolumn Hover Labels Z-Index Fix ===== */
+/* Ensure multicolumn containers don't clip hover labels */
+.multicolumn-container {
+    overflow: visible !important;
+    position: relative;
+}
+
+.multicolumn-row {
+    overflow: visible !important;
+    position: relative;
+}
+
+.icon-columns-container {
+    overflow: visible !important;
+    position: relative;
+}
+
+/* Ensure section wrappers in multicolumn have proper stacking */
+.multicolumn-container .section-wrapper,
+.icon-columns-container .section-wrapper {
+    overflow: visible !important;
+}
+
+/* Increase z-index for all hover labels to prevent clipping */
+/* Removed - this was causing labels to show in production preview */
+
+/* Ensure preview iframe doesn't clip hover labels */
+#preview-iframe {
+    position: relative;
+    z-index: 1;
+}
+
+/* Ensure multicolumn columns can show hover labels properly */
+.multicolumn-column {
+    overflow: visible !important;
+    position: relative;
+}
+
+.icon-column-wrapper {
+    overflow: visible !important;
+    position: relative;
+}
+/* ===== End of Multicolumn Hover Labels Z-Index Fix ===== */
+
+/* ===== Image with Text Module Drag & Drop Styles ===== */
+/* Ensure children container has proper styles for sortable */
+#children-container {
+    position: relative;
+    min-height: 50px;
+}
+
+/* Make sure container is not interfering */
+#children-container * {
+    box-sizing: border-box;
+}
+
+/* Style for image-with-text block items to match multicolumn */
+.image-with-text-block-item {
+    position: relative !important;
+    /* Inherits styles from .sidebar-subsection */
+}
+
+/* Ensure drag handles work */
+#children-container .drag-handle {
+    cursor: move !important;
+    pointer-events: auto !important;
+    position: relative !important;
+    z-index: 10 !important;
+    user-select: none !important;
+    -webkit-user-select: none !important;
+    -moz-user-select: none !important;
+    -ms-user-select: none !important;
+}
+
+/* Placeholder styles */
+.block-item-placeholder,
+.ui-state-highlight {
+    background: #f0f0f0 !important;
+    border: 1px dashed #999 !important;
+    border-radius: 4px !important;
+    margin-bottom: 4px !important;
+    margin-left: 30px !important;
+    visibility: visible !important;
+}
+
+/* Helper styles during drag */
+.image-with-text-block-item.ui-sortable-helper {
+    opacity: 0.8 !important;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3) !important;
+    z-index: 9999 !important;
+    background: #fff !important;
+}
+
+/* Fix potential issues with subsection actions */
+.image-with-text-block-item .subsection-actions {
+    pointer-events: none;
+}
+
+.image-with-text-block-item .subsection-actions button {
+    pointer-events: auto !important;
+}
+/* ===== End of Image with Text Module Drag & Drop Styles ===== */

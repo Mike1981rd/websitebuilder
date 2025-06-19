@@ -2,7 +2,9 @@
 
 ## Flujo General del Proceso
 
-Cuando vayas a crear un nuevo módulo, el proceso comienza preparando la arquitectura modular en un archivo JavaScript separado dentro de la carpeta de módulos. Primero necesitas que te proporcione la imagen del preview que se mostrará cuando pases el mouse sobre la opción en el modal de agregar secciones.
+Cuando vayas a crear un nuevo módulo, el proceso comienza preparando la arquitectura modular en un archivo JavaScript separado dentro de la carpeta de módulos. Primero necesitas que te proporcione:
+1. **La imagen del preview** que se mostrará cuando pases el mouse sobre la opción en el modal de agregar secciones
+2. **La imagen del editor** que se mostrará en el preview del editor cuando se agregue el módulo por primera vez (antes de configurarlo)
 
 Una vez que agregues el módulo desde el modal, este aparecerá en el panel lateral y también en el preview del editor. En ese momento necesitarás las vistas de configuración - una para el módulo principal y otra para sus elementos hijos si los tiene. Estas vistas permitirán configurar todos los aspectos del módulo, incluyendo la capacidad de agregar elementos hijos, reordenarlos mediante arrastre, y eliminarlos.
 
@@ -78,7 +80,90 @@ case 'nombreModuloSettings':
 
 ## PUNTO #2: PREVIEW HOVER Y AGREGADO AL MODAL
 
-### Requisitos del Desarrollador
+### ⚠️ VERIFICACIÓN CRÍTICA - LA MAYORÍA DE MÓDULOS YA ESTÁN EN EL MODAL
+
+**IMPORTANTE: El 90% de los módulos ya están agregados al modal de "Add Section"**
+- La mayoría de módulos comunes (Image with Text, Banner, Gallery, etc.) YA EXISTEN en el modal
+- Solo necesitarás agregar al modal si es un módulo completamente NUEVO y CUSTOM
+
+### 🔴 EXCEPCIÓN IMPORTANTE:
+**Si el usuario te proporciona una imagen de preview = SIEMPRE implementar el preview**
+- No importa si el módulo ya tiene un preview existente
+- El usuario quiere actualizar/mejorar el preview actual
+- Procede con la implementación completa del PUNTO #2
+
+### ICONOS DE ACCIÓN EN EL PANEL LATERAL (CRÍTICO)
+
+**TODOS los nuevos módulos deben tener estos 3 iconos de acción:**
+1. **visibility** (ojo) - Toggle de visibilidad  
+2. **add** (signo más) - Para agregar elementos hijos
+3. **delete** (basurero) - Eliminar
+
+**NO usar:**
+- ❌ **settings** (engranaje) - Este NO se usa en módulos nuevos
+- ❌ **config-icon** - No es el patrón correcto
+
+### NAVEGACIÓN A LA VISTA DE CONFIGURACIÓN
+
+**El click en el módulo (NO en un botón) debe abrir la vista de configuración:**
+
+1. **Click en el texto del módulo** → Abre vista de configuración
+2. **NO se necesita** botón de settings
+3. **Event listener correcto** (ya existe globalmente):
+```javascript
+// Este handler YA EXISTE en website-builder.js (~línea 8900)
+$(document).on('click', '.sidebar-subsection[data-block-type]', function(e) {
+    // Si el click fue en un botón de acción, no hacer nada
+    if ($(e.target).closest('.subsection-actions').length > 0) return;
+    
+    const blockType = $(this).data('block-type');
+    window.switchSidebarView(blockType + 'Settings');
+});
+```
+
+**IMPORTANTE**: Solo necesitas agregar el case en switchSidebarView, NO crear otro event listener.
+
+**Código correcto para renderTemplateSections:**
+```javascript
+<div class="subsection-actions">
+    <button class="action-icon visibility-toggle ${config.isHidden ? 'is-hidden' : ''}" 
+            data-section="nombreModulo" title="Toggle visibility">
+        <i class="material-icons icon-visible">visibility</i>
+        <i class="material-icons icon-hidden">visibility_off</i>
+    </button>
+    <button class="action-icon add-icon" data-section="nombreModulo" title="Add element">
+        <i class="material-icons">add</i>
+    </button>
+    <button class="action-icon delete-section" data-section="nombreModulo" title="Delete">
+        <i class="material-icons">delete</i>
+    </button>
+</div>
+```
+
+### Verificación Obligatoria:
+1. **PRIMERO abre el Website Builder y verifica visualmente:**
+   - Click en "Add Section" 
+   - Busca si tu módulo ya aparece en la lista
+   - Si ya está, SALTA este punto y continúa con el PUNTO #3
+
+2. **Si no lo ves en el modal, verifica en el código:**
+```bash
+# Buscar en el array de secciones (alrededor de línea 9500-9700)
+grep -n "{ id:" website-builder.js | grep -i "tu-modulo"
+
+# Buscar traducciones
+grep -i "sections.tuModulo" website-builder.js
+
+# Buscar el handler del click
+grep -A5 -B5 "sectionId === 'tu-modulo'" website-builder.js
+```
+
+### ⚠️ Si el módulo YA ESTÁ en el modal:
+- **NO necesitas:** Agregar imagen preview, ni al array de secciones, ni handler de click
+- **SÍ necesitas:** Verificar que el handler del click abra tu vista de configuración (PUNTO #3)
+- **Continúa desde:** PUNTO #3 directamente
+
+### Requisitos del Desarrollador (SOLO si el módulo NO existe)
 Necesitas proporcionar:
 1. **Imagen preview**: 300x200px aprox en `/wwwroot/TestImages/nombremodulo-preview.png`
 2. **Estructura HTML**: Diseño que se mostrará en el editor
@@ -190,10 +275,28 @@ else if (sectionId === 'nombre-modulo' && currentSectionsConfig.nombreModulo) {
 
 ## PUNTO #3: VISTAS DE CONFIGURACIÓN Y FUNCIONALIDAD COMPLETA
 
+### ⚠️ SOLICITUD OBLIGATORIA AL USUARIO
+
+**PASO 1 - Solicitar Vista Principal:**
+```
+"Necesito que me proporciones la vista de configuración principal del módulo [nombre]. 
+Esta vista aparecerá en el panel lateral cuando se haga click en el módulo."
+```
+
+**ESPERAR** a que el usuario proporcione la imagen/diseño antes de continuar.
+
+**PASO 2 - Solo si el módulo tiene elementos hijos:**
+```
+"Ahora necesito la vista de configuración para los elementos hijos de [nombre].
+Esta vista aparecerá cuando se haga click en cada elemento hijo individual."
+```
+
 ### Requisitos del Desarrollador
 Necesitas proporcionar:
 1. **Vista principal de configuración**: Panel de settings del módulo
 2. **Vista de configuración de hijos** (si aplica): Settings individuales de elementos
+
+⚠️ **NUNCA** implementar vistas de configuración sin que el usuario las proporcione primero
 
 ### 3.1 ESTRUCTURA CORRECTA DE VISTAS (EVITAR DOBLE SCROLL)
 
@@ -322,6 +425,72 @@ $(document).on('click', '.collapsible-header', function() {
 });
 ```
 
+### 🔴 3.3.1 NAVEGACIÓN EN VISTAS DE CONFIGURACIÓN DE ELEMENTOS HIJOS (CRÍTICO)
+
+**⚠️ ERROR COMÚN**: En todos los módulos se comete el mismo error con la flecha de navegación en las vistas de configuración de elementos hijos.
+
+**PROBLEMA TÍPICO**: 
+La flecha de retroceso lleva a la vista de configuración del módulo padre en lugar de volver al panel lateral (blockList).
+
+**IMPLEMENTACIÓN CORRECTA**:
+
+#### 1. En la función que renderiza la vista del hijo (ej: `renderBlockSettings`, `renderColumnSettings`):
+```javascript
+renderChildSettings: function(child, parentConfig) {
+    return `
+        <div class="settings-panel" style="display: flex; flex-direction: column; height: 100%;">
+            <div class="settings-header" style="...">
+                <!-- CORRECTO: usar clase en lugar de onclick -->
+                <button class="back-to-sections-btn" 
+                        style="background: none; border: none; cursor: pointer; padding: 4px;">
+                    <i class="material-icons" style="font-size: 20px;">arrow_back</i>
+                </button>
+                <h3>Configuración del Elemento</h3>
+            </div>
+            <!-- resto del contenido -->
+        </div>
+    `;
+}
+```
+
+**NO HACER**:
+```javascript
+<!-- INCORRECTO -->
+<button onclick="window.backToParentSettings()">
+<button onclick="window.switchSidebarView('parentModuleSettings')">
+```
+
+#### 2. En la función `attachChildEventListeners`:
+```javascript
+attachChildEventListeners: function(childId) {
+    // CRÍTICO: Agregar este handler SIEMPRE
+    $('.back-to-sections-btn').off('click').on('click', function() {
+        window.switchSidebarView('blockList');
+    });
+    
+    // Resto de event listeners...
+}
+```
+
+**EJEMPLO REAL - Multicolumn (CORRECTO)**:
+```javascript
+// En multicolumn.js línea ~1346
+$('.back-to-sections-btn').off('click').on('click', function() {
+    window.switchSidebarView('blockList');
+});
+```
+
+**RAZÓN**: 
+- El usuario espera volver al panel lateral principal donde puede ver TODAS las secciones
+- No tiene sentido volver a la vista del módulo padre ya que desde ahí vino
+- Es consistente con el comportamiento de Shopify
+
+**Verificación**:
+- [ ] La flecha usa clase `back-to-sections-btn`, NO onclick
+- [ ] Event listener agregado en `attachChildEventListeners`
+- [ ] Navega a `'blockList'`, NO a la vista del padre
+- [ ] Usa `.off('click').on('click')` para evitar duplicados
+
 ### 3.4 DRAG & DROP (CRÍTICO - EVITAR PROBLEMAS DOCUMENTADOS)
 
 #### Para reordenar hijos dentro del módulo:
@@ -381,25 +550,97 @@ if ($detachedWrapper) {
 }
 ```
 
-### 3.5 DELETE HANDLER (BORRAR PADRE E HIJOS)
+### 3.5 DELETE HANDLER (BORRAR PADRE E HIJOS) - CRÍTICO
 
-**En website-builder.js** (~línea 8620), agregar caso:
+**⚠️ PROBLEMA COMÚN**: 
+1. Al eliminar una sección padre, los elementos hijos quedan huérfanos en el DOM si no se eliminan explícitamente primero
+2. Múltiples event handlers para delete causan conflictos (doble click en modal)
+
+**IMPLEMENTACIÓN CORRECTA** - Usar el handler unificado en `attachBlockListEventListeners` (~línea 8988):
+
 ```javascript
-else if (section === 'nombreModulo' && currentSectionsConfig.nombreModulo) {
-    // Esto borra TODO: configuración padre + todos los hijos
-    delete currentSectionsConfig.nombreModulo;
+// Delete button for sections - use namespace to avoid duplicates
+$(document).off('click.deleteSection').on('click.deleteSection', '.delete-icon, .delete-section', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    e.stopImmediatePropagation();
     
-    // Remover del array de orden
-    const index = currentSectionsConfig.sectionOrder.indexOf('nombreModulo');
-    if (index > -1) {
-        currentSectionsConfig.sectionOrder.splice(index, 1);
+    const $button = $(this);
+    const section = $button.data('section');
+    
+    // Prevent multiple clicks
+    if ($button.data('deleting')) {
+        return false;
+    }
+    $button.data('deleting', true);
+    
+    if (confirm(confirmMessage)) {
+        // Agregar el caso para tu módulo
+        else if (section === 'nombreModulo' && currentSectionsConfig.nombreModulo) {
+            console.log('[DEBUG] Deleting nombreModulo section');
+            
+            // CRÍTICO: Primero eliminar TODOS los elementos hijos del DOM
+            $('#nombreModulo-children-wrapper').remove();
+            $('.nombreModulo-child-item').remove();
+            
+            // Eliminar los datos (esto incluye todos los hijos)
+            delete currentSectionsConfig.nombreModulo;
+            
+            // Remover del array de orden - verificar ambas convenciones
+            if (currentSectionsConfig.sectionOrder) {
+                let index = currentSectionsConfig.sectionOrder.indexOf('nombreModulo');
+                if (index > -1) {
+                    currentSectionsConfig.sectionOrder.splice(index, 1);
+                }
+                // También verificar versión con guiones
+                index = currentSectionsConfig.sectionOrder.indexOf('nombre-modulo');
+                if (index > -1) {
+                    currentSectionsConfig.sectionOrder.splice(index, 1);
+                }
+            }
+        }
+        
+        // Remove from DOM and update UI
+        $button.closest('.sidebar-subsection').fadeOut(300, function() {
+            $(this).remove();
+            
+            // Para secciones de template, actualizar el contenedor
+            if (section === 'nombreModulo') {
+                const templateSectionsHtml = renderTemplateSections();
+                $('#template-sections-container').html(templateSectionsHtml + /* botón agregar */);
+                setTimeout(applyTranslations, 0);
+            }
+            
+            hasPendingPageStructureChanges = true;
+            updateSaveButtonState();
+            renderPreview();
+        });
+    } else {
+        // Reset deleting flag if cancelled
+        $button.data('deleting', false);
     }
     
-    hasPendingPageStructureChanges = true;
-    updateSaveButtonState();
-    renderPreview();
-}
+    return false;
+});
 ```
+
+**IMPORTANTE**: 
+- NO crear un nuevo handler con `$(document).on('click', '.delete-section')`
+- Agregar tu caso al handler existente en `attachBlockListEventListeners`
+- Usar namespace (.deleteSection) para evitar duplicados
+- Incluir flag de prevención de múltiples clicks
+
+**PATRÓN CORRECTO**:
+1. Usar el handler unificado existente
+2. Eliminar wrapper e hijos antes que el padre
+3. Verificar múltiples convenciones de nombres
+4. Actualizar UI después de eliminar del DOM
+5. Resetear flag si se cancela
+
+**EVITAR**:
+- Crear múltiples handlers para el mismo selector
+- No usar namespace en event listeners
+- Olvidar el flag de prevención de clicks
 
 **Para borrar hijo individual**:
 ```javascript
@@ -1029,3 +1270,322 @@ updateConfig('field', value); // Solo esto
 - [ ] NO manejar guardado manualmente
 - [ ] NO recargar vista después de guardar
 - [ ] Sliders sincronizados con inputs numéricos
+
+## PUNTO #7: CASO DE ESTUDIO - PROBLEMA Y SOLUCIÓN IMAGE-WITH-TEXT
+
+### Problema Real Documentado
+El módulo image-with-text no se renderizaba en el preview del editor aunque se agregaba correctamente al panel lateral.
+
+### Causas Identificadas
+
+#### 1. Inconsistencia de Nombres
+- Modal usaba: `'images-with-text'` (con guiones, plural)
+- Sistema esperaba: `'imageWithText'` (camelCase, singular)
+- sectionOrder guardaba: `'images-with-text'`
+- Configuración guardaba en: `currentSectionsConfig.imageWithText`
+
+#### 2. Falta de Mapeo en Renderizadores
+```javascript
+// FALTABA en el objeto renderers
+'images-with-text': window.WebsiteBuilderModules?.ImageWithText?.render || renderImageWithText
+```
+
+#### 3. Bloque No Agregado a blockOrder
+```javascript
+// Se creaba el bloque placeholder
+currentSectionsConfig.imageWithText.blocks[blockId] = { ... };
+
+// PERO FALTABA agregarlo al array
+currentSectionsConfig.imageWithText.blockOrder.push(blockId); // LÍNEA CRÍTICA
+```
+
+#### 4. Falta de Función Fallback
+No existía `renderImageWithText()` para cuando el módulo no estuviera cargado en el iframe.
+
+#### 5. Error de Contexto `this`
+```javascript
+// ERROR en el módulo
+blocksHtml += this.renderBlock(block, config, uniqueId);
+// TypeError: this.renderBlock is not a function
+
+// SOLUCIÓN: usar referencia completa
+blocksHtml += window.WebsiteBuilderModules.ImageWithText.renderBlock(block, config, uniqueId);
+```
+
+### Soluciones Implementadas
+
+#### 1. Agregado Mapeo de Configuración
+```javascript
+// En renderPreview() ~línea 1797
+} else if (sectionId === 'images-with-text') {
+    configKey = 'imageWithText';
+}
+```
+
+#### 2. Agregado Soporte en Renderizado del Iframe
+```javascript
+// ~línea 1787
+} else if (sectionId === 'imageWithText' || sectionId === 'images-with-text') {
+    const config = currentSectionsConfig.imageWithText;
+    // ... renderizado
+}
+```
+
+#### 3. Creada Función Fallback
+```javascript
+function renderImageWithText(config) {
+    if (!config || config.isHidden) return '';
+    
+    return `
+        <div class="section-wrapper image-with-text-section" style="...">
+            <!-- Contenido fallback simple -->
+        </div>
+    `;
+}
+```
+
+#### 4. Corregido Error de Contexto
+En el módulo, cambiar todas las referencias `this.method` a `window.WebsiteBuilderModules.ModuleName.method`.
+
+### Lecciones Aprendidas
+
+1. **Consistencia de IDs**: Usar el mismo ID en TODOS los lugares
+   - Modal: `'imageWithText'`
+   - sectionOrder: `'imageWithText'`
+   - Configuración: `currentSectionsConfig.imageWithText`
+   - Renderizadores: `'imageWithText'`
+
+2. **Arrays de Orden Obligatorios**: Si tu módulo tiene sub-elementos:
+   ```javascript
+   // SIEMPRE agregar al array correspondiente
+   config.blockOrder.push(blockId);
+   config.columnOrder.push(columnId);
+   config.slideOrder.push(slideId);
+   ```
+
+3. **Contexto en Módulos**: Evitar `this` en módulos que se ejecutan en diferentes contextos
+   ```javascript
+   // MAL
+   this.renderBlock(...)
+   
+   // BIEN
+   window.WebsiteBuilderModules.TuModulo.renderBlock(...)
+   ```
+
+4. **Función Fallback**: Siempre crear una versión simple para cuando el módulo no cargue
+
+5. **Debugging Sistemático**: 
+   - Verificar console.log en cada punto del flujo
+   - Verificar qué se está agregando a sectionOrder
+   - Verificar qué configuración se está creando
+   - Verificar si el módulo está cargado en el iframe
+
+### Checklist para Evitar Este Problema
+
+Al implementar un nuevo módulo:
+
+- [ ] Definir UN SOLO ID consistente (preferir camelCase: `myNewModule`)
+- [ ] Usar ese ID en TODOS los lugares sin variación
+- [ ] Si tiene sub-elementos, SIEMPRE agregarlos al array de orden
+- [ ] Crear función fallback en website-builder.js
+- [ ] Usar referencias completas en el módulo, no `this`
+- [ ] Agregar mapeos necesarios en renderizadores
+- [ ] Verificar que se agregue a sectionOrder
+- [ ] Probar que renderice antes de continuar con configuración
+
+### Tiempo Invertido
+- Debugging del problema: ~45 minutos
+- Implementación de soluciones: ~15 minutos
+- **Total**: ~1 hora (evitable siguiendo este checklist)
+
+## PUNTO #8: PROBLEMA Y SOLUCIÓN - SINCRONIZACIÓN DE VISIBILIDAD
+
+### Problema Real Documentado
+El ícono del ojo (toggle de visibilidad) no mantenía su estado visual correctamente después de guardar cambios. El estado se guardaba correctamente en la base de datos y funcionaba (las secciones se ocultaban/mostraban), pero el ícono aparecía en el estado incorrecto visualmente.
+
+### Síntomas
+1. Al ocultar una sección (ojo tachado), guardar, y recargar → el ojo aparecía sin tachar
+2. Los cambios sí se guardaban (la sección estaba realmente oculta)
+3. El problema era solo visual en el panel lateral
+4. Afectaba tanto a secciones principales como a elementos hijos
+
+### Causas Identificadas
+
+#### 1. Falta de Sincronización Post-Guardado
+Después de guardar y recargar datos del servidor, no se sincronizaban los estados visuales de los toggles.
+
+#### 2. Estilos Inline Residuales
+jQuery y animaciones dejaban estilos inline que interferían con las clases CSS:
+```javascript
+// Estos estilos inline quedaban después de animaciones
+style="display: block;"  // Sobrescribía el CSS de .is-hidden
+```
+
+#### 3. Timing Issues
+La sincronización se intentaba antes de que el DOM estuviera completamente renderizado.
+
+### Solución Implementada
+
+#### 1. Función Global de Sincronización Forzada
+```javascript
+// Nueva función global en website-builder.js (~línea 16978)
+window.forceVisibilitySync = function(section, isHidden) {
+    const $toggle = $(`.visibility-toggle[data-section="${section}"]`);
+    if ($toggle.length > 0) {
+        // CRÍTICO: Remover estilos inline
+        $toggle.find('.icon-visible, .icon-hidden').removeAttr('style');
+        
+        // Forzar el estado correcto
+        if (isHidden) {
+            $toggle.addClass('is-hidden');
+        } else {
+            $toggle.removeClass('is-hidden');
+        }
+    }
+};
+```
+
+#### 2. Sincronización Específica Post-Save para ImageWithText
+```javascript
+// En el handler de guardado (~línea 17154)
+} else if (currentSidebarView === 'imageWithTextSettings') {
+    loadCurrentWebsite().then(() => {
+        window.switchSidebarView('blockList', window.getUpdatedPageData());
+        
+        // Sincronización forzada después de recargar
+        setTimeout(() => {
+            // Sincronizar sección principal
+            const isHidden = currentSectionsConfig.imageWithText?.isHidden || false;
+            window.forceVisibilitySync('imageWithText', isHidden);
+            
+            // Sincronizar bloques hijos
+            $('.image-with-text-block-item .visibility-toggle').each(function() {
+                const $button = $(this);
+                const blockId = $button.attr('data-block-id');
+                if (blockId && currentSectionsConfig.imageWithText?.blocks?.[blockId]) {
+                    const blockHidden = currentSectionsConfig.imageWithText.blocks[blockId].isHidden || false;
+                    $button.find('.icon-visible, .icon-hidden').removeAttr('style');
+                    
+                    if (blockHidden) {
+                        $button.addClass('is-hidden');
+                    } else {
+                        $button.removeClass('is-hidden');
+                    }
+                }
+            });
+            
+            // También llamar sync general
+            syncVisibilityToggleStates();
+        }, 200); // Delay mayor para asegurar DOM listo
+    });
+}
+```
+
+#### 3. Sincronización al Renderizar BlockList
+```javascript
+// En switchSidebarView (~línea 4830)
+if (viewName === 'blockList') {
+    dynamicContentArea.innerHTML = renderBlockListView(data || currentPageData);
+    attachBlockListEventListeners();
+    setTimeout(applyTranslations, 0);
+    
+    // Sincronización después de renderizar
+    setTimeout(() => {
+        syncVisibilityToggleStates();
+        
+        // Double-check específico para imageWithText
+        if (currentSectionsConfig.imageWithText) {
+            const isHidden = currentSectionsConfig.imageWithText.isHidden || false;
+            window.forceVisibilitySync('imageWithText', isHidden);
+        }
+    }, 100);
+}
+```
+
+#### 4. Sincronización al Cambiar Toggle
+```javascript
+// En el handler de visibility toggle (~línea 9894)
+} else if (section === 'imageWithText' || blockType === 'imageWithText') {
+    currentSectionsConfig.imageWithText.isHidden = newHiddenState;
+    
+    // Forzar sincronización inmediata
+    if (window.forceVisibilitySync) {
+        window.forceVisibilitySync('imageWithText', newHiddenState);
+    }
+}
+```
+
+### Patrón para Nuevos Módulos
+
+Para evitar este problema en nuevos módulos:
+
+#### 1. En el Handler de Toggle
+```javascript
+// Después de actualizar el modelo
+currentSectionsConfig.tuModulo.isHidden = newHiddenState;
+
+// Forzar sincronización visual
+if (window.forceVisibilitySync) {
+    window.forceVisibilitySync('tuModulo', newHiddenState);
+}
+```
+
+#### 2. En el Handler Post-Save
+```javascript
+} else if (currentSidebarView === 'tuModuloSettings') {
+    loadCurrentWebsite().then(() => {
+        window.switchSidebarView('blockList', window.getUpdatedPageData());
+        
+        setTimeout(() => {
+            const isHidden = currentSectionsConfig.tuModulo?.isHidden || false;
+            window.forceVisibilitySync('tuModulo', isHidden);
+            
+            // Si tiene elementos hijos, sincronizarlos también
+            $('.tu-modulo-child-item .visibility-toggle').each(function() {
+                // ... lógica de sincronización de hijos
+            });
+        }, 200);
+    });
+}
+```
+
+#### 3. CSS Crítico (website-builder.css)
+```css
+/* Los iconos deben estar ocultos por defecto */
+.visibility-toggle .icon-visible,
+.visibility-toggle .icon-hidden {
+    display: none;
+}
+
+/* Estados con !important para sobrescribir inline styles */
+.visibility-toggle:not(.is-hidden) .icon-visible {
+    display: block !important;
+}
+
+.visibility-toggle.is-hidden .icon-hidden {
+    display: block !important;
+}
+```
+
+### Puntos Clave
+
+1. **SIEMPRE** remover estilos inline con `.removeAttr('style')`
+2. **SIEMPRE** usar delays apropiados para asegurar DOM listo
+3. **SIEMPRE** sincronizar después de:
+   - Guardar y recargar datos
+   - Renderizar vistas
+   - Cambiar estados de visibilidad
+4. **NUNCA** confiar solo en las clases CSS iniciales del render
+
+### Verificación
+- [ ] Función forceVisibilitySync disponible globalmente
+- [ ] Sincronización en handler de toggle
+- [ ] Sincronización post-save con delay apropiado
+- [ ] Sincronización de elementos hijos si aplica
+- [ ] removeAttr('style') en todos los puntos de sincronización
+- [ ] CSS con !important para sobrescribir inline styles
+
+### Tiempo Invertido
+- Debugging del problema: ~2 horas
+- Implementación de solución: ~30 minutos
+- **Total**: ~2.5 horas (evitable siguiendo este patrón)

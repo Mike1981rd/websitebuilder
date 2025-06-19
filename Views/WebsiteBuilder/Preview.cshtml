@@ -196,6 +196,14 @@
     
     <!-- Módulos del Website Builder -->
     <script src="~/js/website-builder/modules/multicolumn.js?v=@DateTime.Now.Ticks"></script>
+    <script src="~/js/website-builder/modules/image-with-text.js?v=@DateTime.Now.Ticks"></script>
+    
+    <script>
+        // Verificar que los módulos se cargaron correctamente
+        console.log('[PREVIEW] Modules loaded check:');
+        console.log('- Multicolumn:', window.WebsiteBuilderModules?.Multicolumn ? 'Loaded' : 'Not loaded');
+        console.log('- ImageWithText:', window.WebsiteBuilderModules?.ImageWithText ? 'Loaded' : 'Not loaded');
+    </script>
     
     <script>
         // Variables globales necesarias para el renderizado
@@ -204,6 +212,54 @@
         let currentMenusData = [];
         let currentAnnouncementIndex = 0;
         let currentLanguage = 'es';
+        
+        // Helper function para obtener valores de color scheme
+        window.getColorSchemeValues = function(schemeName) {
+            // First check if we have custom values in currentGlobalThemeSettings
+            if (currentGlobalThemeSettings && currentGlobalThemeSettings.colorSchemes && currentGlobalThemeSettings.colorSchemes[schemeName]) {
+                return currentGlobalThemeSettings.colorSchemes[schemeName];
+            }
+            
+            // Fall back to default color schemes
+            const defaultSchemes = {
+                'scheme1': {
+                    background: '#ffffff',
+                    text: '#333333',
+                    foreground: '#f0f0f0',
+                    border: '#e5e5e5',
+                    link: '#2c6ecb'
+                },
+                'scheme2': {
+                    background: '#f8f8f8',
+                    text: '#1a1a1a',
+                    foreground: '#eeeeee',
+                    border: '#dddddd',
+                    link: '#1a73e8'
+                },
+                'scheme3': {
+                    background: '#1a1a1a',
+                    text: '#ffffff',
+                    foreground: '#333333',
+                    border: '#444444',
+                    link: '#4d9fff'
+                },
+                'scheme4': {
+                    background: '#2c3e50',
+                    text: '#ecf0f1',
+                    foreground: '#34495e',
+                    border: '#34495e',
+                    link: '#87CEEB'
+                },
+                'scheme5': {
+                    background: '#faf4ed',
+                    text: '#5c4b3a',
+                    foreground: '#f5ebe0',
+                    border: '#e8d5c4',
+                    link: '#8B4513'
+                }
+            };
+            return defaultSchemes[schemeName] || defaultSchemes['scheme1'];
+        };
         
         // Helper function para obtener el nombre de la fuente
         window.getFontNameFromValueSafe = function(fontValue) {
@@ -298,6 +354,18 @@
                     try {
                         currentSectionsConfig = JSON.parse(websiteData.sectionsConfigJson);
                         console.log('Sections config loaded from sectionsConfigJson:', currentSectionsConfig);
+                        
+                        // Normalize section names in sectionOrder
+                        if (currentSectionsConfig.sectionOrder && Array.isArray(currentSectionsConfig.sectionOrder)) {
+                            currentSectionsConfig.sectionOrder = currentSectionsConfig.sectionOrder.map(sectionId => {
+                                // Convert hyphenated names to camelCase
+                                if (sectionId === 'images-with-text') {
+                                    console.log('[PREVIEW] Normalizing images-with-text to imageWithText in sectionOrder');
+                                    return 'imageWithText';
+                                }
+                                return sectionId;
+                            });
+                        }
                     } catch (error) {
                         console.error('Error parsing sectionsConfigJson:', error);
                         console.log('Raw sectionsConfigJson:', websiteData.sectionsConfigJson);
@@ -323,6 +391,7 @@
                 console.log('[PREVIEW] Final sections config:', currentSectionsConfig);
                 console.log('[PREVIEW] Section order:', currentSectionsConfig?.sectionOrder);
                 console.log('[PREVIEW] Slideshow config:', currentSectionsConfig?.slideshow);
+                console.log('[PREVIEW] ImageWithText config:', currentSectionsConfig?.imageWithText);
                 console.log('[PREVIEW] Available sections:', Object.keys(currentSectionsConfig || {}));
                 
                 // Si no hay sectionOrder, inicializar con valores por defecto
@@ -498,6 +567,37 @@
                             } else {
                                 finalHtml += renderMulticolumn(multicolumnConfig);
                             }
+                        }
+                    } else if (sectionId === 'imageWithText' || sectionId === 'images-with-text') {
+                        console.log('[PREVIEW] Processing imageWithText section, sectionId:', sectionId);
+                        const imageWithTextConfig = currentSectionsConfig.imageWithText;
+                        console.log('[PREVIEW] imageWithText config:', imageWithTextConfig);
+                        console.log('[PREVIEW] Module available?', window.WebsiteBuilderModules?.ImageWithText?.render ? 'Yes' : 'No');
+                        
+                        if (imageWithTextConfig && !imageWithTextConfig.isHidden) {
+                            // Use the module's render function if available
+                            if (window.WebsiteBuilderModules && window.WebsiteBuilderModules.ImageWithText && window.WebsiteBuilderModules.ImageWithText.render) {
+                                console.log('[PREVIEW] Rendering imageWithText with module');
+                                const renderedHtml = window.WebsiteBuilderModules.ImageWithText.render(imageWithTextConfig);
+                                console.log('[PREVIEW] Rendered HTML length:', renderedHtml.length);
+                                finalHtml += renderedHtml;
+                            } else {
+                                console.log('[PREVIEW] Module not available, using fallback');
+                                // Fallback if module is not loaded
+                                finalHtml += `
+                                    <div class="section-wrapper image-with-text-section" style="padding: 40px 0; background: #f5f5f5;">
+                                        <div class="container" style="max-width: 1200px; margin: 0 auto; padding: 0 20px;">
+                                            <div style="text-align: center; color: #666;">
+                                                <i class="material-icons" style="font-size: 48px; margin-bottom: 16px;">image</i>
+                                                <h3>Image with Text</h3>
+                                                <p>Module is loading...</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                `;
+                            }
+                        } else {
+                            console.log('[PREVIEW] imageWithText is hidden or config not found');
                         }
                     }
                     // Aquí se agregarán más secciones en el futuro

@@ -13,6 +13,7 @@ wwwroot\js\materialize-admin.js
 wwwroot\js\site.js
 wwwroot\js\website-builder.js
 wwwroot\js\website-builder.js.backup
+wwwroot\js\website-builder\modules\image-with-text.js
 wwwroot\js\website-builder\modules\multicolumn.js
 wwwroot\js\website-render-functions.js
 wwwroot\lib\bootstrap\dist\css\bootstrap.css
@@ -72,6 +73,8 @@ wwwroot\lib\jquery-validation\LICENSE.md
 wwwroot\lib\jquery-validation-unobtrusive\jquery.validate.unobtrusive.js
 wwwroot\lib\jquery-validation-unobtrusive\jquery.validate.unobtrusive.min.js
 wwwroot\lib\jquery-validation-unobtrusive\LICENSE.txt
+wwwroot\TestImages\imagewithtexthoverpreview.png
+wwwroot\TestImages\multicolumimage.png
 wwwroot\TestImages\slideshowpreview.png
 wwwroot\TestImages\VariasFilas.png
 wwwroot\uploads\logos\234c2c73-3b15-4708-a501-fc6eac175b28_25.png
