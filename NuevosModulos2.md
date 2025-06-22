@@ -68,7 +68,20 @@ window.WebsiteBuilderModules.NombreModulo = {
         // Obtener color scheme
         const schemeColors = getColorSchemeValues(config.colorScheme || 'scheme1');
         
-        return `<div>HTML del módulo</div>`;
+        // CRÍTICO: Incluir section-header-tag para pestaña azul en hover
+        return `
+            <div class="section-wrapper" data-section-id="nombreModulo" style="padding: 40px 0;">
+                <div class="section-header-tag">
+                    <span class="material-symbols-outlined" style="font-size: 16px;">icon_name</span>
+                    ${window.translations && window.translations[window.currentLanguage] ? 
+                        (window.translations[window.currentLanguage]['sections.nombreModulo'] || 'Nombre Módulo') : 
+                        'Nombre Módulo'}
+                </div>
+                <div class="container" style="max-width: 1200px; margin: 0 auto;">
+                    <!-- Contenido del módulo -->
+                </div>
+            </div>
+        `;
     },
     renderSettings: function(config) { 
         // Renderizar panel de configuración lateral
@@ -314,12 +327,24 @@ const updateConfig = (key, value) => {
 
 ## PUNTO #7: DELETE HANDLER
 
+### 🔴 PASO CRÍTICO OBLIGATORIO: Actualizar condición de Template Sections
+
+**PRIMERO, agregar el módulo a la condición (~línea 9189):**
+```javascript
+// For template sections, update the template sections container
+if (section === 'imageWithText' || section === 'multicolumn' || section === 'slideshow' || section === 'nombreModulo') {
+    // AGREGAR || section === 'nombreModulo' AL FINAL
+```
+
+**Sin este paso, el módulo reaparecerá después de guardar!**
+
 ### Agregar Caso en Handler (línea ~9080)
 ```javascript
 } else if (section === 'nombreModulo' && currentSectionsConfig.nombreModulo) {
     console.log('[DEBUG] Deleting nombreModulo section');
     
     // Si tiene elementos hijos, eliminarlos primero
+    $('#nombreModulo-items-wrapper').remove();
     $('.nombreModulo-child-item').remove();
     
     // Eliminar configuración
@@ -379,6 +404,10 @@ function renderNombreModulo(config) {
         <div class="section-wrapper nombre-modulo-section" 
              data-section-id="nombreModulo" 
              style="padding: 40px 0; background: #f5f5f5;">
+            <div class="section-header-tag">
+                <span class="material-symbols-outlined" style="font-size: 16px;">icon_name</span>
+                ${translations[currentLanguage]?.['sections.nombreModulo'] || 'Nombre Módulo'}
+            </div>
             <div class="container" style="max-width: 1200px; margin: 0 auto;">
                 <div style="text-align: center; color: #666;">
                     <i class="material-icons" style="font-size: 48px;">widgets</i>
@@ -482,6 +511,18 @@ if (currentSectionsConfig.sectionOrder) {
 ```
 
 ### Para Elementos Hijos
+
+#### ⚠️ IMPORTANTE: Espaciado del Drag Handle
+Cuando crees elementos hijos con drag handle, **SIEMPRE** agrega margen izquierdo al texto para evitar superposición:
+
+```html
+<div class="sidebar-subsection item-hijo" style="padding-left: 30px;">
+    <i class="material-icons drag-handle">drag_handle</i>
+    <span class="subsection-text" style="margin-left: 30px;">Texto del elemento</span>
+    <!-- SIN margin-left: 30px el texto se superpone con el drag handle -->
+</div>
+```
+
 ```javascript
 // En tu módulo, después de renderizar:
 setTimeout(() => {
@@ -586,6 +627,7 @@ console.log('[PREVIEW] Module loaded?', window.WebsiteBuilderModules?.NombreModu
 - [ ] Función fallback existe
 - [ ] Se renderiza correctamente
 - [ ] Respeta isHidden
+- [ ] Section-header-tag incluido (pestaña azul en hover)
 
 ### Preview Real
 - [ ] Módulo cargado en Preview.cshtml
@@ -599,6 +641,7 @@ console.log('[PREVIEW] Module loaded?', window.WebsiteBuilderModules?.NombreModu
 - [ ] Estado persiste después de guardar
 - [ ] Delete elimina de sectionOrder
 - [ ] Delete elimina elementos hijos si los tiene
+- [ ] Delete actualiza template sections container (CRÍTICO)
 - [ ] Drag & drop funciona (si aplica)
 
 ### Guardado

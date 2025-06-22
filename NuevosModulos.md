@@ -86,11 +86,32 @@ case 'nombreModuloSettings':
 - La mayoría de módulos comunes (Image with Text, Banner, Gallery, etc.) YA EXISTEN en el modal
 - Solo necesitarás agregar al modal si es un módulo completamente NUEVO y CUSTOM
 
-### 🔴 EXCEPCIÓN IMPORTANTE:
-**Si el usuario te proporciona una imagen de preview = SIEMPRE implementar el preview**
+### 🔴 PASOS OBLIGATORIOS SI EL MÓDULO YA EXISTE EN EL MODAL:
+
+**1. COPIAR LA IMAGEN DEL PREVIEW (SI SE PROPORCIONA):**
+```bash
+cp "/ruta/origen/imagen.png" "/wwwroot/TestImages/imagen.png"
+```
+
+**2. AGREGAR AL OBJETO DE PREVIEWS (~línea 10780):**
+```javascript
+const previews = {
+    'slideshow': '<div class="section-preview-image"><img src="/TestImages/slideshowpreview.png" alt="Slideshow"></div>',
+    'multicolumn': '<div class="section-preview-image"><img src="/TestImages/multicolumimage.png" alt="Multicolumn"></div>',
+    'nombreModulo': '<div class="section-preview-image"><img src="/TestImages/nombremodulo-preview.png" alt="Nombre Módulo"></div>', // AGREGAR ESTA LÍNEA
+};
+```
+
+**3. VERIFICAR/AGREGAR PROPIEDAD PREVIEW EN EL ARRAY (~línea 7270):**
+```javascript
+{ id: 'nombreModulo', icon: 'icon_name', name: 'nombreModulo', preview: 'nombreModulo' }, // DEBE TENER preview: 'nombreModulo'
+```
+
+### ⚠️ EXCEPCIÓN IMPORTANTE:
+**Si el usuario te proporciona una imagen de preview = SIEMPRE implementar estos 3 pasos**
 - No importa si el módulo ya tiene un preview existente
 - El usuario quiere actualizar/mejorar el preview actual
-- Procede con la implementación completa del PUNTO #2
+- Los 3 pasos son OBLIGATORIOS para que funcione el hover
 
 ### ICONOS DE ACCIÓN EN EL PANEL LATERAL (CRÍTICO)
 

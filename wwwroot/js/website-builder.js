@@ -1742,6 +1742,34 @@ function renderImageWithText(config) {
 }
 
 /**
+ * Renderiza la sección testimonials en el preview (fallback)
+ */
+function renderTestimonials(config) {
+    console.log('[TESTIMONIALS FALLBACK] Rendering with config:', config);
+    
+    if (!config || config.isHidden) {
+        return '';
+    }
+    
+    // This is just a simple fallback - the module should handle the actual rendering
+    return `
+        <div class="section-wrapper testimonials-section" data-section-id="testimonials" style="padding: 40px 0; background: #f5f5f5;">
+            <div class="section-header-tag">
+                <span class="material-symbols-outlined" style="font-size: 16px;">rate_review</span>
+                ${translations[currentLanguage]?.['sections.testimonials'] || 'Testimonials'}
+            </div>
+            <div class="container" style="max-width: 1200px; margin: 0 auto; padding: 0 20px;">
+                <div style="text-align: center; color: #666;">
+                    <i class="material-icons" style="font-size: 48px; margin-bottom: 16px;">format_quote</i>
+                    <h3>Customer Testimonials</h3>
+                    <p>This section will display customer testimonials.</p>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+/**
  * Renderiza todas las secciones de la página en el iframe de previsualización.
  */
 function renderPreview() {
@@ -1826,6 +1854,17 @@ function renderPreview() {
                             finalHtml += iframeWindow.renderImageWithText(config);
                         }
                     }
+                } else if (sectionId === 'testimonials') {
+                    const config = currentSectionsConfig.testimonials;
+                    if (config && !config.isHidden) {
+                        // Try to use the module first
+                        const moduleRender = iframeWindow.WebsiteBuilderModules?.Testimonials?.render;
+                        if (moduleRender) {
+                            finalHtml += moduleRender(config);
+                        } else if (iframeWindow.renderTestimonials) {
+                            finalHtml += iframeWindow.renderTestimonials(config);
+                        }
+                    }
                 }
             });
         }
@@ -1838,7 +1877,8 @@ function renderPreview() {
             'slideshow': renderSlideshow,
             'multicolumn': window.WebsiteBuilderModules?.Multicolumn?.render || renderMulticolumn,
             'imageWithText': window.WebsiteBuilderModules?.ImageWithText?.render || renderImageWithText,
-            'images-with-text': window.WebsiteBuilderModules?.ImageWithText?.render || renderImageWithText
+            'images-with-text': window.WebsiteBuilderModules?.ImageWithText?.render || renderImageWithText,
+            'testimonials': window.WebsiteBuilderModules?.Testimonials?.render || renderTestimonials
         };
         
         // Renderizar secciones según el orden definido
@@ -4835,6 +4875,7 @@ $(document).ready(async function() {
             
             // Ensure visibility toggles are synced after rendering
             setTimeout(() => {
+                // Sync visibility toggles to fix the two-click issue
                 syncVisibilityToggleStates();
                 
                 // Double-check imageWithText specifically
@@ -4848,6 +4889,22 @@ $(document).ready(async function() {
                             if (currentSectionsConfig.imageWithText.blocks[blockId]) {
                                 const blockHidden = currentSectionsConfig.imageWithText.blocks[blockId].isHidden || false;
                                 window.forceChildVisibilitySync(blockId, blockHidden);
+                            }
+                        });
+                    }
+                }
+                
+                // Double-check testimonials specifically
+                if (currentSectionsConfig.testimonials) {
+                    const isHidden = currentSectionsConfig.testimonials.isHidden || false;
+                    window.forceVisibilitySync('testimonials', isHidden);
+                    
+                    // Also sync all testimonial items
+                    if (currentSectionsConfig.testimonials.testimonials && currentSectionsConfig.testimonials.testimonialsOrder) {
+                        currentSectionsConfig.testimonials.testimonialsOrder.forEach(testimonialId => {
+                            if (currentSectionsConfig.testimonials.testimonials[testimonialId]) {
+                                const testimonialHidden = currentSectionsConfig.testimonials.testimonials[testimonialId].isHidden || false;
+                                window.forceChildVisibilitySync(testimonialId, testimonialHidden);
                             }
                         });
                     }
@@ -5043,6 +5100,18 @@ $(document).ready(async function() {
             } else {
                 console.error('[DEBUG] Failed to render column settings');
                 dynamicContentArea.innerHTML = '<p>Error: Failed to load column settings</p>';
+            }
+        } else if (viewName === 'testimonialsSettings') {
+            // Testimonials settings - usar módulo
+            console.log('[DEBUG] Rendering testimonials settings');
+            const html = executeModuleFunction('Testimonials', 'renderSettings', window.currentSectionsConfig?.testimonials);
+            
+            if (html) {
+                dynamicContentArea.innerHTML = html;
+                executeModuleFunction('Testimonials', 'attachEventListeners');
+                setTimeout(applyTranslations, 0);
+            } else {
+                console.error('[DEBUG] No HTML returned from testimonials renderSettings');
             }
         } else if (viewName === 'slideshowSlideSettings') {
             // Individual slide settings view
@@ -5470,6 +5539,63 @@ $(document).ready(async function() {
                                         <i class="material-icons icon-hidden">visibility_off</i>
                                     </button>
                                     <button class="action-icon delete-block" data-block-id="${blockId}" title="Delete">
+                                        <i class="material-icons">delete</i>
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                    }
+                });
+                html += '</div>';
+            }
+        }
+        
+        // Check if testimonials exists in currentSectionsConfig
+        if (currentSectionsConfig.testimonials) {
+            const hasTestimonials = currentSectionsConfig.testimonials.testimonials && 
+                                   currentSectionsConfig.testimonials.testimonialsOrder && 
+                                   currentSectionsConfig.testimonials.testimonialsOrder.length > 0;
+            
+            html += `
+                <div class="sidebar-subsection collapsible-parent" data-block-type="testimonials" data-element-id="testimonials">
+                    <span class="subsection-text" data-i18n="sections.testimonials">Testimonials</span>
+                    <div class="subsection-actions">
+                        <button class="action-icon visibility-toggle ${currentSectionsConfig.testimonials.isHidden ? 'is-hidden' : ''}" data-section="testimonials" title="Toggle visibility">
+                            <i class="material-icons icon-visible">visibility</i>
+                            <i class="material-icons icon-hidden">visibility_off</i>
+                        </button>
+                        <button class="action-icon add-icon" data-section="testimonials" title="Add testimonial">
+                            <i class="material-icons">add</i>
+                        </button>
+                        <button class="action-icon delete-section" data-section="testimonials" title="Delete">
+                            <i class="material-icons">delete</i>
+                        </button>
+                        ${hasTestimonials ? `
+                            <button class="action-icon collapse-toggle" title="Collapse/Expand">
+                                <i class="material-icons collapse-indicator">expand_more</i>
+                            </button>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+            
+            // Render existing testimonials if any
+            if (hasTestimonials) {
+                html += '<div id="testimonials-items-wrapper" style="position: relative;">';
+                currentSectionsConfig.testimonials.testimonialsOrder.forEach((testimonialId, index) => {
+                    const testimonial = currentSectionsConfig.testimonials.testimonials[testimonialId];
+                    if (testimonial) {
+                        const testimonialNumber = index + 1;
+                        html += `
+                            <div class="sidebar-subsection testimonial-item" data-block-type="testimonial-item" data-element-id="${testimonialId}" style="padding-left: 30px;">
+                                <i class="material-icons drag-handle">drag_handle</i>
+                                <span class="subsection-text" style="margin-left: 30px;">${testimonial.author || `${translations[currentLanguage]?.['testimonials.testimonial'] || 'Testimonial'} ${testimonialNumber}`}</span>
+                                <div class="subsection-actions">
+                                    <button class="action-icon visibility-toggle ${testimonial.isHidden ? 'is-hidden' : ''}" data-element-id="${testimonialId}" data-element-type="child" title="Toggle visibility">
+                                        <i class="material-icons icon-visible">visibility</i>
+                                        <i class="material-icons icon-hidden">visibility_off</i>
+                                    </button>
+                                    <button class="action-icon delete-testimonial" data-testimonial-id="${testimonialId}" title="Delete">
                                         <i class="material-icons">delete</i>
                                     </button>
                                 </div>
@@ -6445,8 +6571,7 @@ $(document).ready(async function() {
         });
         
         
-        // Initialize visibility toggles
-        initializeVisibilityToggles();
+        // Visibility toggles are handled by individual modules
     }
     
     // Function to render individual slide settings view
@@ -7205,7 +7330,7 @@ $(document).ready(async function() {
             { id: 'scrolling-text', icon: 'text_rotation_none', name: 'scrollingText' },
             { id: 'spacer', icon: 'space_bar', name: 'spacer' },
             { id: 'split-image-banner', icon: 'view_column', name: 'splitImageBanner' },
-            { id: 'testimonials', icon: 'rate_review', name: 'testimonials' },
+            { id: 'testimonials', icon: 'rate_review', name: 'testimonials', preview: 'testimonials' },
             { id: 'video', icon: 'videocam', name: 'video' }
         ];
         
@@ -8918,6 +9043,11 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                 isHidden = currentSectionsConfig.multicolumn?.isHidden || false;
             } else if (section === 'imageWithText') {
                 isHidden = currentSectionsConfig.imageWithText?.isHidden || false;
+            } else if (section === 'testimonials') {
+                isHidden = currentSectionsConfig.testimonials?.isHidden || false;
+            } else if (blockType === 'testimonial-item' && elementId) {
+                // Handle testimonial items
+                isHidden = currentSectionsConfig.testimonials?.testimonials?.[elementId]?.isHidden || false;
             } else if (blockType === 'image-with-text-block' && elementId) {
                 // Handle image with text blocks
                 isHidden = currentSectionsConfig.imageWithText?.blocks?.[elementId]?.isHidden || false;
@@ -9010,6 +9140,18 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
             else if (blockType === 'imageWithText') {
                 switchSidebarView('imageWithTextSettings');
             }
+            // Handle testimonials click
+            else if (blockType === 'testimonials') {
+                // Initialize testimonials if it doesn't exist
+                if (!currentSectionsConfig.testimonials) {
+                    currentSectionsConfig.testimonials = {
+                        isHidden: false,
+                        testimonials: {},
+                        testimonialsOrder: []
+                    };
+                }
+                switchSidebarView('testimonialsSettings');
+            }
         });
         
         // Visibility toggle button - COMMENTED OUT TO AVOID DUPLICATE HANDLER
@@ -9091,6 +9233,21 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                             currentSectionsConfig.sectionOrder.splice(index, 1);
                         }
                     }
+                } else if (section === 'testimonials' && currentSectionsConfig.testimonials) {
+                    console.log('[DEBUG] Deleting testimonials section');
+                    
+                    // First remove all testimonial items from the DOM
+                    $('#testimonials-items-wrapper').remove();
+                    $('.testimonial-item').remove();
+                    
+                    // Delete the testimonials data
+                    delete currentSectionsConfig.testimonials;
+                    
+                    // Remove from section order
+                    const index = currentSectionsConfig.sectionOrder.indexOf('testimonials');
+                    if (index > -1) {
+                        currentSectionsConfig.sectionOrder.splice(index, 1);
+                    }
                 }
                 
                 // Remove from DOM and update UI
@@ -9098,7 +9255,7 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                     $(this).remove();
                     
                     // For template sections, update the template sections container
-                    if (section === 'imageWithText' || section === 'multicolumn' || section === 'slideshow') {
+                    if (section === 'imageWithText' || section === 'multicolumn' || section === 'slideshow' || section === 'testimonials') {
                         const templateSectionsHtml = renderTemplateSections();
                         $('#template-sections-container').html(templateSectionsHtml + `
                             <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e3e3e3;">
@@ -9125,6 +9282,159 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
             
             return false;
         });
+        
+        // Add testimonial button - for testimonials from main view
+        $(document).off('click.addTestimonial').on('click.addTestimonial', '.add-icon[data-section="testimonials"]', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            console.log('Add testimonial clicked');
+            
+            // Initialize testimonials if needed
+            if (!currentSectionsConfig.testimonials) {
+                currentSectionsConfig.testimonials = {
+                    id: 'testimonials',
+                    isHidden: false,
+                    colorScheme: 'scheme1',
+                    heading: 'Customer Testimonials',
+                    showNavigation: true,
+                    autoPlay: false,
+                    autoPlaySpeed: 5,
+                    testimonials: {},
+                    testimonialsOrder: []
+                };
+            }
+            
+            // Ensure structure exists
+            if (!currentSectionsConfig.testimonials.testimonials) {
+                currentSectionsConfig.testimonials.testimonials = {};
+            }
+            if (!currentSectionsConfig.testimonials.testimonialsOrder) {
+                currentSectionsConfig.testimonials.testimonialsOrder = [];
+            }
+            
+            const $testimonialsSection = $('.sidebar-subsection[data-element-id="testimonials"]');
+            
+            // Create unique ID
+            const testimonialId = 'testimonial-' + Date.now();
+            const testimonialNumber = currentSectionsConfig.testimonials.testimonialsOrder.length + 1;
+            const testimonialName = `${translations[currentLanguage]?.['testimonials.testimonial'] || 'Testimonial'} ${testimonialNumber}`;
+            
+            // Create new testimonial item
+            const newTestimonial = $(`
+                <div class="sidebar-subsection testimonial-item" data-block-type="testimonial-item" data-element-id="${testimonialId}" style="padding-left: 30px;">
+                    <i class="material-icons drag-handle">drag_handle</i>
+                    <span class="subsection-text" style="margin-left: 30px;">${testimonialName}</span>
+                    <div class="subsection-actions">
+                        <button class="action-icon visibility-toggle" data-testimonial-id="${testimonialId}" title="Toggle visibility">
+                            <i class="material-icons icon-visible">visibility</i>
+                            <i class="material-icons icon-hidden">visibility_off</i>
+                        </button>
+                        <button class="action-icon delete-testimonial" data-testimonial-id="${testimonialId}" title="Delete">
+                            <i class="material-icons">delete</i>
+                        </button>
+                    </div>
+                </div>
+            `);
+            
+            // Find or create the testimonials wrapper
+            let $testimonialsWrapper = $('#testimonials-items-wrapper');
+            if ($testimonialsWrapper.length === 0) {
+                // Create wrapper if it doesn't exist
+                $testimonialsWrapper = $('<div id="testimonials-items-wrapper" style="position: relative;"></div>');
+                $testimonialsSection.after($testimonialsWrapper);
+            }
+            
+            // Insert new testimonial at the end of the wrapper
+            $testimonialsWrapper.append(newTestimonial);
+            
+            // Add to configuration
+            currentSectionsConfig.testimonials.testimonials[testimonialId] = {
+                id: testimonialId,
+                author: testimonialName,
+                position: '',
+                content: '',
+                rating: 5,
+                image: '',
+                isHidden: false
+            };
+            
+            // Add to order array
+            currentSectionsConfig.testimonials.testimonialsOrder.push(testimonialId);
+            
+            // Show collapse button if this is the first testimonial
+            if (currentSectionsConfig.testimonials.testimonialsOrder.length === 1) {
+                // Add collapse button to parent
+                const $collapseButton = $(`
+                    <button class="action-icon collapse-toggle" title="Collapse/Expand">
+                        <i class="material-icons collapse-indicator">expand_more</i>
+                    </button>
+                `);
+                $testimonialsSection.find('.subsection-actions').append($collapseButton);
+            }
+            
+            // Set pending changes flag
+            hasPendingPageStructureChanges = true;
+            updateSaveButtonState();
+            console.log('[DEBUG] Page structure changed - new testimonial added:', testimonialId);
+            
+            // Update preview
+            renderPreview();
+            
+            // Reinitialize drag and drop to include new element
+            setTimeout(() => {
+                initializeTestimonialsDragAndDrop();
+            }, 100);
+        });
+        
+        // Initialize testimonials drag and drop
+        function initializeTestimonialsDragAndDrop() {
+            console.log('[DEBUG] Initializing testimonials drag and drop');
+            
+            // Make testimonial items sortable
+            $('#testimonials-items-wrapper').sortable({
+                items: '.testimonial-item',
+                handle: '.drag-handle',
+                placeholder: 'sortable-placeholder',
+                tolerance: 'pointer',
+                containment: 'parent',
+                axis: 'y',
+                start: function(e, ui) {
+                    // Add placeholder styling
+                    ui.placeholder.height(ui.item.height());
+                    ui.placeholder.css({
+                        'visibility': 'visible',
+                        'background': '#f0f0f0',
+                        'border': '2px dashed #ccc',
+                        'margin-bottom': '1px'
+                    });
+                },
+                stop: function(e, ui) {
+                    // Update the testimonials order
+                    const newOrder = [];
+                    $('.testimonial-item').each(function() {
+                        const testimonialId = $(this).data('element-id');
+                        if (testimonialId) {
+                            newOrder.push(testimonialId);
+                        }
+                    });
+                    
+                    // Update the order in configuration
+                    if (currentSectionsConfig.testimonials) {
+                        currentSectionsConfig.testimonials.testimonialsOrder = newOrder;
+                        
+                        // Mark as having pending changes
+                        hasPendingPageStructureChanges = true;
+                        updateSaveButtonState();
+                        
+                        // Update preview
+                        renderPreview();
+                        
+                        console.log('[DEBUG] Testimonials reordered:', newOrder);
+                    }
+                }
+            });
+        }
         
         // More options button
         $(document).on('click', '.more-options', function(e) {
@@ -9953,6 +10263,25 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                     // Update preview immediately
                     renderPreview();
                 }
+            } else if (section === 'testimonials' || blockType === 'testimonials') {
+                currentSectionsConfig.testimonials.isHidden = newHiddenState;
+                console.log(`[DEBUG] Testimonials saved as: ${newHiddenState ? 'hidden' : 'visible'}`);
+                
+                // Force sync the visibility toggle state
+                if (window.forceVisibilitySync) {
+                    window.forceVisibilitySync('testimonials', newHiddenState);
+                }
+            } else if (blockType === 'testimonial-item' && elementId) {
+                // Handle testimonial item visibility
+                if (currentSectionsConfig.testimonials && currentSectionsConfig.testimonials.testimonials && currentSectionsConfig.testimonials.testimonials[elementId]) {
+                    currentSectionsConfig.testimonials.testimonials[elementId].isHidden = newHiddenState;
+                    console.log(`[DEBUG] Testimonial item ${elementId} saved as: ${newHiddenState ? 'hidden' : 'visible'}`);
+                    
+                    // Force sync the child visibility toggle state
+                    if (window.forceChildVisibilitySync) {
+                        window.forceChildVisibilitySync(elementId, newHiddenState);
+                    }
+                }
             }
             
             // Activar bandera de cambios pendientes
@@ -9967,6 +10296,13 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
         
         // Initialize drag and drop directly
         initializeDragAndDropSimple();
+        
+        // Initialize sortable for testimonials if they exist
+        if (currentSectionsConfig.testimonials && currentSectionsConfig.testimonials.testimonialsOrder && currentSectionsConfig.testimonials.testimonialsOrder.length > 0) {
+            setTimeout(() => {
+                initializeTestimonialsDragAndDrop();
+            }, 100);
+        }
         
         // Initialize sortable for slideshow slides if they exist
         if (currentSectionsConfig.slideshow && currentSectionsConfig.slideshow.slideOrder && currentSectionsConfig.slideshow.slideOrder.length > 0) {
@@ -10711,6 +11047,7 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
             'slideshow': '<div class="section-preview-image"><img src="/TestImages/slideshowpreview.png" alt="Slideshow"></div>',
             'multicolumn': '<div class="section-preview-image"><img src="/TestImages/multicolumimage.png" alt="Multicolumn"></div>',
             'images-with-text': '<div class="section-preview-image"><img src="/TestImages/imagewithtexthoverpreview.png" alt="Image with Text"></div>',
+            'testimonials': '<div class="section-preview-image"><img src="/TestImages/testimonialstructure.png?v=' + Date.now() + '" alt="Testimonials"></div>',
             // Add more previews as needed
         };
         
@@ -11062,6 +11399,57 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                 renderPreview();
                 
                 console.log('[DEBUG] Image with text added successfully');
+            }
+        }
+        
+        // Handle testimonials section
+        if (group === 'template' && sectionId === 'testimonials') {
+            console.log('[DEBUG] Adding testimonials section');
+            
+            // Initialize testimonials configuration if it doesn't exist
+            if (!currentSectionsConfig.testimonials) {
+                currentSectionsConfig.testimonials = {
+                    id: 'testimonials',
+                    isHidden: false,
+                    colorScheme: 'scheme1',
+                    heading: 'Customer Testimonials',
+                    showNavigation: true,
+                    autoPlay: false,
+                    autoPlaySpeed: 5,
+                    testimonials: {},
+                    testimonialsOrder: []
+                };
+                
+                // Add testimonials to section order if not already present
+                if (!currentSectionsConfig.sectionOrder) {
+                    currentSectionsConfig.sectionOrder = [];
+                }
+                if (!currentSectionsConfig.sectionOrder.includes('testimonials')) {
+                    currentSectionsConfig.sectionOrder.push('testimonials');
+                }
+                
+                // Update template sections only
+                const templateSectionsHtml = renderTemplateSections();
+                $('#template-sections-container').html(templateSectionsHtml + `
+                    <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e3e3e3;">
+                        <div class="add-section-button add-template-section" data-group="template">
+                            <i class="material-icons">add_circle</i>
+                            <span data-i18n="sections.addTemplateSection">Agregar sección de plantilla</span>
+                        </div>
+                    </div>
+                `);
+                
+                // Apply translations
+                setTimeout(applyTranslations, 0);
+                
+                // Set pending changes flag
+                hasPendingPageStructureChanges = true;
+                updateSaveButtonState();
+                
+                // Update preview
+                renderPreview();
+                
+                console.log('[DEBUG] Testimonials added successfully');
             }
         }
         
@@ -17049,8 +17437,10 @@ document.head.appendChild(style);
         const selectors = [
             `.visibility-toggle[data-block-id="${blockId}"]`,
             `.visibility-toggle[data-element-id="${blockId}"]`,
+            `.visibility-toggle[data-testimonial-id="${blockId}"]`,
             `.image-with-text-block-item[data-block-id="${blockId}"] .visibility-toggle`,
-            `.image-with-text-block-item[data-element-id="${blockId}"] .visibility-toggle`
+            `.image-with-text-block-item[data-element-id="${blockId}"] .visibility-toggle`,
+            `.testimonial-item[data-element-id="${blockId}"] .visibility-toggle`
         ];
         
         let $toggle = null;
@@ -17327,6 +17717,16 @@ document.head.appendChild(style);
                         // Recargar la vista de configuración de multicolumn
                         console.log('[DEBUG] Reloading multicolumn settings view after save');
                         window.switchSidebarView('multicolumnSettings');
+                    } else if (currentSidebarView === 'testimonialsSettings') {
+                        // Mantener la vista de testimonials abierta después de guardar
+                        console.log('[DEBUG] Staying in testimonials settings view after save');
+                        // No need to reload view, just sync visibility states
+                        setTimeout(() => {
+                            // Call the module's sync function if available
+                            if (window.WebsiteBuilderModules?.Testimonials?.attachEventListeners) {
+                                window.WebsiteBuilderModules.Testimonials.attachEventListeners();
+                            }
+                        }, 100);
                     }
                     
                     setTimeout(() => {
