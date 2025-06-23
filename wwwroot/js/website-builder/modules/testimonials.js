@@ -1,5 +1,17 @@
 // Testimonials Module for Website Builder
 window.WebsiteBuilderModules = window.WebsiteBuilderModules || {};
+
+// Helper functions for size calculations
+function getHeadingSize(level) {
+    const sizes = ['48px', '42px', '36px', '32px', '28px', '24px', '20px', '18px'];
+    return sizes[level] || '32px';
+}
+
+function getBodySize(level) {
+    const sizes = ['20px', '18px', '16px', '14px', '13px', '12px', '11px'];
+    return sizes[level] || '16px';
+}
+
 window.WebsiteBuilderModules.Testimonials = {
     
     // Render testimonials section in preview
@@ -11,27 +23,208 @@ window.WebsiteBuilderModules.Testimonials = {
             return '';
         }
         
-        console.log('[TESTIMONIALS] Rendering testimonials section');
+        // Get color scheme values
+        const schemeColors = window.getColorSchemeValues ? window.getColorSchemeValues(config.colorScheme || 'scheme3') : {
+            background: '#ffffff',
+            text: '#333333',
+            foreground: '#f8f8f8',
+            border: '#e0e0e0'
+        };
         
-        // Show the preview image initially
+        // Get typography
+        const headingTypography = window.currentGlobalThemeSettings?.typography?.heading || {};
+        const bodyTypography = window.currentGlobalThemeSettings?.typography?.body || {};
+        
+        const headingFont = window.getFontNameFromValueSafe ? 
+            window.getFontNameFromValueSafe(headingTypography.font || 'helvetica') : 
+            'Helvetica';
+        const bodyFont = window.getFontNameFromValueSafe ? 
+            window.getFontNameFromValueSafe(bodyTypography.font || 'roboto') : 
+            'Roboto';
+        
+        // Calculate paddings
+        const sidePadding = config.addSidePaddings ? '20px' : '0';
+        const topPadding = config.topPadding || 96;
+        const bottomPadding = config.bottomPadding || 30;
+        
+        // Build styles based on width
+        let containerStyles = 'margin: 0 auto;';
+        if (config.width === 'page') {
+            containerStyles += 'max-width: 1200px;';
+        } else if (config.width === 'container') {
+            containerStyles += 'max-width: 1000px;';
+        } else {
+            containerStyles += 'max-width: 100%;';
+        }
+        
+        // Background styles
+        let sectionStyles = `padding: ${topPadding}px ${sidePadding} ${bottomPadding}px;`;
+        if (config.colorBackground) {
+            sectionStyles += `background-color: ${schemeColors.background};`;
+        }
+        
+        // Render testimonials
+        let testimonialsHtml = '';
+        if (config.testimonials && config.testimonialsOrder && config.testimonialsOrder.length > 0) {
+            const visibleTestimonials = config.testimonialsOrder.filter(id => 
+                config.testimonials[id] && !config.testimonials[id].isHidden
+            );
+            
+            if (visibleTestimonials.length > 0) {
+                // Desktop layout styles
+                const cardsPerRow = config.desktopCardsPerRow || 2;
+                const spaceBetween = config.desktopSpaceBetweenCards || 16;
+                const gridStyles = config.desktopLayout === 'bottom-carousel' ? 
+                    `display: grid; grid-template-columns: repeat(${cardsPerRow}, 1fr); gap: ${spaceBetween}px;` :
+                    'display: flex; overflow-x: auto;';
+                
+                testimonialsHtml = `<div class="testimonials-grid" style="${gridStyles}">`;
+                
+                visibleTestimonials.forEach(testimonialId => {
+                    const testimonial = config.testimonials[testimonialId];
+                    testimonialsHtml += window.WebsiteBuilderModules.Testimonials.renderTestimonialCard(testimonial, config);
+                });
+                
+                testimonialsHtml += '</div>';
+            }
+        }
+        
         const html = `
-            <div class="section-wrapper testimonials-section" data-section-id="testimonials" style="padding: 40px 0; background: #ffffff;">
+            <div class="section-wrapper testimonials-section" data-section-id="testimonials" style="${sectionStyles}">
                 <div class="section-header-tag">
                     <span class="material-symbols-outlined" style="font-size: 16px;">rate_review</span>
                     ${window.translations && window.translations[window.currentLanguage] ? 
                         (window.translations[window.currentLanguage]['sections.testimonials'] || 'Testimonials') : 
                         'Testimonials'}
                 </div>
-                <div class="container" style="max-width: 1200px; margin: 0 auto; padding: 0 20px;">
-                    <div style="text-align: center;">
-                        <img src="/TestImages/testimonialstructure.png?v=${Date.now()}" alt="Testimonials Preview" style="max-width: 100%; height: auto;">
-                    </div>
+                <div class="container" style="${containerStyles}">
+                    ${config.subheading || config.heading || config.body ? `
+                        <div class="testimonials-header" style="text-align: ${config.desktopContentAlignment || 'left'}; margin-bottom: 40px;">
+                            ${config.subheading ? `<p style="color: ${schemeColors.text}; opacity: 0.7; margin: 0 0 10px; font-family: '${bodyFont}', sans-serif; font-size: 14px; text-transform: uppercase;">${config.subheading}</p>` : ''}
+                            ${config.heading ? `<h2 style="color: ${schemeColors.text}; margin: 0 0 20px; font-family: '${headingFont}', sans-serif; font-size: ${getHeadingSize(config.headingSize || 3)};">${config.heading}</h2>` : ''}
+                            ${config.body ? `<div style="color: ${schemeColors.text}; opacity: 0.8; font-family: '${bodyFont}', sans-serif; font-size: ${getBodySize(config.bodySize || 3)};">${config.body}</div>` : ''}
+                            ${config.linkLabel && config.linkUrl ? `<a href="${config.linkUrl}" style="color: ${schemeColors.text}; text-decoration: underline; margin-top: 15px; display: inline-block; font-family: '${bodyFont}', sans-serif;">${config.linkLabel}</a>` : ''}
+                        </div>
+                    ` : ''}
+                    
+                    ${testimonialsHtml || `
+                        <div style="text-align: center; padding: 40px; color: #999;">
+                            <i class="material-icons" style="font-size: 48px; color: #ddd;">rate_review</i>
+                            <p>Add testimonials to showcase customer reviews</p>
+                        </div>
+                    `}
                 </div>
             </div>
         `;
         
-        console.log('[TESTIMONIALS] Returning HTML:', html);
+        console.log('[TESTIMONIALS] Returning dynamic HTML');
         return html;
+    },
+    
+    // Render individual testimonial card
+    renderTestimonialCard: function(testimonial, config) {
+        const schemeColors = window.getColorSchemeValues ? window.getColorSchemeValues(config.colorScheme || 'scheme3') : {
+            background: '#ffffff',
+            text: '#333333',
+            foreground: '#f8f8f8',
+            border: '#e0e0e0'
+        };
+        
+        const bodyTypography = window.currentGlobalThemeSettings?.typography?.body || {};
+        const bodyFont = window.getFontNameFromValueSafe ? 
+            window.getFontNameFromValueSafe(bodyTypography.font || 'roboto') : 
+            'Roboto';
+        
+        // Card background
+        const cardBg = config.colorTestimonials ? schemeColors.foreground : '#ffffff';
+        const borderColor = config.colorTestimonials ? 'transparent' : schemeColors.border;
+        
+        // Card size configurations
+        const cardSize = config.cardSize || 'medium';
+        const sizeConfigs = {
+            small: {
+                padding: '15px',
+                contentFontSize: '12px',
+                authorFontSize: '11px',
+                authorInfoFontSize: '10px',
+                starSize: '12px',
+                ratingMargin: '8px'
+            },
+            medium: {
+                padding: '30px',
+                contentFontSize: '16px',
+                authorFontSize: '14px',
+                authorInfoFontSize: '13px',
+                starSize: '16px',
+                ratingMargin: '15px'
+            },
+            large: {
+                padding: '40px',
+                contentFontSize: '18px',
+                authorFontSize: '16px',
+                authorInfoFontSize: '14px',
+                starSize: '20px',
+                ratingMargin: '20px'
+            }
+        };
+        
+        const currentSize = sizeConfigs[cardSize];
+        
+        // Rating stars
+        let ratingHtml = '';
+        if (config.showRating && testimonial.rating) {
+            const fullStars = Math.floor(testimonial.rating);
+            const hasHalfStar = testimonial.rating % 1 !== 0;
+            
+            ratingHtml = `<div style="margin-bottom: ${currentSize.ratingMargin};">`;
+            for (let i = 0; i < 5; i++) {
+                if (i < fullStars) {
+                    ratingHtml += `<span style="color: ${config.ratingStarsColor || '#F49A13'}; font-size: ${currentSize.starSize};">★</span>`;
+                } else if (i === fullStars && hasHalfStar) {
+                    ratingHtml += `<span style="color: ${config.ratingStarsColor || '#F49A13'}; font-size: ${currentSize.starSize};">★</span>`; // Simplified for now
+                } else {
+                    ratingHtml += `<span style="color: #ddd; font-size: ${currentSize.starSize};">★</span>`;
+                }
+            }
+            ratingHtml += '</div>';
+        }
+        
+        return `
+            <div class="testimonial-card" style="background: ${cardBg}; border: 1px solid ${borderColor}; border-radius: 8px; padding: ${currentSize.padding}; text-align: ${config.desktopContentAlignment || 'left'};">
+                ${ratingHtml}
+                
+                <div style="color: ${schemeColors.text}; font-family: '${bodyFont}', sans-serif; font-size: ${currentSize.contentFontSize}; margin-bottom: 24px; line-height: 1.6;">
+                    ${testimonial.content || 'Customer testimonial content...'}
+                </div>
+                
+                <div style="display: flex; align-items: center; gap: 12px; ${config.desktopContentAlignment === 'center' ? 'justify-content: center;' : ''}">
+                    ${testimonial.avatar ? `
+                        <img src="${testimonial.avatar}" alt="${testimonial.author}" style="width: ${testimonial.avatarSize || 40}px; height: ${testimonial.avatarSize || 40}px; border-radius: ${testimonial.avatarShape === 'square' ? '4px' : '50%'}; object-fit: cover;">
+                    ` : `
+                        <div style="width: ${testimonial.avatarSize || 40}px; height: ${testimonial.avatarSize || 40}px; border-radius: ${testimonial.avatarShape === 'square' ? '4px' : '50%'}; background: ${schemeColors.foreground}; display: flex; align-items: center; justify-content: center;">
+                            <i class="material-icons" style="color: ${testimonial.avatarIconColor || '#666666'}; font-size: 20px;">person</i>
+                        </div>
+                    `}
+                    
+                    <div>
+                        <div style="color: ${schemeColors.text}; font-weight: 600; font-family: '${bodyFont}', sans-serif; font-size: ${currentSize.authorFontSize}; margin-bottom: 2px;">
+                            ${testimonial.author || 'Author'}
+                        </div>
+                        ${testimonial.authorInfo ? `
+                            <div style="color: ${schemeColors.text}; opacity: 0.7; font-size: ${currentSize.authorInfoFontSize}; font-family: '${bodyFont}', sans-serif;">
+                                ${testimonial.authorInfo}
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+                
+                ${testimonial.productImage ? `
+                    <div style="margin-top: 20px; text-align: ${config.desktopContentAlignment || 'left'};">
+                        <img src="${testimonial.productImage}" alt="Product" style="width: ${testimonial.productImageSize || 200}px; height: auto; border-radius: ${testimonial.productImageShape === 'circle' ? '50%' : '4px'}; max-width: 100%;">
+                    </div>
+                ` : ''}
+            </div>
+        `;
     },
     
     // Render settings panel
@@ -145,7 +338,7 @@ window.WebsiteBuilderModules.Testimonials = {
                     <div class="settings-divider"></div>
                     
                     <!-- Testimonials section -->
-                    <h4 data-i18n="testimonials.testimonialsTitle" style="margin-bottom: 15px;">Testimonials</h4>
+                    <h4 data-i18n="testimonials.testimonialsTitle" style="font-size: 14px; font-weight: 600; margin-bottom: 16px;">Testimonials</h4>
                     
                     <!-- Desktop layout -->
                     <div class="settings-field">
@@ -231,10 +424,21 @@ window.WebsiteBuilderModules.Testimonials = {
                         </div>
                     </div>
                     
+                    <!-- Card size -->
+                    <div class="settings-field">
+                        <label data-i18n="testimonials.cardSize">Card size</label>
+                        <select class="shopify-select" id="testimonials-card-size">
+                            <option value="small" ${configData.cardSize === 'small' ? 'selected' : ''} data-i18n="testimonials.small">Small</option>
+                            <option value="medium" ${configData.cardSize === 'medium' ? 'selected' : ''} data-i18n="testimonials.medium">Medium</option>
+                            <option value="large" ${configData.cardSize === 'large' ? 'selected' : ''} data-i18n="testimonials.large">Large</option>
+                        </select>
+                        <p class="help-text" data-i18n="testimonials.cardSizeHelp">Affects padding, font sizes, and spacing</p>
+                    </div>
+                    
                     <div class="settings-divider"></div>
                     
                     <!-- Content section -->
-                    <h4 data-i18n="testimonials.content" style="margin-bottom: 15px;">Content</h4>
+                    <h4 data-i18n="testimonials.content" style="font-size: 14px; font-weight: 600; margin-bottom: 16px;">Content</h4>
                     
                     <!-- Subheading -->
                     <div class="settings-field">
@@ -277,23 +481,19 @@ window.WebsiteBuilderModules.Testimonials = {
                     <!-- Heading size -->
                     <div class="settings-field">
                         <label data-i18n="testimonials.headingSize">Heading size</label>
-                        <select class="shopify-select" id="testimonials-heading-size">
-                            <option value="heading1" ${configData.headingSize === 'heading1' ? 'selected' : ''}>Heading 1</option>
-                            <option value="heading2" ${configData.headingSize === 'heading2' ? 'selected' : ''}>Heading 2</option>
-                            <option value="heading3" ${configData.headingSize === 'heading3' ? 'selected' : ''}>Heading 3</option>
-                            <option value="heading4" ${configData.headingSize === 'heading4' ? 'selected' : ''}>Heading 4</option>
-                        </select>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <input type="range" class="shopify-range" id="testimonials-heading-size" min="0" max="7" value="${configData.headingSize || 3}">
+                            <input type="number" class="shopify-number-input" id="testimonials-heading-size-input" value="${configData.headingSize || 3}" min="0" max="7" style="width: 60px;">
+                        </div>
                     </div>
                     
                     <!-- Body size -->
                     <div class="settings-field">
                         <label data-i18n="testimonials.bodySize">Body size</label>
-                        <select class="shopify-select" id="testimonials-body-size">
-                            <option value="body1" ${configData.bodySize === 'body1' ? 'selected' : ''}>Body 1</option>
-                            <option value="body2" ${configData.bodySize === 'body2' ? 'selected' : ''}>Body 2</option>
-                            <option value="body3" ${configData.bodySize === 'body3' ? 'selected' : ''}>Body 3</option>
-                            <option value="body4" ${configData.bodySize === 'body4' ? 'selected' : ''}>Body 4</option>
-                        </select>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <input type="range" class="shopify-range" id="testimonials-body-size" min="0" max="6" value="${configData.bodySize || 3}">
+                            <input type="number" class="shopify-number-input" id="testimonials-body-size-input" value="${configData.bodySize || 3}" min="0" max="6" style="width: 60px;">
+                        </div>
                         <p class="help-text" data-i18n="testimonials.bodySizeHelp">For 'Paragraph' body text formatting</p>
                     </div>
                     
@@ -312,7 +512,7 @@ window.WebsiteBuilderModules.Testimonials = {
                     <div class="settings-divider"></div>
                     
                     <!-- Background image section -->
-                    <h4 data-i18n="testimonials.backgroundImage" style="margin-bottom: 15px;">Background image</h4>
+                    <h4 data-i18n="testimonials.backgroundImage" style="font-size: 14px; font-weight: 600; margin-bottom: 16px;">Background image</h4>
                     
                     <!-- Image selector -->
                     <div class="settings-field">
@@ -357,7 +557,7 @@ window.WebsiteBuilderModules.Testimonials = {
                     <div class="settings-divider"></div>
                     
                     <!-- Autoplay section -->
-                    <h4 data-i18n="testimonials.autoplay" style="margin-bottom: 15px;">Autoplay</h4>
+                    <h4 data-i18n="testimonials.autoplay" style="font-size: 14px; font-weight: 600; margin-bottom: 16px;">Autoplay</h4>
                     
                     <!-- Autoplay mode -->
                     <div class="settings-field">
@@ -383,7 +583,7 @@ window.WebsiteBuilderModules.Testimonials = {
                     <div class="settings-divider"></div>
                     
                     <!-- Paddings section -->
-                    <h4 data-i18n="testimonials.paddings" style="margin-bottom: 15px;">Paddings</h4>
+                    <h4 data-i18n="testimonials.paddings" style="font-size: 14px; font-weight: 600; margin-bottom: 16px;">Paddings</h4>
                     
                     <!-- Add side paddings -->
                     <div class="settings-field">
@@ -418,17 +618,7 @@ window.WebsiteBuilderModules.Testimonials = {
                         </div>
                     </div>
                     
-                    <div class="settings-divider"></div>
-                    
-                    <!-- Testimonials list -->
-                    <h4 data-i18n="testimonials.testimonialsListTitle" style="margin-bottom: 15px;">Testimonials</h4>
-                    
-                    <button class="shopify-button" style="width: 100%; margin-bottom: 20px;" onclick="window.WebsiteBuilderModules.Testimonials.addTestimonial()">
-                        <i class="material-icons" style="vertical-align: middle; margin-right: 5px;">add</i>
-                        <span data-i18n="testimonials.add.button">Add testimonial</span>
-                    </button>
-                    
-                    ${this.renderTestimonialsList(configData.testimonials, configData.testimonialsOrder)}
+                    <!-- Testimonials list section removed - managed in sidebar -->
                 </div>
             </div>
         `;
@@ -483,7 +673,7 @@ window.WebsiteBuilderModules.Testimonials = {
         return html;
     },
     
-    // Render individual testimonial settings
+    // Render individual testimonial settings (collapsed view)
     renderTestimonialSettings: function(testimonial) {
         return `
             <div class="testimonial-settings">
@@ -527,6 +717,186 @@ window.WebsiteBuilderModules.Testimonials = {
                                 <span data-i18n="common.selectImage">Select image</span>
                             </button>`
                         }
+                    </div>
+                </div>
+            </div>
+        `;
+    },
+    
+    // Render full testimonial child settings view
+    renderTestimonialChildSettings: function(testimonialId, parentConfig) {
+        const testimonial = parentConfig.testimonials[testimonialId] || {};
+        
+        return `
+            <div style="display: flex; flex-direction: column; height: 100%; position: relative; overflow: hidden;">
+                <div class="sidebar-view-header" style="position: relative; z-index: 10;">
+                    <button class="back-to-sections-btn">
+                        <i class="material-icons">arrow_back</i>
+                    </button>
+                    <h3 data-i18n="testimonials.testimonialSettings">Testimonial</h3>
+                    <div class="section-menu-wrapper">
+                        <button class="btn-icon section-menu">
+                            <i class="material-icons">more_vert</i>
+                        </button>
+                        <div class="section-menu-dropdown">
+                            <a href="#" class="menu-item" data-action="locate">
+                                <i class="material-icons">my_location</i>
+                                <span data-i18n="common.locate">Locate</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="padding: 20px; overflow-y: auto; overflow-x: hidden; flex: 1; height: calc(100% - 60px); box-sizing: border-box;">
+                    <!-- Rating -->
+                    <div class="settings-field">
+                        <label data-i18n="testimonials.rating">Rating</label>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <input type="range" class="shopify-range" id="testimonial-rating-slider" min="1" max="5" value="${testimonial.rating || 4.5}" step="0.5">
+                            <input type="number" class="shopify-number-input" id="testimonial-rating-input" value="${testimonial.rating || 4.5}" min="1" max="5" step="0.5" style="width: 60px;">
+                        </div>
+                    </div>
+                    
+                    <!-- Testimonial (Rich text) -->
+                    <div class="settings-field">
+                        <label data-i18n="testimonials.testimonial">Testimonial</label>
+                        <div class="rich-text-toolbar">
+                            <button class="toolbar-btn" data-command="formatBlock" data-value="p" title="Paragraph">
+                                <span style="font-size: 11px;">Aa</span>
+                            </button>
+                            <button class="toolbar-btn" data-command="bold" title="Bold">
+                                <span style="font-weight: bold;">B</span>
+                            </button>
+                            <button class="toolbar-btn" data-command="italic" title="Italic">
+                                <span style="font-style: italic;">I</span>
+                            </button>
+                            <button class="toolbar-btn" data-command="createLink" title="Link">
+                                <i class="material-icons" style="font-size: 16px;">link</i>
+                            </button>
+                            <button class="toolbar-btn" data-command="insertUnorderedList" title="Bullet list">
+                                <i class="material-icons" style="font-size: 16px;">format_list_bulleted</i>
+                            </button>
+                            <button class="toolbar-btn" data-command="insertOrderedList" title="Numbered list">
+                                <i class="material-icons" style="font-size: 16px;">format_list_numbered</i>
+                            </button>
+                        </div>
+                        <div contenteditable="true" class="rich-text-editor shopify-input" id="testimonial-content-editor" style="min-height: 100px; padding: 10px;">${testimonial.content || 'Add authentic testimonials of your customers talking about your products or brand in their own words, so that customers can identify with them and their needs.'}</div>
+                    </div>
+                    
+                    <!-- Author avatar -->
+                    <div class="settings-field">
+                        <label data-i18n="testimonials.authorAvatar">Author avatar</label>
+                        <div class="image-selector" id="testimonial-avatar-selector" style="border: 2px dashed #e0e0e0; border-radius: 4px; padding: 30px; text-align: center; cursor: pointer;">
+                            ${testimonial.avatar ? 
+                                `<img src="${testimonial.avatar}" style="max-width: 80px; height: auto; border-radius: ${testimonial.avatarShape === 'square' ? '4px' : '50%'};">` : 
+                                `<div>
+                                    <button class="shopify-button-secondary">
+                                        <span data-i18n="common.selectImage">Seleccionar</span>
+                                    </button>
+                                    <p class="help-text" style="margin-top: 10px;" data-i18n="common.exploreImagesAlt">Explorar imágenes gratuitas</p>
+                                </div>`
+                            }
+                        </div>
+                    </div>
+                    
+                    <!-- Avatar size -->
+                    <div class="settings-field">
+                        <label data-i18n="testimonials.avatarSize">Avatar size</label>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <input type="range" class="shopify-range" id="testimonial-avatar-size" min="30" max="80" value="${testimonial.avatarSize || 40}">
+                            <input type="number" class="shopify-number-input" id="testimonial-avatar-size-input" value="${testimonial.avatarSize || 40}" min="30" max="80" style="width: 60px;">
+                            <span style="font-size: 13px; color: #6d7175;">px</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Avatar shape -->
+                    <div class="settings-field">
+                        <label data-i18n="testimonials.avatarShape">Avatar shape</label>
+                        <div class="button-group">
+                            <button class="shape-btn ${testimonial.avatarShape !== 'square' ? 'active' : ''}" data-shape="circle">
+                                <span data-i18n="testimonials.circle">Circle</span>
+                            </button>
+                            <button class="shape-btn ${testimonial.avatarShape === 'square' ? 'active' : ''}" data-shape="square">
+                                <span data-i18n="testimonials.square">Square</span>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Avatar icon color -->
+                    <div class="settings-field">
+                        <label data-i18n="testimonials.avatarIconColor">Avatar icon color</label>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <input type="color" class="color-picker" id="testimonial-avatar-icon-color" value="${testimonial.avatarIconColor || '#666666'}" style="width: 50px; height: 38px; border: 1px solid #e3e3e3; border-radius: 4px; cursor: pointer;">
+                            <input type="text" class="color-text-input shopify-input" value="${testimonial.avatarIconColor || '#666666'}" placeholder="#666666" style="flex: 1;">
+                        </div>
+                        <p class="help-text" data-i18n="testimonials.avatarIconColorHelp">Color of the person icon when no avatar image is uploaded</p>
+                    </div>
+                    
+                    <!-- Author name -->
+                    <div class="settings-field">
+                        <label data-i18n="testimonials.authorName">Author name</label>
+                        <input type="text" class="shopify-input" id="testimonial-author-name" value="${testimonial.author || ''}" placeholder="Author">
+                    </div>
+                    
+                    <!-- Author details -->
+                    <div class="settings-field">
+                        <label data-i18n="testimonials.authorDetails">Author details</label>
+                        <input type="text" class="shopify-input" id="testimonial-author-details" value="${testimonial.authorInfo || ''}" placeholder="Author details">
+                    </div>
+                    
+                    <!-- Product -->
+                    <div class="settings-field">
+                        <label data-i18n="testimonials.product">Product</label>
+                        <button class="shopify-button-secondary" style="width: 100%; justify-content: space-between;">
+                            <span data-i18n="common.select">Seleccionar</span>
+                            <i class="material-icons" style="font-size: 18px;">expand_more</i>
+                        </button>
+                    </div>
+                    
+                    <!-- Image -->
+                    <div class="settings-field">
+                        <label data-i18n="testimonials.image">Image</label>
+                        <div class="image-selector" id="testimonial-product-image-selector" style="border: 2px dashed #e0e0e0; border-radius: 4px; padding: 30px; text-align: center; cursor: pointer;">
+                            ${testimonial.productImage ? 
+                                `<img src="${testimonial.productImage}" style="max-width: 100%; height: auto; border-radius: ${testimonial.productImageShape === 'circle' ? '50%' : '4px'};">` : 
+                                `<div>
+                                    <button class="shopify-button-secondary">
+                                        <span data-i18n="common.selectImage">Seleccionar</span>
+                                    </button>
+                                    <p class="help-text" style="margin-top: 10px;" data-i18n="testimonials.imageUsePriorityProduct">Image use priority over product</p>
+                                </div>`
+                            }
+                        </div>
+                    </div>
+                    
+                    <!-- Product image size -->
+                    <div class="settings-field">
+                        <label data-i18n="testimonials.productImageSize">Product image size</label>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <input type="range" class="shopify-range" id="testimonial-product-image-size" min="100" max="300" value="${testimonial.productImageSize || 200}">
+                            <input type="number" class="shopify-number-input" id="testimonial-product-image-size-input" value="${testimonial.productImageSize || 200}" min="100" max="300" style="width: 60px;">
+                            <span style="font-size: 13px; color: #6d7175;">px</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Product image shape -->
+                    <div class="settings-field">
+                        <label data-i18n="testimonials.productImageShape">Product image shape</label>
+                        <div class="button-group">
+                            <button class="shape-btn ${testimonial.productImageShape !== 'circle' ? 'active' : ''}" data-shape="square" data-type="product">
+                                <span data-i18n="testimonials.square">Square</span>
+                            </button>
+                            <button class="shape-btn ${testimonial.productImageShape === 'circle' ? 'active' : ''}" data-shape="circle" data-type="product">
+                                <span data-i18n="testimonials.circle">Circle</span>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Testimonial link -->
+                    <div class="settings-field">
+                        <label data-i18n="testimonials.testimonialLink">Testimonial link</label>
+                        <input type="text" class="shopify-input" id="testimonial-link" value="${testimonial.link || ''}" placeholder="Pega un enlace o busca">
+                        <p class="help-text" data-i18n="testimonials.linkHelp">If left blank, the testimonial slides in from the left</p>
                     </div>
                 </div>
             </div>
@@ -666,6 +1036,11 @@ window.WebsiteBuilderModules.Testimonials = {
             }
         });
         
+        // Card size
+        $('#testimonials-card-size').off('change').on('change', function() {
+            updateConfig('cardSize', $(this).val());
+        });
+        
         // Subheading
         $('#testimonials-subheading').off('input').on('input', function() {
             updateConfig('subheading', $(this).val());
@@ -697,14 +1072,32 @@ window.WebsiteBuilderModules.Testimonials = {
             $('#testimonials-body').trigger('input');
         });
         
-        // Heading size
-        $('#testimonials-heading-size').off('change').on('change', function() {
-            updateConfig('headingSize', $(this).val());
+        // Heading size slider and input sync
+        $('#testimonials-heading-size').off('input').on('input', function() {
+            const value = $(this).val();
+            $('#testimonials-heading-size-input').val(value);
+            updateConfig('headingSize', parseInt(value));
         });
         
-        // Body size
-        $('#testimonials-body-size').off('change').on('change', function() {
-            updateConfig('bodySize', $(this).val());
+        $('#testimonials-heading-size-input').off('change').on('change', function() {
+            const value = Math.max(0, Math.min(7, parseInt($(this).val()) || 3));
+            $(this).val(value);
+            $('#testimonials-heading-size').val(value);
+            updateConfig('headingSize', value);
+        });
+        
+        // Body size slider and input sync
+        $('#testimonials-body-size').off('input').on('input', function() {
+            const value = $(this).val();
+            $('#testimonials-body-size-input').val(value);
+            updateConfig('bodySize', parseInt(value));
+        });
+        
+        $('#testimonials-body-size-input').off('change').on('change', function() {
+            const value = Math.max(0, Math.min(6, parseInt($(this).val()) || 3));
+            $(this).val(value);
+            $('#testimonials-body-size').val(value);
+            updateConfig('bodySize', value);
         });
         
         // Link label
@@ -803,10 +1196,26 @@ window.WebsiteBuilderModules.Testimonials = {
             updateConfig('bottomPadding', value);
         });
         
-        // Collapsible headers for testimonials
+        // Click handler for testimonial items - open child settings view
+        $(document).off('click.testimonials-item').on('click.testimonials-item', '.testimonial-item-settings', function(e) {
+            // Don't open if clicking on action buttons or inside collapsed content
+            if ($(e.target).closest('.action-icon, .collapsible-content').length) return;
+            
+            const testimonialId = $(this).data('testimonial-id');
+            if (testimonialId) {
+                // Store the testimonial ID for the child view
+                window.currentTestimonialId = testimonialId;
+                // Navigate to child settings view
+                window.switchSidebarView('testimonialChildSettings');
+            }
+        });
+        
+        // Collapsible headers for testimonials (when not navigating to child view)
         $(document).off('click.testimonials-collapse').on('click.testimonials-collapse', '.collapsible-header', function(e) {
             // Don't collapse if clicking on action buttons
             if ($(e.target).closest('.action-icon').length) return;
+            
+            e.stopPropagation(); // Prevent parent click handler
             
             const $header = $(this);
             const targetId = $header.data('target');
@@ -817,31 +1226,7 @@ window.WebsiteBuilderModules.Testimonials = {
             $icon.text($icon.text() === 'expand_more' ? 'expand_less' : 'expand_more');
         });
         
-        // Delete testimonial
-        $(document).off('click.testimonials-delete').on('click.testimonials-delete', '.delete-testimonial', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            
-            const testimonialId = $(this).data('testimonial-id');
-            if (confirm('Are you sure you want to delete this testimonial?')) {
-                // Remove from data
-                if (window.currentSectionsConfig.testimonials.testimonials[testimonialId]) {
-                    delete window.currentSectionsConfig.testimonials.testimonials[testimonialId];
-                }
-                
-                // Remove from order
-                const index = window.currentSectionsConfig.testimonials.testimonialsOrder.indexOf(testimonialId);
-                if (index > -1) {
-                    window.currentSectionsConfig.testimonials.testimonialsOrder.splice(index, 1);
-                }
-                
-                // Update UI
-                window.setHasPendingPageStructureChanges(true);
-                window.updateSaveButtonState();
-                window.renderPreview();
-                window.switchSidebarView('testimonialsSettings');
-            }
-        });
+        // Delete testimonial - Handler moved to website-builder.js attachBlockListEventListeners
         
         // Event listeners for individual testimonial fields
         $(document).off('input.testimonials-fields').on('input.testimonials-fields', '.testimonial-author, .testimonial-content, .testimonial-author-info', function() {
@@ -1058,6 +1443,230 @@ window.WebsiteBuilderModules.Testimonials = {
         window.switchSidebarView('testimonialsSettings');
     },
     
+    // Attach event listeners for testimonial child settings view
+    attachTestimonialChildEventListeners: function(testimonialId) {
+        console.log('[TESTIMONIALS] Attaching child event listeners for:', testimonialId);
+        
+        // Helper function to update testimonial
+        const updateTestimonial = (key, value) => {
+            if (window.currentSectionsConfig.testimonials?.testimonials?.[testimonialId]) {
+                window.currentSectionsConfig.testimonials.testimonials[testimonialId][key] = value;
+                
+                window.setHasPendingPageStructureChanges(true);
+                window.updateSaveButtonState();
+                window.renderPreview();
+            }
+        };
+        
+        // Back button - CRÍTICO según documentación punto 3.3.1
+        $('.back-to-sections-btn').off('click').on('click', function() {
+            window.switchSidebarView('blockList');
+        });
+        
+        // Section menu
+        $('.section-menu').off('click').on('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            $(this).siblings('.section-menu-dropdown').toggleClass('active');
+        });
+        
+        // Close menu when clicking outside
+        $(document).off('click.testimonial-menu-close').on('click.testimonial-menu-close', function(e) {
+            if (!$(e.target).closest('.section-menu-wrapper').length) {
+                $('.section-menu-dropdown').removeClass('active');
+            }
+        });
+        
+        // Rating slider and input sync
+        $('#testimonial-rating-slider').off('input').on('input', function() {
+            const value = $(this).val();
+            $('#testimonial-rating-input').val(value);
+            updateTestimonial('rating', parseFloat(value));
+        });
+        
+        $('#testimonial-rating-input').off('change').on('change', function() {
+            const value = Math.max(1, Math.min(5, parseFloat($(this).val()) || 4.5));
+            $(this).val(value);
+            $('#testimonial-rating-slider').val(value);
+            updateTestimonial('rating', value);
+        });
+        
+        // Testimonial content (Rich text)
+        $('#testimonial-content-editor').off('input').on('input', function() {
+            updateTestimonial('content', $(this).html());
+        });
+        
+        // Rich text toolbar
+        $('.toolbar-btn').off('click').on('click', function(e) {
+            e.preventDefault();
+            const command = $(this).data('command');
+            const value = $(this).data('value') || null;
+            
+            if (command === 'createLink') {
+                const url = prompt('Enter URL:');
+                if (url) document.execCommand(command, false, url);
+            } else {
+                document.execCommand(command, false, value);
+            }
+            
+            $('#testimonial-content-editor').trigger('input');
+        });
+        
+        // Author avatar selector
+        $('#testimonial-avatar-selector').off('click').on('click', function() {
+            // Create hidden file input
+            const fileInput = $('<input type="file" accept="image/*" style="display: none;">');
+            
+            fileInput.on('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const imageUrl = e.target.result;
+                        
+                        // Update the selector UI
+                        $('#testimonial-avatar-selector').html(`
+                            <img src="${imageUrl}" style="max-width: 80px; height: auto; border-radius: 50%;">
+                        `);
+                        
+                        // Update testimonial data
+                        updateTestimonial('avatar', imageUrl);
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+            
+            // Trigger file input click
+            fileInput.click();
+        });
+        
+        // Author name
+        $('#testimonial-author-name').off('input').on('input', function() {
+            updateTestimonial('author', $(this).val());
+        });
+        
+        // Author details
+        $('#testimonial-author-details').off('input').on('input', function() {
+            updateTestimonial('authorInfo', $(this).val());
+        });
+        
+        // Avatar icon color picker and text input sync
+        $('#testimonial-avatar-icon-color').off('input').on('input', function() {
+            const value = $(this).val();
+            $(this).siblings('.color-text-input').val(value);
+            updateTestimonial('avatarIconColor', value);
+        });
+        
+        $('#testimonial-avatar-icon-color').siblings('.color-text-input').off('change').on('change', function() {
+            let value = $(this).val();
+            if (!value.startsWith('#')) value = '#' + value;
+            if (/^#[0-9A-F]{6}$/i.test(value)) {
+                $(this).val(value);
+                $('#testimonial-avatar-icon-color').val(value);
+                updateTestimonial('avatarIconColor', value);
+            }
+        });
+        
+        // Avatar size slider and input sync
+        $('#testimonial-avatar-size').off('input').on('input', function() {
+            const value = $(this).val();
+            $('#testimonial-avatar-size-input').val(value);
+            updateTestimonial('avatarSize', parseInt(value));
+        });
+        
+        $('#testimonial-avatar-size-input').off('change').on('change', function() {
+            const value = Math.max(30, Math.min(80, parseInt($(this).val()) || 40));
+            $(this).val(value);
+            $('#testimonial-avatar-size').val(value);
+            updateTestimonial('avatarSize', value);
+        });
+        
+        // Avatar shape buttons
+        $('.shape-btn').off('click').on('click', function(e) {
+            e.preventDefault();
+            $('.shape-btn').removeClass('active');
+            $(this).addClass('active');
+            const shape = $(this).data('shape');
+            updateTestimonial('avatarShape', shape === 'square' ? 'square' : 'circle');
+            
+            // Update avatar preview shape
+            const $avatarImg = $('#testimonial-avatar-selector img');
+            if ($avatarImg.length) {
+                $avatarImg.css('border-radius', shape === 'square' ? '4px' : '50%');
+            }
+        });
+        
+        // Product selector - commented out for now
+        // $('.shopify-button-secondary').off('click').on('click', function() {
+        //     // TODO: Implement product selector
+        // });
+        
+        // Product image selector
+        $('#testimonial-product-image-selector').off('click').on('click', function() {
+            // Create hidden file input
+            const fileInput = $('<input type="file" accept="image/*" style="display: none;">');
+            
+            fileInput.on('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const imageUrl = e.target.result;
+                        
+                        // Get current shape setting
+                        const currentShape = window.currentSectionsConfig.testimonials?.testimonials?.[testimonialId]?.productImageShape || 'square';
+                        
+                        // Update the selector UI with current shape
+                        $('#testimonial-product-image-selector').html(`
+                            <img src="${imageUrl}" style="max-width: 100%; height: auto; border-radius: ${currentShape === 'circle' ? '50%' : '4px'};">
+                        `);
+                        
+                        // Update testimonial data
+                        updateTestimonial('productImage', imageUrl);
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+            
+            // Trigger file input click
+            fileInput.click();
+        });
+        
+        // Product image size slider and input sync
+        $('#testimonial-product-image-size').off('input').on('input', function() {
+            const value = $(this).val();
+            $('#testimonial-product-image-size-input').val(value);
+            updateTestimonial('productImageSize', parseInt(value));
+        });
+        
+        $('#testimonial-product-image-size-input').off('change').on('change', function() {
+            const value = Math.max(100, Math.min(300, parseInt($(this).val()) || 200));
+            $(this).val(value);
+            $('#testimonial-product-image-size').val(value);
+            updateTestimonial('productImageSize', value);
+        });
+        
+        // Product image shape buttons
+        $('.shape-btn[data-type="product"]').off('click').on('click', function(e) {
+            e.preventDefault();
+            $('.shape-btn[data-type="product"]').removeClass('active');
+            $(this).addClass('active');
+            const shape = $(this).data('shape');
+            updateTestimonial('productImageShape', shape);
+            
+            // Update product image preview shape
+            const $productImg = $('#testimonial-product-image-selector img');
+            if ($productImg.length) {
+                $productImg.css('border-radius', shape === 'circle' ? '50%' : '4px');
+            }
+        });
+        
+        // Testimonial link
+        $('#testimonial-link').off('input').on('input', function() {
+            updateTestimonial('link', $(this).val());
+        });
+    },
+    
     // Initialize module
     initialize: function() {
         console.log('[TESTIMONIALS] Module initialized');
@@ -1110,7 +1719,20 @@ window.WebsiteBuilderModules.Testimonials = {
             'testimonialContent': 'Contenido',
             'rating': 'Calificación',
             'authorInfo': 'Información del autor',
-            'avatar': 'Avatar'
+            'avatar': 'Avatar',
+            'testimonialSettings': 'Testimonio',
+            'testimonial': 'Testimonio',
+            'authorAvatar': 'Avatar del autor',
+            'authorName': 'Nombre del autor',
+            'authorDetails': 'Detalles del autor',
+            'product': 'Producto',
+            'testimonialLink': 'Enlace del testimonio',
+            'linkHelp': 'Si se deja en blanco, el testimonio se desliza desde la izquierda',
+            'imageUsePriorityProduct': 'La imagen tiene prioridad sobre el producto',
+            'avatarSize': 'Tamaño del avatar',
+            'avatarShape': 'Forma del avatar',
+            'circle': 'Círculo',
+            'square': 'Cuadrado'
         };
         
         window.translations.en.testimonials = {
@@ -1156,7 +1778,20 @@ window.WebsiteBuilderModules.Testimonials = {
             'testimonialContent': 'Content',
             'rating': 'Rating',
             'authorInfo': 'Author info',
-            'avatar': 'Avatar'
+            'avatar': 'Avatar',
+            'testimonialSettings': 'Testimonial',
+            'testimonial': 'Testimonial',
+            'authorAvatar': 'Author avatar',
+            'authorName': 'Author name',
+            'authorDetails': 'Author details',
+            'product': 'Product',
+            'testimonialLink': 'Testimonial link',
+            'linkHelp': 'If left blank, the testimonial slides in from the left',
+            'imageUsePriorityProduct': 'Image use priority over product',
+            'avatarSize': 'Avatar size',
+            'avatarShape': 'Avatar shape',
+            'circle': 'Circle',
+            'square': 'Square'
         };
     }
 };

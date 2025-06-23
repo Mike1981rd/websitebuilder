@@ -5113,6 +5113,24 @@ $(document).ready(async function() {
             } else {
                 console.error('[DEBUG] No HTML returned from testimonials renderSettings');
             }
+        } else if (viewName === 'testimonialChildSettings') {
+            // Individual testimonial child settings
+            console.log('[DEBUG] Rendering testimonial child settings');
+            const testimonialId = window.currentTestimonialId;
+            const parentConfig = window.currentSectionsConfig?.testimonials;
+            
+            if (testimonialId && parentConfig) {
+                const html = executeModuleFunction('Testimonials', 'renderTestimonialChildSettings', testimonialId, parentConfig);
+                if (html) {
+                    dynamicContentArea.innerHTML = html;
+                    executeModuleFunction('Testimonials', 'attachTestimonialChildEventListeners', testimonialId);
+                    setTimeout(applyTranslations, 0);
+                } else {
+                    console.error('[DEBUG] No HTML returned from testimonial child settings');
+                }
+            } else {
+                console.error('[DEBUG] Missing testimonialId or parentConfig for child settings');
+            }
         } else if (viewName === 'slideshowSlideSettings') {
             // Individual slide settings view
             dynamicContentArea.innerHTML = renderSlideshowSlideSettingsView(data);
@@ -9152,6 +9170,14 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                 }
                 switchSidebarView('testimonialsSettings');
             }
+            // Handle testimonial item click
+            else if (blockType === 'testimonial-item') {
+                const testimonialId = $(this).data('element-id');
+                if (testimonialId) {
+                    window.currentTestimonialId = testimonialId;
+                    switchSidebarView('testimonialChildSettings');
+                }
+            }
         });
         
         // Visibility toggle button - COMMENTED OUT TO AVOID DUPLICATE HANDLER
@@ -9277,6 +9303,61 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                 });
             } else {
                 // Reset deleting flag if cancelled
+                $button.data('deleting', false);
+            }
+            
+            return false;
+        });
+        
+        // Delete testimonial item handler
+        $(document).off('click.deleteTestimonial').on('click.deleteTestimonial', '.delete-testimonial', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const $button = $(this);
+            const testimonialId = $button.data('testimonial-id');
+            
+            if ($button.data('deleting')) {
+                return false;
+            }
+            $button.data('deleting', true);
+            
+            const confirmMessage = translations[currentLanguage]?.['testimonials.confirmDelete'] || 'Are you sure you want to delete this testimonial?';
+            
+            if (confirm(confirmMessage)) {
+                console.log('[DEBUG] Deleting testimonial:', testimonialId);
+                
+                // Remove from data
+                if (currentSectionsConfig.testimonials?.testimonials?.[testimonialId]) {
+                    delete currentSectionsConfig.testimonials.testimonials[testimonialId];
+                }
+                
+                // Remove from order
+                if (currentSectionsConfig.testimonials?.testimonialsOrder) {
+                    const index = currentSectionsConfig.testimonials.testimonialsOrder.indexOf(testimonialId);
+                    if (index > -1) {
+                        currentSectionsConfig.testimonials.testimonialsOrder.splice(index, 1);
+                    }
+                }
+                
+                // Remove from DOM
+                $button.closest('.testimonial-item').fadeOut(300, function() {
+                    $(this).remove();
+                    
+                    // Check if no testimonials left
+                    if ($('.testimonial-item').length === 0) {
+                        $('#testimonials-items-wrapper').remove();
+                        // Remove collapse button from parent
+                        $('.sidebar-subsection[data-block-type="testimonials"] .collapse-toggle').remove();
+                    }
+                });
+                
+                // Update state
+                hasPendingPageStructureChanges = true;
+                updateSaveButtonState();
+                renderPreview();
+                console.log('[DEBUG] Testimonial deleted:', testimonialId);
+            } else {
                 $button.data('deleting', false);
             }
             
@@ -11411,14 +11492,60 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                 currentSectionsConfig.testimonials = {
                     id: 'testimonials',
                     isHidden: false,
-                    colorScheme: 'scheme1',
-                    heading: 'Customer Testimonials',
-                    showNavigation: true,
-                    autoPlay: false,
-                    autoPlaySpeed: 5,
+                    colorScheme: 'scheme3',
+                    colorBackground: false,
+                    colorTestimonials: false,
+                    width: 'page',
+                    desktopLayout: 'bottom-carousel',
+                    mobileLayout: 'slideshow',
+                    desktopCardsPerRow: 2,
+                    desktopSpaceBetweenCards: 16,
+                    desktopContentAlignment: 'left',
+                    mobileContentAlignment: 'left',
+                    showRating: true,
+                    ratingStarsColor: '#F49A13',
+                    subheading: 'TESTIMONIALS',
+                    heading: 'Customer stories',
+                    body: 'Show customer reviews: tweets, blog posts, or interviews. Invite customers to share their impressions of your products.',
+                    headingSize: 'heading3',
+                    bodySize: 'body3',
+                    linkLabel: '',
+                    linkUrl: '',
+                    backgroundImage: null,
+                    overlayOpacity: 20,
+                    imageSize: 100,
+                    autoplayMode: 'none',
+                    autoplaySpeed: 3,
+                    addSidePaddings: true,
+                    topPadding: 96,
+                    bottomPadding: 30,
                     testimonials: {},
                     testimonialsOrder: []
                 };
+                
+                // Add 2 default testimonials
+                const testimonial1Id = 'testimonial_' + Date.now();
+                const testimonial2Id = 'testimonial_' + (Date.now() + 1);
+                
+                currentSectionsConfig.testimonials.testimonials[testimonial1Id] = {
+                    id: testimonial1Id,
+                    author: 'Sarah Johnson',
+                    content: 'I absolutely love the quality of products from this store. The attention to detail is amazing and the customer service is top-notch!',
+                    rating: 5,
+                    authorInfo: 'CEO at TechCorp',
+                    isHidden: false
+                };
+                
+                currentSectionsConfig.testimonials.testimonials[testimonial2Id] = {
+                    id: testimonial2Id,
+                    author: 'Michael Chen',
+                    content: 'Fast shipping, great prices, and excellent quality. I\'ve been a customer for years and have never been disappointed.',
+                    rating: 4.5,
+                    authorInfo: 'Marketing Director',
+                    isHidden: false
+                };
+                
+                currentSectionsConfig.testimonials.testimonialsOrder = [testimonial1Id, testimonial2Id];
                 
                 // Add testimonials to section order if not already present
                 if (!currentSectionsConfig.sectionOrder) {
