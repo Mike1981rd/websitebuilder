@@ -338,7 +338,7 @@ window.WebsiteBuilderModules.Testimonials = {
                     <div class="settings-divider"></div>
                     
                     <!-- Testimonials section -->
-                    <h4 data-i18n="testimonials.testimonialsTitle" style="font-size: 14px; font-weight: 600; margin-bottom: 16px;">Testimonials</h4>
+                    <h4 data-i18n="testimonials.testimonialsTitle" style="font-size: 13px; font-weight: 500; margin-bottom: 12px; color: #5c5e60;">Testimonials</h4>
                     
                     <!-- Desktop layout -->
                     <div class="settings-field">
@@ -438,7 +438,7 @@ window.WebsiteBuilderModules.Testimonials = {
                     <div class="settings-divider"></div>
                     
                     <!-- Content section -->
-                    <h4 data-i18n="testimonials.content" style="font-size: 14px; font-weight: 600; margin-bottom: 16px;">Content</h4>
+                    <h4 data-i18n="testimonials.content" style="font-size: 13px; font-weight: 500; margin-bottom: 12px; color: #5c5e60;">Content</h4>
                     
                     <!-- Subheading -->
                     <div class="settings-field">
@@ -512,7 +512,7 @@ window.WebsiteBuilderModules.Testimonials = {
                     <div class="settings-divider"></div>
                     
                     <!-- Background image section -->
-                    <h4 data-i18n="testimonials.backgroundImage" style="font-size: 14px; font-weight: 600; margin-bottom: 16px;">Background image</h4>
+                    <h4 data-i18n="testimonials.backgroundImage" style="font-size: 13px; font-weight: 500; margin-bottom: 12px; color: #5c5e60;">Background image</h4>
                     
                     <!-- Image selector -->
                     <div class="settings-field">
@@ -557,7 +557,7 @@ window.WebsiteBuilderModules.Testimonials = {
                     <div class="settings-divider"></div>
                     
                     <!-- Autoplay section -->
-                    <h4 data-i18n="testimonials.autoplay" style="font-size: 14px; font-weight: 600; margin-bottom: 16px;">Autoplay</h4>
+                    <h4 data-i18n="testimonials.autoplay" style="font-size: 13px; font-weight: 500; margin-bottom: 12px; color: #5c5e60;">Autoplay</h4>
                     
                     <!-- Autoplay mode -->
                     <div class="settings-field">
@@ -583,7 +583,7 @@ window.WebsiteBuilderModules.Testimonials = {
                     <div class="settings-divider"></div>
                     
                     <!-- Paddings section -->
-                    <h4 data-i18n="testimonials.paddings" style="font-size: 14px; font-weight: 600; margin-bottom: 16px;">Paddings</h4>
+                    <h4 data-i18n="testimonials.paddings" style="font-size: 13px; font-weight: 500; margin-bottom: 12px; color: #5c5e60;">Paddings</h4>
                     
                     <!-- Add side paddings -->
                     <div class="settings-field">

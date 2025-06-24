@@ -1769,6 +1769,28 @@ function renderTestimonials(config) {
     `;
 }
 
+function renderAccordion(config) {
+    console.log('[ACCORDION FALLBACK] Rendering with config:', config);
+    
+    if (!config || config.isHidden) return '';
+    
+    return `
+        <div class="section-wrapper accordion-section" data-section-id="accordion" style="padding: 40px 0; background: #f5f5f5;">
+            <div class="section-header-tag">
+                <span class="material-symbols-outlined" style="font-size: 16px;">help</span>
+                ${translations[currentLanguage]?.['sections.accordion'] || 'Accordion/FAQ'}
+            </div>
+            <div class="container" style="max-width: 1200px; margin: 0 auto;">
+                <div style="text-align: center; padding: 40px;">
+                    <i class="material-icons" style="font-size: 48px; color: #999;">help_outline</i>
+                    <h3>Accordion/FAQ</h3>
+                    <p>Esta sección mostrará preguntas frecuentes.</p>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
 /**
  * Renderiza todas las secciones de la página en el iframe de previsualización.
  */
@@ -1865,6 +1887,16 @@ function renderPreview() {
                             finalHtml += iframeWindow.renderTestimonials(config);
                         }
                     }
+                } else if (sectionId === 'accordion') {
+                    const config = currentSectionsConfig.accordion;
+                    if (config && !config.isHidden) {
+                        const moduleRender = iframeWindow.WebsiteBuilderModules?.Accordion?.render;
+                        if (moduleRender) {
+                            finalHtml += moduleRender(config);
+                        } else if (iframeWindow.renderAccordion) {
+                            finalHtml += iframeWindow.renderAccordion(config);
+                        }
+                    }
                 }
             });
         }
@@ -1878,7 +1910,8 @@ function renderPreview() {
             'multicolumn': window.WebsiteBuilderModules?.Multicolumn?.render || renderMulticolumn,
             'imageWithText': window.WebsiteBuilderModules?.ImageWithText?.render || renderImageWithText,
             'images-with-text': window.WebsiteBuilderModules?.ImageWithText?.render || renderImageWithText,
-            'testimonials': window.WebsiteBuilderModules?.Testimonials?.render || renderTestimonials
+            'testimonials': window.WebsiteBuilderModules?.Testimonials?.render || renderTestimonials,
+            'accordion': window.WebsiteBuilderModules?.Accordion?.render || renderAccordion
         };
         
         // Renderizar secciones según el orden definido
@@ -1960,6 +1993,11 @@ function renderPreview() {
                 $('.topbar-nav-icon').removeClass('active');
                 $('.topbar-nav-icon[data-view="sections"]').addClass('active');
                 window.switchSidebarView('imageWithTextSettings');
+            } else if (sectionId === 'accordion') {
+                // Logic for accordion section
+                $('.topbar-nav-icon').removeClass('active');
+                $('.topbar-nav-icon[data-view="sections"]').addClass('active');
+                window.switchSidebarView('accordionSettings');
             }
             // Aquí añadiremos más 'else if' para otras secciones en el futuro.
         });
@@ -4053,6 +4091,7 @@ $(document).ready(async function() {
             'sections.spacer': 'Espaciador',
             'sections.splitImageBanner': 'Banner de imagen dividida',
             'sections.testimonials': 'Testimonios',
+            'sections.accordion': 'Accordion/FAQ',
             'sections.video': 'Video',
             // Slideshow translations
             'slideshow.layout': 'Diseño',
@@ -4584,6 +4623,7 @@ $(document).ready(async function() {
             'sections.spacer': 'Spacer',
             'sections.splitImageBanner': 'Split image banner',
             'sections.testimonials': 'Testimonials',
+            'sections.accordion': 'Accordion/FAQ',
             'sections.video': 'Video',
             // Slideshow translations
             'slideshow.layout': 'Layout',
@@ -4760,7 +4800,69 @@ $(document).ready(async function() {
             'swatches.showSwatchesForMore': 'Show swatches for more than one option in product pages and filters',
             'swatches.optionNames': 'Option names',
             'swatches.optionNamesPlaceholder': 'Material\nFrame',
-            'swatches.optionNamesHelp': 'Fill in relevant option names from your admin, place each in a separate line'
+            'swatches.optionNamesHelp': 'Fill in relevant option names from your admin, place each in a separate line',
+            
+            // Accordion/FAQ translations
+            'sections.accordion': 'Accordion/FAQ',
+            'accordionSettings.title': 'Accordion/FAQ',
+            'accordionSettings.colors': 'Colors',
+            'accordionSettings.colorScheme': 'Color scheme',
+            'accordionSettings.colorBackground': 'Color background',
+            'accordionSettings.colorTabs': 'Color tabs',
+            'accordionSettings.colorTabs.none': 'None',
+            'accordionSettings.colorTabs.all': 'All',
+            'accordionSettings.colorTabs.categories': 'Categories',
+            'accordionSettings.colorTabs.contentTab': 'Content tab',
+            'accordionSettings.colorTabs.allSeparately': 'All separately',
+            'accordionSettings.colorTabs.contentTabSeparately': 'Content tab separately',
+            'accordionSettings.width': 'Width',
+            'accordionSettings.width.extraSmall': 'Extra small',
+            'accordionSettings.width.small': 'Small',
+            'accordionSettings.width.medium': 'Medium',
+            'accordionSettings.width.large': 'Large',
+            'accordionSettings.width.extraLarge': 'Extra large',
+            'accordionSettings.layout': 'Layout',
+            'accordionSettings.layout.tabsRight': 'Tabs to the right',
+            'accordionSettings.layout.tabsLeft': 'Tabs to the left',
+            'accordionSettings.layout.tabsBottom': 'Tabs at the bottom',
+            'accordionSettings.expandFirstTab': 'Expand first tab',
+            'accordionSettings.content': 'Content',
+            'accordionSettings.heading': 'Heading',
+            'accordionSettings.body': 'Body',
+            'accordionSettings.headingSize': 'Heading size',
+            'accordionSettings.bodySize': 'Body size',
+            'accordionSettings.button': 'Button',
+            'accordionSettings.buttonLabel': 'Button label',
+            'accordionSettings.buttonLink': 'Button link',
+            'accordionSettings.buttonStyle': 'Button style',
+            'accordionSettings.buttonStyle.solid': 'Solid',
+            'accordionSettings.buttonStyle.outline': 'Outline',
+            'accordionSettings.buttonStyle.link': 'Link',
+            'accordionSettings.padding': 'Padding',
+            'accordionSettings.topPadding': 'Top',
+            'accordionSettings.bottomPadding': 'Bottom',
+            'accordionSettings.addSidePaddings': 'Add side paddings',
+            'accordionSettings.themeSettings': 'Theme settings',
+            'accordionSettings.items': 'FAQ items',
+            'accordionSettings.addItem': 'Add FAQ item',
+            
+            // Accordion Item Settings translations
+            'accordionItem.title': 'Content tab',
+            'accordionItem.heading': 'Heading',
+            'accordionItem.icon': 'Icon',
+            'accordionItem.iconSelect': 'Select',
+            'accordionItem.seeIconList': 'See what icon stands for each label',
+            'accordionItem.customIcon': 'Custom icon',
+            'accordionItem.selectImage': 'Select',
+            'accordionItem.browseFreeImages': 'Browse free images',
+            'accordionItem.source': 'Source',
+            'accordionItem.richText': 'Rich text',
+            'accordionItem.page': 'Page',
+            'accordionItem.image': 'Image',
+            'accordionItem.video': 'Video',
+            'accordionItem.desktopImageSize': 'Desktop image size',
+            'accordionItem.duplicate': 'Duplicate',
+            'accordionItem.delete': 'Delete'
         }
     };
     
@@ -5112,6 +5214,35 @@ $(document).ready(async function() {
                 setTimeout(applyTranslations, 0);
             } else {
                 console.error('[DEBUG] No HTML returned from testimonials renderSettings');
+            }
+        } else if (viewName === 'accordionSettings') {
+            // Accordion settings - usar módulo
+            console.log('[DEBUG] Rendering accordion settings');
+            const html = executeModuleFunction('Accordion', 'renderSettings', window.currentSectionsConfig?.accordion);
+            
+            if (html) {
+                dynamicContentArea.innerHTML = html;
+                executeModuleFunction('Accordion', 'attachEventListeners');
+                setTimeout(applyTranslations, 0);
+            } else {
+                console.error('[DEBUG] No HTML returned from accordion renderSettings');
+            }
+        } else if (viewName === 'accordionItemSettings') {
+            // Individual accordion item settings
+            console.log('[DEBUG] Rendering accordion item settings');
+            const itemId = data?.itemId || window.currentAccordionItemId;
+            
+            if (itemId) {
+                const html = executeModuleFunction('Accordion', 'renderItemSettings', itemId);
+                if (html) {
+                    dynamicContentArea.innerHTML = html;
+                    executeModuleFunction('Accordion', 'attachItemEventListeners', itemId);
+                    setTimeout(applyTranslations, 0);
+                } else {
+                    console.error('[DEBUG] No HTML returned from accordion item settings');
+                }
+            } else {
+                console.error('[DEBUG] Missing itemId for accordion item settings');
             }
         } else if (viewName === 'testimonialChildSettings') {
             // Individual testimonial child settings
@@ -5614,6 +5745,62 @@ $(document).ready(async function() {
                                         <i class="material-icons icon-hidden">visibility_off</i>
                                     </button>
                                     <button class="action-icon delete-testimonial" data-testimonial-id="${testimonialId}" title="Delete">
+                                        <i class="material-icons">delete</i>
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                    }
+                });
+                html += '</div>';
+            }
+        }
+        
+        // Check if accordion exists in currentSectionsConfig
+        if (currentSectionsConfig.accordion) {
+            const hasItems = currentSectionsConfig.accordion.itemOrder && currentSectionsConfig.accordion.itemOrder.length > 0;
+            
+            html += `
+                <div class="sidebar-subsection collapsible-parent" data-block-type="accordion" data-section-id="accordion">
+                    <i class="material-icons drag-handle">drag_handle</i>
+                    <span class="subsection-text" data-i18n="sections.accordion">Accordion/FAQ</span>
+                    <div class="subsection-actions">
+                        <button class="action-icon visibility-toggle ${currentSectionsConfig.accordion.isHidden ? 'is-hidden' : ''}" data-section="accordion" title="Toggle visibility">
+                            <i class="material-icons icon-visible">visibility</i>
+                            <i class="material-icons icon-hidden">visibility_off</i>
+                        </button>
+                        <button class="action-icon add-icon" data-section="accordion" title="Add FAQ">
+                            <i class="material-icons">add</i>
+                        </button>
+                        <button class="action-icon delete-section" data-section="accordion" title="Delete">
+                            <i class="material-icons">delete</i>
+                        </button>
+                        ${hasItems ? `
+                            <button class="action-icon collapse-toggle" title="Collapse/Expand">
+                                <i class="material-icons collapse-indicator">expand_more</i>
+                            </button>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+            
+            // Render existing FAQ items if any
+            if (hasItems) {
+                html += '<div id="accordion-items-wrapper" style="position: relative;">';
+                currentSectionsConfig.accordion.itemOrder.forEach((itemId, index) => {
+                    const item = currentSectionsConfig.accordion.items[itemId];
+                    if (item) {
+                        const itemNumber = index + 1;
+                        html += `
+                            <div class="sidebar-subsection accordion-faq-item" data-block-type="accordion-item" data-element-id="${itemId}" style="padding-left: 30px;">
+                                <i class="material-icons drag-handle">drag_handle</i>
+                                <span class="subsection-text" style="margin-left: 30px;">${translations[currentLanguage]?.['accordion.items.item'] || 'Pregunta'} ${itemNumber}</span>
+                                <div class="subsection-actions">
+                                    <button class="action-icon visibility-toggle ${item.isHidden ? 'is-hidden' : ''}" data-element-id="${itemId}" data-element-type="faq" title="Toggle visibility">
+                                        <i class="material-icons icon-visible">visibility</i>
+                                        <i class="material-icons icon-hidden">visibility_off</i>
+                                    </button>
+                                    <button class="action-icon delete-faq-item" data-item-id="${itemId}" title="Delete">
                                         <i class="material-icons">delete</i>
                                     </button>
                                 </div>
@@ -7349,7 +7536,8 @@ $(document).ready(async function() {
             { id: 'spacer', icon: 'space_bar', name: 'spacer' },
             { id: 'split-image-banner', icon: 'view_column', name: 'splitImageBanner' },
             { id: 'testimonials', icon: 'rate_review', name: 'testimonials', preview: 'testimonials' },
-            { id: 'video', icon: 'videocam', name: 'video' }
+            { id: 'video', icon: 'videocam', name: 'video' },
+            { id: 'accordion', icon: 'help', name: 'accordion', preview: 'accordion' }
         ];
         
         return `
@@ -9063,9 +9251,17 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                 isHidden = currentSectionsConfig.imageWithText?.isHidden || false;
             } else if (section === 'testimonials') {
                 isHidden = currentSectionsConfig.testimonials?.isHidden || false;
+            } else if (section === 'accordion') {
+                isHidden = currentSectionsConfig.accordion?.isHidden || false;
             } else if (blockType === 'testimonial-item' && elementId) {
                 // Handle testimonial items
                 isHidden = currentSectionsConfig.testimonials?.testimonials?.[elementId]?.isHidden || false;
+            } else if (blockType === 'accordion-item' && elementId) {
+                // Handle accordion FAQ items
+                isHidden = currentSectionsConfig.accordion?.items?.[elementId]?.isHidden || false;
+            } else if (elementType === 'faq' && elementId) {
+                // Alternative check for FAQ items
+                isHidden = currentSectionsConfig.accordion?.items?.[elementId]?.isHidden || false;
             } else if (blockType === 'image-with-text-block' && elementId) {
                 // Handle image with text blocks
                 isHidden = currentSectionsConfig.imageWithText?.blocks?.[elementId]?.isHidden || false;
@@ -9178,6 +9374,18 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                     switchSidebarView('testimonialChildSettings');
                 }
             }
+            // Handle accordion click
+            else if (blockType === 'accordion') {
+                switchSidebarView('accordionSettings');
+            }
+            // Handle accordion FAQ item click
+            else if (blockType === 'accordion-item') {
+                const itemId = $(this).data('element-id');
+                if (itemId) {
+                    window.currentAccordionItemId = itemId;
+                    switchSidebarView('accordionItemSettings', { itemId: itemId });
+                }
+            }
         });
         
         // Visibility toggle button - COMMENTED OUT TO AVOID DUPLICATE HANDLER
@@ -9274,6 +9482,19 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                     if (index > -1) {
                         currentSectionsConfig.sectionOrder.splice(index, 1);
                     }
+                } else if (section === 'accordion' && currentSectionsConfig.accordion) {
+                    console.log('[DEBUG] Deleting accordion section');
+                    
+                    // CRÍTICO: Eliminar hijos primero
+                    $('#accordion-items-wrapper').remove();
+                    $('.accordion-faq-item').remove();
+                    
+                    delete currentSectionsConfig.accordion;
+                    
+                    let index = currentSectionsConfig.sectionOrder.indexOf('accordion');
+                    if (index > -1) {
+                        currentSectionsConfig.sectionOrder.splice(index, 1);
+                    }
                 }
                 
                 // Remove from DOM and update UI
@@ -9281,7 +9502,7 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                     $(this).remove();
                     
                     // For template sections, update the template sections container
-                    if (section === 'imageWithText' || section === 'multicolumn' || section === 'slideshow' || section === 'testimonials') {
+                    if (section === 'imageWithText' || section === 'multicolumn' || section === 'slideshow' || section === 'testimonials' || section === 'accordion') {
                         const templateSectionsHtml = renderTemplateSections();
                         $('#template-sections-container').html(templateSectionsHtml + `
                             <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e3e3e3;">
@@ -9516,6 +9737,164 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                 }
             });
         }
+        
+        // Initialize sortable for accordion items in block list view
+        function initializeAccordionItemsSortable() {
+            console.log('[ACCORDION] Initializing sortable for accordion items in block list');
+            
+            const $wrapper = $('#accordion-items-wrapper');
+            if (!$wrapper.length) {
+                console.error('[ACCORDION] Items wrapper not found');
+                return;
+            }
+            
+            $wrapper.sortable({
+                items: '.accordion-faq-item',
+                handle: '.drag-handle',
+                placeholder: 'sortable-placeholder',
+                forcePlaceholderSize: true,
+                cursor: 'move',
+                tolerance: 'pointer',
+                axis: 'y',
+                containment: 'parent',
+                start: function(e, ui) {
+                    console.log('[ACCORDION] Drag started for item:', ui.item.data('element-id'));
+                    
+                    ui.placeholder.height(ui.item.outerHeight());
+                    ui.placeholder.css({
+                        'visibility': 'visible',
+                        'background': '#f0f0f0',
+                        'border': '2px dashed #2962ff',
+                        'border-radius': '4px',
+                        'margin-bottom': '1px',
+                        'padding-left': '30px'
+                    });
+                },
+                stop: function(e, ui) {
+                    console.log('[ACCORDION] Drag stopped');
+                    
+                    const newOrder = [];
+                    $wrapper.find('.accordion-faq-item').each(function() {
+                        const itemId = $(this).data('element-id');
+                        if (itemId) {
+                            newOrder.push(itemId);
+                        }
+                    });
+                    
+                    console.log('[ACCORDION] New order:', newOrder);
+                    
+                    if (currentSectionsConfig.accordion) {
+                        currentSectionsConfig.accordion.itemOrder = newOrder;
+                        
+                        hasPendingPageStructureChanges = true;
+                        updateSaveButtonState();
+                        renderPreview();
+                        
+                        console.log('[ACCORDION] Order updated successfully');
+                    }
+                }
+            });
+            
+            console.log('[ACCORDION] Sortable initialized for', $wrapper.find('.accordion-faq-item').length, 'items');
+        }
+        
+        // Handler for accordion add button
+        $(document).off('click.accordionAdd').on('click.accordionAdd', '.add-icon[data-section="accordion"]', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            console.log('[DEBUG] Add accordion item clicked');
+            
+            // Initialize accordion if needed
+            if (!currentSectionsConfig.accordion) {
+                currentSectionsConfig.accordion = {
+                    id: 'accordion',
+                    isHidden: false,
+                    colorScheme: 'scheme1',
+                    items: {},
+                    itemOrder: []
+                };
+            }
+            
+            // Ensure structure exists
+            if (!currentSectionsConfig.accordion.items) {
+                currentSectionsConfig.accordion.items = {};
+            }
+            if (!currentSectionsConfig.accordion.itemOrder) {
+                currentSectionsConfig.accordion.itemOrder = [];
+            }
+            
+            const itemId = 'faq-' + Date.now();
+            const itemNumber = currentSectionsConfig.accordion.itemOrder.length + 1;
+            
+            currentSectionsConfig.accordion.items[itemId] = {
+                id: itemId,
+                question: `Pregunta ${itemNumber}`,
+                answer: `Respuesta ${itemNumber}`,
+                isHidden: false
+            };
+            
+            currentSectionsConfig.accordion.itemOrder.push(itemId);
+            
+            // Actualizar el panel lateral sin cambiar de vista
+            const templateSectionsHtml = renderTemplateSections();
+            $('#template-sections-container').html(templateSectionsHtml + `
+                <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e3e3e3;">
+                    <div class="add-section-button add-template-section" data-group="template">
+                        <i class="material-icons">add_circle</i>
+                        <span data-i18n="sections.addTemplateSection">Agregar sección de plantilla</span>
+                    </div>
+                </div>
+            `);
+            
+            setTimeout(applyTranslations, 0);
+            
+            hasPendingPageStructureChanges = true;
+            updateSaveButtonState();
+            renderPreview();
+            
+            console.log('[DEBUG] Accordion item added:', itemId);
+        });
+        
+        // Handler for delete FAQ item
+        $(document).off('click.deleteFaqItem').on('click.deleteFaqItem', '.delete-faq-item', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const itemId = $(this).data('item-id');
+            
+            if (confirm('¿Estás seguro de eliminar esta pregunta?')) {
+                // Remove from configuration
+                if (currentSectionsConfig.accordion?.items?.[itemId]) {
+                    delete currentSectionsConfig.accordion.items[itemId];
+                    
+                    // Remove from order array
+                    const index = currentSectionsConfig.accordion.itemOrder.indexOf(itemId);
+                    if (index > -1) {
+                        currentSectionsConfig.accordion.itemOrder.splice(index, 1);
+                    }
+                    
+                    // Update UI
+                    const templateSectionsHtml = renderTemplateSections();
+                    $('#template-sections-container').html(templateSectionsHtml + `
+                        <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e3e3e3;">
+                            <div class="add-section-button add-template-section" data-group="template">
+                                <i class="material-icons">add_circle</i>
+                                <span data-i18n="sections.addTemplateSection">Agregar sección de plantilla</span>
+                            </div>
+                        </div>
+                    `);
+                    
+                    setTimeout(applyTranslations, 0);
+                    
+                    hasPendingPageStructureChanges = true;
+                    updateSaveButtonState();
+                    renderPreview();
+                    
+                    console.log('[DEBUG] FAQ item deleted:', itemId);
+                }
+            }
+        });
         
         // More options button
         $(document).on('click', '.more-options', function(e) {
@@ -10352,11 +10731,40 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                 if (window.forceVisibilitySync) {
                     window.forceVisibilitySync('testimonials', newHiddenState);
                 }
+            } else if (section === 'accordion' || blockType === 'accordion') {
+                currentSectionsConfig.accordion.isHidden = newHiddenState;
+                console.log(`[DEBUG] Accordion saved as: ${newHiddenState ? 'hidden' : 'visible'}`);
+                
+                if (window.forceVisibilitySync) {
+                    window.forceVisibilitySync('accordion', newHiddenState);
+                }
             } else if (blockType === 'testimonial-item' && elementId) {
                 // Handle testimonial item visibility
                 if (currentSectionsConfig.testimonials && currentSectionsConfig.testimonials.testimonials && currentSectionsConfig.testimonials.testimonials[elementId]) {
                     currentSectionsConfig.testimonials.testimonials[elementId].isHidden = newHiddenState;
                     console.log(`[DEBUG] Testimonial item ${elementId} saved as: ${newHiddenState ? 'hidden' : 'visible'}`);
+                    
+                    // Force sync the child visibility toggle state
+                    if (window.forceChildVisibilitySync) {
+                        window.forceChildVisibilitySync(elementId, newHiddenState);
+                    }
+                }
+            } else if (blockType === 'accordion-item' && elementId) {
+                // Handle accordion FAQ item visibility
+                if (currentSectionsConfig.accordion && currentSectionsConfig.accordion.items && currentSectionsConfig.accordion.items[elementId]) {
+                    currentSectionsConfig.accordion.items[elementId].isHidden = newHiddenState;
+                    console.log(`[DEBUG] Accordion FAQ item ${elementId} saved as: ${newHiddenState ? 'hidden' : 'visible'}`);
+                    
+                    // Force sync the child visibility toggle state
+                    if (window.forceChildVisibilitySync) {
+                        window.forceChildVisibilitySync(elementId, newHiddenState);
+                    }
+                }
+            } else if ($button.data('element-type') === 'faq' && elementId) {
+                // Alternative handler for FAQ items using data-element-type
+                if (currentSectionsConfig.accordion && currentSectionsConfig.accordion.items && currentSectionsConfig.accordion.items[elementId]) {
+                    currentSectionsConfig.accordion.items[elementId].isHidden = newHiddenState;
+                    console.log(`[DEBUG] FAQ item ${elementId} saved as: ${newHiddenState ? 'hidden' : 'visible'}`);
                     
                     // Force sync the child visibility toggle state
                     if (window.forceChildVisibilitySync) {
@@ -10407,6 +10815,15 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
             console.log('[IMAGE-WITH-TEXT] Current block order:', currentSectionsConfig.imageWithText.blockOrder);
             setTimeout(() => {
                 initializeImageWithTextBlocksSortable();
+            }, 100);
+        }
+        
+        // Initialize sortable for accordion items if they exist
+        if (currentSectionsConfig.accordion && currentSectionsConfig.accordion.itemOrder && currentSectionsConfig.accordion.itemOrder.length > 0) {
+            console.log('[ACCORDION] Initializing sortable from attachBlockListEventListeners');
+            console.log('[ACCORDION] Current item order:', currentSectionsConfig.accordion.itemOrder);
+            setTimeout(() => {
+                initializeAccordionItemsSortable();
             }, 100);
         }
         
@@ -11129,6 +11546,7 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
             'multicolumn': '<div class="section-preview-image"><img src="/TestImages/multicolumimage.png" alt="Multicolumn"></div>',
             'images-with-text': '<div class="section-preview-image"><img src="/TestImages/imagewithtexthoverpreview.png" alt="Image with Text"></div>',
             'testimonials': '<div class="section-preview-image"><img src="/TestImages/testimonialstructure.png?v=' + Date.now() + '" alt="Testimonials"></div>',
+            'accordion': '<div class="section-preview-image"><img src="/TestImages/AccordionMenuPreview.png" alt="Accordion/FAQ"></div>',
             // Add more previews as needed
         };
         
@@ -11578,6 +11996,62 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                 
                 console.log('[DEBUG] Testimonials added successfully');
             }
+        }
+        
+        // Add handler for accordion
+        if (group === 'template' && sectionId === 'accordion') {
+            console.log('[DEBUG] Adding accordion section');
+            
+            if (!currentSectionsConfig.accordion) {
+                currentSectionsConfig.accordion = {
+                    id: 'accordion',
+                    isHidden: false,
+                    colorScheme: 'scheme5',
+                    colorBackground: false,
+                    colorTabs: 'categories',
+                    width: 'extra-small',
+                    layout: 'tabs-at-the-bottom',
+                    expandFirstTab: false,
+                    heading: 'Preguntas Frecuentes',
+                    body: '',
+                    headingSize: 3,
+                    bodySize: 3,
+                    buttonLabel: '',
+                    buttonLink: '',
+                    buttonStyle: 'solid',
+                    addSidePaddings: false,
+                    topPadding: 96,
+                    bottomPadding: 96,
+                    items: {},
+                    itemOrder: []
+                };
+            }
+            
+            if (!currentSectionsConfig.sectionOrder) {
+                currentSectionsConfig.sectionOrder = [];
+            }
+            
+            // CRÍTICO: usar nombre exacto
+            if (!currentSectionsConfig.sectionOrder.includes('accordion')) {
+                currentSectionsConfig.sectionOrder.push('accordion');
+            }
+            
+            const templateSectionsHtml = renderTemplateSections();
+            $('#template-sections-container').html(templateSectionsHtml + `
+                <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e3e3e3;">
+                    <div class="add-section-button add-template-section" data-group="template">
+                        <i class="material-icons">add_circle</i>
+                        <span data-i18n="sections.addTemplateSection">Agregar sección de plantilla</span>
+                    </div>
+                </div>
+            `);
+            
+            setTimeout(applyTranslations, 0);
+            hasPendingPageStructureChanges = true;
+            updateSaveButtonState();
+            renderPreview();
+            
+            console.log('[DEBUG] Accordion added successfully');
         }
         
         // Close modal
@@ -17854,6 +18328,33 @@ document.head.appendChild(style);
                                 window.WebsiteBuilderModules.Testimonials.attachEventListeners();
                             }
                         }, 100);
+                    } else if (currentSidebarView === 'accordionSettings') {
+                        // Recargar datos y volver a blockList
+                        console.log('[DEBUG] Reloading after accordion save');
+                        loadCurrentWebsite().then(() => {
+                            window.switchSidebarView('blockList', window.getUpdatedPageData());
+                            
+                            setTimeout(() => {
+                                const isHidden = currentSectionsConfig.accordion?.isHidden || false;
+                                window.forceVisibilitySync('accordion', isHidden);
+                                
+                                // Sincronizar FAQ items
+                                $('.accordion-faq-item .visibility-toggle').each(function() {
+                                    const $button = $(this);
+                                    const itemId = $button.data('element-id');
+                                    if (itemId && currentSectionsConfig.accordion?.items?.[itemId]) {
+                                        const itemHidden = currentSectionsConfig.accordion.items[itemId].isHidden || false;
+                                        $button.find('.icon-visible, .icon-hidden').removeAttr('style');
+                                        
+                                        if (itemHidden) {
+                                            $button.addClass('is-hidden');
+                                        } else {
+                                            $button.removeClass('is-hidden');
+                                        }
+                                    }
+                                });
+                            }, 200);
+                        });
                     }
                     
                     setTimeout(() => {
@@ -19108,6 +19609,74 @@ document.head.appendChild(style);
     window.forceImageWithTextSortable = function() {
         console.log('[IMAGE-WITH-TEXT] Force reinitializing sortable...');
         initializeImageWithTextBlocksSortable();
+    };
+    
+    // Función global para agregar item de accordion
+    window.addAccordionItem = function() {
+        console.log('[DEBUG] addAccordionItem called');
+        
+        // Initialize accordion if needed
+        if (!currentSectionsConfig.accordion) {
+            currentSectionsConfig.accordion = {
+                id: 'accordion',
+                isHidden: false,
+                colorScheme: 'scheme5',
+                colorBackground: false,
+                colorTabs: 'categories',
+                width: 'extra-small',
+                layout: 'tabs-at-the-bottom',
+                expandFirstTab: false,
+                heading: 'Preguntas Frecuentes',
+                body: '',
+                headingSize: 3,
+                bodySize: 3,
+                buttonLabel: '',
+                buttonLink: '',
+                buttonStyle: 'solid',
+                addSidePaddings: false,
+                topPadding: 96,
+                bottomPadding: 96,
+                items: {},
+                itemOrder: []
+            };
+        }
+        
+        // Ensure structure exists
+        if (!currentSectionsConfig.accordion.items) {
+            currentSectionsConfig.accordion.items = {};
+        }
+        if (!currentSectionsConfig.accordion.itemOrder) {
+            currentSectionsConfig.accordion.itemOrder = [];
+        }
+        
+        const itemId = 'faq-' + Date.now();
+        const itemNumber = currentSectionsConfig.accordion.itemOrder.length + 1;
+        
+        currentSectionsConfig.accordion.items[itemId] = {
+            id: itemId,
+            question: `Pregunta ${itemNumber}`,
+            answer: `Respuesta ${itemNumber}`,
+            isHidden: false
+        };
+        
+        currentSectionsConfig.accordion.itemOrder.push(itemId);
+        
+        // Mark as having changes
+        window.setHasPendingPageStructureChanges(true);
+        window.updateSaveButtonState();
+        window.renderPreview();
+        
+        // Refresh the settings view
+        window.switchSidebarView('accordionSettings', currentSectionsConfig.accordion);
+        
+        console.log('[DEBUG] Accordion item added:', itemId);
+        
+        // Si estamos en la vista blockList, reinicializar el sortable
+        if (currentSidebarView === 'blockList') {
+            setTimeout(() => {
+                initializeAccordionItemsSortable();
+            }, 100);
+        }
     };
     
     // Debug simplificado sin dependencias internas
