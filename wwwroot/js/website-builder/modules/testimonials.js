@@ -76,7 +76,7 @@ window.WebsiteBuilderModules.Testimonials = {
                 const spaceBetween = config.desktopSpaceBetweenCards || 16;
                 const gridStyles = config.desktopLayout === 'bottom-carousel' ? 
                     `display: grid; grid-template-columns: repeat(${cardsPerRow}, 1fr); gap: ${spaceBetween}px;` :
-                    'display: flex; overflow-x: auto;';
+                    'display: flex; overflow-x: auto; gap: 16px; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch;';
                 
                 testimonialsHtml = `<div class="testimonials-grid" style="${gridStyles}">`;
                 
@@ -89,8 +89,92 @@ window.WebsiteBuilderModules.Testimonials = {
             }
         }
         
+        // Generate unique ID for this instance
+        const uniqueId = 'testimonials-' + Date.now();
+        
         const html = `
-            <div class="section-wrapper testimonials-section" data-section-id="testimonials" style="${sectionStyles}">
+            <style>
+                @media (max-width: 768px) {
+                    #${uniqueId} .testimonials-grid {
+                        grid-template-columns: 1fr !important;
+                        gap: 16px !important;
+                    }
+                    
+                    #${uniqueId} .testimonials-header {
+                        text-align: ${config.mobileContentAlignment || 'center'} !important;
+                        margin-bottom: 30px !important;
+                    }
+                    
+                    #${uniqueId} .testimonials-header h2 {
+                        font-size: 24px !important;
+                    }
+                    
+                    #${uniqueId} .testimonials-header p,
+                    #${uniqueId} .testimonials-header div {
+                        font-size: 14px !important;
+                    }
+                    
+                    #${uniqueId} .testimonial-card {
+                        text-align: ${config.mobileContentAlignment || 'center'} !important;
+                        padding: 20px !important;
+                    }
+                    
+                    #${uniqueId} .testimonial-author {
+                        ${config.mobileContentAlignment === 'center' ? 'justify-content: center !important;' : ''}
+                    }
+                    
+                    #${uniqueId} {
+                        padding: 40px 20px !important;
+                    }
+                    
+                    #${uniqueId} .testimonial-card .testimonial-author img,
+                    #${uniqueId} .testimonial-card .testimonial-author > div:first-child {
+                        width: 36px !important;
+                        height: 36px !important;
+                    }
+                    
+                    #${uniqueId} .testimonial-card div[style*="font-size"] {
+                        font-size: 14px !important;
+                    }
+                    
+                    #${uniqueId} .testimonial-card div[style*="margin-bottom: 24px"] {
+                        margin-bottom: 16px !important;
+                    }
+                    
+                    /* Adjust rating stars for mobile */
+                    #${uniqueId} .testimonial-card span[style*="font-size"] {
+                        font-size: 14px !important;
+                    }
+                    
+                    /* Mobile carousel styles */
+                    #${uniqueId} .testimonials-grid[style*="display: flex"] {
+                        padding-bottom: 10px !important;
+                        scroll-snap-type: x mandatory !important;
+                    }
+                    
+                    #${uniqueId} .testimonials-grid[style*="display: flex"] .testimonial-card {
+                        min-width: 85% !important;
+                        scroll-snap-align: center !important;
+                        flex-shrink: 0 !important;
+                    }
+                    
+                    /* Mobile scrollbar styling */
+                    #${uniqueId} .testimonials-grid[style*="display: flex"]::-webkit-scrollbar {
+                        height: 6px !important;
+                    }
+                    
+                    #${uniqueId} .testimonials-grid[style*="display: flex"]::-webkit-scrollbar-track {
+                        background: #f1f1f1 !important;
+                        border-radius: 3px !important;
+                    }
+                    
+                    #${uniqueId} .testimonials-grid[style*="display: flex"]::-webkit-scrollbar-thumb {
+                        background: #888 !important;
+                        border-radius: 3px !important;
+                    }
+                }
+            </style>
+            <div id="${uniqueId}" class="section-wrapper testimonials-section" data-section-id="testimonials" style="${sectionStyles}">
                 <div class="section-header-tag">
                     <span class="material-symbols-outlined" style="font-size: 16px;">rate_review</span>
                     ${window.translations && window.translations[window.currentLanguage] ? 
@@ -197,7 +281,7 @@ window.WebsiteBuilderModules.Testimonials = {
                     ${testimonial.content || 'Customer testimonial content...'}
                 </div>
                 
-                <div style="display: flex; align-items: center; gap: 12px; ${config.desktopContentAlignment === 'center' ? 'justify-content: center;' : ''}">
+                <div class="testimonial-author" style="display: flex; align-items: center; gap: 12px; ${config.desktopContentAlignment === 'center' ? 'justify-content: center;' : ''}">
                     ${testimonial.avatar ? `
                         <img src="${testimonial.avatar}" alt="${testimonial.author}" style="width: ${testimonial.avatarSize || 40}px; height: ${testimonial.avatarSize || 40}px; border-radius: ${testimonial.avatarShape === 'square' ? '4px' : '50%'}; object-fit: cover;">
                     ` : `

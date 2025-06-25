@@ -1947,6 +1947,27 @@ function renderPreview() {
     const sectionWrappers = previewDoc.querySelectorAll('.section-wrapper');
     sectionWrappers.forEach(wrapper => {
         wrapper.addEventListener('click', function(e) {
+            // Check if the click originated from interactive elements that should not trigger section settings
+            const clickedElement = e.target;
+            
+            // Special handling for accordion FAQ headers and tabs - let them handle their own clicks
+            const isFaqHeader = clickedElement.closest('.faq-header');
+            const isFaqTab = clickedElement.closest('[data-accordion-tab="true"]');
+            const isAccordionToggle = clickedElement.closest('[data-accordion-toggle="true"]');
+            
+            if (isFaqHeader || isFaqTab || isAccordionToggle) {
+                console.log('[PREVIEW CLICK] Click on accordion element, letting accordion handle it');
+                return; // Let the accordion's own click handler manage this
+            }
+            
+            // Check if click is on other interactive elements (excluding section-header-tag)
+            const isInteractiveElement = clickedElement.closest('button, a, input, select, textarea');
+            
+            if (isInteractiveElement) {
+                console.log('[PREVIEW CLICK] Click on interactive element, ignoring section click');
+                return; // Don't open settings for interactive elements
+            }
+            
             e.preventDefault();
             e.stopPropagation();
 
@@ -1998,6 +2019,11 @@ function renderPreview() {
                 $('.topbar-nav-icon').removeClass('active');
                 $('.topbar-nav-icon[data-view="sections"]').addClass('active');
                 window.switchSidebarView('accordionSettings');
+            } else if (sectionId === 'testimonials') {
+                // Logic for testimonials section
+                $('.topbar-nav-icon').removeClass('active');
+                $('.topbar-nav-icon[data-view="sections"]').addClass('active');
+                window.switchSidebarView('testimonialsSettings');
             }
             // Aquí añadiremos más 'else if' para otras secciones en el futuro.
         });
@@ -2045,6 +2071,9 @@ function renderPreview() {
     // Attach dropdown menu event listeners
     attachDropdownMenuListeners(previewDoc);
     
+    // Attach accordion toggle listeners
+    attachAccordionToggleListeners(previewDoc);
+    
     // Iniciar autoplay si está configurado
     startAnnouncementAutoplay();
     
@@ -2054,6 +2083,134 @@ function renderPreview() {
 
 // Make renderPreview globally accessible for modules
 window.renderPreview = renderPreview;
+
+// Function to handle accordion FAQ toggles
+function attachAccordionToggleListeners(previewDoc) {
+    console.log('[ACCORDION] Attaching accordion toggle listeners');
+    
+    // Handle standard accordion headers (tabs at bottom)
+    const faqHeaders = previewDoc.querySelectorAll('[data-accordion-toggle="true"]');
+    console.log('[ACCORDION] Found', faqHeaders.length, 'FAQ headers');
+    
+    faqHeaders.forEach((header, index) => {
+        // Remove any existing listeners
+        const newHeader = header.cloneNode(true);
+        header.parentNode.replaceChild(newHeader, header);
+        
+        // Add click listener
+        newHeader.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const content = this.nextElementSibling;
+            const isActive = this.classList.contains('active');
+            
+            console.log('[ACCORDION] FAQ toggle clicked - index:', index, 'active:', isActive);
+            
+            // Get toggle icon element
+            const toggleIcon = this.querySelector('.faq-toggle');
+            const accordionId = this.dataset.accordionId;
+            
+            // Get accordion config to know the toggle style
+            const config = currentSectionsConfig.accordion;
+            const toggleStyle = config?.toggleStyle || 'plus-minus';
+            
+            if (isActive) {
+                this.classList.remove('active');
+                if (content) {
+                    content.classList.remove('active');
+                    content.style.maxHeight = '0';
+                }
+                // Update toggle icon
+                if (toggleIcon && window.WebsiteBuilderModules?.Accordion?.getToggleIcon) {
+                    toggleIcon.textContent = window.WebsiteBuilderModules.Accordion.getToggleIcon(toggleStyle, false);
+                }
+            } else {
+                this.classList.add('active');
+                if (content) {
+                    content.classList.add('active');
+                    content.style.maxHeight = content.scrollHeight + 'px';
+                }
+                // Update toggle icon
+                if (toggleIcon && window.WebsiteBuilderModules?.Accordion?.getToggleIcon) {
+                    toggleIcon.textContent = window.WebsiteBuilderModules.Accordion.getToggleIcon(toggleStyle, true);
+                }
+            }
+            
+            return false;
+        }, true);
+    });
+    
+    // Handle side tabs (tabs to left/right)
+    const faqTabs = previewDoc.querySelectorAll('[data-accordion-tab="true"]');
+    console.log('[ACCORDION] Found', faqTabs.length, 'FAQ tabs');
+    
+    faqTabs.forEach((tab, index) => {
+        tab.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const accordionId = this.dataset.accordionId;
+            const itemId = this.dataset.itemId;
+            const itemIndex = this.dataset.itemIndex;
+            const contentArea = previewDoc.getElementById(`faq-content-area-${accordionId}`);
+            
+            console.log('[ACCORDION TAB] Click data:', { accordionId, itemId, itemIndex });
+            
+            // Get the item data from config
+            const config = currentSectionsConfig.accordion;
+            console.log('[ACCORDION TAB] Config:', config);
+            console.log('[ACCORDION TAB] Items:', config?.items);
+            
+            const item = config && config.items ? config.items[itemId] : null;
+            console.log('[ACCORDION TAB] Item found:', item);
+            
+            if (!contentArea) {
+                console.log('[ACCORDION TAB] Content area not found');
+                return;
+            }
+            
+            if (!item) {
+                console.log('[ACCORDION TAB] Item not found for ID:', itemId);
+                return;
+            }
+            
+            // Remove active class from all tabs
+            const allTabs = previewDoc.querySelectorAll(`[data-accordion-id="${accordionId}"][data-accordion-tab="true"]`);
+            allTabs.forEach(t => {
+                t.classList.remove('active');
+                // Reset inline styles
+                t.style.background = 'transparent';
+            });
+            
+            // Add active class to clicked tab
+            this.classList.add('active');
+            
+            // Get color scheme for active tab styling
+            const getColorSchemeValuesFn = window.getColorSchemeValues || parent.getColorSchemeValues;
+            const schemeColors = getColorSchemeValuesFn ? getColorSchemeValuesFn(config.colorScheme || 'scheme1') : { foreground: '#f5f5f5', text: '#333' };
+            this.style.background = schemeColors.foreground || '#f5f5f5';
+            
+            // Update content area with typography settings
+            const globalThemeSettings = window.currentGlobalThemeSettings || parent.currentGlobalThemeSettings;
+            const bodyTypography = globalThemeSettings?.typography?.body || {};
+            const getFontNameFn = window.getFontNameFromValueSafe || parent.getFontNameFromValueSafe;
+            const bodyFont = getFontNameFn ? 
+                getFontNameFn(bodyTypography.font || 'helvetica') : 
+                'Helvetica';
+            
+            contentArea.innerHTML = `
+                <div class="faq-answer-display" style="font-family: ${bodyFont}; font-size: 14px; line-height: 1.6; color: ${schemeColors.text};">
+                    ${item.answer || 'No answer available'}
+                </div>
+            `;
+            
+            console.log('[ACCORDION TAB] Updated content for item:', itemId);
+            
+            return false;
+        }, true);
+    });
+}
 
 // Function to open drawer menu dropdown for drawer layout
 function openDrawerMenuModal(isHover = false) {
@@ -7511,19 +7668,19 @@ $(document).ready(async function() {
             { id: 'rich-text', icon: 'text_fields', name: 'richText' },
             { id: 'image-banner', icon: 'image', name: 'imageBanner' },
             { id: 'slideshow', icon: 'view_carousel', name: 'slideshow' },
-            { id: 'collage', icon: 'dashboard', name: 'collage' },
+            // { id: 'collage', icon: 'dashboard', name: 'collage' }, // Hidden from users
             { id: 'multicolumn', icon: 'view_week', name: 'multicolumn' },
             { id: 'newsletter', icon: 'email', name: 'newsletter' },
             { id: 'contact-form', icon: 'mail_outline', name: 'contactForm' },
-            { id: 'custom-liquid', icon: 'code', name: 'customLiquid' },
+            // { id: 'custom-liquid', icon: 'code', name: 'customLiquid' }, // Hidden from users
             { id: 'accordion', icon: 'expand_more', name: 'accordion' },
-            { id: 'before-after-images', icon: 'compare', name: 'beforeAfterImages' },
+            // { id: 'before-after-images', icon: 'compare', name: 'beforeAfterImages' }, // Hidden from users
             { id: 'blog-posts', icon: 'article', name: 'blogPosts' },
             { id: 'collection-with-text', icon: 'text_snippet', name: 'collectionWithText' },
             { id: 'countdown-banner', icon: 'timer', name: 'countdownBanner' },
-            { id: 'featured-navigation', icon: 'menu', name: 'featuredNavigation' },
+            // { id: 'featured-navigation', icon: 'menu', name: 'featuredNavigation' }, // Hidden from users
             { id: 'gallery', icon: 'photo_library', name: 'gallery' },
-            { id: 'hotspots', icon: 'place', name: 'hotspots' },
+            // { id: 'hotspots', icon: 'place', name: 'hotspots' }, // Hidden from users
             { id: 'image-slider', icon: 'view_carousel', name: 'imageSlider' },
             { id: 'images-with-text', icon: 'image', name: 'imagesWithText' },
             { id: 'logo-list', icon: 'business', name: 'logoList' },
@@ -7531,13 +7688,13 @@ $(document).ready(async function() {
             { id: 'map', icon: 'map', name: 'map' },
             { id: 'multiple-collections', icon: 'view_module', name: 'multipleCollections' },
             { id: 'page', icon: 'description', name: 'page' },
-            { id: 'recently-viewed', icon: 'history', name: 'recentlyViewed' },
-            { id: 'scrolling-text', icon: 'text_rotation_none', name: 'scrollingText' },
-            { id: 'spacer', icon: 'space_bar', name: 'spacer' },
+            // { id: 'recently-viewed', icon: 'history', name: 'recentlyViewed' }, // Hidden from users
+            // { id: 'scrolling-text', icon: 'text_rotation_none', name: 'scrollingText' }, // Hidden from users
+            // { id: 'spacer', icon: 'space_bar', name: 'spacer' }, // Hidden from users
             { id: 'split-image-banner', icon: 'view_column', name: 'splitImageBanner' },
             { id: 'testimonials', icon: 'rate_review', name: 'testimonials', preview: 'testimonials' },
             { id: 'video', icon: 'videocam', name: 'video' },
-            { id: 'accordion', icon: 'help', name: 'accordion', preview: 'accordion' }
+            // { id: 'accordion', icon: 'help', name: 'accordion', preview: 'accordion' } // Hidden from users - duplicate accordion text
         ];
         
         return `

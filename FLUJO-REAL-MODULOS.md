@@ -1238,30 +1238,199 @@ render: function(config) {
 
 ### 🔴 IMPLEMENTACIÓN FINAL
 
-#### 8.1 Caso en Preview.cshtml (~línea 535)
+#### 8.1 Caso en Preview.cshtml (~línea 578)
 ```javascript
 } else if (sectionId === 'accordion') {
     console.log('[PREVIEW] Processing accordion section');
-    const config = currentSectionsConfig.accordion;
+    const accordionConfig = currentSectionsConfig.accordion;
     
-    if (config && !config.isHidden) {
-        if (window.WebsiteBuilderModules?.Accordion?.render) {
+    if (accordionConfig && !accordionConfig.isHidden) {
+        if (window.WebsiteBuilderModules && window.WebsiteBuilderModules.Accordion && window.WebsiteBuilderModules.Accordion.render) {
             console.log('[PREVIEW] Rendering accordion with module');
-            finalHtml += window.WebsiteBuilderModules.Accordion.render(config);
+            finalHtml += window.WebsiteBuilderModules.Accordion.render(accordionConfig);
         } else {
-            console.log('[PREVIEW] Module not available, using fallback');
-            finalHtml += `<div>Accordion/FAQ cargando...</div>`;
+            console.log('[PREVIEW] Accordion module not available');
         }
     }
+```
+
+#### 8.2 Event Listeners para Accordion en Preview Real (~línea 527)
+```javascript
+// Function to attach accordion event listeners
+function attachAccordionEventListeners() {
+    const faqHeaders = document.querySelectorAll('[data-accordion-toggle="true"]');
+    console.log('[PREVIEW ACCORDION] Found', faqHeaders.length, 'FAQ headers');
+    
+    faqHeaders.forEach((header, index) => {
+        header.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const itemIndex = this.dataset.itemIndex;
+            const accordionId = this.dataset.accordionId;
+            const content = document.querySelector(`.faq-content-${accordionId}-${itemIndex}`);
+            const isActive = this.classList.contains('active');
+            
+            // Get toggle icon element
+            const toggleIcon = this.querySelector('.faq-toggle');
+            
+            // Get accordion config to know the toggle style
+            const config = currentSectionsConfig.accordion;
+            const toggleStyle = config?.toggleStyle || 'plus-minus';
+            
+            if (isActive) {
+                this.classList.remove('active');
+                if (content) {
+                    content.classList.remove('active');
+                    content.style.maxHeight = '0';
+                }
+                // Update toggle icon
+                if (toggleIcon && window.WebsiteBuilderModules?.Accordion?.getToggleIcon) {
+                    toggleIcon.textContent = window.WebsiteBuilderModules.Accordion.getToggleIcon(toggleStyle, false);
+                }
+            } else {
+                this.classList.add('active');
+                if (content) {
+                    content.classList.add('active');
+                    content.style.maxHeight = content.scrollHeight + 'px';
+                }
+                // Update toggle icon
+                if (toggleIcon && window.WebsiteBuilderModules?.Accordion?.getToggleIcon) {
+                    toggleIcon.textContent = window.WebsiteBuilderModules.Accordion.getToggleIcon(toggleStyle, true);
+                }
+            }
+        });
+    });
 }
 ```
 
-#### 8.2 Agregar traducciones (en accordion.js)
+#### 8.3 Llamar a attachAccordionEventListeners después de renderizar (~línea 671)
 ```javascript
-// Al inicio del archivo
-if (!window.translations) window.translations = { es: {}, en: {} };
-if (!window.translations.es.accordion) window.translations.es.accordion = {};
-if (!window.translations.en.accordion) window.translations.en.accordion = {};
+previewContent.innerHTML = finalHtml;
+
+// Attach accordion event listeners
+attachAccordionEventListeners();
+```
+
+## ETAPA 9: FUNCIONALIDADES AVANZADAS - TOGGLE STYLE
+
+### 🔴 IMPLEMENTACIÓN DEL SELECTOR DE ESTILOS DE TOGGLE
+
+#### 9.1 Helper Function para Iconos del Toggle
+```javascript
+// En accordion.js - Al inicio del módulo
+window.WebsiteBuilderModules.Accordion = {
+    getToggleIcon: function(style, isActive) {
+        const toggleStyle = style || 'plus-minus';
+        
+        const icons = {
+            'plus-minus': { closed: '+', open: '−' },
+            'chevron': { closed: '›', open: '⌄' },
+            'arrow': { closed: '→', open: '↓' },
+            'caret': { closed: '▶', open: '▼' },
+            'none': { closed: '', open: '' }
+        };
+        
+        return icons[toggleStyle] ? (isActive ? icons[toggleStyle].open : icons[toggleStyle].closed) : '+';
+    },
+    // ... resto del módulo
+```
+
+#### 9.2 Agregar Select en Vista de Configuración
+```javascript
+// En renderSettings del módulo accordion.js (~línea 542)
+<!-- Toggle style -->
+<div class="settings-field">
+    <label data-i18n="accordion.toggleStyle">Toggle style</label>
+    <select class="shopify-select" id="accordion-toggle-style">
+        <option value="plus-minus" ${config.toggleStyle === 'plus-minus' || !config.toggleStyle ? 'selected' : ''}>Plus/Minus (+/-)</option>
+        <option value="chevron" ${config.toggleStyle === 'chevron' ? 'selected' : ''}>Chevron (›)</option>
+        <option value="arrow" ${config.toggleStyle === 'arrow' ? 'selected' : ''}>Arrow (→)</option>
+        <option value="caret" ${config.toggleStyle === 'caret' ? 'selected' : ''}>Caret (▶)</option>
+        <option value="none" ${config.toggleStyle === 'none' ? 'selected' : ''}>None</option>
+    </select>
+</div>
+```
+
+#### 9.3 Event Listener para el Select
+```javascript
+// En attachEventListeners() del módulo accordion.js (~línea 1239)
+// Toggle style
+$('#accordion-toggle-style').off('change').on('change', function() {
+    updateConfig('toggleStyle', $(this).val());
+});
+```
+
+#### 9.4 Actualizar CSS Dinámico en render()
+```javascript
+// En la función render() del módulo accordion.js (~línea 171)
+#${uniqueId} .faq-toggle {
+    font-size: ${config.toggleStyle === 'chevron' || config.toggleStyle === 'arrow' ? '20px' : '24px'};
+    color: ${schemeColors.text};
+    transition: transform 0.3s ease;
+    font-weight: ${config.toggleStyle === 'chevron' || config.toggleStyle === 'arrow' ? '400' : '300'};
+    line-height: 1;
+    width: 24px;
+    text-align: center;
+    display: ${config.toggleStyle === 'none' ? 'none' : 'inline-block'};
+}
+
+#${uniqueId} .faq-header.active .faq-toggle {
+    transform: ${config.toggleStyle === 'plus-minus' ? 'rotate(45deg)' : 
+                config.toggleStyle === 'caret' ? 'rotate(90deg)' : 
+                'none'};
+}
+```
+
+#### 9.5 Usar Helper en el HTML
+```javascript
+// En render() donde se genera el span del toggle
+<span class="faq-toggle">${window.WebsiteBuilderModules.Accordion.getToggleIcon(config.toggleStyle, isExpanded)}</span>
+```
+
+#### 9.6 Actualizar Event Listeners del Preview
+```javascript
+// En website-builder.js - attachAccordionToggleListeners() (~línea 2117)
+// Update toggle icon
+if (toggleIcon && window.WebsiteBuilderModules?.Accordion?.getToggleIcon) {
+    toggleIcon.textContent = window.WebsiteBuilderModules.Accordion.getToggleIcon(toggleStyle, false);
+}
+```
+
+### 📝 RESULTADO
+- Usuario puede elegir entre 5 estilos de toggle
+- Los íconos cambian dinámicamente al expandir/colapsar
+- Los estilos se aplican tanto en el editor como en el preview real
+- El estado se guarda en la configuración del accordion
+
+## RESUMEN DE IMPLEMENTACIÓN COMPLETA - ACCORDION
+
+### ✅ CHECKLIST FINAL
+- [x] Módulo creado como archivo separado en `/wwwroot/js/website-builder/modules/accordion.js`
+- [x] Script cargado en Index.cshtml, PreviewTemplate.cshtml y Preview.cshtml
+- [x] Caso agregado en switchSidebarView para 'accordionSettings'
+- [x] Sistema padre-hijos con drag & drop implementado
+- [x] Toggle de visibilidad sincronizado
+- [x] Delete handler implementado
+- [x] Preview en editor funcional con event listeners
+- [x] Preview real funcional con event listeners
+- [x] Selector de estilos de toggle implementado
+- [x] Layouts "tabs to the right", "tabs to the left" y "tabs at the bottom" funcionando
+- [x] Responsividad móvil implementada
+
+### 🎯 FUNCIONALIDADES LOGRADAS
+1. **Accordion básico** con preguntas y respuestas expandibles
+2. **Gestión de items** con agregar, eliminar, ocultar y reordenar
+3. **5 estilos de toggle** seleccionables por el usuario
+4. **3 layouts diferentes** adaptándose a diferentes diseños
+5. **Preview funcional** tanto en editor como en vista completa
+6. **Persistencia completa** de todos los cambios en la base de datos
+
+### 📋 NOTAS IMPORTANTES DE LA IMPLEMENTACIÓN
+1. **Toggle Style**: Se agregó en la ETAPA 9 como funcionalidad avanzada
+2. **Preview Real**: Requiere tanto el caso en renderPreviewContent() como los event listeners
+3. **Layouts laterales**: No son tabs clickables, son acordeones con heading al lado
+4. **Event Listeners**: Deben agregarse tanto en website-builder.js como en Preview.cshtml
 
 window.translations.es.accordion = {
     'settings.title': 'Configuración Accordion/FAQ',

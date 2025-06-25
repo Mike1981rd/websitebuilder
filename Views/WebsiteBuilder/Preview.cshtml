@@ -523,6 +523,53 @@
             }
         }
         
+        // Function to attach accordion event listeners
+        function attachAccordionEventListeners() {
+            const faqHeaders = document.querySelectorAll('[data-accordion-toggle="true"]');
+            console.log('[PREVIEW ACCORDION] Found', faqHeaders.length, 'FAQ headers');
+            
+            faqHeaders.forEach((header, index) => {
+                header.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    const itemIndex = this.dataset.itemIndex;
+                    const accordionId = this.dataset.accordionId;
+                    const content = document.querySelector(`.faq-content-${accordionId}-${itemIndex}`);
+                    const isActive = this.classList.contains('active');
+                    
+                    // Get toggle icon element
+                    const toggleIcon = this.querySelector('.faq-toggle');
+                    
+                    // Get accordion config to know the toggle style
+                    const config = currentSectionsConfig.accordion;
+                    const toggleStyle = config?.toggleStyle || 'plus-minus';
+                    
+                    if (isActive) {
+                        this.classList.remove('active');
+                        if (content) {
+                            content.classList.remove('active');
+                            content.style.maxHeight = '0';
+                        }
+                        // Update toggle icon
+                        if (toggleIcon && window.WebsiteBuilderModules?.Accordion?.getToggleIcon) {
+                            toggleIcon.textContent = window.WebsiteBuilderModules.Accordion.getToggleIcon(toggleStyle, false);
+                        }
+                    } else {
+                        this.classList.add('active');
+                        if (content) {
+                            content.classList.add('active');
+                            content.style.maxHeight = content.scrollHeight + 'px';
+                        }
+                        // Update toggle icon
+                        if (toggleIcon && window.WebsiteBuilderModules?.Accordion?.getToggleIcon) {
+                            toggleIcon.textContent = window.WebsiteBuilderModules.Accordion.getToggleIcon(toggleStyle, true);
+                        }
+                    }
+                });
+            });
+        }
+        
         // Función para renderizar el contenido del preview
         function renderPreviewContent() {
             console.log('[PREVIEW] Starting render with config:', currentSectionsConfig);
@@ -573,6 +620,18 @@
                                 finalHtml += window.WebsiteBuilderModules.Multicolumn.render(multicolumnConfig);
                             } else {
                                 finalHtml += renderMulticolumn(multicolumnConfig);
+                            }
+                        }
+                    } else if (sectionId === 'accordion') {
+                        console.log('[PREVIEW] Processing accordion section');
+                        const accordionConfig = currentSectionsConfig.accordion;
+                        
+                        if (accordionConfig && !accordionConfig.isHidden) {
+                            if (window.WebsiteBuilderModules && window.WebsiteBuilderModules.Accordion && window.WebsiteBuilderModules.Accordion.render) {
+                                console.log('[PREVIEW] Rendering accordion with module');
+                                finalHtml += window.WebsiteBuilderModules.Accordion.render(accordionConfig);
+                            } else {
+                                console.log('[PREVIEW] Accordion module not available');
                             }
                         }
                     } else if (sectionId === 'imageWithText' || sectionId === 'images-with-text') {
@@ -654,6 +713,9 @@
             }
             
             previewContent.innerHTML = finalHtml;
+            
+            // Attach accordion event listeners
+            attachAccordionEventListeners();
             
             // Adjuntar event listeners después del renderizado
             attachPreviewEventListeners();

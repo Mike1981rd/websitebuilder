@@ -1,14 +1,26 @@
 // Accordion/FAQ Module for Website Builder
 window.WebsiteBuilderModules = window.WebsiteBuilderModules || {};
 window.WebsiteBuilderModules.Accordion = {
+    getToggleIcon: function(style, isActive) {
+        const toggleStyle = style || 'plus-minus';
+        
+        const icons = {
+            'plus-minus': { closed: '+', open: '−' },
+            'chevron': { closed: '›', open: '⌄' },
+            'arrow': { closed: '→', open: '↓' },
+            'caret': { closed: '▶', open: '▼' },
+            'none': { closed: '', open: '' }
+        };
+        
+        return icons[toggleStyle] ? (isActive ? icons[toggleStyle].open : icons[toggleStyle].closed) : '+';
+    },
+    
     render: function(config) {
         if (!config || config.isHidden) return '';
         
         const schemeColors = getColorSchemeValues(config.colorScheme || 'scheme5');
         const items = config.itemOrder || [];
         const uniqueId = 'accordion-' + Date.now();
-        const functionName = 'toggleFaq_' + Date.now();
-        
         // Get typography settings
         const headingTypography = window.currentGlobalThemeSettings?.typography?.heading || {};
         const bodyTypography = window.currentGlobalThemeSettings?.typography?.body || {};
@@ -42,9 +54,16 @@ window.WebsiteBuilderModules.Accordion = {
             case 'extra-large': containerMaxWidth = '1400px'; break;
         }
         
-        // Background styles
+        // Section padding styles (background will be handled separately)
         let sectionStyles = `padding: ${topPadding}px ${sidePadding} ${bottomPadding}px;`;
-        if (config.colorBackground) {
+        
+        // Container background styles
+        let containerBackgroundStyle = '';
+        if (!config.colorBackground) {
+            // Toggle OFF: Only accordion container has background color
+            containerBackgroundStyle = `background-color: ${schemeColors.background}; padding: 40px; border-radius: 8px;`;
+        } else {
+            // Toggle ON: Entire section has background color
             sectionStyles += `background-color: ${schemeColors.background};`;
         }
         
@@ -88,11 +107,11 @@ window.WebsiteBuilderModules.Accordion = {
         switch(config.layout) {
             case 'tabs-to-the-left':
                 layoutClass = 'tabs-left';
-                containerStyles = 'display: flex; flex-direction: row;';
+                containerStyles = 'display: flex; flex-direction: row; gap: 20px;';
                 break;
             case 'tabs-to-the-right':
                 layoutClass = 'tabs-right';
-                containerStyles = 'display: flex; flex-direction: row-reverse;';
+                containerStyles = 'display: flex; flex-direction: row; gap: 20px;';
                 break;
             case 'tabs-at-the-bottom':
             default:
@@ -102,32 +121,6 @@ window.WebsiteBuilderModules.Accordion = {
         }
         
         return `
-            <script>
-                // Define the toggle function immediately
-                window.${functionName} = function(header) {
-                    // Prevent event from bubbling up
-                    if (window.event) {
-                        window.event.stopPropagation();
-                    }
-                    
-                    const content = header.nextElementSibling;
-                    const isActive = header.classList.contains('active');
-                    
-                    console.log('[ACCORDION] Toggle FAQ - Active:', isActive, 'Content:', content);
-                    
-                    // Toggle current FAQ
-                    if (isActive) {
-                        header.classList.remove('active');
-                        content.classList.remove('active');
-                        content.style.maxHeight = '0';
-                    } else {
-                        header.classList.add('active');
-                        content.classList.add('active');
-                        // Set explicit max-height for animation
-                        content.style.maxHeight = content.scrollHeight + 'px';
-                    }
-                };
-            </script>
             <style>
                 #${uniqueId} .faq-item {
                     border: 1px solid ${schemeColors.border || '#e3e3e3'};
@@ -176,17 +169,20 @@ window.WebsiteBuilderModules.Accordion = {
                 }
                 
                 #${uniqueId} .faq-toggle {
-                    font-size: 24px;
+                    font-size: ${config.toggleStyle === 'chevron' || config.toggleStyle === 'arrow' ? '20px' : '24px'};
                     color: ${schemeColors.text};
                     transition: transform 0.3s ease;
-                    font-weight: 300;
+                    font-weight: ${config.toggleStyle === 'chevron' || config.toggleStyle === 'arrow' ? '400' : '300'};
                     line-height: 1;
                     width: 24px;
                     text-align: center;
+                    display: ${config.toggleStyle === 'none' ? 'none' : 'inline-block'};
                 }
                 
                 #${uniqueId} .faq-header.active .faq-toggle {
-                    transform: rotate(45deg);
+                    transform: ${config.toggleStyle === 'plus-minus' ? 'rotate(45deg)' : 
+                                config.toggleStyle === 'caret' ? 'rotate(90deg)' : 
+                                'none'};
                 }
                 
                 #${uniqueId} .faq-content {
@@ -208,63 +204,13 @@ window.WebsiteBuilderModules.Accordion = {
                     line-height: 1.6;
                 }
                 
-                /* Layout styles for tabs positioning */
-                #${uniqueId} .faq-container.tabs-left {
-                    display: flex;
-                    flex-direction: row;
-                    gap: 20px;
-                }
-                
-                #${uniqueId} .faq-container.tabs-left .faq-item {
-                    writing-mode: vertical-rl;
-                    text-orientation: mixed;
-                    width: auto;
-                    margin-bottom: 0;
-                    margin-right: -1px;
-                }
-                
-                #${uniqueId} .faq-container.tabs-left .faq-header {
-                    min-height: 200px;
-                    padding: 20px 16px;
-                }
-                
-                #${uniqueId} .faq-container.tabs-left .faq-question {
-                    writing-mode: vertical-rl;
-                    text-orientation: mixed;
-                }
-                
-                #${uniqueId} .faq-container.tabs-left .faq-content {
-                    writing-mode: horizontal-tb;
-                    width: 100%;
-                }
-                
+                /* Layout styles for side positioning */
+                #${uniqueId} .faq-container.tabs-left,
                 #${uniqueId} .faq-container.tabs-right {
                     display: flex;
-                    flex-direction: row-reverse;
-                    gap: 20px;
-                }
-                
-                #${uniqueId} .faq-container.tabs-right .faq-item {
-                    writing-mode: vertical-lr;
-                    text-orientation: mixed;
-                    width: auto;
-                    margin-bottom: 0;
-                    margin-left: -1px;
-                }
-                
-                #${uniqueId} .faq-container.tabs-right .faq-header {
-                    min-height: 200px;
-                    padding: 20px 16px;
-                }
-                
-                #${uniqueId} .faq-container.tabs-right .faq-question {
-                    writing-mode: vertical-lr;
-                    text-orientation: mixed;
-                }
-                
-                #${uniqueId} .faq-container.tabs-right .faq-content {
-                    writing-mode: horizontal-tb;
-                    width: 100%;
+                    flex-direction: row;
+                    gap: 40px;
+                    align-items: flex-start;
                 }
                 
                 /* Default tabs-bottom layout */
@@ -292,27 +238,26 @@ window.WebsiteBuilderModules.Accordion = {
                     /* Reset layout for mobile */
                     #${uniqueId} .faq-container.tabs-left,
                     #${uniqueId} .faq-container.tabs-right {
-                        display: block;
+                        display: flex;
+                        flex-direction: column;
                     }
                     
-                    #${uniqueId} .faq-container.tabs-left .faq-item,
-                    #${uniqueId} .faq-container.tabs-right .faq-item {
-                        writing-mode: horizontal-tb;
+                    #${uniqueId} .faq-container.tabs-left .faq-heading-area {
                         width: 100%;
-                        margin-right: 0;
-                        margin-left: 0;
-                        margin-bottom: -1px;
+                        margin-bottom: 30px;
+                        padding: 0;
+                        order: -1; /* Move heading to top on mobile */
                     }
                     
-                    #${uniqueId} .faq-container.tabs-left .faq-header,
-                    #${uniqueId} .faq-container.tabs-right .faq-header {
-                        min-height: auto;
-                        padding: 16px 20px;
+                    #${uniqueId} .faq-container.tabs-right .faq-heading-area {
+                        width: 100%;
+                        margin-bottom: 30px;
+                        padding: 0;
                     }
                     
-                    #${uniqueId} .faq-container.tabs-left .faq-question,
-                    #${uniqueId} .faq-container.tabs-right .faq-question {
-                        writing-mode: horizontal-tb;
+                    #${uniqueId} .faq-container.tabs-left .faq-accordions-wrapper,
+                    #${uniqueId} .faq-container.tabs-right .faq-accordions-wrapper {
+                        width: 100%;
                     }
                 }
             </style>
@@ -325,7 +270,7 @@ window.WebsiteBuilderModules.Accordion = {
                         'Accordion/FAQ'}
                 </div>
                 <div class="container" style="max-width: ${containerMaxWidth}; margin: 0 auto;">
-                    ${config.heading || config.body ? `
+                    ${layoutClass === 'tabs-bottom' && (config.heading || config.body) ? `
                         <div style="text-align: center; margin-bottom: 40px;">
                             ${config.heading ? `<h2 style="font-family: ${headingFont}; font-size: ${headingSize}; color: ${schemeColors.text}; margin-bottom: 16px;">
                                 ${config.heading}
@@ -337,27 +282,110 @@ window.WebsiteBuilderModules.Accordion = {
                     ` : ''}
                     
                     ${items.length > 0 ? `
-                        <div class="faq-container ${layoutClass}" style="${containerStyles}">
-                            ${items.map((itemId, index) => {
-                                const item = config.items[itemId];
-                                if (!item || item.isHidden) return '';
-                                
-                                const isExpanded = config.expandFirstTab && index === 0;
-                                
-                                return `
-                                    <div class="faq-item">
-                                        <div class="faq-header ${isExpanded ? 'active' : ''}" onclick="event.stopPropagation(); window.${functionName}(this)">
-                                            <h3 class="faq-question">${item.question || `Question ${index + 1}`}</h3>
-                                            <span class="faq-toggle">+</span>
-                                        </div>
-                                        <div class="faq-content ${isExpanded ? 'active' : ''}" style="${isExpanded ? 'max-height: 1000px;' : 'max-height: 0;'}">
-                                            <div class="faq-answer">
-                                                ${item.answer || `Answer ${index + 1}`}
+                        <div class="faq-container ${layoutClass}" style="${containerStyles} ${containerBackgroundStyle}">
+                            ${layoutClass === 'tabs-bottom' ? 
+                                // Standard accordion layout for tabs at bottom
+                                items.map((itemId, index) => {
+                                    const item = config.items[itemId];
+                                    if (!item || item.isHidden) return '';
+                                    
+                                    const isExpanded = config.expandFirstTab && index === 0;
+                                    
+                                    return `
+                                        <div class="faq-item">
+                                            <div class="faq-header faq-header-${uniqueId} ${isExpanded ? 'active' : ''}" 
+                                                 data-accordion-toggle="true"
+                                                 data-accordion-id="${uniqueId}"
+                                                 data-item-index="${index}"
+                                                 style="cursor: pointer;">
+                                                <h3 class="faq-question">${item.question || `Question ${index + 1}`}</h3>
+                                                <span class="faq-toggle">${window.WebsiteBuilderModules.Accordion.getToggleIcon(config.toggleStyle, isExpanded)}</span>
+                                            </div>
+                                            <div class="faq-content faq-content-${uniqueId}-${index} ${isExpanded ? 'active' : ''}" style="${isExpanded ? 'max-height: 1000px;' : 'max-height: 0;'}">
+                                                <div class="faq-answer">
+                                                    ${item.answer || `Answer ${index + 1}`}
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                `;
-                            }).join('')}
+                                    `;
+                                }).join('')
+                            : 
+                                // Side layouts - heading on one side, accordions on the other
+                                layoutClass === 'tabs-left' ? 
+                                `
+                                <div class="faq-accordions-wrapper" style="flex: 1;">
+                                    ${items.map((itemId, index) => {
+                                        const item = config.items[itemId];
+                                        if (!item || item.isHidden) return '';
+                                        
+                                        const isExpanded = config.expandFirstTab && index === 0;
+                                        
+                                        return `
+                                            <div class="faq-item">
+                                                <div class="faq-header faq-header-${uniqueId} ${isExpanded ? 'active' : ''}" 
+                                                     data-accordion-toggle="true"
+                                                     data-accordion-id="${uniqueId}"
+                                                     data-item-index="${index}"
+                                                     style="cursor: pointer;">
+                                                    <h3 class="faq-question">${item.question || `Question ${index + 1}`}</h3>
+                                                    <span class="faq-toggle">${window.WebsiteBuilderModules.Accordion.getToggleIcon(config.toggleStyle, isExpanded)}</span>
+                                                </div>
+                                                <div class="faq-content faq-content-${uniqueId}-${index} ${isExpanded ? 'active' : ''}" style="${isExpanded ? 'max-height: 1000px;' : 'max-height: 0;'}">
+                                                    <div class="faq-answer">
+                                                        ${item.answer || `Answer ${index + 1}`}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        `;
+                                    }).join('')}
+                                </div>
+                                <div class="faq-heading-area" style="width: 300px; flex-shrink: 0; padding-left: 40px;">
+                                    <h2 style="font-family: ${headingFont}; font-size: ${headingSize}; color: ${schemeColors.text}; margin: 0;">
+                                        ${config.heading || 'Preguntas Frecuentes'}
+                                    </h2>
+                                    ${config.body ? `<div style="font-family: ${bodyFont}; font-size: ${bodySize}; color: ${schemeColors.text}; opacity: 0.8; margin-top: 16px;">
+                                        ${config.body}
+                                    </div>` : ''}
+                                </div>
+                                ` : 
+                                // tabs-right - heading left, accordions right
+                                `
+                                <div class="faq-heading-area" style="width: 300px; flex-shrink: 0; padding-right: 40px;">
+                                    <h2 style="font-family: ${headingFont}; font-size: ${headingSize}; color: ${schemeColors.text}; margin: 0;">
+                                        ${config.heading || 'Preguntas Frecuentes'}
+                                    </h2>
+                                    ${config.body ? `<div style="font-family: ${bodyFont}; font-size: ${bodySize}; color: ${schemeColors.text}; opacity: 0.8; margin-top: 16px;">
+                                        ${config.body}
+                                    </div>` : ''}
+                                </div>
+                                <div class="faq-accordions-wrapper" style="flex: 1;">
+                                    ${items.map((itemId, index) => {
+                                        const item = config.items[itemId];
+                                        if (!item || item.isHidden) return '';
+                                        
+                                        const isExpanded = config.expandFirstTab && index === 0;
+                                        
+                                        return `
+                                            <div class="faq-item">
+                                                <div class="faq-header faq-header-${uniqueId} ${isExpanded ? 'active' : ''}" 
+                                                     data-accordion-toggle="true"
+                                                     data-accordion-id="${uniqueId}"
+                                                     data-item-index="${index}"
+                                                     style="cursor: pointer;">
+                                                    <h3 class="faq-question">${item.question || `Question ${index + 1}`}</h3>
+                                                    <span class="faq-toggle">${window.WebsiteBuilderModules.Accordion.getToggleIcon(config.toggleStyle, isExpanded)}</span>
+                                                </div>
+                                                <div class="faq-content faq-content-${uniqueId}-${index} ${isExpanded ? 'active' : ''}" style="${isExpanded ? 'max-height: 1000px;' : 'max-height: 0;'}">
+                                                    <div class="faq-answer">
+                                                        ${item.answer || `Answer ${index + 1}`}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        `;
+                                    }).join('')}
+                                </div>
+                                `
+                            }
                         </div>
                     ` : `
                         <div style="text-align: center; padding: 60px 20px;">
@@ -525,6 +553,18 @@ window.WebsiteBuilderModules.Accordion = {
                     <option value="tabs-at-the-bottom" ${config.layout === 'tabs-at-the-bottom' ? 'selected' : ''} data-i18n="accordion.layout.bottom">Tabs at the bottom</option>
                 </select>
                 <p class="help-text" data-i18n="accordion.layoutHelp">Bottom is the default mobile layout</p>
+            </div>
+            
+            <!-- Toggle style -->
+            <div class="settings-field">
+                <label data-i18n="accordion.toggleStyle">Toggle style</label>
+                <select class="shopify-select" id="accordion-toggle-style">
+                    <option value="plus-minus" ${config.toggleStyle === 'plus-minus' || !config.toggleStyle ? 'selected' : ''}>Plus/Minus (+/-)</option>
+                    <option value="chevron" ${config.toggleStyle === 'chevron' ? 'selected' : ''}>Chevron (›)</option>
+                    <option value="arrow" ${config.toggleStyle === 'arrow' ? 'selected' : ''}>Arrow (→)</option>
+                    <option value="caret" ${config.toggleStyle === 'caret' ? 'selected' : ''}>Caret (▶)</option>
+                    <option value="none" ${config.toggleStyle === 'none' ? 'selected' : ''}>None</option>
+                </select>
             </div>
             
             <!-- Expand first tab -->
@@ -1210,6 +1250,11 @@ window.WebsiteBuilderModules.Accordion = {
         // Layout
         $('#accordion-layout').off('change').on('change', function() {
             updateConfig('layout', $(this).val());
+        });
+        
+        // Toggle style
+        $('#accordion-toggle-style').off('change').on('change', function() {
+            updateConfig('toggleStyle', $(this).val());
         });
         
         // Expand first tab

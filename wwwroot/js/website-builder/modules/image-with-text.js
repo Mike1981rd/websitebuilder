@@ -62,11 +62,96 @@ window.WebsiteBuilderModules.ImageWithText = {
                 /* Mobile responsiveness */
                 @media (max-width: 768px) {
                     #${uniqueId} {
-                        padding: 20px 0 !important;
+                        padding: 30px 0 !important;
                     }
                     
                     #${uniqueId} .container {
-                        padding: 0 15px !important;
+                        padding: 0 20px !important;
+                    }
+                    
+                    /* Force vertical layout on mobile - target the grid container */
+                    #${uniqueId} .image-text-grid {
+                        display: flex !important;
+                        flex-direction: column !important;
+                        gap: 30px !important;
+                    }
+                    
+                    /* Force images to be first on mobile */
+                    #${uniqueId} .images-section {
+                        order: -1 !important;
+                    }
+                    
+                    /* Force content to be second on mobile */
+                    #${uniqueId} .content-section {
+                        order: 1 !important;
+                    }
+                    
+                    /* Ensure content wrapper is centered */
+                    #${uniqueId} .content-wrapper {
+                        max-width: 100% !important;
+                        text-align: center !important;
+                    }
+                    
+                    /* Center align text elements on mobile */
+                    #${uniqueId} h2,
+                    #${uniqueId} .subheading,
+                    #${uniqueId} .text-content {
+                        text-align: center !important;
+                    }
+                    
+                    /* Adjust font sizes for mobile */
+                    #${uniqueId} h2 {
+                        font-size: 28px !important;
+                    }
+                    
+                    #${uniqueId} .text-content {
+                        font-size: 16px !important;
+                    }
+                    
+                    /* Center buttons on mobile */
+                    #${uniqueId} .buttons-wrapper {
+                        justify-content: center !important;
+                    }
+                    
+                    /* Adjust collage layout for mobile */
+                    #${uniqueId} .collage-container {
+                        height: auto !important;
+                        display: flex !important;
+                        flex-direction: column !important;
+                        gap: 15px !important;
+                    }
+                    
+                    #${uniqueId} .collage-container .collage-item {
+                        position: relative !important;
+                        width: 100% !important;
+                        height: auto !important;
+                        margin-bottom: 0 !important;
+                        top: auto !important;
+                        left: auto !important;
+                        right: auto !important;
+                        bottom: auto !important;
+                    }
+                    
+                    #${uniqueId} .collage-container .collage-item > div {
+                        transform: none !important;
+                        aspect-ratio: 4/3 !important;
+                    }
+                    
+                    /* Grid adjustments for mobile */
+                    #${uniqueId} .images-grid {
+                        grid-template-columns: 1fr !important;
+                        grid-template-rows: auto !important;
+                        gap: 15px !important;
+                    }
+                    
+                    #${uniqueId} .images-grid .image-card {
+                        transform: none !important;
+                        aspect-ratio: 4/3 !important;
+                    }
+                    
+                    /* Icon centering */
+                    #${uniqueId} .icon-wrapper {
+                        text-align: center !important;
                     }
                 }
             </style>
@@ -395,9 +480,9 @@ window.WebsiteBuilderModules.ImageWithText = {
         const contentOrder = contentOnLeft ? 1 : 2;
         
         return `
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center;">
-                <div style="order: ${imagesOrder};">${imagesHtml}</div>
-                <div style="order: ${contentOrder};">${contentHtml}</div>
+            <div class="image-text-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center;">
+                <div class="images-section" style="order: ${imagesOrder};">${imagesHtml}</div>
+                <div class="content-section" style="order: ${contentOrder};">${contentHtml}</div>
             </div>
         `;
     },
