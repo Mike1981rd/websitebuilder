@@ -640,6 +640,83 @@ namespace Hotel.Controllers
             }
         }
 
+        // POST: api/builder/websites/current/upload-video
+        [HttpPost("current/upload-video")]
+        [DisableRequestSizeLimit]
+        public async Task<IActionResult> UploadVideo([FromForm] IFormFile videoFile)
+        {
+            try
+            {
+                if (videoFile == null || videoFile.Length == 0)
+                {
+                    return BadRequest(new { message = "No file uploaded" });
+                }
+
+                // Validar tipo de archivo
+                var allowedExtensions = new[] { ".mp4", ".webm", ".ogg", ".mov" };
+                var extension = Path.GetExtension(videoFile.FileName).ToLowerInvariant();
+                
+                if (!allowedExtensions.Contains(extension))
+                {
+                    return BadRequest(new { message = "Invalid file type. Allowed types: mp4, webm, ogg, mov" });
+                }
+
+                // Validar tamaño del archivo (25MB máximo)
+                if (videoFile.Length > 25 * 1024 * 1024)
+                {
+                    return BadRequest(new { message = "File size exceeds 25MB limit" });
+                }
+
+                // Obtener el sitio web actual
+                var company = await _context.Companies.FirstOrDefaultAsync();
+                if (company == null)
+                {
+                    return NotFound(new { message = "No company found" });
+                }
+
+                var website = await _context.WebSites
+                    .FirstOrDefaultAsync(w => w.CompanyId == company.Id);
+
+                if (website == null)
+                {
+                    return NotFound(new { message = "Website not found" });
+                }
+
+                // Crear directorio si no existe
+                var uploadsPath = Path.Combine("wwwroot", "uploads", "website-videos");
+                if (!Directory.Exists(uploadsPath))
+                {
+                    Directory.CreateDirectory(uploadsPath);
+                }
+
+                // Generar nombre único para el archivo
+                var uniqueFileName = $"{website.Id}_video_{Guid.NewGuid()}{extension}";
+                var filePath = Path.Combine(uploadsPath, uniqueFileName);
+
+                // Guardar el archivo
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await videoFile.CopyToAsync(stream);
+                }
+
+                // URL relativa del archivo
+                var videoUrl = $"/uploads/website-videos/{uniqueFileName}";
+
+                _logger.LogInformation("Successfully uploaded video for website {WebsiteId}", website.Id);
+
+                return Ok(new { 
+                    message = "Video uploaded successfully", 
+                    videoUrl = videoUrl,
+                    fileName = videoFile.FileName
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error uploading video");
+                return StatusCode(500, new { message = "An error occurred while uploading the video" });
+            }
+        }
+
         // POST: api/builder/websites/current/upload-logo
         [HttpPost("current/upload-logo")]
         [DisableRequestSizeLimit]

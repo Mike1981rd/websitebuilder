@@ -204,6 +204,8 @@
     <script src="~/js/website-builder/modules/image-with-text.js?v=@DateTime.Now.Ticks"></script>
     <script src="~/js/website-builder/modules/testimonials.js?v=@DateTime.Now.Ticks"></script>
     <script src="~/js/website-builder/modules/accordion.js?v=@DateTime.Now.Ticks"></script>
+    <script src="~/js/website-builder/modules/image-banner.js?v=@DateTime.Now.Ticks"></script>
+    <script src="~/js/website-builder/modules/newsletter.js?v=@DateTime.Now.Ticks"></script>
     
     <script>
         // Verificar que los módulos se cargaron correctamente
@@ -692,7 +694,38 @@
                                 `;
                             }
                         } else {
-                            console.log('[PREVIEW] imageWithText is hidden or config not found');
+                            console.log('[PREVIEW] testimonials is hidden or config not found');
+                        }
+                    } else if (sectionId === 'imageBanner') {
+                        console.log('[PREVIEW] Processing imageBanner section');
+                        const imageBannerConfig = currentSectionsConfig.imageBanner;
+                        console.log('[PREVIEW] imageBanner config:', imageBannerConfig);
+                        console.log('[PREVIEW] Module available?', window.WebsiteBuilderModules?.ImageBanner?.render ? 'Yes' : 'No');
+                        
+                        if (imageBannerConfig && !imageBannerConfig.isHidden) {
+                            // Use the module's render function if available
+                            if (window.WebsiteBuilderModules && window.WebsiteBuilderModules.ImageBanner && window.WebsiteBuilderModules.ImageBanner.render) {
+                                console.log('[PREVIEW] Rendering imageBanner with module');
+                                const renderedHtml = window.WebsiteBuilderModules.ImageBanner.render(imageBannerConfig);
+                                console.log('[PREVIEW] Rendered HTML length:', renderedHtml.length);
+                                finalHtml += renderedHtml;
+                            } else {
+                                console.log('[PREVIEW] Module not available, using fallback');
+                                // Fallback if module is not loaded
+                                finalHtml += `
+                                    <div class="section-wrapper image-banner-section" style="padding: 40px 0; background: #f5f5f5;">
+                                        <div class="container" style="max-width: 1200px; margin: 0 auto; padding: 0 20px;">
+                                            <div style="text-align: center; color: #666;">
+                                                <i class="material-icons" style="font-size: 48px; margin-bottom: 16px;">image</i>
+                                                <h3>Image Banner</h3>
+                                                <p>Module is loading...</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                `;
+                            }
+                        } else {
+                            console.log('[PREVIEW] imageBanner is hidden or config not found');
                         }
                     }
                     // Aquí se agregarán más secciones en el futuro

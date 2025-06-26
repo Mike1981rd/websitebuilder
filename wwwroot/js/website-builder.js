@@ -1791,6 +1791,56 @@ function renderAccordion(config) {
     `;
 }
 
+function renderImageBanner(config) {
+    console.log('[IMAGE BANNER FALLBACK] Rendering with config:', config);
+    
+    if (!config || config.isHidden) return '';
+    
+    return `
+        <div class="section-wrapper image-banner-section" data-section-id="imageBanner" 
+             style="background-image: url('/TestImages/imagebannereditor.png'); 
+                    background-size: cover; 
+                    background-position: center; 
+                    height: 500px; 
+                    display: flex; 
+                    align-items: center; 
+                    justify-content: center;">
+            <div class="section-header-tag">
+                <span class="material-symbols-outlined" style="font-size: 16px;">image</span>
+                ${translations[currentLanguage]?.['sections.imageBanner'] || 'Image Banner'}
+            </div>
+            <div style="text-align: center; background: rgba(255,255,255,0.9); padding: 40px; border-radius: 8px;">
+                <p style="text-transform: uppercase; font-size: 14px; letter-spacing: 1px; margin-bottom: 10px;">IMAGE BANNER</p>
+                <h2 style="font-size: 36px; margin-bottom: 20px;">Image with text</h2>
+                <p style="margin-bottom: 30px;">Fill in the text to tell customers by what your products are inspired.</p>
+                <div style="display: flex; gap: 16px; justify-content: center;">
+                    <button style="background: #f5d76e; color: #000; padding: 12px 24px; border: none; border-radius: 4px;">Button label</button>
+                    <button style="background: #f5d76e; color: #000; padding: 12px 24px; border: none; border-radius: 4px;">Button label</button>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+function renderNewsletter(config) {
+    if (!config || config.isHidden) return '';
+    
+    const schemeColors = getColorSchemeValues(config.colorScheme || 'scheme1');
+    
+    return `
+        <div class="section-wrapper newsletter-section" data-section-id="newsletter" style="padding: 40px 0; background: ${schemeColors.background};">
+            <div class="section-header-tag">
+                <span class="material-symbols-outlined">mail</span>
+                ${translations[currentLanguage]?.['sections.newsletter'] || 'Newsletter'}
+            </div>
+            <div style="padding: 40px; text-align: center;">
+                <h2 style="color: ${schemeColors.text};">Newsletter</h2>
+                <p style="color: ${schemeColors.text};">Esta sección mostrará el formulario de suscripción al newsletter.</p>
+            </div>
+        </div>
+    `;
+}
+
 /**
  * Renderiza todas las secciones de la página en el iframe de previsualización.
  */
@@ -1897,6 +1947,26 @@ function renderPreview() {
                             finalHtml += iframeWindow.renderAccordion(config);
                         }
                     }
+                } else if (sectionId === 'imageBanner') {
+                    const config = currentSectionsConfig.imageBanner;
+                    if (config && !config.isHidden) {
+                        const moduleRender = iframeWindow.WebsiteBuilderModules?.ImageBanner?.render;
+                        if (moduleRender) {
+                            finalHtml += moduleRender(config);
+                        } else if (iframeWindow.renderImageBanner) {
+                            finalHtml += iframeWindow.renderImageBanner(config);
+                        }
+                    }
+                } else if (sectionId === 'newsletter') {
+                    const config = currentSectionsConfig.newsletter;
+                    if (config && !config.isHidden) {
+                        const moduleRender = iframeWindow.WebsiteBuilderModules?.Newsletter?.render;
+                        if (moduleRender) {
+                            finalHtml += moduleRender(config);
+                        } else if (iframeWindow.renderNewsletter) {
+                            finalHtml += iframeWindow.renderNewsletter(config);
+                        }
+                    }
                 }
             });
         }
@@ -1911,7 +1981,9 @@ function renderPreview() {
             'imageWithText': window.WebsiteBuilderModules?.ImageWithText?.render || renderImageWithText,
             'images-with-text': window.WebsiteBuilderModules?.ImageWithText?.render || renderImageWithText,
             'testimonials': window.WebsiteBuilderModules?.Testimonials?.render || renderTestimonials,
-            'accordion': window.WebsiteBuilderModules?.Accordion?.render || renderAccordion
+            'accordion': window.WebsiteBuilderModules?.Accordion?.render || renderAccordion,
+            'imageBanner': window.WebsiteBuilderModules?.ImageBanner?.render || renderImageBanner,
+            'newsletter': window.WebsiteBuilderModules?.Newsletter?.render || renderNewsletter
         };
         
         // Renderizar secciones según el orden definido
@@ -2024,6 +2096,11 @@ function renderPreview() {
                 $('.topbar-nav-icon').removeClass('active');
                 $('.topbar-nav-icon[data-view="sections"]').addClass('active');
                 window.switchSidebarView('testimonialsSettings');
+            } else if (sectionId === 'imageBanner') {
+                // Logic for image banner section
+                $('.topbar-nav-icon').removeClass('active');
+                $('.topbar-nav-icon[data-view="sections"]').addClass('active');
+                window.switchSidebarView('imageBannerSettings');
             }
             // Aquí añadiremos más 'else if' para otras secciones en el futuro.
         });
@@ -5438,6 +5515,30 @@ $(document).ready(async function() {
                 executeModuleFunction('ImageWithText', 'attachBlockEventListeners', blockId);
                 setTimeout(applyTranslations, 0);
             }
+        } else if (viewName === 'imageBannerSettings') {
+            // Image Banner settings - usar módulo
+            console.log('[DEBUG] Rendering image banner settings');
+            const html = executeModuleFunction('ImageBanner', 'renderSettings', window.currentSectionsConfig?.imageBanner);
+            
+            if (html) {
+                dynamicContentArea.innerHTML = html;
+                executeModuleFunction('ImageBanner', 'attachEventListeners');
+                setTimeout(applyTranslations, 0);
+            } else {
+                console.error('[DEBUG] No HTML returned from image banner renderSettings');
+            }
+        } else if (viewName === 'newsletterSettings') {
+            // Newsletter settings - usar módulo
+            console.log('[DEBUG] Rendering newsletter settings');
+            const html = executeModuleFunction('Newsletter', 'renderSettings', window.currentSectionsConfig?.newsletter);
+            
+            if (html) {
+                dynamicContentArea.innerHTML = html;
+                executeModuleFunction('Newsletter', 'attachEventListeners');
+                setTimeout(applyTranslations, 0);
+            } else {
+                console.error('[DEBUG] No HTML returned from newsletter renderSettings');
+            }
         } else {
             dynamicContentArea.innerHTML = `<p class="sidebar-loading-text">${lang.sidebarLoadingText}</p>`;
         }
@@ -5967,6 +6068,25 @@ $(document).ready(async function() {
                 });
                 html += '</div>';
             }
+        }
+        
+        // Check if imageBanner exists in currentSectionsConfig
+        if (currentSectionsConfig.imageBanner) {
+            html += `
+                <div class="sidebar-subsection" data-block-type="imageBanner" data-section-id="imageBanner">
+                    <i class="material-icons drag-handle">drag_handle</i>
+                    <span class="subsection-text" data-i18n="sections.imageBanner">Image Banner</span>
+                    <div class="subsection-actions">
+                        <button class="action-icon visibility-toggle ${currentSectionsConfig.imageBanner.isHidden ? 'is-hidden' : ''}" data-section="imageBanner" title="Toggle visibility">
+                            <i class="material-icons icon-visible">visibility</i>
+                            <i class="material-icons icon-hidden">visibility_off</i>
+                        </button>
+                        <button class="action-icon delete-section" data-section="imageBanner" title="Delete">
+                            <i class="material-icons">delete</i>
+                        </button>
+                    </div>
+                </div>
+            `;
         }
         
         return html;
@@ -9410,6 +9530,8 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                 isHidden = currentSectionsConfig.testimonials?.isHidden || false;
             } else if (section === 'accordion') {
                 isHidden = currentSectionsConfig.accordion?.isHidden || false;
+            } else if (section === 'imageBanner') {
+                isHidden = currentSectionsConfig.imageBanner?.isHidden || false;
             } else if (blockType === 'testimonial-item' && elementId) {
                 // Handle testimonial items
                 isHidden = currentSectionsConfig.testimonials?.testimonials?.[elementId]?.isHidden || false;
@@ -9543,6 +9665,11 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                     switchSidebarView('accordionItemSettings', { itemId: itemId });
                 }
             }
+            // Handle imageBanner click
+            else if (blockType === 'imageBanner') {
+                console.log('[DEBUG] ImageBanner section clicked, opening settings');
+                switchSidebarView('imageBannerSettings');
+            }
         });
         
         // Visibility toggle button - COMMENTED OUT TO AVOID DUPLICATE HANDLER
@@ -9652,6 +9779,16 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                     if (index > -1) {
                         currentSectionsConfig.sectionOrder.splice(index, 1);
                     }
+                } else if (section === 'imageBanner' && currentSectionsConfig.imageBanner) {
+                    console.log('[DEBUG] Deleting imageBanner section');
+                    
+                    // imageBanner no tiene hijos, solo eliminar la configuración
+                    delete currentSectionsConfig.imageBanner;
+                    
+                    let index = currentSectionsConfig.sectionOrder.indexOf('imageBanner');
+                    if (index > -1) {
+                        currentSectionsConfig.sectionOrder.splice(index, 1);
+                    }
                 }
                 
                 // Remove from DOM and update UI
@@ -9659,7 +9796,7 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                     $(this).remove();
                     
                     // For template sections, update the template sections container
-                    if (section === 'imageWithText' || section === 'multicolumn' || section === 'slideshow' || section === 'testimonials' || section === 'accordion') {
+                    if (section === 'imageWithText' || section === 'multicolumn' || section === 'slideshow' || section === 'testimonials' || section === 'accordion' || section === 'imageBanner') {
                         const templateSectionsHtml = renderTemplateSections();
                         $('#template-sections-container').html(templateSectionsHtml + `
                             <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e3e3e3;">
@@ -10895,6 +11032,13 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                 if (window.forceVisibilitySync) {
                     window.forceVisibilitySync('accordion', newHiddenState);
                 }
+            } else if (section === 'imageBanner' || blockType === 'imageBanner') {
+                currentSectionsConfig.imageBanner.isHidden = newHiddenState;
+                console.log(`[DEBUG] Image Banner saved as: ${newHiddenState ? 'hidden' : 'visible'}`);
+                
+                if (window.forceVisibilitySync) {
+                    window.forceVisibilitySync('imageBanner', newHiddenState);
+                }
             } else if (blockType === 'testimonial-item' && elementId) {
                 // Handle testimonial item visibility
                 if (currentSectionsConfig.testimonials && currentSectionsConfig.testimonials.testimonials && currentSectionsConfig.testimonials.testimonials[elementId]) {
@@ -11704,6 +11848,7 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
             'images-with-text': '<div class="section-preview-image"><img src="/TestImages/imagewithtexthoverpreview.png" alt="Image with Text"></div>',
             'testimonials': '<div class="section-preview-image"><img src="/TestImages/testimonialstructure.png?v=' + Date.now() + '" alt="Testimonials"></div>',
             'accordion': '<div class="section-preview-image"><img src="/TestImages/AccordionMenuPreview.png" alt="Accordion/FAQ"></div>',
+            'image-banner': '<div class="section-preview-image"><img src="/TestImages/imagebannereditor.png" alt="Image Banner"></div>',
             // Add more previews as needed
         };
         
@@ -12209,6 +12354,105 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
             renderPreview();
             
             console.log('[DEBUG] Accordion added successfully');
+        }
+        
+        // Handle newsletter section
+        if (group === 'template' && sectionId === 'newsletter') {
+            console.log('[DEBUG] Adding newsletter section');
+            
+            if (!currentSectionsConfig.newsletter) {
+                currentSectionsConfig.newsletter = {
+                    id: 'newsletter',
+                    isHidden: false,
+                    colorScheme: 'scheme1',
+                    heading: 'Subscribe to Our Newsletter',
+                    subheading: 'Sign up for the latest updates, news, and exclusive offers delivered directly to your inbox.',
+                    placeholder: 'Enter your email',
+                    buttonText: 'Subscribe',
+                    buttonColor: '#2962ff',
+                    buttonTextColor: '#ffffff',
+                    disclaimer: 'We respect your privacy. Unsubscribe at any time.'
+                };
+            }
+            
+            if (!currentSectionsConfig.sectionOrder) {
+                currentSectionsConfig.sectionOrder = [];
+            }
+            
+            if (!currentSectionsConfig.sectionOrder.includes('newsletter')) {
+                currentSectionsConfig.sectionOrder.push('newsletter');
+            }
+            
+            const templateSectionsHtml = renderTemplateSections();
+            $('#template-sections-container').html(templateSectionsHtml + `
+                <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e3e3e3;">
+                    <div class="add-section-button add-template-section" data-group="template">
+                        <i class="material-icons">add_circle</i>
+                        <span data-i18n="sections.addTemplateSection">Agregar sección de plantilla</span>
+                    </div>
+                </div>
+            `);
+            
+            setTimeout(applyTranslations, 0);
+            hasPendingPageStructureChanges = true;
+            updateSaveButtonState();
+            renderPreview();
+            
+            // Close modal
+            $('.add-section-overlay').fadeOut(200, function() {
+                $(this).remove();
+            });
+        }
+        
+        // Handle image banner section
+        if (group === 'template' && sectionId === 'image-banner') {
+            console.log('[DEBUG] Adding image banner section');
+            
+            // Initialize config if doesn't exist
+            if (!currentSectionsConfig.imageBanner) {
+                currentSectionsConfig.imageBanner = {
+                    id: 'imageBanner',
+                    isHidden: false,
+                    colorScheme: 'scheme1',
+                    backgroundImage: '/TestImages/imagebannereditor.png',
+                    subheading: 'IMAGE BANNER',
+                    heading: 'Image with text',
+                    text: 'Fill in the text to tell customers by what your products are inspired.',
+                    button1Text: 'Button label',
+                    button1Link: '#',
+                    button2Text: 'Button label',
+                    button2Link: '#',
+                    showButton1: true,
+                    showButton2: true,
+                    textAlignment: 'center',
+                    height: '500px'
+                };
+            }
+            
+            // Add to section order if not already present
+            if (!currentSectionsConfig.sectionOrder) {
+                currentSectionsConfig.sectionOrder = [];
+            }
+            if (!currentSectionsConfig.sectionOrder.includes('imageBanner')) {
+                currentSectionsConfig.sectionOrder.push('imageBanner');
+            }
+            
+            // Update UI
+            const templateSectionsHtml = renderTemplateSections();
+            $('#template-sections-container').html(templateSectionsHtml + `
+                <div class="add-section-button add-template-section" data-group="template">
+                    <i class="material-icons">add_circle</i>
+                    <span data-i18n="sections.addTemplateSection">Agregar sección de plantilla</span>
+                </div>
+            `);
+            
+            // Post-processing
+            setTimeout(applyTranslations, 0);
+            hasPendingPageStructureChanges = true;
+            updateSaveButtonState();
+            renderPreview();
+            
+            console.log('[DEBUG] Image banner added successfully');
         }
         
         // Close modal
@@ -18510,6 +18754,17 @@ document.head.appendChild(style);
                                         }
                                     }
                                 });
+                            }, 200);
+                        });
+                    } else if (currentSidebarView === 'imageBannerSettings') {
+                        // Recargar datos y volver a blockList
+                        console.log('[DEBUG] Reloading after image banner save');
+                        loadCurrentWebsite().then(() => {
+                            window.switchSidebarView('blockList', window.getUpdatedPageData());
+                            
+                            setTimeout(() => {
+                                const isHidden = currentSectionsConfig.imageBanner?.isHidden || false;
+                                window.forceVisibilitySync('imageBanner', isHidden);
                             }, 200);
                         });
                     }
