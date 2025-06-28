@@ -227,6 +227,9 @@ function getColorSchemeValues(schemeName) {
     return colorSchemes[schemeName] || colorSchemes['scheme1'];
 }
 
+// Make it globally accessible
+window.getColorSchemeValues = getColorSchemeValues;
+
 // Function to load current website data from the backend - moved outside document.ready
 async function loadCurrentWebsite() {
     try {
@@ -2172,6 +2175,11 @@ function renderPreview() {
                 $('.topbar-nav-icon').removeClass('active');
                 $('.topbar-nav-icon[data-view="sections"]').addClass('active');
                 window.switchSidebarView('gallerySettings');
+            } else if (sectionId === 'richText') {
+                // Logic for richText section
+                $('.topbar-nav-icon').removeClass('active');
+                $('.topbar-nav-icon[data-view="sections"]').addClass('active');
+                window.switchSidebarView('richTextSettings');
             }
             // Aquí añadiremos más 'else if' para otras secciones en el futuro.
         });
@@ -9974,6 +9982,8 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                 isHidden = currentSectionsConfig.newsletter?.isHidden || false;
             } else if (section === 'gallery') {
                 isHidden = currentSectionsConfig.gallery?.isHidden || false;
+            } else if (section === 'richText') {
+                isHidden = currentSectionsConfig.richText?.isHidden || false;
             } else if (blockType === 'testimonial-item' && elementId) {
                 // Handle testimonial items
                 isHidden = currentSectionsConfig.testimonials?.testimonials?.[elementId]?.isHidden || false;
@@ -10128,6 +10138,11 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                 console.log('[DEBUG] Gallery section clicked, opening settings');
                 switchSidebarView('gallerySettings');
             }
+            // Handle richText click
+            else if (blockType === 'richText') {
+                console.log('[DEBUG] RichText section clicked, opening settings');
+                switchSidebarView('richTextSettings');
+            }
             // Handle gallery image click
             else if (blockType === 'gallery-image') {
                 const imageId = $(this).data('element-id');
@@ -10278,6 +10293,16 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                     if (index > -1) {
                         currentSectionsConfig.sectionOrder.splice(index, 1);
                     }
+                } else if (section === 'richText' && currentSectionsConfig.richText) {
+                    console.log('[DEBUG] Deleting richText section');
+                    
+                    // richText no tiene hijos, solo eliminar la configuración
+                    delete currentSectionsConfig.richText;
+                    
+                    let index = currentSectionsConfig.sectionOrder.indexOf('richText');
+                    if (index > -1) {
+                        currentSectionsConfig.sectionOrder.splice(index, 1);
+                    }
                 }
                 
                 // Remove from DOM and update UI
@@ -10285,7 +10310,7 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                     $(this).remove();
                     
                     // For template sections, update the template sections container
-                    if (section === 'imageWithText' || section === 'multicolumn' || section === 'slideshow' || section === 'testimonials' || section === 'accordion' || section === 'imageBanner' || section === 'newsletter' || section === 'gallery') {
+                    if (section === 'imageWithText' || section === 'multicolumn' || section === 'slideshow' || section === 'testimonials' || section === 'accordion' || section === 'imageBanner' || section === 'newsletter' || section === 'gallery' || section === 'richText') {
                         const templateSectionsHtml = renderTemplateSections();
                         $('#template-sections-container').html(templateSectionsHtml + `
                             <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e3e3e3;">
@@ -11695,6 +11720,13 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                 
                 if (window.forceVisibilitySync) {
                     window.forceVisibilitySync('gallery', newHiddenState);
+                }
+            } else if (section === 'richText' || blockType === 'richText') {
+                currentSectionsConfig.richText.isHidden = newHiddenState;
+                console.log(`[DEBUG] Rich Text saved as: ${newHiddenState ? 'hidden' : 'visible'}`);
+                
+                if (window.forceVisibilitySync) {
+                    window.forceVisibilitySync('richText', newHiddenState);
                 }
             } else if (blockType === 'testimonial-item' && elementId) {
                 // Handle testimonial item visibility
