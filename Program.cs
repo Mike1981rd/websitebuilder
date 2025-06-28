@@ -1,8 +1,32 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Http.Features;
+using Microsoft.AspNetCore.Server.IISIntegration;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Hotel.Data;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Configure request size limits for large JSON payloads
+builder.Services.Configure<FormOptions>(options =>
+{
+    options.ValueLengthLimit = int.MaxValue;
+    options.MultipartBodyLengthLimit = int.MaxValue;
+    options.MultipartHeadersLengthLimit = int.MaxValue;
+});
+
+// Configure Kestrel limits
+builder.WebHost.ConfigureKestrel(serverOptions =>
+{
+    serverOptions.Limits.MaxRequestBodySize = 100 * 1024 * 1024; // 100MB
+    serverOptions.Limits.MaxRequestHeadersTotalSize = 1048576; // 1MB
+});
+
+// Configure IIS limits if hosted in IIS
+builder.Services.Configure<IISServerOptions>(options =>
+{
+    options.MaxRequestBodySize = 100 * 1024 * 1024; // 100MB
+});
 
 // Add services to the container.
 builder.Services.AddControllersWithViews()

@@ -1841,6 +1841,45 @@ function renderNewsletter(config) {
     `;
 }
 
+function renderGallery(config) {
+    if (!config || config.isHidden) return '';
+    
+    const schemeColors = getColorSchemeValues(config.colorScheme || 'scheme1');
+    
+    return `
+        <div class="section-wrapper gallery-section" data-section-id="gallery" style="padding: 40px 0; background: ${schemeColors.background};">
+            <div class="section-header-tag">
+                <span class="material-symbols-outlined" style="font-size: 16px; margin-right: 6px;">photo_library</span>
+                ${translations[currentLanguage]?.['sections.gallery'] || 'Gallery'}
+            </div>
+            <div style="padding: 40px; text-align: center;">
+                <i class="material-icons" style="font-size: 48px; color: #999;">photo_library</i>
+                <p style="color: ${schemeColors.text};">Esta sección mostrará la galería de imágenes.</p>
+            </div>
+        </div>
+    `;
+}
+
+function renderRichText(config) {
+    if (!config || config.isHidden) return '';
+    
+    const schemeColors = getColorSchemeValues(config.colorScheme || 'scheme1');
+    
+    return `
+        <div class="section-wrapper rich-text-section" data-section-id="richText" style="padding: 40px 0; background: ${schemeColors.background};">
+            <div class="section-header-tag">
+                <span class="material-symbols-outlined" style="font-size: 16px; margin-right: 6px;">text_fields</span>
+                ${translations[currentLanguage]?.['sections.richText'] || 'Rich Text'}
+            </div>
+            <div class="container" style="max-width: 1200px; margin: 0 auto; padding: 0 20px;">
+                <div class="rich-text-content" style="color: ${schemeColors.text};">
+                    ${config.content || '<p style="text-align: center; color: #666;">Click to add rich text content</p>'}
+                </div>
+            </div>
+        </div>
+    `;
+}
+
 /**
  * Renderiza todas las secciones de la página en el iframe de previsualización.
  */
@@ -1967,6 +2006,26 @@ function renderPreview() {
                             finalHtml += iframeWindow.renderNewsletter(config);
                         }
                     }
+                } else if (sectionId === 'gallery') {
+                    const config = currentSectionsConfig.gallery;
+                    if (config && !config.isHidden) {
+                        const moduleRender = iframeWindow.WebsiteBuilderModules?.Gallery?.render;
+                        if (moduleRender) {
+                            finalHtml += moduleRender(config);
+                        } else if (iframeWindow.renderGallery) {
+                            finalHtml += iframeWindow.renderGallery(config);
+                        }
+                    }
+                } else if (sectionId === 'richText') {
+                    const config = currentSectionsConfig.richText;
+                    if (config && !config.isHidden) {
+                        const moduleRender = iframeWindow.WebsiteBuilderModules?.RichText?.render;
+                        if (moduleRender) {
+                            finalHtml += moduleRender(config);
+                        } else if (iframeWindow.renderRichText) {
+                            finalHtml += iframeWindow.renderRichText(config);
+                        }
+                    }
                 }
             });
         }
@@ -1983,7 +2042,9 @@ function renderPreview() {
             'testimonials': window.WebsiteBuilderModules?.Testimonials?.render || renderTestimonials,
             'accordion': window.WebsiteBuilderModules?.Accordion?.render || renderAccordion,
             'imageBanner': window.WebsiteBuilderModules?.ImageBanner?.render || renderImageBanner,
-            'newsletter': window.WebsiteBuilderModules?.Newsletter?.render || renderNewsletter
+            'newsletter': window.WebsiteBuilderModules?.Newsletter?.render || renderNewsletter,
+            'gallery': window.WebsiteBuilderModules?.Gallery?.render || renderGallery,
+            'richText': window.WebsiteBuilderModules?.RichText?.render || renderRichText
         };
         
         // Renderizar secciones según el orden definido
@@ -2101,6 +2162,16 @@ function renderPreview() {
                 $('.topbar-nav-icon').removeClass('active');
                 $('.topbar-nav-icon[data-view="sections"]').addClass('active');
                 window.switchSidebarView('imageBannerSettings');
+            } else if (sectionId === 'newsletter') {
+                // Logic for newsletter section
+                $('.topbar-nav-icon').removeClass('active');
+                $('.topbar-nav-icon[data-view="sections"]').addClass('active');
+                window.switchSidebarView('newsletterSettings');
+            } else if (sectionId === 'gallery') {
+                // Logic for gallery section
+                $('.topbar-nav-icon').removeClass('active');
+                $('.topbar-nav-icon[data-view="sections"]').addClass('active');
+                window.switchSidebarView('gallerySettings');
             }
             // Aquí añadiremos más 'else if' para otras secciones en el futuro.
         });
@@ -4312,6 +4383,16 @@ $(document).ready(async function() {
             'sections.countdownBanner': 'Banner de cuenta regresiva',
             'sections.featuredNavigation': 'Navegación destacada',
             'sections.gallery': 'Galería',
+            // Gallery translations
+            'gallery.images': 'Imágenes',
+            'gallery.noImages': 'No se han agregado imágenes aún',
+            'gallery.layout': 'Diseño',
+            'gallery.grid': 'Cuadrícula',
+            'gallery.masonry': 'Mampostería',
+            'gallery.carousel': 'Carrusel',
+            'gallery.columnsDesktop': 'Columnas en escritorio',
+            'gallery.columnsMobile': 'Columnas en móvil',
+            'gallery.spacing': 'Espaciado',
             'sections.hotspots': 'Puntos de acceso',
             'sections.imageSlider': 'Deslizador de imágenes',
             'sections.imagesWithText': 'Imágenes con texto',
@@ -4844,6 +4925,16 @@ $(document).ready(async function() {
             'sections.countdownBanner': 'Countdown banner',
             'sections.featuredNavigation': 'Featured navigation',
             'sections.gallery': 'Gallery',
+            // Gallery translations
+            'gallery.images': 'Images',
+            'gallery.noImages': 'No images added yet',
+            'gallery.layout': 'Layout',
+            'gallery.grid': 'Grid',
+            'gallery.masonry': 'Masonry',
+            'gallery.carousel': 'Carousel',
+            'gallery.columnsDesktop': 'Desktop columns',
+            'gallery.columnsMobile': 'Mobile columns',
+            'gallery.spacing': 'Spacing',
             'sections.hotspots': 'Hotspots',
             'sections.imageSlider': 'Image slider',
             'sections.imagesWithText': 'Images with text',
@@ -5117,6 +5208,15 @@ $(document).ready(async function() {
     $('.sidebar-loading-text').text(lang.sidebarLoadingText);
     $('.preview-placeholder-text').text(lang.previewAreaPlaceholderText);
     
+    // Initialize modules that have initialization functions
+    if (window.WebsiteBuilderModules && window.WebsiteBuilderModules.Newsletter && window.WebsiteBuilderModules.Newsletter.initialize) {
+        window.WebsiteBuilderModules.Newsletter.initialize();
+    }
+    
+    if (window.WebsiteBuilderModules && window.WebsiteBuilderModules.Gallery && window.WebsiteBuilderModules.Gallery.initialize) {
+        window.WebsiteBuilderModules.Gallery.initialize();
+    }
+    
     // Exit button handler - Navigate to dashboard
     $('#exit-builder-btn').on('click', function() {
         window.location.href = '/Admin/ExactIndex';
@@ -5208,6 +5308,16 @@ $(document).ready(async function() {
             attachBlockListEventListeners();
             // Apply translations after rendering
             setTimeout(applyTranslations, 0);
+            
+            // Initialize sortable for all child elements of sections
+            setTimeout(() => {
+                // Initialize child sortables for all sections that have them
+                ['slideshow', 'multicolumn', 'imageWithText', 'testimonials', 'accordion', 'gallery'].forEach(sectionId => {
+                    if (currentSectionsConfig[sectionId]) {
+                        initializeChildSortables(sectionId);
+                    }
+                });
+            }, 200);
             
             // Ensure visibility toggles are synced after rendering
             setTimeout(() => {
@@ -5461,6 +5571,18 @@ $(document).ready(async function() {
             } else {
                 console.error('[DEBUG] No HTML returned from accordion renderSettings');
             }
+        } else if (viewName === 'richTextSettings') {
+            // Rich Text settings - usar módulo
+            console.log('[DEBUG] Rendering rich text settings');
+            const html = executeModuleFunction('RichText', 'renderSettings', window.currentSectionsConfig?.richText);
+            
+            if (html) {
+                dynamicContentArea.innerHTML = html;
+                executeModuleFunction('RichText', 'attachEventListeners');
+                setTimeout(applyTranslations, 0);
+            } else {
+                console.error('[DEBUG] No HTML returned from rich text renderSettings');
+            }
         } else if (viewName === 'accordionItemSettings') {
             // Individual accordion item settings
             console.log('[DEBUG] Rendering accordion item settings');
@@ -5539,6 +5661,35 @@ $(document).ready(async function() {
             } else {
                 console.error('[DEBUG] No HTML returned from newsletter renderSettings');
             }
+        } else if (viewName === 'gallerySettings') {
+            // Gallery settings - usar módulo
+            console.log('[DEBUG] Rendering gallery settings');
+            const html = executeModuleFunction('Gallery', 'renderSettings', window.currentSectionsConfig?.gallery);
+            
+            if (html) {
+                dynamicContentArea.innerHTML = html;
+                executeModuleFunction('Gallery', 'attachEventListeners');
+                setTimeout(applyTranslations, 0);
+            } else {
+                console.error('[DEBUG] No HTML returned from gallery renderSettings');
+            }
+        } else if (viewName === 'galleryImageSettings') {
+            // Gallery image settings - usar módulo
+            console.log('[DEBUG] Rendering gallery image settings');
+            const imageId = data?.imageId || window.currentGalleryImageId;
+            
+            if (imageId) {
+                const html = executeModuleFunction('Gallery', 'renderImageSettings', imageId);
+                if (html) {
+                    dynamicContentArea.innerHTML = html;
+                    executeModuleFunction('Gallery', 'attachImageEventListeners', imageId);
+                    setTimeout(applyTranslations, 0);
+                } else {
+                    console.error('[DEBUG] No HTML returned from gallery image settings');
+                }
+            } else {
+                console.error('[DEBUG] Missing imageId for gallery image settings');
+            }
         } else {
             dynamicContentArea.innerHTML = `<p class="sidebar-loading-text">${lang.sidebarLoadingText}</p>`;
         }
@@ -5614,25 +5765,239 @@ $(document).ready(async function() {
         templateSections.forEach(sectionId => {
             if (currentSectionsConfig[sectionId]) {
                 const section = currentSectionsConfig[sectionId];
+                
+                // Check if section needs special handling
+                const needsDragHandle = true; // All template sections should be draggable
+                
+                // Sections that have child elements (need add button instead of settings)
+                const hasChildren = ['slideshow', 'multicolumn', 'imageWithText', 'testimonials', 'accordion', 'gallery'].includes(sectionId);
+                
+                // Sections that also have collapse functionality when they have children
+                const canCollapse = hasChildren && hasChildElements(sectionId);
+                
                 html += `
-                    <div class="sidebar-subsection" data-block-type="${sectionId}" data-element-id="${sectionId}">
+                    <div class="sidebar-subsection${canCollapse ? ' collapsible-parent' : ''}" data-block-type="${sectionId}" data-element-id="${sectionId}" data-section-id="${sectionId}">
+                        ${needsDragHandle ? '<i class="material-icons drag-handle">drag_handle</i>' : ''}
                         <span class="subsection-text" data-i18n="sections.${sectionId}">${getSectionTranslation(sectionId)}</span>
                         <div class="subsection-actions">
                             <button class="action-icon visibility-toggle ${section.isHidden ? 'is-hidden' : ''}" data-section="${sectionId}" title="Toggle visibility">
                                 <i class="material-icons icon-visible">visibility</i>
                                 <i class="material-icons icon-hidden">visibility_off</i>
                             </button>
-                            <button class="action-icon config-icon" data-section="${sectionId}" title="Configure">
-                                <i class="material-icons">settings</i>
-                            </button>
+                            ${hasChildren ? `
+                                <button class="action-icon add-icon" data-section="${sectionId}" title="Add">
+                                    <i class="material-icons">add</i>
+                                </button>
+                            ` : ''}
                             <button class="action-icon delete-icon" data-section="${sectionId}" title="Delete">
                                 <i class="material-icons">delete</i>
                             </button>
+                            ${canCollapse ? `
+                                <button class="action-icon collapse-toggle" title="Collapse/Expand">
+                                    <i class="material-icons collapse-indicator">expand_more</i>
+                                </button>
+                            ` : ''}
                         </div>
                     </div>
                 `;
+                
+                // Render child elements for sections that have them
+                if (hasChildren) {
+                    html += renderChildElements(sectionId);
+                }
             }
         });
+        
+        return html;
+    }
+    
+    // Helper function to check if a section has child elements
+    function hasChildElements(sectionId) {
+        switch(sectionId) {
+            case 'slideshow':
+                return currentSectionsConfig.slideshow?.slideOrder?.length > 0;
+            case 'multicolumn':
+                return currentSectionsConfig.multicolumn?.columnOrder?.length > 0;
+            case 'imageWithText':
+                return currentSectionsConfig.imageWithText?.blockOrder?.length > 0;
+            case 'testimonials':
+                return currentSectionsConfig.testimonials?.testimonialsOrder?.length > 0;
+            case 'accordion':
+                return currentSectionsConfig.accordion?.itemOrder?.length > 0;
+            case 'gallery':
+                return currentSectionsConfig.gallery?.imageOrder?.length > 0;
+            default:
+                return false;
+        }
+    }
+    
+    // Helper function to render child elements for a section
+    function renderChildElements(sectionId) {
+        let html = '';
+        
+        switch(sectionId) {
+            case 'slideshow':
+                if (currentSectionsConfig.slideshow?.slideOrder?.length > 0) {
+                    html += '<div id="slideshow-slides-wrapper" style="position: relative;">';
+                    currentSectionsConfig.slideshow.slideOrder.forEach((slideId, index) => {
+                        const slide = currentSectionsConfig.slideshow.slides[slideId];
+                        if (slide) {
+                            html += `
+                                <div class="sidebar-subsection slideshow-slide-item" data-block-type="slideshow-slide" data-element-id="${slideId}" style="padding-left: 30px;">
+                                    <i class="material-icons drag-handle">drag_handle</i>
+                                    <span class="subsection-text">${slide.title || 'Diapositiva'} ${index + 1}</span>
+                                    <div class="subsection-actions">
+                                        <button class="action-icon visibility-toggle ${slide.isHidden ? 'is-hidden' : ''}" data-slide-id="${slideId}" title="Toggle visibility">
+                                            <i class="material-icons icon-visible">visibility</i>
+                                            <i class="material-icons icon-hidden">visibility_off</i>
+                                        </button>
+                                        <button class="action-icon delete-slide" data-slide-id="${slideId}" title="Delete">
+                                            <i class="material-icons">delete</i>
+                                        </button>
+                                    </div>
+                                </div>
+                            `;
+                        }
+                    });
+                    html += '</div>';
+                }
+                break;
+                
+            case 'multicolumn':
+                if (currentSectionsConfig.multicolumn?.columnOrder?.length > 0) {
+                    html += '<div id="multicolumn-columns-wrapper" style="position: relative;">';
+                    currentSectionsConfig.multicolumn.columnOrder.forEach((columnId, index) => {
+                        const column = currentSectionsConfig.multicolumn.columns[columnId];
+                        if (column) {
+                            html += `
+                                <div class="sidebar-subsection multicolumn-column-item" data-block-type="multicolumn-column" data-element-id="${columnId}" style="padding-left: 30px;">
+                                    <i class="material-icons drag-handle">drag_handle</i>
+                                    <span class="subsection-text">${column.heading || `Column ${index + 1}`}</span>
+                                    <div class="subsection-actions">
+                                        <button class="action-icon visibility-toggle ${column.isHidden ? 'is-hidden' : ''}" data-column-id="${columnId}" title="Toggle visibility">
+                                            <i class="material-icons icon-visible">visibility</i>
+                                            <i class="material-icons icon-hidden">visibility_off</i>
+                                        </button>
+                                        <button class="action-icon delete-column" data-column-id="${columnId}" title="Delete">
+                                            <i class="material-icons">delete</i>
+                                        </button>
+                                    </div>
+                                </div>
+                            `;
+                        }
+                    });
+                    html += '</div>';
+                }
+                break;
+                
+            case 'imageWithText':
+                if (currentSectionsConfig.imageWithText?.blockOrder?.length > 0) {
+                    html += '<div id="imageWithText-blocks-wrapper" style="position: relative;">';
+                    currentSectionsConfig.imageWithText.blockOrder.forEach((blockId, index) => {
+                        const block = currentSectionsConfig.imageWithText.blocks[blockId];
+                        if (block) {
+                            html += `
+                                <div class="sidebar-subsection imageWithText-block-item" data-block-type="imageWithText-block" data-element-id="${blockId}" style="padding-left: 30px;">
+                                    <i class="material-icons drag-handle">drag_handle</i>
+                                    <span class="subsection-text">${block.heading || `Image ${index + 1}`}</span>
+                                    <div class="subsection-actions">
+                                        <button class="action-icon visibility-toggle ${block.isHidden ? 'is-hidden' : ''}" data-block-id="${blockId}" title="Toggle visibility">
+                                            <i class="material-icons icon-visible">visibility</i>
+                                            <i class="material-icons icon-hidden">visibility_off</i>
+                                        </button>
+                                        <button class="action-icon delete-block" data-block-id="${blockId}" title="Delete">
+                                            <i class="material-icons">delete</i>
+                                        </button>
+                                    </div>
+                                </div>
+                            `;
+                        }
+                    });
+                    html += '</div>';
+                }
+                break;
+                
+            case 'testimonials':
+                if (currentSectionsConfig.testimonials?.testimonialsOrder?.length > 0) {
+                    html += '<div id="testimonials-items-wrapper" style="position: relative;">';
+                    currentSectionsConfig.testimonials.testimonialsOrder.forEach((testimonialId, index) => {
+                        const testimonial = currentSectionsConfig.testimonials.testimonials[testimonialId];
+                        if (testimonial) {
+                            html += `
+                                <div class="sidebar-subsection testimonial-item" data-block-type="testimonial-item" data-element-id="${testimonialId}" style="padding-left: 30px;">
+                                    <i class="material-icons drag-handle">drag_handle</i>
+                                    <span class="subsection-text">${testimonial.author || `Testimonial ${index + 1}`}</span>
+                                    <div class="subsection-actions">
+                                        <button class="action-icon visibility-toggle ${testimonial.isHidden ? 'is-hidden' : ''}" data-testimonial-id="${testimonialId}" title="Toggle visibility">
+                                            <i class="material-icons icon-visible">visibility</i>
+                                            <i class="material-icons icon-hidden">visibility_off</i>
+                                        </button>
+                                        <button class="action-icon delete-testimonial" data-testimonial-id="${testimonialId}" title="Delete">
+                                            <i class="material-icons">delete</i>
+                                        </button>
+                                    </div>
+                                </div>
+                            `;
+                        }
+                    });
+                    html += '</div>';
+                }
+                break;
+                
+            case 'accordion':
+                if (currentSectionsConfig.accordion?.itemOrder?.length > 0) {
+                    html += '<div id="accordion-items-wrapper" style="position: relative;">';
+                    currentSectionsConfig.accordion.itemOrder.forEach((itemId, index) => {
+                        const item = currentSectionsConfig.accordion.items[itemId];
+                        if (item) {
+                            html += `
+                                <div class="sidebar-subsection accordion-faq-item" data-block-type="accordion-item" data-element-id="${itemId}" style="padding-left: 30px;">
+                                    <i class="material-icons drag-handle">drag_handle</i>
+                                    <span class="subsection-text">${item.question || `Pregunta ${index + 1}`}</span>
+                                    <div class="subsection-actions">
+                                        <button class="action-icon visibility-toggle ${item.isHidden ? 'is-hidden' : ''}" data-item-id="${itemId}" title="Toggle visibility">
+                                            <i class="material-icons icon-visible">visibility</i>
+                                            <i class="material-icons icon-hidden">visibility_off</i>
+                                        </button>
+                                        <button class="action-icon delete-faq-item" data-item-id="${itemId}" title="Delete">
+                                            <i class="material-icons">delete</i>
+                                        </button>
+                                    </div>
+                                </div>
+                            `;
+                        }
+                    });
+                    html += '</div>';
+                }
+                break;
+                
+            case 'gallery':
+                if (currentSectionsConfig.gallery?.imageOrder?.length > 0) {
+                    html += '<div id="gallery-images-wrapper" style="position: relative;">';
+                    currentSectionsConfig.gallery.imageOrder.forEach((imageId, index) => {
+                        const image = currentSectionsConfig.gallery.images[imageId];
+                        if (image) {
+                            html += `
+                                <div class="sidebar-subsection gallery-image-item" data-block-type="gallery-image" data-element-id="${imageId}" style="padding-left: 30px;">
+                                    <i class="material-icons drag-handle">drag_handle</i>
+                                    <span class="subsection-text">Image ${index + 1}</span>
+                                    <div class="subsection-actions">
+                                        <button class="action-icon visibility-toggle ${image.isHidden ? 'is-hidden' : ''}" data-image-id="${imageId}" title="Toggle visibility">
+                                            <i class="material-icons icon-visible">visibility</i>
+                                            <i class="material-icons icon-hidden">visibility_off</i>
+                                        </button>
+                                        <button class="action-icon delete-image" data-image-id="${imageId}" title="Delete">
+                                            <i class="material-icons">delete</i>
+                                        </button>
+                                    </div>
+                                </div>
+                            `;
+                        }
+                    });
+                    html += '</div>';
+                }
+                break;
+        }
         
         return html;
     }
@@ -5791,7 +6156,7 @@ $(document).ready(async function() {
     }
     
     // Function to render template sections
-    function renderTemplateSections() {
+    function renderTemplateSectionsOLD_DEPRECATED() {
         let html = '';
         
         // Check if slideshow exists in currentSectionsConfig
@@ -6087,6 +6452,79 @@ $(document).ready(async function() {
                     </div>
                 </div>
             `;
+        }
+        
+        // Check if newsletter exists in currentSectionsConfig
+        if (currentSectionsConfig.newsletter) {
+            html += `
+                <div class="sidebar-subsection" data-block-type="newsletter" data-section-id="newsletter">
+                    <i class="material-icons drag-handle">drag_handle</i>
+                    <span class="subsection-text" data-i18n="sections.newsletter">Newsletter</span>
+                    <div class="subsection-actions">
+                        <button class="action-icon visibility-toggle ${currentSectionsConfig.newsletter.isHidden ? 'is-hidden' : ''}" data-section="newsletter" title="Toggle visibility">
+                            <i class="material-icons icon-visible">visibility</i>
+                            <i class="material-icons icon-hidden">visibility_off</i>
+                        </button>
+                        <button class="action-icon delete-section" data-section="newsletter" title="Delete">
+                            <i class="material-icons">delete</i>
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+        
+        // Check if gallery exists in currentSectionsConfig
+        if (currentSectionsConfig.gallery) {
+            const hasImages = currentSectionsConfig.gallery.images && currentSectionsConfig.gallery.imageOrder && currentSectionsConfig.gallery.imageOrder.length > 0;
+            html += `
+                <div class="sidebar-subsection collapsible-parent" data-block-type="gallery" data-section-id="gallery">
+                    <i class="material-icons drag-handle">drag_handle</i>
+                    <span class="subsection-text" data-i18n="sections.gallery">Gallery</span>
+                    <div class="subsection-actions">
+                        <button class="action-icon visibility-toggle ${currentSectionsConfig.gallery.isHidden ? 'is-hidden' : ''}" data-section="gallery" title="Toggle visibility">
+                            <i class="material-icons icon-visible">visibility</i>
+                            <i class="material-icons icon-hidden">visibility_off</i>
+                        </button>
+                        <button class="action-icon add-icon" data-section="gallery" title="Add image">
+                            <i class="material-icons">add</i>
+                        </button>
+                        <button class="action-icon delete-section" data-section="gallery" title="Delete">
+                            <i class="material-icons">delete</i>
+                        </button>
+                        ${hasImages ? `
+                            <button class="action-icon collapse-toggle" title="Collapse/Expand">
+                                <i class="material-icons collapse-indicator">expand_more</i>
+                            </button>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+            
+            // Render existing images if any
+            if (hasImages) {
+                html += '<div id="gallery-images-wrapper" style="position: relative;">';
+                currentSectionsConfig.gallery.imageOrder.forEach((imageId, index) => {
+                    const image = currentSectionsConfig.gallery.images[imageId];
+                    if (image) {
+                        html += `
+                            <div class="sidebar-subsection gallery-image-item" data-block-type="gallery-image" data-element-id="${imageId}" style="padding-left: 30px;">
+                                <i class="material-icons drag-handle">drag_handle</i>
+                                <span class="subsection-text" style="margin-left: 30px;">Image ${index + 1}</span>
+                                <div class="subsection-actions">
+                                    <button class="action-icon visibility-toggle ${image.isHidden ? 'is-hidden' : ''}" data-image-id="${imageId}" title="Toggle visibility">
+                                        <i class="material-icons icon-visible">visibility</i>
+                                        <i class="material-icons icon-hidden">visibility_off</i>
+                                    </button>
+                                    <button class="action-icon delete-image" data-image-id="${imageId}" title="Delete">
+                                        <i class="material-icons">delete</i>
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                    }
+                });
+                html += '</div>';
+            }
         }
         
         return html;
@@ -7795,23 +8233,23 @@ $(document).ready(async function() {
             // { id: 'custom-liquid', icon: 'code', name: 'customLiquid' }, // Hidden from users
             { id: 'accordion', icon: 'expand_more', name: 'accordion' },
             // { id: 'before-after-images', icon: 'compare', name: 'beforeAfterImages' }, // Hidden from users
-            { id: 'blog-posts', icon: 'article', name: 'blogPosts' },
+            // { id: 'blog-posts', icon: 'article', name: 'blogPosts' }, // Hidden - to be developed later
             { id: 'collection-with-text', icon: 'text_snippet', name: 'collectionWithText' },
             { id: 'countdown-banner', icon: 'timer', name: 'countdownBanner' },
             // { id: 'featured-navigation', icon: 'menu', name: 'featuredNavigation' }, // Hidden from users
             { id: 'gallery', icon: 'photo_library', name: 'gallery' },
             // { id: 'hotspots', icon: 'place', name: 'hotspots' }, // Hidden from users
-            { id: 'image-slider', icon: 'view_carousel', name: 'imageSlider' },
+            // { id: 'image-slider', icon: 'view_carousel', name: 'imageSlider' }, // Hidden - to be developed later
             { id: 'images-with-text', icon: 'image', name: 'imagesWithText' },
             { id: 'logo-list', icon: 'business', name: 'logoList' },
-            { id: 'lookbook', icon: 'book', name: 'lookbook' },
+            // { id: 'lookbook', icon: 'book', name: 'lookbook' }, // Hidden - to be developed later
             { id: 'map', icon: 'map', name: 'map' },
             { id: 'multiple-collections', icon: 'view_module', name: 'multipleCollections' },
             { id: 'page', icon: 'description', name: 'page' },
             // { id: 'recently-viewed', icon: 'history', name: 'recentlyViewed' }, // Hidden from users
             // { id: 'scrolling-text', icon: 'text_rotation_none', name: 'scrollingText' }, // Hidden from users
             // { id: 'spacer', icon: 'space_bar', name: 'spacer' }, // Hidden from users
-            { id: 'split-image-banner', icon: 'view_column', name: 'splitImageBanner' },
+            // { id: 'split-image-banner', icon: 'view_column', name: 'splitImageBanner' }, // Hidden - to be developed later
             { id: 'testimonials', icon: 'rate_review', name: 'testimonials', preview: 'testimonials' },
             { id: 'video', icon: 'videocam', name: 'video' },
             // { id: 'accordion', icon: 'help', name: 'accordion', preview: 'accordion' } // Hidden from users - duplicate accordion text
@@ -9532,6 +9970,10 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                 isHidden = currentSectionsConfig.accordion?.isHidden || false;
             } else if (section === 'imageBanner') {
                 isHidden = currentSectionsConfig.imageBanner?.isHidden || false;
+            } else if (section === 'newsletter') {
+                isHidden = currentSectionsConfig.newsletter?.isHidden || false;
+            } else if (section === 'gallery') {
+                isHidden = currentSectionsConfig.gallery?.isHidden || false;
             } else if (blockType === 'testimonial-item' && elementId) {
                 // Handle testimonial items
                 isHidden = currentSectionsConfig.testimonials?.testimonials?.[elementId]?.isHidden || false;
@@ -9547,6 +9989,12 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
             } else if (elementType === 'block' && elementId) {
                 // Generic handler for other block types
                 isHidden = currentSectionsConfig.imageWithText?.blocks?.[elementId]?.isHidden || false;
+            } else if (blockType === 'gallery-image' && elementId) {
+                // Handle gallery images
+                isHidden = currentSectionsConfig.gallery?.images?.[elementId]?.isHidden || false;
+            } else if (elementType === 'gallery-image' && elementId) {
+                // Alternative check for gallery images
+                isHidden = currentSectionsConfig.gallery?.images?.[elementId]?.isHidden || false;
             } else if ($subsection.hasClass('image-with-text-block-item')) {
                 // Additional check for image-with-text blocks using class
                 const blockId = $button.attr('data-block-id') || $button.data('block-id');
@@ -9670,6 +10118,24 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                 console.log('[DEBUG] ImageBanner section clicked, opening settings');
                 switchSidebarView('imageBannerSettings');
             }
+            // Handle newsletter click
+            else if (blockType === 'newsletter') {
+                console.log('[DEBUG] Newsletter section clicked, opening settings');
+                switchSidebarView('newsletterSettings');
+            }
+            // Handle gallery click
+            else if (blockType === 'gallery') {
+                console.log('[DEBUG] Gallery section clicked, opening settings');
+                switchSidebarView('gallerySettings');
+            }
+            // Handle gallery image click
+            else if (blockType === 'gallery-image') {
+                const imageId = $(this).data('element-id');
+                if (imageId) {
+                    window.currentGalleryImageId = imageId;
+                    switchSidebarView('galleryImageSettings', { imageId: imageId });
+                }
+            }
         });
         
         // Visibility toggle button - COMMENTED OUT TO AVOID DUPLICATE HANDLER
@@ -9789,6 +10255,29 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                     if (index > -1) {
                         currentSectionsConfig.sectionOrder.splice(index, 1);
                     }
+                } else if (section === 'newsletter' && currentSectionsConfig.newsletter) {
+                    console.log('[DEBUG] Deleting newsletter section');
+                    
+                    // newsletter no tiene hijos, solo eliminar la configuración
+                    delete currentSectionsConfig.newsletter;
+                    
+                    let index = currentSectionsConfig.sectionOrder.indexOf('newsletter');
+                    if (index > -1) {
+                        currentSectionsConfig.sectionOrder.splice(index, 1);
+                    }
+                } else if (section === 'gallery' && currentSectionsConfig.gallery) {
+                    console.log('[DEBUG] Deleting gallery section');
+                    
+                    // CRÍTICO: Eliminar hijos primero
+                    $('#gallery-images-wrapper').remove();
+                    $('.gallery-image-item').remove();
+                    
+                    delete currentSectionsConfig.gallery;
+                    
+                    let index = currentSectionsConfig.sectionOrder.indexOf('gallery');
+                    if (index > -1) {
+                        currentSectionsConfig.sectionOrder.splice(index, 1);
+                    }
                 }
                 
                 // Remove from DOM and update UI
@@ -9796,7 +10285,7 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                     $(this).remove();
                     
                     // For template sections, update the template sections container
-                    if (section === 'imageWithText' || section === 'multicolumn' || section === 'slideshow' || section === 'testimonials' || section === 'accordion' || section === 'imageBanner') {
+                    if (section === 'imageWithText' || section === 'multicolumn' || section === 'slideshow' || section === 'testimonials' || section === 'accordion' || section === 'imageBanner' || section === 'newsletter' || section === 'gallery') {
                         const templateSectionsHtml = renderTemplateSections();
                         $('#template-sections-container').html(templateSectionsHtml + `
                             <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e3e3e3;">
@@ -10031,6 +10520,13 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                 }
             });
         }
+        
+        // Initialize gallery drag and drop when needed
+        setTimeout(() => {
+            if (currentSectionsConfig.gallery && currentSectionsConfig.gallery.imageOrder && currentSectionsConfig.gallery.imageOrder.length > 0) {
+                initializeGalleryImagesSortable();
+            }
+        }, 100);
         
         // Initialize sortable for accordion items in block list view
         function initializeAccordionItemsSortable() {
@@ -10404,6 +10900,153 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
             setTimeout(() => {
                 initializeSlideshowSlidesSortable();
             }, 100);
+        });
+        
+        // Add image button for gallery
+        $(document).off('click.addGalleryImage').on('click.addGalleryImage', '.add-icon[data-section="gallery"]', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            console.log('Add gallery image clicked');
+            
+            // Initialize gallery if needed
+            if (!currentSectionsConfig.gallery) {
+                currentSectionsConfig.gallery = {
+                    isHidden: false,
+                    colorScheme: 'default',
+                    width: 'page',
+                    desktopLayout: 'grid',
+                    mobileLayout: 'carousel',
+                    heading: 'Gallery',
+                    body: 'Show your products, collections, and social media photos or tell about recent events.',
+                    headingSize: 'h5',
+                    bodySize: 'body3',
+                    contentAlignment: 'center',
+                    imageRatio: 1,
+                    desktopCardsPerRow: 5,
+                    desktopSpaceBetweenCards: 16,
+                    mobileSpaceBetweenCards: 16,
+                    showArrowsOnHover: true,
+                    buttonLabel: '',
+                    buttonLink: '',
+                    buttonStyle: 'solid',
+                    autoplayMode: 'none',
+                    autoplaySpeed: 3,
+                    addSidePaddings: true,
+                    topPadding: 64,
+                    bottomPadding: 8,
+                    imageOrder: [],
+                    images: {}
+                };
+            }
+            
+            // Ensure images object exists
+            if (!currentSectionsConfig.gallery.images) {
+                currentSectionsConfig.gallery.images = {};
+            }
+            if (!currentSectionsConfig.gallery.imageOrder) {
+                currentSectionsConfig.gallery.imageOrder = [];
+            }
+            
+            // Create new image
+            const imageId = 'img-' + Date.now();
+            currentSectionsConfig.gallery.images[imageId] = {
+                id: imageId,
+                isHidden: false,
+                src: '',
+                alt: '',
+                link: '',
+                icon: 'none'
+            };
+            currentSectionsConfig.gallery.imageOrder.push(imageId);
+            
+            // Update data
+            hasPendingPageStructureChanges = true;
+            updateSaveButtonState();
+            
+            // Find or create wrapper
+            let $imagesWrapper = $('#gallery-images-wrapper');
+            if (!$imagesWrapper.length) {
+                // Create wrapper and insert after gallery section
+                const $gallerySection = $('.sidebar-subsection[data-section-id="gallery"]');
+                $imagesWrapper = $('<div id="gallery-images-wrapper" style="position: relative;"></div>');
+                $gallerySection.after($imagesWrapper);
+                
+                // Show collapse button
+                $gallerySection.find('.collapse-toggle').show();
+            }
+            
+            // Create new image element
+            const imageNumber = currentSectionsConfig.gallery.imageOrder.length;
+            const newImage = $(`
+                <div class="sidebar-subsection gallery-image-item" data-block-type="gallery-image" data-element-id="${imageId}" style="padding-left: 30px;">
+                    <i class="material-icons drag-handle">drag_handle</i>
+                    <span class="subsection-text" style="margin-left: 30px;">Image ${imageNumber}</span>
+                    <div class="subsection-actions">
+                        <button class="action-icon visibility-toggle" data-image-id="${imageId}" title="Toggle visibility">
+                            <i class="material-icons icon-visible">visibility</i>
+                            <i class="material-icons icon-hidden">visibility_off</i>
+                        </button>
+                        <button class="action-icon delete-image" data-image-id="${imageId}" title="Delete">
+                            <i class="material-icons">delete</i>
+                        </button>
+                    </div>
+                </div>
+            `);
+            
+            // Insert new image at the end of the wrapper
+            $imagesWrapper.append(newImage);
+            
+            // Re-render preview
+            renderPreview();
+            
+            // Reinitialize drag and drop to include new element
+            setTimeout(() => {
+                initializeGalleryImagesSortable();
+            }, 100);
+        });
+        
+        // Delete image button for gallery
+        $(document).off('click.deleteGalleryImage').on('click.deleteGalleryImage', '.delete-image[data-image-id]', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const imageId = $(this).data('image-id');
+            const $image = $(`.sidebar-subsection[data-element-id="${imageId}"]`);
+            
+            console.log('[DEBUG] Delete gallery image clicked for:', imageId);
+            
+            if (confirm('¿Estás seguro de eliminar esta imagen?')) {
+                // Remove from DOM
+                $image.remove();
+                
+                // Remove from data structure
+                if (currentSectionsConfig.gallery && currentSectionsConfig.gallery.images) {
+                    delete currentSectionsConfig.gallery.images[imageId];
+                    
+                    // Remove from order array
+                    if (currentSectionsConfig.gallery.imageOrder) {
+                        const index = currentSectionsConfig.gallery.imageOrder.indexOf(imageId);
+                        if (index > -1) {
+                            currentSectionsConfig.gallery.imageOrder.splice(index, 1);
+                        }
+                    }
+                    
+                    // Hide collapse button if no images left
+                    if (currentSectionsConfig.gallery.imageOrder.length === 0) {
+                        $('.sidebar-subsection[data-section-id="gallery"] .collapse-toggle').hide();
+                    }
+                    
+                    // Update numbers for remaining images
+                    $('.sidebar-subsection.gallery-image-item').each(function(index) {
+                        $(this).find('.subsection-text').text(`Image ${index + 1}`);
+                    });
+                }
+                
+                hasPendingPageStructureChanges = true;
+                updateSaveButtonState();
+                renderPreview();
+            }
         });
         
         // Add column button for multicolumn
@@ -11039,6 +11682,20 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                 if (window.forceVisibilitySync) {
                     window.forceVisibilitySync('imageBanner', newHiddenState);
                 }
+            } else if (section === 'newsletter' || blockType === 'newsletter') {
+                currentSectionsConfig.newsletter.isHidden = newHiddenState;
+                console.log(`[DEBUG] Newsletter saved as: ${newHiddenState ? 'hidden' : 'visible'}`);
+                
+                if (window.forceVisibilitySync) {
+                    window.forceVisibilitySync('newsletter', newHiddenState);
+                }
+            } else if (section === 'gallery' || blockType === 'gallery') {
+                currentSectionsConfig.gallery.isHidden = newHiddenState;
+                console.log(`[DEBUG] Gallery saved as: ${newHiddenState ? 'hidden' : 'visible'}`);
+                
+                if (window.forceVisibilitySync) {
+                    window.forceVisibilitySync('gallery', newHiddenState);
+                }
             } else if (blockType === 'testimonial-item' && elementId) {
                 // Handle testimonial item visibility
                 if (currentSectionsConfig.testimonials && currentSectionsConfig.testimonials.testimonials && currentSectionsConfig.testimonials.testimonials[elementId]) {
@@ -11070,6 +11727,18 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                     // Force sync the child visibility toggle state
                     if (window.forceChildVisibilitySync) {
                         window.forceChildVisibilitySync(elementId, newHiddenState);
+                    }
+                }
+            } else if ((blockType === 'gallery-image' || $button.data('image-id')) && elementId) {
+                // Handle gallery image visibility
+                const imageId = $button.data('image-id') || elementId;
+                if (currentSectionsConfig.gallery && currentSectionsConfig.gallery.images && currentSectionsConfig.gallery.images[imageId]) {
+                    currentSectionsConfig.gallery.images[imageId].isHidden = newHiddenState;
+                    console.log(`[DEBUG] Gallery image ${imageId} saved as: ${newHiddenState ? 'hidden' : 'visible'}`);
+                    
+                    // Force sync the child visibility toggle state
+                    if (window.forceChildVisibilitySync) {
+                        window.forceChildVisibilitySync(imageId, newHiddenState);
                     }
                 }
             }
@@ -11125,6 +11794,15 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
             console.log('[ACCORDION] Current item order:', currentSectionsConfig.accordion.itemOrder);
             setTimeout(() => {
                 initializeAccordionItemsSortable();
+            }, 100);
+        }
+        
+        // Initialize sortable for gallery images if they exist
+        if (currentSectionsConfig.gallery && currentSectionsConfig.gallery.imageOrder && currentSectionsConfig.gallery.imageOrder.length > 0) {
+            console.log('[GALLERY] Initializing sortable from attachBlockListEventListeners');
+            console.log('[GALLERY] Current image order:', currentSectionsConfig.gallery.imageOrder);
+            setTimeout(() => {
+                initializeGalleryImagesSortable();
             }, 100);
         }
         
@@ -11366,16 +12044,29 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                         
                         // Update section order based on DOM
                         const newOrder = [];
+                        
+                        // First, get header sections
                         $('.sidebar-section-content').first().find('> .sidebar-subsection').each(function() {
                             const $this = $(this);
                             const blockType = $this.data('block-type');
                             
-                            // Agregar announcement, header, y slideshow al orden principal
-                            if ((blockType === 'announcement' || blockType === 'header' || blockType === 'slideshow') && !newOrder.includes(blockType)) {
+                            if (blockType && !newOrder.includes(blockType)) {
                                 newOrder.push(blockType);
                             }
                         });
+                        
+                        // Then, get template sections
+                        $('#template-sections-container').find('> .sidebar-subsection').each(function() {
+                            const $this = $(this);
+                            const sectionId = $this.data('section-id') || $this.data('block-type');
+                            
+                            if (sectionId && !newOrder.includes(sectionId)) {
+                                newOrder.push(sectionId);
+                            }
+                        });
+                        
                         currentSectionsConfig.sectionOrder = newOrder;
+                        console.log('[DRAG&DROP] Updated section order:', newOrder);
                         
                         // Activar bandera de cambios pendientes
                         hasPendingPageStructureChanges = true;
@@ -11483,11 +12174,359 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                 // Initialize announcement sortable
                 createAnnouncementSortable();
                 
+                // Initialize gallery images sortable if gallery exists
+                if (currentSectionsConfig.gallery && currentSectionsConfig.gallery.imageOrder && currentSectionsConfig.gallery.imageOrder.length > 0) {
+                    setTimeout(() => {
+                        initializeGalleryImagesSortable();
+                    }, 100);
+                }
+                
+                // Initialize sortable for template sections container
+                const $templateContainer = $('#template-sections-container');
+                if ($templateContainer.length > 0) {
+                    console.log('[DRAG&DROP] Initializing sortable for template sections');
+                    
+                    // Destroy existing sortable if exists
+                    if ($templateContainer.hasClass('ui-sortable')) {
+                        $templateContainer.sortable('destroy');
+                    }
+                    
+                    // First, store references to child wrappers BEFORE initializing sortable
+                    // This is critical because jQuery UI modifies the DOM
+                    const childWrapperRefs = new Map();
+                    
+                    $templateContainer.find('> .sidebar-subsection').each(function() {
+                        const $section = $(this);
+                        const sectionId = $section.data('section-id') || $section.data('block-type');
+                        const hasChildren = ['slideshow', 'multicolumn', 'imageWithText', 'testimonials', 'accordion', 'gallery'].includes(sectionId);
+                        
+                        if (hasChildren) {
+                            const wrapperId = sectionId + '-' + (sectionId === 'slideshow' ? 'slides' : 
+                                                               sectionId === 'multicolumn' ? 'columns' : 
+                                                               sectionId === 'imageWithText' ? 'blocks' : 
+                                                               sectionId === 'testimonials' ? 'items' : 
+                                                               sectionId === 'accordion' ? 'items' : 
+                                                               sectionId === 'gallery' ? 'images' : '') + '-wrapper';
+                            
+                            const $nextElement = $section.next();
+                            if ($nextElement.length && $nextElement.attr('id') === wrapperId) {
+                                childWrapperRefs.set(sectionId, $nextElement);
+                                console.log('[DRAG&DROP] Pre-stored child wrapper reference for:', sectionId);
+                            }
+                        }
+                    });
+                    
+                    $templateContainer.sortable({
+                        items: '> .sidebar-subsection',
+                        handle: '.drag-handle',
+                        axis: 'y',
+                        tolerance: 'pointer',
+                        placeholder: 'sortable-placeholder',
+                        connectWith: '.sidebar-section-content:first',
+                        helper: function(e, ui) {
+                            const helper = ui.clone();
+                            helper.css('background-color', '#f5f5f5');
+                            return helper;
+                        },
+                        start: function(e, ui) {
+                            ui.placeholder.css({
+                                'height': ui.item.outerHeight(),
+                                'visibility': 'visible',
+                                'background': '#e0e0e0',
+                                'border': '2px dashed #999'
+                            });
+                            
+                            // Check if the dragged item has child elements
+                            const sectionId = ui.item.data('section-id') || ui.item.data('block-type');
+                            
+                            // Get pre-stored wrapper reference
+                            const $childWrapper = childWrapperRefs.get(sectionId);
+                            
+                            if ($childWrapper && $childWrapper.length > 0) {
+                                console.log('[DRAG&DROP] Using pre-stored child wrapper for:', sectionId);
+                                
+                                // Hide and detach the wrapper
+                                $childWrapper.hide();
+                                ui.item.data('detached-children', $childWrapper.detach());
+                            } else {
+                                console.log('[DRAG&DROP] No pre-stored child wrapper for:', sectionId);
+                            }
+                        },
+                        stop: function(e, ui) {
+                            // Reattach child elements if they were detached
+                            const $detachedChildren = ui.item.data('detached-children');
+                            if ($detachedChildren) {
+                                console.log('[DRAG&DROP] Reattaching child wrapper');
+                                $detachedChildren.insertAfter(ui.item).show();
+                                ui.item.removeData('detached-children');
+                                
+                                // Reinitialize sortable for child wrappers if needed
+                                const sectionId = ui.item.data('section-id') || ui.item.data('block-type');
+                                initializeChildSortables(sectionId);
+                            }
+                            
+                            // Rebuild childWrapperRefs for next drag operation
+                            childWrapperRefs.clear();
+                            $templateContainer.find('> .sidebar-subsection').each(function() {
+                                const $section = $(this);
+                                const sectionId = $section.data('section-id') || $section.data('block-type');
+                                const hasChildren = ['slideshow', 'multicolumn', 'imageWithText', 'testimonials', 'accordion', 'gallery'].includes(sectionId);
+                                
+                                if (hasChildren) {
+                                    const wrapperId = sectionId + '-' + (sectionId === 'slideshow' ? 'slides' : 
+                                                                       sectionId === 'multicolumn' ? 'columns' : 
+                                                                       sectionId === 'imageWithText' ? 'blocks' : 
+                                                                       sectionId === 'testimonials' ? 'items' : 
+                                                                       sectionId === 'accordion' ? 'items' : 
+                                                                       sectionId === 'gallery' ? 'images' : '') + '-wrapper';
+                                    
+                                    const $nextElement = $section.next();
+                                    if ($nextElement.length && $nextElement.attr('id') === wrapperId) {
+                                        childWrapperRefs.set(sectionId, $nextElement);
+                                    }
+                                }
+                            });
+                            
+                            // Update section order based on DOM
+                            const newOrder = [];
+                            
+                            // First, get header sections
+                            $('.sidebar-section-content').first().find('> .sidebar-subsection').each(function() {
+                                const $this = $(this);
+                                const blockType = $this.data('block-type');
+                                
+                                if (blockType && !newOrder.includes(blockType)) {
+                                    newOrder.push(blockType);
+                                }
+                            });
+                            
+                            // Then, get template sections
+                            $('#template-sections-container').find('> .sidebar-subsection').each(function() {
+                                const $this = $(this);
+                                const sectionId = $this.data('section-id') || $this.data('block-type');
+                                
+                                if (sectionId && !newOrder.includes(sectionId)) {
+                                    newOrder.push(sectionId);
+                                }
+                            });
+                            
+                            currentSectionsConfig.sectionOrder = newOrder;
+                            console.log('[DRAG&DROP] Updated section order from template container:', newOrder);
+                            
+                            hasPendingPageStructureChanges = true;
+                            updateSaveButtonState();
+                            renderPreview();
+                        }
+                    });
+                }
+                
                 console.log('[DRAG&DROP] ✓ Sortable aplicado con restricciones');
             } else {
                 console.error('[DRAG&DROP] jQuery UI sortable no está disponible');
             }
         }, 300);
+    }
+    
+    // Function to initialize sortable for child elements
+    function initializeChildSortables(sectionId) {
+        console.log('[DRAG&DROP] Initializing child sortables for:', sectionId);
+        
+        setTimeout(() => {
+            switch(sectionId) {
+                case 'slideshow':
+                    const $slidesWrapper = $('#slideshow-slides-wrapper');
+                    if ($slidesWrapper.length && $slidesWrapper.find('.slideshow-slide-item').length > 0) {
+                        if ($slidesWrapper.hasClass('ui-sortable')) {
+                            $slidesWrapper.sortable('destroy');
+                        }
+                        $slidesWrapper.sortable({
+                            items: '.slideshow-slide-item',
+                            handle: '.drag-handle',
+                            axis: 'y',
+                            tolerance: 'pointer',
+                            containment: 'parent',
+                            stop: function(e, ui) {
+                                updateSlideOrder();
+                            }
+                        });
+                    }
+                    break;
+                    
+                case 'multicolumn':
+                    const $columnsWrapper = $('#multicolumn-columns-wrapper');
+                    if ($columnsWrapper.length && $columnsWrapper.find('.multicolumn-column-item').length > 0) {
+                        if ($columnsWrapper.hasClass('ui-sortable')) {
+                            $columnsWrapper.sortable('destroy');
+                        }
+                        $columnsWrapper.sortable({
+                            items: '.multicolumn-column-item',
+                            handle: '.drag-handle',
+                            axis: 'y',
+                            tolerance: 'pointer',
+                            containment: 'parent',
+                            stop: function(e, ui) {
+                                updateColumnOrder();
+                            }
+                        });
+                    }
+                    break;
+                    
+                case 'imageWithText':
+                    const $blocksWrapper = $('#imageWithText-blocks-wrapper');
+                    if ($blocksWrapper.length && $blocksWrapper.find('.imageWithText-block-item').length > 0) {
+                        if ($blocksWrapper.hasClass('ui-sortable')) {
+                            $blocksWrapper.sortable('destroy');
+                        }
+                        $blocksWrapper.sortable({
+                            items: '.imageWithText-block-item',
+                            handle: '.drag-handle',
+                            axis: 'y',
+                            tolerance: 'pointer',
+                            containment: 'parent',
+                            stop: function(e, ui) {
+                                updateImageWithTextOrder();
+                            }
+                        });
+                    }
+                    break;
+                    
+                case 'testimonials':
+                    const $testimonialsWrapper = $('#testimonials-items-wrapper');
+                    if ($testimonialsWrapper.length && $testimonialsWrapper.find('.testimonial-item').length > 0) {
+                        if ($testimonialsWrapper.hasClass('ui-sortable')) {
+                            $testimonialsWrapper.sortable('destroy');
+                        }
+                        $testimonialsWrapper.sortable({
+                            items: '.testimonial-item',
+                            handle: '.drag-handle',
+                            axis: 'y',
+                            tolerance: 'pointer',
+                            containment: 'parent',
+                            stop: function(e, ui) {
+                                updateTestimonialsOrder();
+                            }
+                        });
+                    }
+                    break;
+                    
+                case 'accordion':
+                    const $accordionWrapper = $('#accordion-items-wrapper');
+                    if ($accordionWrapper.length && $accordionWrapper.find('.accordion-item').length > 0) {
+                        if ($accordionWrapper.hasClass('ui-sortable')) {
+                            $accordionWrapper.sortable('destroy');
+                        }
+                        $accordionWrapper.sortable({
+                            items: '.accordion-item',
+                            handle: '.drag-handle',
+                            axis: 'y',
+                            tolerance: 'pointer',
+                            containment: 'parent',
+                            stop: function(e, ui) {
+                                updateAccordionOrder();
+                            }
+                        });
+                    }
+                    break;
+                    
+                case 'gallery':
+                    const $galleryWrapper = $('#gallery-images-wrapper');
+                    if ($galleryWrapper.length && $galleryWrapper.find('.gallery-image-item').length > 0) {
+                        if ($galleryWrapper.hasClass('ui-sortable')) {
+                            $galleryWrapper.sortable('destroy');
+                        }
+                        $galleryWrapper.sortable({
+                            items: '.gallery-image-item',
+                            handle: '.drag-handle',
+                            axis: 'y',
+                            tolerance: 'pointer',
+                            containment: 'parent',
+                            stop: function(e, ui) {
+                                updateGalleryOrder();
+                            }
+                        });
+                    }
+                    break;
+            }
+        }, 100);
+    }
+    
+    // Helper functions to update order for each section type
+    function updateSlideOrder() {
+        const newOrder = [];
+        $('#slideshow-slides-wrapper .slideshow-slide-item').each(function() {
+            newOrder.push($(this).data('element-id'));
+        });
+        if (currentSectionsConfig.slideshow) {
+            currentSectionsConfig.slideshow.slideOrder = newOrder;
+            hasPendingPageStructureChanges = true;
+            updateSaveButtonState();
+            renderPreview();
+        }
+    }
+    
+    function updateColumnOrder() {
+        const newOrder = [];
+        $('#multicolumn-columns-wrapper .multicolumn-column-item').each(function() {
+            newOrder.push($(this).data('element-id'));
+        });
+        if (currentSectionsConfig.multicolumn) {
+            currentSectionsConfig.multicolumn.columnOrder = newOrder;
+            hasPendingPageStructureChanges = true;
+            updateSaveButtonState();
+            renderPreview();
+        }
+    }
+    
+    function updateImageWithTextOrder() {
+        const newOrder = [];
+        $('#imageWithText-blocks-wrapper .imageWithText-block-item').each(function() {
+            newOrder.push($(this).data('element-id'));
+        });
+        if (currentSectionsConfig.imageWithText) {
+            currentSectionsConfig.imageWithText.blockOrder = newOrder;
+            hasPendingPageStructureChanges = true;
+            updateSaveButtonState();
+            renderPreview();
+        }
+    }
+    
+    function updateTestimonialsOrder() {
+        const newOrder = [];
+        $('#testimonials-items-wrapper .testimonial-item').each(function() {
+            newOrder.push($(this).data('element-id'));
+        });
+        if (currentSectionsConfig.testimonials) {
+            currentSectionsConfig.testimonials.testimonialsOrder = newOrder;
+            hasPendingPageStructureChanges = true;
+            updateSaveButtonState();
+            renderPreview();
+        }
+    }
+    
+    function updateAccordionOrder() {
+        const newOrder = [];
+        $('#accordion-items-wrapper .accordion-item').each(function() {
+            newOrder.push($(this).data('element-id'));
+        });
+        if (currentSectionsConfig.accordion) {
+            currentSectionsConfig.accordion.itemOrder = newOrder;
+            hasPendingPageStructureChanges = true;
+            updateSaveButtonState();
+            renderPreview();
+        }
+    }
+    
+    function updateGalleryOrder() {
+        const newOrder = [];
+        $('#gallery-images-wrapper .gallery-image-item').each(function() {
+            newOrder.push($(this).data('element-id'));
+        });
+        if (currentSectionsConfig.gallery) {
+            currentSectionsConfig.gallery.imageOrder = newOrder;
+            hasPendingPageStructureChanges = true;
+            updateSaveButtonState();
+            renderPreview();
+        }
     }
     
     // Function to make subsections collapsible without changing the design
@@ -11849,6 +12888,7 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
             'testimonials': '<div class="section-preview-image"><img src="/TestImages/testimonialstructure.png?v=' + Date.now() + '" alt="Testimonials"></div>',
             'accordion': '<div class="section-preview-image"><img src="/TestImages/AccordionMenuPreview.png" alt="Accordion/FAQ"></div>',
             'image-banner': '<div class="section-preview-image"><img src="/TestImages/imagebannereditor.png" alt="Image Banner"></div>',
+            'rich-text': '<div class="section-preview-image"><img src="/TestImages/richtextpreviewmodal.png" alt="Rich Text"></div>',
             // Add more previews as needed
         };
         
@@ -12369,8 +13409,6 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                     subheading: 'Sign up for the latest updates, news, and exclusive offers delivered directly to your inbox.',
                     placeholder: 'Enter your email',
                     buttonText: 'Subscribe',
-                    buttonColor: '#2962ff',
-                    buttonTextColor: '#ffffff',
                     disclaimer: 'We respect your privacy. Unsubscribe at any time.'
                 };
             }
@@ -12453,6 +13491,159 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
             renderPreview();
             
             console.log('[DEBUG] Image banner added successfully');
+        }
+        
+        // Handle gallery section
+        if (group === 'template' && sectionId === 'gallery') {
+            console.log('[DEBUG] Adding gallery section');
+            
+            // Initialize config if doesn't exist
+            if (!currentSectionsConfig.gallery) {
+                currentSectionsConfig.gallery = {
+                    id: 'gallery',
+                    isHidden: false,
+                    colorScheme: 'default',
+                    width: 'page',
+                    desktopLayout: 'grid',
+                    mobileLayout: 'carousel',
+                    heading: 'Gallery',
+                    body: 'Show your products, collections, and social media photos or tell about recent events.',
+                    headingSize: 'h5',
+                    bodySize: 'body3',
+                    contentAlignment: 'center',
+                    imageRatio: 1,
+                    desktopCardsPerRow: 5,
+                    desktopSpaceBetweenCards: 16,
+                    mobileSpaceBetweenCards: 16,
+                    showArrowsOnHover: true,
+                    buttonLabel: '',
+                    buttonLink: '',
+                    buttonStyle: 'solid',
+                    autoplayMode: 'none',
+                    autoplaySpeed: 3,
+                    addSidePaddings: true,
+                    topPadding: 64,
+                    bottomPadding: 8,
+                    imageOrder: [],
+                    images: {}
+                };
+            }
+            
+            // Add to section order if not already present
+            if (!currentSectionsConfig.sectionOrder) {
+                currentSectionsConfig.sectionOrder = [];
+            }
+            if (!currentSectionsConfig.sectionOrder.includes('gallery')) {
+                currentSectionsConfig.sectionOrder.push('gallery');
+                console.log('[DEBUG] Gallery added to sectionOrder:', currentSectionsConfig.sectionOrder);
+            }
+            
+            // Update UI
+            const templateSectionsHtml = renderTemplateSections();
+            $('#template-sections-container').html(templateSectionsHtml + `
+                <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e3e3e3;">
+                    <div class="add-section-button add-template-section" data-group="template">
+                        <i class="material-icons">add_circle</i>
+                        <span data-i18n="sections.addTemplateSection">Agregar sección de plantilla</span>
+                    </div>
+                </div>
+            `);
+            
+            // Post-processing
+            setTimeout(applyTranslations, 0);
+            
+            // Initialize gallery module if needed
+            if (window.WebsiteBuilderModules && window.WebsiteBuilderModules.Gallery && window.WebsiteBuilderModules.Gallery.initialize) {
+                window.WebsiteBuilderModules.Gallery.initialize();
+            }
+            
+            // Update sectionOrder based on current visual order in sidebar
+            const newOrder = [];
+            $('#template-sections-container .sidebar-subsection[data-section-id], #header-sections-container .sidebar-subsection[data-block-type]').each(function() {
+                const $this = $(this);
+                const sectionId = $this.data('section-id') || $this.data('block-type');
+                
+                if (sectionId && !newOrder.includes(sectionId)) {
+                    // Map block types to section IDs if needed
+                    if (sectionId === 'barra-anuncios') {
+                        newOrder.push('announcement');
+                    } else {
+                        newOrder.push(sectionId);
+                    }
+                }
+            });
+            
+            currentSectionsConfig.sectionOrder = newOrder;
+            console.log('[DEBUG] Updated sectionOrder after adding gallery:', newOrder);
+            
+            hasPendingPageStructureChanges = true;
+            updateSaveButtonState();
+            renderPreview();
+            
+            console.log('[DEBUG] Gallery added successfully');
+        }
+        
+        // Handle rich text section
+        if (group === 'template' && sectionId === 'rich-text') {
+            console.log('[DEBUG] Adding rich text section');
+            
+            // Initialize config if doesn't exist
+            if (!currentSectionsConfig.richText) {
+                currentSectionsConfig.richText = {
+                    id: 'richText',
+                    isHidden: false,
+                    colorScheme: 'scheme1',
+                    content: '<p>Add your custom rich text content here.</p>'
+                };
+            }
+            
+            // Add to section order if not already present
+            if (!currentSectionsConfig.sectionOrder) {
+                currentSectionsConfig.sectionOrder = [];
+            }
+            if (!currentSectionsConfig.sectionOrder.includes('richText')) {
+                currentSectionsConfig.sectionOrder.push('richText');
+                console.log('[DEBUG] Rich Text added to sectionOrder:', currentSectionsConfig.sectionOrder);
+            }
+            
+            // Update UI
+            const templateSectionsHtml = renderTemplateSections();
+            $('#template-sections-container').html(templateSectionsHtml + `
+                <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e3e3e3;">
+                    <div class="add-section-button add-template-section" data-group="template">
+                        <i class="material-icons">add_circle</i>
+                        <span data-i18n="sections.addTemplateSection">Agregar sección de plantilla</span>
+                    </div>
+                </div>
+            `);
+            
+            // Post-processing
+            setTimeout(applyTranslations, 0);
+            
+            // Update sectionOrder based on current visual order in sidebar
+            const newOrder = [];
+            $('#template-sections-container .sidebar-subsection[data-section-id], #header-sections-container .sidebar-subsection[data-block-type]').each(function() {
+                const $this = $(this);
+                const sectionId = $this.data('section-id') || $this.data('block-type');
+                
+                if (sectionId && !newOrder.includes(sectionId)) {
+                    // Map block types to section IDs if needed
+                    if (sectionId === 'barra-anuncios') {
+                        newOrder.push('announcement');
+                    } else {
+                        newOrder.push(sectionId);
+                    }
+                }
+            });
+            
+            currentSectionsConfig.sectionOrder = newOrder;
+            console.log('[DEBUG] Updated sectionOrder after adding rich text:', newOrder);
+            
+            hasPendingPageStructureChanges = true;
+            updateSaveButtonState();
+            renderPreview();
+            
+            console.log('[DEBUG] Rich Text added successfully');
         }
         
         // Close modal
@@ -17210,6 +18401,66 @@ document.head.appendChild(style);
     }
     
     // Function to load menus data
+    // Initialize sortable for Gallery images
+    function initializeGalleryImagesSortable() {
+        console.log('[GALLERY] Initializing sortable for gallery images in block list');
+        
+        const $wrapper = $('#gallery-images-wrapper');
+        if (!$wrapper.length) {
+            console.error('[GALLERY] Images wrapper not found');
+            return;
+        }
+        
+        $wrapper.sortable({
+            items: '.gallery-image-item',
+            handle: '.drag-handle',
+            placeholder: 'sortable-placeholder',
+            forcePlaceholderSize: true,
+            cursor: 'move',
+            tolerance: 'pointer',
+            axis: 'y',
+            containment: 'parent',
+            start: function(e, ui) {
+                console.log('[GALLERY] Drag started for image:', ui.item.data('element-id'));
+                
+                ui.placeholder.height(ui.item.outerHeight());
+                ui.placeholder.css({
+                    'visibility': 'visible',
+                    'background': '#f0f0f0',
+                    'border': '2px dashed #2962ff',
+                    'border-radius': '4px',
+                    'margin-bottom': '1px',
+                    'padding-left': '30px'
+                });
+            },
+            stop: function(e, ui) {
+                console.log('[GALLERY] Drag stopped');
+                
+                const newOrder = [];
+                $wrapper.find('.gallery-image-item').each(function() {
+                    const imageId = $(this).data('element-id');
+                    if (imageId) {
+                        newOrder.push(imageId);
+                    }
+                });
+                
+                console.log('[GALLERY] New order:', newOrder);
+                
+                if (currentSectionsConfig.gallery) {
+                    currentSectionsConfig.gallery.imageOrder = newOrder;
+                    
+                    hasPendingPageStructureChanges = true;
+                    updateSaveButtonState();
+                    renderPreview();
+                    
+                    console.log('[GALLERY] Order updated successfully');
+                }
+            }
+        });
+        
+        console.log('[GALLERY] Sortable initialized for', $wrapper.find('.gallery-image-item').length, 'items');
+    }
+    
     // Function to attach slideshow event listeners
     function attachSlideshowEventListeners() {
         // Back button
@@ -18748,6 +19999,33 @@ document.head.appendChild(style);
                                         $button.find('.icon-visible, .icon-hidden').removeAttr('style');
                                         
                                         if (itemHidden) {
+                                            $button.addClass('is-hidden');
+                                        } else {
+                                            $button.removeClass('is-hidden');
+                                        }
+                                    }
+                                });
+                            }, 200);
+                        });
+                    } else if (currentSidebarView === 'gallerySettings') {
+                        // Reload data and return to blockList
+                        console.log('[DEBUG] Reloading after gallery save');
+                        loadCurrentWebsite().then(() => {
+                            window.switchSidebarView('blockList', window.getUpdatedPageData());
+                            
+                            setTimeout(() => {
+                                const isHidden = currentSectionsConfig.gallery?.isHidden || false;
+                                window.forceVisibilitySync('gallery', isHidden);
+                                
+                                // Sync gallery images
+                                $('.gallery-image-item .visibility-toggle').each(function() {
+                                    const $button = $(this);
+                                    const imageId = $button.data('image-id');
+                                    if (imageId && currentSectionsConfig.gallery?.images?.[imageId]) {
+                                        const imageHidden = currentSectionsConfig.gallery.images[imageId].isHidden || false;
+                                        $button.find('.icon-visible, .icon-hidden').removeAttr('style');
+                                        
+                                        if (imageHidden) {
                                             $button.addClass('is-hidden');
                                         } else {
                                             $button.removeClass('is-hidden');
