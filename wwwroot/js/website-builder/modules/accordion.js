@@ -764,8 +764,8 @@ window.WebsiteBuilderModules.Accordion = {
                      style="padding: 15px; cursor: pointer; display: flex; align-items: center; justify-content: space-between; background: #fafafa;"
                      onclick="event.stopPropagation(); console.log('[ACCORDION] Header clicked inline', 'faq-content-${item.id}')">
                     <div style="display: flex; align-items: center; gap: 10px;">
-                        <i class="material-icons drag-handle" style="cursor: move; color: #8c9196; font-size: 20px;" title="Arrastrar para reordenar">drag_indicator</i>
-                        <i class="material-icons collapse-icon" style="transition: transform 0.3s;">expand_more</i>
+                        <i class="material-icons drag-handle" style="cursor: move; color: #8c9196; font-size: 20px; margin-right: 8px;" title="Arrastrar para reordenar">drag_indicator</i>
+                        <i class="material-icons collapse-icon" style="transition: transform 0.3s; margin-right: 8px;">expand_more</i>
                         <span style="font-weight: 500;">Pregunta ${index + 1}</span>
                     </div>
                     <div style="display: flex; gap: 10px;">

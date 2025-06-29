@@ -1499,6 +1499,7 @@ window.translations.en['sections.accordion'] = 'Accordion/FAQ';
 3. **Flecha de regreso**: Usa clase correcta, navega a blockList
 4. **No aparece en preview**: Todos los casos y fallbacks implementados
 5. **Nombres inconsistentes**: Un solo nombre usado consistentemente
+6. **Ícono drag handle pegado al texto en elementos hijos**: SIEMPRE agregar `style="margin-left: 30px;"` al span de texto en elementos hijos con drag handle (accordion items, testimonials, gallery images). Sin este margen, el texto se superpone con el ícono drag_indicator
 
 ## CONCLUSIÓN
 

@@ -234,6 +234,8 @@ window.getColorSchemeValues = getColorSchemeValues;
 async function loadCurrentWebsite() {
     try {
         // Primero, hacer una prueba simple del API
+        // COMENTADO: Llamada de prueba que genera 404
+        /*
         try {
             const testResponse = await fetch('/api/builder/test');
             if (testResponse.ok) {
@@ -245,6 +247,7 @@ async function loadCurrentWebsite() {
         } catch (testError) {
             console.error('[DEBUG] API test error:', testError);
         }
+        */
         const response = await fetch('/api/builder/websites/current', {
             method: 'GET',
             headers: {
@@ -1181,6 +1184,11 @@ function renderHeader(config) {
 function renderAnnouncementBar(config) {
     if (!config || config.isHidden) return '';
 
+    // Debug logging
+    console.log('[DEBUG] renderAnnouncementBar - config:', config);
+    console.log('[DEBUG] renderAnnouncementBar - currentSectionsConfig.announcements:', currentSectionsConfig.announcements);
+    console.log('[DEBUG] renderAnnouncementBar - currentSectionsConfig.announcementOrder:', currentSectionsConfig.announcementOrder);
+
     // Obtener anuncios visibles
     const visibleAnnouncements = [];
     if (currentSectionsConfig.announcementOrder && currentSectionsConfig.announcements) {
@@ -1191,6 +1199,8 @@ function renderAnnouncementBar(config) {
             }
         });
     }
+
+    console.log('[DEBUG] renderAnnouncementBar - visibleAnnouncements:', visibleAnnouncements);
 
     if (visibleAnnouncements.length === 0) {
         visibleAnnouncements.push({ text: 'Welcome to our store!', link: '', icon: 'none' });
@@ -2082,6 +2092,13 @@ function renderPreview() {
                             ${window.WebsiteBuilderModules.ContactForm.render(config)}
                         </div>`;
                     }
+                } else if (sectionId.startsWith('image-with-text-')) {
+                    const config = currentSectionsConfig.imageWithTextSections?.[sectionId];
+                    if (config && !config.isHidden && window.WebsiteBuilderModules?.ImageWithText?.render) {
+                        finalHtml += `<div data-section-id="image-with-text" data-element-id="${sectionId}" class="preview-section">
+                            ${window.WebsiteBuilderModules.ImageWithText.render(config)}
+                        </div>`;
+                    }
                 } else {
                     const config = currentSectionsConfig[configKey];
                     if (renderer && config) {
@@ -2210,6 +2227,11 @@ function renderPreview() {
                 if (contactFormId && window.WebsiteBuilderModules && window.WebsiteBuilderModules.ContactForm) {
                     window.WebsiteBuilderModules.ContactForm.openSettings(contactFormId);
                 }
+            } else if (sectionId && sectionId.startsWith('image-with-text-')) {
+                // Logic for image with text section
+                $('.topbar-nav-icon').removeClass('active');
+                $('.topbar-nav-icon[data-view="sections"]').addClass('active');
+                window.switchSidebarView('imageWithTextSettings', { sectionId: sectionId });
             }
             // Aquí añadiremos más 'else if' para otras secciones en el futuro.
         });
@@ -3928,6 +3950,10 @@ $(document).ready(async function() {
         if (window.WebsiteBuilderModules && window.WebsiteBuilderModules.ContactForm && window.WebsiteBuilderModules.ContactForm.reconstructContactForms) {
             window.WebsiteBuilderModules.ContactForm.reconstructContactForms();
         }
+        // Reconstruct image with text sections after loading data
+        if (window.WebsiteBuilderModules && window.WebsiteBuilderModules.ImageWithText && window.WebsiteBuilderModules.ImageWithText.reconstructImageWithTextSections) {
+            window.WebsiteBuilderModules.ImageWithText.reconstructImageWithTextSections();
+        }
     }, 100);
     
     // Wait for preview iframe to be ready before applying styles
@@ -5546,10 +5572,20 @@ $(document).ready(async function() {
             }
         } else if (viewName === 'imageWithTextSettings') {
             // Image with text settings view - usar módulo
-            console.log('[DEBUG] Rendering imageWithTextSettings view');
-            console.log('[DEBUG] Current config:', window.currentSectionsConfig?.imageWithText);
+            console.log('[DEBUG] Rendering imageWithTextSettings view with data:', data);
             
-            const html = executeModuleFunction('ImageWithText', 'renderSettings', window.currentSectionsConfig?.imageWithText);
+            let config;
+            if (data && data.sectionId && data.sectionId.startsWith('image-with-text-')) {
+                // Multiple instance mode
+                config = window.currentSectionsConfig?.imageWithTextSections?.[data.sectionId];
+            } else {
+                // Legacy single instance mode
+                config = window.currentSectionsConfig?.imageWithText;
+            }
+            
+            console.log('[DEBUG] Current config:', config);
+            
+            const html = executeModuleFunction('ImageWithText', 'renderSettings', config);
             console.log('[DEBUG] HTML returned:', html ? 'HTML received' : 'NO HTML');
             
             if (html) {
@@ -5834,6 +5870,13 @@ $(document).ready(async function() {
                     // They manage their own DOM elements
                     return; // Skip to next iteration
                 }
+            } else if (sectionId.startsWith('image-with-text-')) {
+                const imageWithText = currentSectionsConfig.imageWithTextSections?.[sectionId];
+                if (imageWithText) {
+                    // Image with text sections are rendered by the module's addImageWithText function
+                    // They manage their own DOM elements
+                    return; // Skip to next iteration
+                }
             } else if (currentSectionsConfig[sectionId]) {
                 const section = currentSectionsConfig[sectionId];
                 
@@ -5997,7 +6040,7 @@ $(document).ready(async function() {
                             html += `
                                 <div class="sidebar-subsection testimonial-item" data-block-type="testimonial-item" data-element-id="${testimonialId}" style="padding-left: 30px;">
                                     <i class="material-icons drag-handle">drag_handle</i>
-                                    <span class="subsection-text">${testimonial.author || `Testimonial ${index + 1}`}</span>
+                                    <span class="subsection-text" style="margin-left: 30px;">${testimonial.author || `Testimonial ${index + 1}`}</span>
                                     <div class="subsection-actions">
                                         <button class="action-icon visibility-toggle ${testimonial.isHidden ? 'is-hidden' : ''}" data-testimonial-id="${testimonialId}" title="Toggle visibility">
                                             <i class="material-icons icon-visible">visibility</i>
@@ -6024,7 +6067,7 @@ $(document).ready(async function() {
                             html += `
                                 <div class="sidebar-subsection accordion-faq-item" data-block-type="accordion-item" data-element-id="${itemId}" style="padding-left: 30px;">
                                     <i class="material-icons drag-handle">drag_handle</i>
-                                    <span class="subsection-text">${item.question || `Pregunta ${index + 1}`}</span>
+                                    <span class="subsection-text" style="margin-left: 30px;">${item.question || `Pregunta ${index + 1}`}</span>
                                     <div class="subsection-actions">
                                         <button class="action-icon visibility-toggle ${item.isHidden ? 'is-hidden' : ''}" data-item-id="${itemId}" title="Toggle visibility">
                                             <i class="material-icons icon-visible">visibility</i>
@@ -6051,7 +6094,7 @@ $(document).ready(async function() {
                             html += `
                                 <div class="sidebar-subsection gallery-image-item" data-block-type="gallery-image" data-element-id="${imageId}" style="padding-left: 30px;">
                                     <i class="material-icons drag-handle">drag_handle</i>
-                                    <span class="subsection-text">Image ${index + 1}</span>
+                                    <span class="subsection-text" style="margin-left: 30px;">Image ${index + 1}</span>
                                     <div class="subsection-actions">
                                         <button class="action-icon visibility-toggle ${image.isHidden ? 'is-hidden' : ''}" data-image-id="${imageId}" title="Toggle visibility">
                                             <i class="material-icons icon-visible">visibility</i>
@@ -10887,6 +10930,9 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
             updateSaveButtonState();
             console.log('[DEBUG] Page structure changed - new announcement added:', announcementId);
             
+            // Update the preview to show the new announcement
+            renderPreview();
+            
             // Reinitialize drag and drop to include new element
             setTimeout(() => {
                 initializeDragAndDropSimple();
@@ -12124,6 +12170,12 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                 return;
             }
             
+            // Ensure container has minimum height and padding for dropping elements
+            $container.css({
+                'min-height': '100px',
+                'padding-bottom': '50px'
+            });
+            
             // Add drag handles to ALL subsections
             const $subsections = $container.find('.sidebar-subsection');
             $subsections.each(function() {
@@ -12146,13 +12198,27 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                     $container.sortable('destroy');
                 }
                 
-                // Main sortable for announcement bar, header, and slideshow
+                // Pre-store references to child wrappers BEFORE initializing sortable
+                const headerChildWrapperRefs = new Map();
+                
+                // For announcement bar specifically
+                const $announcementBar = $container.find('.sidebar-subsection[data-element-id="barra-anuncios"]');
+                if ($announcementBar.length) {
+                    const $announcementWrapper = $('#announcement-items-wrapper');
+                    if ($announcementWrapper.length) {
+                        headerChildWrapperRefs.set('barra-anuncios', $announcementWrapper);
+                        console.log('[DRAG&DROP] Pre-stored announcement wrapper reference');
+                    }
+                }
+                
+                // Main sortable for all direct children in header section
                 $container.sortable({
-                    items: '.sidebar-subsection[data-block-type="announcement"], .sidebar-subsection[data-block-type="header"], .sidebar-subsection[data-block-type="slideshow"]',
+                    items: '> .sidebar-subsection',
                     handle: '.drag-handle',
                     axis: 'y',
                     tolerance: 'pointer',
                     placeholder: 'sortable-placeholder',
+                    connectWith: '#template-sections-container',
                     helper: function(e, item) {
                         // Create a helper that includes visual feedback
                         const helper = item.clone();
@@ -12171,29 +12237,36 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                             'border': '2px dashed #999'
                         });
                         
-                        // If dragging announcement bar, handle its children and wrapper
-                        if (ui.item.attr('data-element-id') === 'barra-anuncios') {
-                            const $wrapper = $('#announcement-items-wrapper');
-                            if ($wrapper.length > 0) {
-                                // Store wrapper reference
-                                ui.item.data('announcement-wrapper', $wrapper);
-                                // Hide and detach the entire wrapper to prevent interference
-                                $wrapper.hide();
-                                ui.item.data('detached-wrapper', $wrapper.detach());
-                            }
+                        // If dragging element with children, handle them
+                        const elementId = ui.item.attr('data-element-id') || ui.item.data('block-type');
+                        const $childWrapper = headerChildWrapperRefs.get(elementId);
+                        
+                        if ($childWrapper && $childWrapper.length > 0) {
+                            console.log('[DRAG&DROP] Using pre-stored child wrapper for:', elementId);
+                            // Hide and detach the wrapper to prevent interference
+                            $childWrapper.hide();
+                            ui.item.data('detached-wrapper', $childWrapper.detach());
                         }
                     },
                     stop: function(e, ui) {
-                        // If we moved announcement bar, reattach its wrapper after it
-                        if (ui.item.attr('data-element-id') === 'barra-anuncios') {
-                            const $detachedWrapper = ui.item.data('detached-wrapper');
-                            if ($detachedWrapper && $detachedWrapper.length > 0) {
-                                // Insert wrapper after the announcement bar
-                                $detachedWrapper.insertAfter(ui.item).show();
+                        // Reattach child elements if they were detached
+                        const $detachedWrapper = ui.item.data('detached-wrapper');
+                        if ($detachedWrapper && $detachedWrapper.length > 0) {
+                            console.log('[DRAG&DROP] Reattaching child wrapper');
+                            // Insert wrapper after the moved element
+                            $detachedWrapper.insertAfter(ui.item).show();
+                        }
+                        // Clean up data
+                        ui.item.removeData('detached-wrapper');
+                        
+                        // Rebuild headerChildWrapperRefs for next drag operation
+                        headerChildWrapperRefs.clear();
+                        const $announcementBar = $container.find('.sidebar-subsection[data-element-id="barra-anuncios"]');
+                        if ($announcementBar.length) {
+                            const $announcementWrapper = $('#announcement-items-wrapper');
+                            if ($announcementWrapper.length) {
+                                headerChildWrapperRefs.set('barra-anuncios', $announcementWrapper);
                             }
-                            // Clean up data
-                            ui.item.removeData('announcement-wrapper');
-                            ui.item.removeData('detached-wrapper');
                         }
                         
                         // Update section order based on DOM
@@ -12339,6 +12412,12 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                 const $templateContainer = $('#template-sections-container');
                 if ($templateContainer.length > 0) {
                     console.log('[DRAG&DROP] Initializing sortable for template sections');
+                    
+                    // Ensure container has minimum height and padding for dropping elements
+                    $templateContainer.css({
+                        'min-height': '100px',
+                        'padding-bottom': '50px'
+                    });
                     
                     // Destroy existing sortable if exists
                     if ($templateContainer.hasClass('ui-sortable')) {
@@ -13317,7 +13396,6 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
         // Handle images with text section (using new naming convention)
         if (group === 'template' && sectionId === 'images-with-text') {
             console.log('[DEBUG] Adding image with text section');
-            
             // Initialize image with text configuration if it doesn't exist
             if (!currentSectionsConfig.imageWithText) {
                 currentSectionsConfig.imageWithText = {
@@ -20048,6 +20126,10 @@ document.head.appendChild(style);
                                     // Reconstruct contact forms after reloading
                                     if (window.WebsiteBuilderModules && window.WebsiteBuilderModules.ContactForm && window.WebsiteBuilderModules.ContactForm.reconstructContactForms) {
                                         window.WebsiteBuilderModules.ContactForm.reconstructContactForms();
+                                    }
+                                    // Reconstruct image with text sections after reloading
+                                    if (window.WebsiteBuilderModules && window.WebsiteBuilderModules.ImageWithText && window.WebsiteBuilderModules.ImageWithText.reconstructImageWithTextSections) {
+                                        window.WebsiteBuilderModules.ImageWithText.reconstructImageWithTextSections();
                                     }
                                 }, 100);
                             });

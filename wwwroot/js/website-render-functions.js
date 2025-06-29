@@ -444,27 +444,62 @@ function renderAnnouncementBar(config) {
         announcementContent = announcementText;
     }
 
+    // Construir iconos sociales si están habilitados
+    const socialIconsHtml = config.showSocialMediaIcons ? `
+        <div style="position: absolute; left: 50px; top: 50%; transform: translateY(-50%); display: flex; align-items: center; gap: 16px;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="cursor: pointer;">
+                <path d="M12 0c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12-5.373-12-12-12zm3 8h-1.35c-.538 0-.65.221-.65.778v1.222h2l-.209 2h-1.791v7h-3v-7h-2v-2h2v-2.308c0-1.769.931-2.692 3.029-2.692h1.971v3z"/>
+            </svg>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="cursor: pointer;">
+                <path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z"/>
+            </svg>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="cursor: pointer;">
+                <path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/>
+            </svg>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="cursor: pointer;">
+                <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zM5.838 12a6.162 6.162 0 1112.324 0 6.162 6.162 0 01-12.324 0zM12 16a4 4 0 110-8 4 4 0 010 8zm4.965-10.405a1.44 1.44 0 112.881.001 1.44 1.44 0 01-2.881-.001z"/>
+            </svg>
+        </div>
+    ` : '';
+
+    // Construir selectores si están habilitados
+    const selectorsHtml = (config.showLanguageSelector || config.showCurrencySelector) ? `
+        <div style="position: absolute; right: 50px; top: 50%; transform: translateY(-50%); display: flex; align-items: center; gap: 16px;">
+            ${config.showLanguageSelector ? `
+                <select style="border: none; background: transparent; font-size: 12px; cursor: pointer; outline: none; color: inherit;">
+                    <option>Español</option>
+                    <option>English</option>
+                </select>
+            ` : ''}
+            ${config.showCurrencySelector ? `
+                <select style="border: none; background: transparent; font-size: 12px; cursor: pointer; outline: none; color: inherit;">
+                    <option>USD</option>
+                    <option>EUR</option>
+                </select>
+            ` : ''}
+        </div>
+    ` : '';
+
+    // Construir flechas de navegación si están habilitadas y hay múltiples anuncios (no mostrar en marquee)
+    const navigationArrowsHtml = (config.showNavigationArrows && visibleAnnouncements.length > 1 && !isMarquee) ? `
+        <button onclick="window.navigateAnnouncement('prev')" style="position: absolute; left: 20px; top: 50%; transform: translateY(-50%); background: none; border: none; color: inherit; cursor: pointer; padding: 4px;">
+            <span class="material-symbols-outlined" style="font-size: 20px;">chevron_left</span>
+        </button>
+        <button onclick="window.navigateAnnouncement('next')" style="position: absolute; right: 20px; top: 50%; transform: translateY(-50%); background: none; border: none; color: inherit; cursor: pointer; padding: 4px;">
+            <span class="material-symbols-outlined" style="font-size: 20px;">chevron_right</span>
+        </button>
+    ` : '';
+
+    // Determinar el ancho del contenedor
+    const containerStyle = config.width === 'container' 
+        ? 'max-width: 1200px; margin: 0 auto; position: relative;' 
+        : 'position: relative;';
+
     // Get typography settings for announcements
     const bodyTypography = currentGlobalThemeSettings?.typography?.body || {};
     const fontValue = bodyTypography.font || 'roboto';
-    const fontFamily = window.getFontNameFromValueSafe(fontValue);
+    const fontFamily = window.getFontNameFromValueSafe ? window.getFontNameFromValueSafe(fontValue) : fontValue;
     const fontSize = bodyTypography.fontSize || '14px';
-    
-    // Base styles for the announcement bar
-    const barStyles = `
-        position: relative;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        min-height: 44px;
-        padding: 12px 20px;
-        text-align: center;
-        font-size: ${fontSize};
-        font-family: ${fontFamily}, -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
-        background-color: ${schemeColors.background};
-        color: ${schemeColors.text};
-        overflow: hidden;
-    `;
     
     const marqueeStyles = isMarquee ? `
         <style>
@@ -503,6 +538,33 @@ function renderAnnouncementBar(config) {
                        window.parent.document && 
                        window.parent.document.getElementById('preview-iframe'));
     
+    const announcementContentHtml = isMarquee ? `
+        <div class="announcement-bar-content marquee-mode" style="position: relative; padding: 10px 50px; background-color: ${schemeColors.background}; color: ${schemeColors.text}; font-family: ${fontFamily}, -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: ${fontSize}; font-weight: 400; letter-spacing: 0.04em; line-height: 1.5; overflow: hidden;">
+            <div style="${containerStyle}">
+                ${socialIconsHtml}
+                <div class="marquee-container" style="display: flex; align-items: center; overflow: hidden;">
+                    <div class="marquee-content" style="display: flex; align-items: center; gap: 30px; animation: scroll-marquee ${(visibleAnnouncements.length * 5)}s linear infinite; white-space: nowrap;">
+                        ${announcementContent}
+                    </div>
+                </div>
+                ${selectorsHtml}
+            </div>
+        </div>
+    ` : `
+        <div class="announcement-bar-content" style="position: relative; padding: 10px 50px; background-color: ${schemeColors.background}; color: ${schemeColors.text}; font-family: ${fontFamily}, -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: ${fontSize}; font-weight: 400; letter-spacing: 0.04em; line-height: 1.5;">
+            <div style="${containerStyle}">
+                ${socialIconsHtml}
+                <div style="text-align: center;">
+                    <p style="margin:0; display: inline-flex; align-items: center; justify-content: center; gap: 8px;">
+                        ${announcementContent}
+                    </p>
+                </div>
+                ${selectorsHtml}
+                ${navigationArrowsHtml}
+            </div>
+        </div>
+    `;
+
     return `
         <div class="section-wrapper" data-section-id="announcement">
             ${isInEditor ? `
@@ -512,11 +574,7 @@ function renderAnnouncementBar(config) {
                 </div>
             ` : ''}
             ${marqueeStyles}
-            <div class="announcement-bar" style="${barStyles}">
-                <div class="${marqueeClass}">
-                    ${announcementContent}
-                </div>
-            </div>
+            ${announcementContentHtml}
         </div>
     `;
 }

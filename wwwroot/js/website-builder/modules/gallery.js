@@ -1078,7 +1078,10 @@ window.WebsiteBuilderModules.Gallery = {
         });
         
         // PARTE 1: Inicialización en el módulo (solo para vista de configuración)
-        this.initializeDragAndDrop();
+        // Solo inicializar si estamos en la vista de configuración
+        if ($('.gallery-images-container').length > 0) {
+            this.initializeDragAndDrop();
+        }
         
         // Reintentar si falla (DOM no listo)
         setTimeout(() => {
