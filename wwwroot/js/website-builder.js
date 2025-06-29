@@ -2029,6 +2029,18 @@ function renderPreview() {
                             finalHtml += iframeWindow.renderRichText(config);
                         }
                     }
+                } else if (sectionId.startsWith('contact-form-')) {
+                    // Handle contact form sections
+                    const config = currentSectionsConfig.contactForms?.[sectionId];
+                    if (config && !config.isHidden) {
+                        const moduleRender = iframeWindow.WebsiteBuilderModules?.ContactForm?.render;
+                        if (moduleRender) {
+                            // Add wrapper for preview click handling
+                            finalHtml += `<div data-section-id="contact-form" data-element-id="${sectionId}" class="preview-section">
+                                ${moduleRender(config)}
+                            </div>`;
+                        }
+                    }
                 }
             });
         }
@@ -2061,10 +2073,20 @@ function renderPreview() {
                 } else if (sectionId === 'images-with-text') {
                     configKey = 'imageWithText';
                 }
-                const config = currentSectionsConfig[configKey];
                 
-                if (renderer && config) {
-                    finalHtml += renderer(config);
+                // Handle contact forms separately
+                if (sectionId.startsWith('contact-form-')) {
+                    const config = currentSectionsConfig.contactForms?.[sectionId];
+                    if (config && !config.isHidden && window.WebsiteBuilderModules?.ContactForm?.render) {
+                        finalHtml += `<div data-section-id="contact-form" data-element-id="${sectionId}" class="preview-section">
+                            ${window.WebsiteBuilderModules.ContactForm.render(config)}
+                        </div>`;
+                    }
+                } else {
+                    const config = currentSectionsConfig[configKey];
+                    if (renderer && config) {
+                        finalHtml += renderer(config);
+                    }
                 }
             });
         }
@@ -2180,6 +2202,14 @@ function renderPreview() {
                 $('.topbar-nav-icon').removeClass('active');
                 $('.topbar-nav-icon[data-view="sections"]').addClass('active');
                 window.switchSidebarView('richTextSettings');
+            } else if (sectionId && sectionId.startsWith('contact-form-')) {
+                // Logic for contact form section
+                $('.topbar-nav-icon').removeClass('active');
+                $('.topbar-nav-icon[data-view="sections"]').addClass('active');
+                const contactFormId = sectionId; // Use sectionId directly since it's the full ID
+                if (contactFormId && window.WebsiteBuilderModules && window.WebsiteBuilderModules.ContactForm) {
+                    window.WebsiteBuilderModules.ContactForm.openSettings(contactFormId);
+                }
             }
             // Aquí añadiremos más 'else if' para otras secciones en el futuro.
         });
@@ -3892,6 +3922,13 @@ function openEditMenuItemModal(itemId) {
 $(document).ready(async function() {
     // Load current website data first
     await loadCurrentWebsite();
+    
+    // Reconstruct contact forms after loading data
+    setTimeout(() => {
+        if (window.WebsiteBuilderModules && window.WebsiteBuilderModules.ContactForm && window.WebsiteBuilderModules.ContactForm.reconstructContactForms) {
+            window.WebsiteBuilderModules.ContactForm.reconstructContactForms();
+        }
+    }, 100);
     
     // Wait for preview iframe to be ready before applying styles
     const previewFrame = document.getElementById('preview-iframe');
@@ -5698,6 +5735,24 @@ $(document).ready(async function() {
             } else {
                 console.error('[DEBUG] Missing imageId for gallery image settings');
             }
+        } else if (viewName === 'contactFormSettings') {
+            // Contact Form settings - usar módulo
+            console.log('[DEBUG] Rendering contact form settings');
+            const contactFormId = data?.contactFormId;
+            const config = data?.config || window.currentSectionsConfig?.contactForms?.[contactFormId];
+            
+            if (contactFormId && config) {
+                const html = executeModuleFunction('ContactForm', 'renderSettings', { contactFormId, config });
+                if (html) {
+                    dynamicContentArea.innerHTML = html;
+                    executeModuleFunction('ContactForm', 'attachEventListeners', { contactFormId, config });
+                    setTimeout(applyTranslations, 0);
+                } else {
+                    console.error('[DEBUG] No HTML returned from contact form renderSettings');
+                }
+            } else {
+                console.error('[DEBUG] Missing contactFormId or config for contact form settings');
+            }
         } else {
             dynamicContentArea.innerHTML = `<p class="sidebar-loading-text">${lang.sidebarLoadingText}</p>`;
         }
@@ -5771,7 +5826,15 @@ $(document).ready(async function() {
         ) || [];
         
         templateSections.forEach(sectionId => {
-            if (currentSectionsConfig[sectionId]) {
+            // Handle contact forms separately
+            if (sectionId.startsWith('contact-form-')) {
+                const contactForm = currentSectionsConfig.contactForms?.[sectionId];
+                if (contactForm) {
+                    // Contact forms are rendered by the module's addContactForm function
+                    // They manage their own DOM elements
+                    return; // Skip to next iteration
+                }
+            } else if (currentSectionsConfig[sectionId]) {
                 const section = currentSectionsConfig[sectionId];
                 
                 // Check if section needs special handling
@@ -9984,6 +10047,12 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                 isHidden = currentSectionsConfig.gallery?.isHidden || false;
             } else if (section === 'richText') {
                 isHidden = currentSectionsConfig.richText?.isHidden || false;
+            } else if (section === 'contact-form' && elementId) {
+                // Handle contact forms
+                isHidden = currentSectionsConfig.contactForms?.[elementId]?.isHidden || false;
+            } else if (blockType === 'contact-form' && elementId) {
+                // Alternative check for contact forms
+                isHidden = currentSectionsConfig.contactForms?.[elementId]?.isHidden || false;
             } else if (blockType === 'testimonial-item' && elementId) {
                 // Handle testimonial items
                 isHidden = currentSectionsConfig.testimonials?.testimonials?.[elementId]?.isHidden || false;
@@ -10151,6 +10220,17 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                     switchSidebarView('galleryImageSettings', { imageId: imageId });
                 }
             }
+            // Handle contact form click
+            else if (blockType === 'contact-form') {
+                const contactFormId = $(this).data('element-id');
+                const config = currentSectionsConfig.contactForms?.[contactFormId];
+                if (contactFormId && config) {
+                    switchSidebarView('contactFormSettings', { 
+                        contactFormId: contactFormId,
+                        config: config
+                    });
+                }
+            }
         });
         
         // Visibility toggle button - COMMENTED OUT TO AVOID DUPLICATE HANDLER
@@ -10303,6 +10383,21 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                     if (index > -1) {
                         currentSectionsConfig.sectionOrder.splice(index, 1);
                     }
+                } else if (section === 'contact-form') {
+                    // Contact forms have unique IDs, need to get the element ID
+                    const elementId = $button.data('element-id');
+                    console.log('[DEBUG] Deleting contact form:', elementId);
+                    
+                    if (elementId && currentSectionsConfig.contactForms) {
+                        // Delete the contact form data
+                        delete currentSectionsConfig.contactForms[elementId];
+                        
+                        // Remove from section order
+                        const index = currentSectionsConfig.sectionOrder.indexOf(elementId);
+                        if (index > -1) {
+                            currentSectionsConfig.sectionOrder.splice(index, 1);
+                        }
+                    }
                 }
                 
                 // Remove from DOM and update UI
@@ -10310,7 +10405,7 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                     $(this).remove();
                     
                     // For template sections, update the template sections container
-                    if (section === 'imageWithText' || section === 'multicolumn' || section === 'slideshow' || section === 'testimonials' || section === 'accordion' || section === 'imageBanner' || section === 'newsletter' || section === 'gallery' || section === 'richText') {
+                    if (section === 'imageWithText' || section === 'multicolumn' || section === 'slideshow' || section === 'testimonials' || section === 'accordion' || section === 'imageBanner' || section === 'newsletter' || section === 'gallery' || section === 'richText' || section === 'contact-form') {
                         const templateSectionsHtml = renderTemplateSections();
                         $('#template-sections-container').html(templateSectionsHtml + `
                             <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e3e3e3;">
@@ -11728,6 +11823,17 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                 if (window.forceVisibilitySync) {
                     window.forceVisibilitySync('richText', newHiddenState);
                 }
+            } else if (blockType === 'contact-form' && elementId) {
+                // Handle contact form visibility
+                if (currentSectionsConfig.contactForms && currentSectionsConfig.contactForms[elementId]) {
+                    currentSectionsConfig.contactForms[elementId].isHidden = newHiddenState;
+                    console.log(`[DEBUG] Contact Form ${elementId} saved as: ${newHiddenState ? 'hidden' : 'visible'}`);
+                    
+                    // Force sync the visibility toggle state
+                    if (window.forceVisibilitySync) {
+                        window.forceVisibilitySync('contactForm', newHiddenState);
+                    }
+                }
             } else if (blockType === 'testimonial-item' && elementId) {
                 // Handle testimonial item visibility
                 if (currentSectionsConfig.testimonials && currentSectionsConfig.testimonials.testimonials && currentSectionsConfig.testimonials.testimonials[elementId]) {
@@ -11868,6 +11974,22 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                     savedIsHidden = currentSectionsConfig.slideshow?.isHidden || false;
                 } else if (blockType === 'multicolumn-column' && elementId && currentSectionsConfig.multicolumn?.columns?.[elementId]) {
                     savedIsHidden = currentSectionsConfig.multicolumn.columns[elementId].isHidden || false;
+                } else if (blockType === 'contact-form' && elementId && currentSectionsConfig.contactForms?.[elementId]) {
+                    savedIsHidden = currentSectionsConfig.contactForms[elementId].isHidden || false;
+                } else if (section === 'gallery' || blockType === 'gallery') {
+                    savedIsHidden = currentSectionsConfig.gallery?.isHidden || false;
+                } else if (section === 'richText' || blockType === 'richText') {
+                    savedIsHidden = currentSectionsConfig.richText?.isHidden || false;
+                } else if (section === 'testimonials' || blockType === 'testimonials') {
+                    savedIsHidden = currentSectionsConfig.testimonials?.isHidden || false;
+                } else if (section === 'accordion' || blockType === 'accordion') {
+                    savedIsHidden = currentSectionsConfig.accordion?.isHidden || false;
+                } else if (section === 'imageBanner' || blockType === 'imageBanner') {
+                    savedIsHidden = currentSectionsConfig.imageBanner?.isHidden || false;
+                } else if (section === 'newsletter' || blockType === 'newsletter') {
+                    savedIsHidden = currentSectionsConfig.newsletter?.isHidden || false;
+                } else if (section === 'imageWithText' || blockType === 'imageWithText') {
+                    savedIsHidden = currentSectionsConfig.imageWithText?.isHidden || false;
                 }
                 
                 console.log('[DEBUG] Toggle initialized:', {
@@ -13678,7 +13800,28 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
             console.log('[DEBUG] Rich Text added successfully');
         }
         
-        // Close modal
+        // Handle contact form section
+        if (group === 'template' && sectionId === 'contact-form') {
+            console.log('[DEBUG] Adding contact form section from modal');
+            
+            // Call the module's add function
+            if (window.WebsiteBuilderModules && window.WebsiteBuilderModules.ContactForm) {
+                window.WebsiteBuilderModules.ContactForm.addContactForm();
+                
+                // Close modal after adding contact form
+                console.log('[DEBUG] Closing add section modal after contact form');
+                $('.add-section-overlay').fadeOut(200, function() {
+                    console.log('[DEBUG] Modal closed and removed');
+                    $(this).remove();
+                });
+            } else {
+                console.error('[DEBUG] Contact Form module not loaded');
+            }
+            
+            return; // Exit early for contact form
+        }
+        
+        // Close modal for other sections (template sections)
         console.log('[DEBUG] Closing add section modal');
         $('.add-section-overlay').fadeOut(200, function() {
             console.log('[DEBUG] Modal closed and removed');
@@ -19901,6 +20044,10 @@ document.head.appendChild(style);
                                 setTimeout(() => {
                                     if (typeof syncVisibilityToggleStates === 'function') {
                                         syncVisibilityToggleStates();
+                                    }
+                                    // Reconstruct contact forms after reloading
+                                    if (window.WebsiteBuilderModules && window.WebsiteBuilderModules.ContactForm && window.WebsiteBuilderModules.ContactForm.reconstructContactForms) {
+                                        window.WebsiteBuilderModules.ContactForm.reconstructContactForms();
                                     }
                                 }, 100);
                             });
