@@ -153,7 +153,7 @@ let currentGlobalThemeSettings = {
 window.currentGlobalThemeSettings = currentGlobalThemeSettings;
 
 // Estructura de datos para los esquemas de color - estructura plana para los campos de configuración
-const colorSchemes = {
+const defaultColorSchemes = {
     'scheme1': { // Default/Classic scheme
         text: '#121212',
         background: '#FFFFFF', 
@@ -224,7 +224,7 @@ function getColorSchemeValues(schemeName) {
     }
     
     // Fall back to default color schemes
-    return colorSchemes[schemeName] || colorSchemes['scheme1'];
+    return defaultColorSchemes[schemeName] || defaultColorSchemes['scheme1'];
 }
 
 // Make it globally accessible
@@ -331,7 +331,7 @@ async function loadCurrentWebsite() {
             currentGlobalThemeSettings.colorSchemes = {};
             
             // Copy default color schemes to currentGlobalThemeSettings
-            for (const [schemeName, schemeData] of Object.entries(colorSchemes)) {
+            for (const [schemeName, schemeData] of Object.entries(defaultColorSchemes)) {
                 currentGlobalThemeSettings.colorSchemes[schemeName] = { ...schemeData };
             }
             
@@ -13398,6 +13398,7 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
             console.log('[DEBUG] Adding image with text section');
             // Initialize image with text configuration if it doesn't exist
             if (!currentSectionsConfig.imageWithText) {
+                console.log('[DEBUG] Creating new imageWithText configuration');
                 currentSectionsConfig.imageWithText = {
                     id: 'imageWithText',
                     isHidden: false,
@@ -13472,6 +13473,57 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                 renderPreview();
                 
                 console.log('[DEBUG] Image with text added successfully');
+                
+                // Close modal
+                console.log('[DEBUG] Closing add section modal for imageWithText');
+                $('.add-section-overlay').fadeOut(200, function() {
+                    console.log('[DEBUG] Modal closed and removed');
+                    $(this).remove();
+                });
+            } else {
+                console.log('[DEBUG] imageWithText already exists, checking if it\'s in sectionOrder');
+                
+                // Check if imageWithText is already in sectionOrder
+                if (!currentSectionsConfig.sectionOrder) {
+                    currentSectionsConfig.sectionOrder = [];
+                }
+                
+                if (!currentSectionsConfig.sectionOrder.includes('imageWithText')) {
+                    console.log('[DEBUG] Adding imageWithText to sectionOrder');
+                    currentSectionsConfig.sectionOrder.push('imageWithText');
+                    
+                    // Update template sections only
+                    const templateSectionsHtml = renderTemplateSections();
+                    $('#template-sections-container').html(templateSectionsHtml + `
+                        <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e3e3e3;">
+                            <div class="add-section-button add-template-section" data-group="template">
+                                <i class="material-icons">add_circle</i>
+                                <span data-i18n="sections.addTemplateSection">Agregar sección de plantilla</span>
+                            </div>
+                        </div>
+                    `);
+                    
+                    // Apply translations
+                    setTimeout(applyTranslations, 0);
+                    
+                    // Set pending changes flag
+                    hasPendingPageStructureChanges = true;
+                    updateSaveButtonState();
+                    
+                    // Update preview
+                    renderPreview();
+                    
+                    console.log('[DEBUG] Image with text re-added to sectionOrder');
+                } else {
+                    console.log('[DEBUG] imageWithText already in sectionOrder - nothing to do');
+                }
+                
+                // Close modal
+                console.log('[DEBUG] Closing add section modal for imageWithText');
+                $('.add-section-overlay').fadeOut(200, function() {
+                    console.log('[DEBUG] Modal closed and removed');
+                    $(this).remove();
+                });
             }
         }
         
@@ -15485,7 +15537,7 @@ document.head.appendChild(style);
     
     // Load color scheme data
     function loadColorScheme(schemeName) {
-        const scheme = colorSchemes[schemeName];
+        const scheme = defaultColorSchemes[schemeName];
         
         if (!scheme) return;
         
@@ -15614,8 +15666,8 @@ document.head.appendChild(style);
             }
         } else {
             // Initialize with default values
-            if (colorSchemes[schemeName]) {
-                schemeData = JSON.parse(JSON.stringify(colorSchemes[schemeName]));
+            if (defaultColorSchemes[schemeName]) {
+                schemeData = JSON.parse(JSON.stringify(defaultColorSchemes[schemeName]));
             } else {
                 schemeData = {
                     text: '#000000',

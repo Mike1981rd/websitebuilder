@@ -1475,21 +1475,6 @@ window.WebsiteBuilderModules.ImageWithText = {
                     </div>
                 </div>
                 
-                <!-- Blocks Section -->
-                <div class="settings-group" style="margin-top: 30px;">
-                    <h4 style="font-size: 14px; color: #666; margin: 0 0 15px 0; display: flex; justify-content: space-between; align-items: center;">
-                        <span data-i18n="imageWithText.settings.blocks">Blocks</span>
-                        <button class="shopify-button" onclick="window.addImageWithTextBlock()" 
-                                style="background: #008060; color: white; border: none; padding: 5px 15px; border-radius: 4px; cursor: pointer; font-size: 12px;">
-                            <i class="material-icons" style="font-size: 16px; vertical-align: middle;">add</i>
-                            <span data-i18n="imageWithText.blocks.add">Add block</span>
-                        </button>
-                    </h4>
-                    
-                    <div id="children-container" style="margin-top: 20px;">
-                        ${this.renderBlocksList(configData)}
-                    </div>
-                </div>
                 
                 <!-- Content Paddings Section -->
                 <div class="settings-group" style="margin-top: 30px;">
@@ -1536,46 +1521,6 @@ window.WebsiteBuilderModules.ImageWithText = {
         `;
     },
     
-    renderBlocksList: function(config) {
-        console.log('[IMAGE-WITH-TEXT] renderBlocksList called with config:', config);
-        
-        if (!config || !config.blocks || !config.blockOrder || config.blockOrder.length === 0) {
-            return `
-                <div style="text-align: center; padding: 40px; color: #666;">
-                    <i class="material-icons" style="font-size: 48px; opacity: 0.3;">image</i>
-                    <p data-i18n="imageWithText.blocks.empty">No hay bloques. Haz clic en "Agregar bloque" para comenzar.</p>
-                </div>
-            `;
-        }
-        
-        let html = '';
-        config.blockOrder.forEach((blockId, index) => {
-            const block = config.blocks[blockId];
-            if (block) {
-                html += `
-                    <div class="sidebar-subsection image-with-text-block-item" data-block-type="image-with-text-block" data-element-id="${blockId}" style="padding-left: 30px;">
-                        <i class="material-icons drag-handle">drag_handle</i>
-                        <span class="subsection-text">${block.heading || 'Bloque ' + (index + 1)}</span>
-                        <div class="subsection-actions">
-                            <button class="action-icon visibility-toggle ${block.isHidden ? 'is-hidden' : ''}" data-element-id="${blockId}" data-element-type="block" title="Toggle visibility">
-                                <i class="material-icons icon-visible">visibility</i>
-                                <i class="material-icons icon-hidden">visibility_off</i>
-                            </button>
-                            <button class="action-icon edit-block" onclick="window.switchSidebarView('imageWithTextBlockSettings', { blockId: '${blockId}' })" title="Edit">
-                                <i class="material-icons">settings</i>
-                            </button>
-                            <button class="action-icon delete-block" data-block-id="${blockId}" title="Delete">
-                                <i class="material-icons">delete</i>
-                            </button>
-                        </div>
-                    </div>
-                `;
-            }
-        });
-        
-        console.log('[IMAGE-WITH-TEXT] renderBlocksList generated HTML with', config.blockOrder.length, 'blocks');
-        return html;
-    },
     
     renderBlockSettings: function(block, parentConfig) {
         block = block || {};
