@@ -224,6 +224,7 @@
         let currentMenusData = [];
         let currentAnnouncementIndex = 0;
         let currentLanguage = 'es';
+        let announcementAutoplayTimer = null;
         
         // Helper function para obtener valores de color scheme
         window.getColorSchemeValues = function(schemeName) {
@@ -829,6 +830,25 @@
                 });
             }
             
+            // Siempre renderizar el footer al final (si hay contenido)
+            if (finalHtml && finalHtml.trim() !== '') {
+                if (typeof renderFooter === 'function') {
+                    finalHtml += renderFooter();
+                } else {
+                    // Fallback simple para el footer
+                    finalHtml += `
+                        <div class="section-wrapper footer-section" data-section-id="footer" style="background-color: #1a1a1a; color: #ffffff; padding: 40px 0; margin-top: 40px;">
+                            <div class="container" style="max-width: 1200px; margin: 0 auto; padding: 0 20px;">
+                                <div style="text-align: center; padding: 60px 0;">
+                                    <i class="material-icons" style="font-size: 48px; color: #666;">view_day</i>
+                                    <p style="margin-top: 20px; color: #999;">Footer</p>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+            }
+            
             // Si no hay contenido, mostrar mensaje
             if (!finalHtml || finalHtml.trim() === '') {
                 finalHtml = `
@@ -850,6 +870,12 @@
             // Adjuntar event listeners después del renderizado
             attachPreviewEventListeners();
             
+            // Attach announcement navigation listeners
+            attachAnnouncementNavigationListeners();
+            
+            // Start announcement autoplay if configured
+            startAnnouncementAutoplay();
+            
             // Inicializar slideshows con autorotate
             if (typeof initializeSlideshows === 'function') {
                 setTimeout(() => {
@@ -869,6 +895,95 @@
                         });
                     }
                 }, 100);
+            }
+        }
+        
+        // Función de navegación de anuncios
+        window.navigateAnnouncement = function(direction) {
+            console.log('[NAVIGATE] navigateAnnouncement called with direction:', direction);
+            const visibleAnnouncements = [];
+            
+            // Get visible announcements
+            if (currentSectionsConfig && currentSectionsConfig.announcementOrder && currentSectionsConfig.announcements) {
+                currentSectionsConfig.announcementOrder.forEach(id => {
+                    const announcement = currentSectionsConfig.announcements[id];
+                    if (announcement && !announcement.isHidden) {
+                        visibleAnnouncements.push({ id, ...announcement });
+                    }
+                });
+            }
+            
+            if (visibleAnnouncements.length <= 1) return;
+            
+            if (direction === 'prev') {
+                currentAnnouncementIndex = (currentAnnouncementIndex - 1 + visibleAnnouncements.length) % visibleAnnouncements.length;
+            } else {
+                currentAnnouncementIndex = (currentAnnouncementIndex + 1) % visibleAnnouncements.length;
+            }
+            
+            // Re-render preview
+            renderPreviewContent();
+        };
+        
+        // Función para iniciar autoplay de anuncios
+        function startAnnouncementAutoplay() {
+            stopAnnouncementAutoplay();
+            
+            const config = currentSectionsConfig.announcementBar;
+            if (!config || config.autoplayMode === 'none') return;
+            
+            // Skip autoplay for marquee mode
+            if (config.animationStyle === 'marquee') return;
+            
+            // Get visible announcements
+            const visibleAnnouncements = [];
+            if (currentSectionsConfig.announcementOrder && currentSectionsConfig.announcements) {
+                currentSectionsConfig.announcementOrder.forEach(id => {
+                    const announcement = currentSectionsConfig.announcements[id];
+                    if (announcement && !announcement.isHidden) {
+                        visibleAnnouncements.push({ id, ...announcement });
+                    }
+                });
+            }
+            
+            // Only activate autoplay if there are multiple announcements
+            if (visibleAnnouncements.length > 1) {
+                const intervalMs = (config.autoplaySpeed || 6) * 1000;
+                announcementAutoplayTimer = setInterval(() => {
+                    window.navigateAnnouncement('next');
+                }, intervalMs);
+            }
+        }
+        
+        // Función para detener autoplay
+        function stopAnnouncementAutoplay() {
+            if (announcementAutoplayTimer) {
+                clearInterval(announcementAutoplayTimer);
+                announcementAutoplayTimer = null;
+            }
+        }
+        
+        // Función para adjuntar listeners de navegación de anuncios
+        function attachAnnouncementNavigationListeners() {
+            console.log('[ANNOUNCEMENT NAV] Attaching navigation listeners');
+            
+            const prevButton = document.querySelector('.announcement-nav-prev');
+            const nextButton = document.querySelector('.announcement-nav-next');
+            
+            if (prevButton) {
+                prevButton.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    console.log('[ANNOUNCEMENT NAV] Prev button clicked');
+                    window.navigateAnnouncement('prev');
+                });
+            }
+            
+            if (nextButton) {
+                nextButton.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    console.log('[ANNOUNCEMENT NAV] Next button clicked');
+                    window.navigateAnnouncement('next');
+                });
             }
         }
         
