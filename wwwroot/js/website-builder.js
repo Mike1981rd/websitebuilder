@@ -136,7 +136,8 @@ let currentSectionsConfig = {
     },
     footer: {
         colorScheme: 'scheme1',
-        isHidden: false
+        isHidden: false,
+        paymentMethods: [] // Initialize as empty array
     },
     announcements: {}, // Almacenar configuración individual de cada anuncio
     announcementOrder: [], // Orden de los anuncios
@@ -444,6 +445,14 @@ async function loadCurrentWebsite() {
                             if (sectionsData[sectionType] && sectionsData[sectionType].hasOwnProperty('isHidden')) {
                                 currentSectionsConfig[sectionType].isHidden = sectionsData[sectionType].isHidden;
                                 console.log(`[DEBUG] Preserved ${sectionType}.isHidden:`, sectionsData[sectionType].isHidden);
+                            }
+                            
+                            // Ensure footer.paymentMethods is always an array
+                            if (sectionType === 'footer' && currentSectionsConfig.footer) {
+                                if (!Array.isArray(currentSectionsConfig.footer.paymentMethods)) {
+                                    currentSectionsConfig.footer.paymentMethods = [];
+                                    console.log('[DEBUG] Reset footer.paymentMethods to empty array');
+                                }
                             }
                             
                             // Preserve isHidden for imageWithText blocks
@@ -2059,6 +2068,10 @@ function renderPreview() {
         previewIframe.contentWindow.currentMenusData = currentMenusData;
         previewIframe.contentWindow.currentAnnouncementIndex = currentAnnouncementIndex;
         previewIframe.contentWindow.currentLanguage = currentLanguage;
+        
+        console.log('[PREVIEW] Data passed to iframe:');
+        console.log('[PREVIEW] - currentMenusData:', currentMenusData);
+        console.log('[PREVIEW] - footer config:', currentSectionsConfig.footer);
     }
 
     // Limpiar el contenido anterior
@@ -4100,6 +4113,9 @@ $(document).ready(async function() {
     // Load current website data first
     await loadCurrentWebsite();
     
+    // Load menus data to make it available globally
+    await loadMenusData();
+    
     // Reconstruct contact forms after loading data
     setTimeout(() => {
         if (window.WebsiteBuilderModules && window.WebsiteBuilderModules.ContactForm && window.WebsiteBuilderModules.ContactForm.reconstructContactForms) {
@@ -5986,6 +6002,12 @@ $(document).ready(async function() {
             dynamicContentArea.innerHTML = renderFooterSocialMediaSettingsView(data);
             attachFooterSocialMediaEventListeners(data?.blockId);
             setTimeout(applyTranslations, 0);
+        } else if (viewName === 'paymentMethodsSettings') {
+            // Payment methods management view
+            console.log('[DEBUG] Rendering payment methods settings');
+            dynamicContentArea.innerHTML = renderPaymentMethodsSettingsView();
+            attachPaymentMethodsEventListeners();
+            setTimeout(applyTranslations, 0);
         } else {
             dynamicContentArea.innerHTML = `<p class="sidebar-loading-text">${lang.sidebarLoadingText}</p>`;
         }
@@ -7187,8 +7209,12 @@ $(document).ready(async function() {
         
         // Menu selector
         $('#footer-menu-select').on('change', function() {
+            const selectedMenuId = $(this).val();
+            console.log('[FOOTER] Menu selected:', selectedMenuId);
+            
             if (currentSectionsConfig.footer?.blocks?.[blockId]) {
-                currentSectionsConfig.footer.blocks[blockId].menuId = $(this).val();
+                currentSectionsConfig.footer.blocks[blockId].menuId = selectedMenuId;
+                console.log('[FOOTER] Updated block config:', currentSectionsConfig.footer.blocks[blockId]);
                 hasPendingPageStructureChanges = true;
                 updateSaveButtonState();
                 renderPreview();
@@ -7341,6 +7367,43 @@ $(document).ready(async function() {
                         <div class="settings-field">
                             <label data-i18n="footerSocialMedia.heading">Heading</label>
                             <input type="text" class="shopify-input" id="footer-social-heading" value="${block.heading || 'Síguenos en'}" placeholder="Enter heading">
+                        </div>
+                    </div>
+                    
+                    <!-- Social Media Style Section -->
+                    <div class="settings-group" style="margin-top: 30px;">
+                        <h4 style="font-size: 13px; font-weight: 500; margin-bottom: 12px; color: #5c5e60;" data-i18n="footerSocialMedia.style">Style</h4>
+                        
+                        <!-- Icon Style -->
+                        <div class="settings-field">
+                            <label data-i18n="footerSocialMedia.iconStyle">Icon style</label>
+                            <select class="shopify-select" id="footer-social-icon-style">
+                                <option value="monochrome" ${block.socialMedia?.iconStyle === 'monochrome' || !block.socialMedia?.iconStyle ? 'selected' : ''}>Monochrome</option>
+                                <option value="color" ${block.socialMedia?.iconStyle === 'color' ? 'selected' : ''}>Brand colors</option>
+                                <option value="outline" ${block.socialMedia?.iconStyle === 'outline' ? 'selected' : ''}>Outline</option>
+                                <option value="filled" ${block.socialMedia?.iconStyle === 'filled' ? 'selected' : ''}>Filled background</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Icon Size -->
+                        <div class="settings-field" style="margin-top: 16px;">
+                            <label data-i18n="footerSocialMedia.iconSize">Icon size</label>
+                            <select class="shopify-select" id="footer-social-icon-size">
+                                <option value="small" ${block.socialMedia?.iconSize === 'small' ? 'selected' : ''}>Small (20px)</option>
+                                <option value="medium" ${block.socialMedia?.iconSize === 'medium' || !block.socialMedia?.iconSize ? 'selected' : ''}>Medium (24px)</option>
+                                <option value="large" ${block.socialMedia?.iconSize === 'large' ? 'selected' : ''}>Large (32px)</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Icon Spacing -->
+                        <div class="settings-field" style="margin-top: 16px;">
+                            <label data-i18n="footerSocialMedia.iconSpacing">Icon spacing</label>
+                            <input type="range" id="footer-social-icon-spacing" min="8" max="32" step="4" value="${block.socialMedia?.iconSpacing || 16}" style="width: 100%;">
+                            <div style="display: flex; justify-content: space-between; font-size: 12px; color: #8c9196; margin-top: 4px;">
+                                <span>8px</span>
+                                <span id="footer-social-spacing-value">${block.socialMedia?.iconSpacing || 16}px</span>
+                                <span>32px</span>
+                            </div>
                         </div>
                     </div>
                     
@@ -7503,6 +7566,36 @@ $(document).ready(async function() {
             }
         });
         
+        // Style options event listeners
+        $('#footer-social-icon-style').off('change').on('change', function() {
+            if (currentSectionsConfig.footer?.blocks?.[blockId]?.socialMedia) {
+                currentSectionsConfig.footer.blocks[blockId].socialMedia.iconStyle = $(this).val();
+                hasPendingPageStructureChanges = true;
+                updateSaveButtonState();
+                renderPreview();
+            }
+        });
+        
+        $('#footer-social-icon-size').off('change').on('change', function() {
+            if (currentSectionsConfig.footer?.blocks?.[blockId]?.socialMedia) {
+                currentSectionsConfig.footer.blocks[blockId].socialMedia.iconSize = $(this).val();
+                hasPendingPageStructureChanges = true;
+                updateSaveButtonState();
+                renderPreview();
+            }
+        });
+        
+        $('#footer-social-icon-spacing').off('input').on('input', function() {
+            const value = $(this).val();
+            $('#footer-social-spacing-value').text(value + 'px');
+            if (currentSectionsConfig.footer?.blocks?.[blockId]?.socialMedia) {
+                currentSectionsConfig.footer.blocks[blockId].socialMedia.iconSpacing = parseInt(value);
+                hasPendingPageStructureChanges = true;
+                updateSaveButtonState();
+                renderPreview();
+            }
+        });
+        
         // Social media networks array for easier handling
         const socialNetworks = ['facebook', 'instagram', 'twitter', 'pinterest', 'youtube', 'tiktok', 'linkedin', 'snapchat'];
         
@@ -7546,6 +7639,651 @@ $(document).ready(async function() {
         
         // Apply transitions for smooth animations
         $('.url-field').css('transition', 'all 0.2s ease');
+    }
+    
+    // Function to render payment methods settings view
+    function renderPaymentMethodsSettingsView() {
+        console.log('[DEBUG] Rendering payment methods settings view');
+        
+        // Initialize payment methods in footer config if not exists
+        if (!currentSectionsConfig.footer) {
+            currentSectionsConfig.footer = {};
+        }
+        if (!currentSectionsConfig.footer.paymentMethods) {
+            currentSectionsConfig.footer.paymentMethods = [];
+        }
+        
+        const paymentMethods = currentSectionsConfig.footer.paymentMethods;
+        
+        return `
+            <div style="display: flex; flex-direction: column; height: 100%; position: relative; overflow: hidden; background: #f7f8f9;">
+                <div class="sidebar-view-header" style="
+                    position: relative; 
+                    z-index: 10; 
+                    background: #fff; 
+                    border-bottom: 1px solid #e1e3e5;
+                    padding: 16px 20px;
+                ">
+                    <button class="back-to-footer-settings" style="
+                        position: absolute;
+                        left: 20px;
+                        top: 50%;
+                        transform: translateY(-50%);
+                        background: none;
+                        border: none;
+                        cursor: pointer;
+                        padding: 8px;
+                        border-radius: 8px;
+                        transition: background 0.2s;
+                    " onmouseover="this.style.background='#f0f1f2'" onmouseout="this.style.background='none'">
+                        <i class="material-icons" style="font-size: 20px; color: #637381;">arrow_back</i>
+                    </button>
+                    <h3 style="
+                        margin: 0;
+                        font-size: 16px;
+                        font-weight: 600;
+                        color: #202223;
+                        text-align: center;
+                    " data-i18n="paymentMethods.title">Payment methods</h3>
+                </div>
+                
+                <div style="
+                    padding: 24px; 
+                    overflow-y: auto; 
+                    overflow-x: hidden; 
+                    flex: 1; 
+                    height: calc(100% - 69px); 
+                    box-sizing: border-box;
+                ">
+                    <!-- Header with description -->
+                    <div style="margin-bottom: 24px;">
+                        <p style="
+                            margin: 0 0 20px 0;
+                            color: #637381;
+                            font-size: 14px;
+                            line-height: 1.5;
+                        " data-i18n="paymentMethods.description">
+                            Display payment icons to build customer trust and show accepted payment methods.
+                        </p>
+                        
+                        <!-- Add Payment Method Button -->
+                        <button id="add-payment-method" class="shopify-button" style="
+                            width: 100%;
+                            padding: 12px 16px;
+                            background: linear-gradient(180deg, #212326 0%, #1a1b1d 100%);
+                            color: #fff;
+                            border: none;
+                            border-radius: 8px;
+                            font-size: 14px;
+                            font-weight: 500;
+                            cursor: pointer;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            gap: 8px;
+                            transition: transform 0.1s, box-shadow 0.1s;
+                            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+                        " onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 2px 4px rgba(0,0,0,0.15)'" 
+                          onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 1px 2px rgba(0,0,0,0.1)'">
+                            <i class="material-icons" style="font-size: 18px;">add</i>
+                            <span data-i18n="paymentMethods.addMethod">Add payment method</span>
+                        </button>
+                    </div>
+                    
+                    <!-- Payment Methods List -->
+                    <div id="payment-methods-list">
+                        ${paymentMethods.length > 0 ? `
+                            <div style="
+                                background: #fff;
+                                border-radius: 12px;
+                                box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+                                overflow: hidden;
+                            ">
+                                ${paymentMethods.map((method, index) => `
+                                    <div class="payment-method-item" data-method-id="${method.id || index}" style="
+                                        padding: 16px 20px;
+                                        ${index > 0 ? 'border-top: 1px solid #e1e3e5;' : ''}
+                                        transition: background 0.1s;
+                                        cursor: default;
+                                    " onmouseover="this.style.background='#fafbfb'" onmouseout="this.style.background='transparent'">
+                                        <div style="display: flex; align-items: center; gap: 16px;">
+                                            <!-- Payment Icon -->
+                                            <div style="
+                                                width: 60px;
+                                                height: 40px;
+                                                background: ${method.image ? 'transparent' : '#f7f8f9'};
+                                                border-radius: 8px;
+                                                display: flex;
+                                                align-items: center;
+                                                justify-content: center;
+                                                ${!method.image ? 'border: 1px dashed #d2d5d8;' : ''}
+                                                overflow: hidden;
+                                            ">
+                                                ${method.image ? `
+                                                    <img src="${method.image}" alt="${method.name}" style="
+                                                        width: ${method.size || 48}px;
+                                                        height: auto;
+                                                        object-fit: contain;
+                                                    ">
+                                                ` : `
+                                                    <i class="material-icons" style="font-size: 20px; color: #b5b8bb;">credit_card</i>
+                                                `}
+                                            </div>
+                                            
+                                            <!-- Method Name -->
+                                            <div style="flex: 1;">
+                                                <div style="
+                                                    font-weight: 500; 
+                                                    color: #202223;
+                                                    font-size: 14px;
+                                                ">${method.name || 'Unnamed method'}</div>
+                                                <div style="
+                                                    font-size: 12px;
+                                                    color: #8c9196;
+                                                    margin-top: 2px;
+                                                ">Size: ${method.size || 48}px</div>
+                                            </div>
+                                            
+                                            <!-- Actions -->
+                                            <div style="display: flex; gap: 8px;">
+                                                <button class="edit-payment-method" data-method-id="${method.id || index}" style="
+                                                    background: transparent;
+                                                    border: 1px solid #d2d5d8;
+                                                    padding: 8px 16px;
+                                                    border-radius: 6px;
+                                                    cursor: pointer;
+                                                    font-size: 13px;
+                                                    font-weight: 500;
+                                                    color: #202223;
+                                                    transition: all 0.2s;
+                                                " onmouseover="this.style.borderColor='#8c9196'; this.style.background='#f7f8f9'" 
+                                                  onmouseout="this.style.borderColor='#d2d5d8'; this.style.background='transparent'">
+                                                    <span data-i18n="paymentMethods.edit">Edit</span>
+                                                </button>
+                                                <button class="delete-payment-method" data-method-id="${method.id || index}" style="
+                                                    background: transparent;
+                                                    border: none;
+                                                    color: #d72c0d;
+                                                    cursor: pointer;
+                                                    padding: 8px;
+                                                    border-radius: 6px;
+                                                    transition: all 0.2s;
+                                                " onmouseover="this.style.background='#fee2e2'" 
+                                                  onmouseout="this.style.background='transparent'">
+                                                    <i class="material-icons" style="font-size: 20px;">delete_outline</i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        ` : `
+                            <div style="
+                                background: #fff;
+                                border-radius: 12px;
+                                padding: 60px 40px;
+                                text-align: center;
+                                box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+                            ">
+                                <div style="
+                                    width: 80px;
+                                    height: 80px;
+                                    background: #f7f8f9;
+                                    border-radius: 50%;
+                                    display: flex;
+                                    align-items: center;
+                                    justify-content: center;
+                                    margin: 0 auto 20px;
+                                ">
+                                    <i class="material-icons" style="font-size: 40px; color: #b5b8bb;">payment</i>
+                                </div>
+                                <h4 style="
+                                    margin: 0 0 8px 0;
+                                    font-size: 16px;
+                                    font-weight: 600;
+                                    color: #202223;
+                                " data-i18n="paymentMethods.noMethodsTitle">No payment methods yet</h4>
+                                <p style="
+                                    margin: 0;
+                                    color: #637381;
+                                    font-size: 14px;
+                                    line-height: 1.5;
+                                " data-i18n="paymentMethods.noMethods">Add payment icons to display in your store's footer</p>
+                            </div>
+                        `}
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    
+    // Function to render payment method edit form
+    function renderPaymentMethodEditForm(method = {}) {
+        return `
+            <div style="display: flex; flex-direction: column; height: 100%; position: relative; overflow: hidden; background: #f7f8f9;">
+                <div class="sidebar-view-header" style="
+                    position: relative; 
+                    z-index: 10;
+                    background: #fff;
+                    border-bottom: 1px solid #e1e3e5;
+                    padding: 16px 20px;
+                ">
+                    <button class="back-to-payment-methods" style="
+                        position: absolute;
+                        left: 20px;
+                        top: 50%;
+                        transform: translateY(-50%);
+                        background: none;
+                        border: none;
+                        cursor: pointer;
+                        padding: 8px;
+                        border-radius: 8px;
+                        transition: background 0.2s;
+                    " onmouseover="this.style.background='#f0f1f2'" onmouseout="this.style.background='none'">
+                        <i class="material-icons" style="font-size: 20px; color: #637381;">arrow_back</i>
+                    </button>
+                    <h3 style="
+                        margin: 0;
+                        font-size: 16px;
+                        font-weight: 600;
+                        color: #202223;
+                        text-align: center;
+                    " data-i18n="paymentMethods.editTitle">${method.id ? 'Edit payment method' : 'Add payment method'}</h3>
+                </div>
+                
+                <div style="padding: 24px; overflow-y: auto; overflow-x: hidden; flex: 1; height: calc(100% - 140px); box-sizing: border-box;">
+                    <div style="
+                        background: #fff;
+                        border-radius: 12px;
+                        padding: 24px;
+                        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+                    ">
+                        <!-- Name Field -->
+                        <div style="margin-bottom: 24px;">
+                            <label style="
+                                display: block;
+                                margin-bottom: 8px;
+                                font-size: 13px;
+                                font-weight: 500;
+                                color: #344054;
+                            " data-i18n="paymentMethods.name">Name</label>
+                            <input type="text" id="payment-method-name" value="${method.name || ''}" placeholder="e.g., PayPal, Bitcoin, etc." style="
+                                width: 100%;
+                                padding: 10px 14px;
+                                border: 1px solid #d0d5dd;
+                                border-radius: 8px;
+                                font-size: 14px;
+                                color: #202223;
+                                background: #fff;
+                                transition: all 0.2s;
+                                box-sizing: border-box;
+                            " onfocus="this.style.borderColor='#2962ff'; this.style.boxShadow='0 0 0 3px rgba(41,98,255,0.1)'"
+                              onblur="this.style.borderColor='#d0d5dd'; this.style.boxShadow='none'">
+                        </div>
+                        
+                        <!-- Image Upload -->
+                        <div style="margin-bottom: 24px;">
+                            <label style="
+                                display: block;
+                                margin-bottom: 8px;
+                                font-size: 13px;
+                                font-weight: 500;
+                                color: #344054;
+                            " data-i18n="paymentMethods.image">Logo</label>
+                            <div id="payment-method-image-container" style="
+                                border: 2px dashed #d0d5dd;
+                                border-radius: 12px;
+                                padding: 32px;
+                                text-align: center;
+                                background: #f9fafb;
+                                position: relative;
+                                cursor: pointer;
+                                transition: all 0.2s;
+                            " onmouseover="if(!this.querySelector('img')) { this.style.borderColor='#98a2b3'; this.style.background='#f2f4f7' }"
+                              onmouseout="if(!this.querySelector('img')) { this.style.borderColor='#d0d5dd'; this.style.background='#f9fafb' }">
+                                ${method.image ? `
+                                    <img id="payment-method-preview" src="${method.image}" style="
+                                        max-width: 100%;
+                                        max-height: 80px;
+                                        margin-bottom: 16px;
+                                        display: block;
+                                        margin-left: auto;
+                                        margin-right: auto;
+                                    ">
+                                    <div style="margin-top: 16px;">
+                                        <button id="clear-payment-image" type="button" style="
+                                            padding: 8px 16px;
+                                            background: #fff;
+                                            border: 1px solid #d0d5dd;
+                                            border-radius: 8px;
+                                            cursor: pointer;
+                                            font-size: 13px;
+                                            font-weight: 500;
+                                            color: #344054;
+                                            transition: all 0.2s;
+                                        " onmouseover="this.style.borderColor='#98a2b3'; this.style.background='#f9fafb'"
+                                          onmouseout="this.style.borderColor='#d0d5dd'; this.style.background='#fff'">
+                                            <span data-i18n="paymentMethods.clearImage">Remove image</span>
+                                        </button>
+                                    </div>
+                                ` : `
+                                    <div style="
+                                        width: 48px;
+                                        height: 48px;
+                                        background: #eaecf0;
+                                        border-radius: 10px;
+                                        display: flex;
+                                        align-items: center;
+                                        justify-content: center;
+                                        margin: 0 auto 12px;
+                                    ">
+                                        <i class="material-icons" style="font-size: 24px; color: #667085;">cloud_upload</i>
+                                    </div>
+                                    <p style="
+                                        color: #344054;
+                                        margin: 0 0 4px 0;
+                                        font-size: 14px;
+                                        font-weight: 500;
+                                    ">
+                                        <span style="color: #2962ff; text-decoration: underline;">Click to upload</span>
+                                        <span data-i18n="paymentMethods.uploadOr"> or drag and drop</span>
+                                    </p>
+                                    <p style="
+                                        color: #667085;
+                                        margin: 0;
+                                        font-size: 12px;
+                                    " data-i18n="paymentMethods.imageFormats">SVG, PNG, JPG or GIF (max. 25MB)</p>
+                                `}
+                                <input type="file" id="payment-method-image-input" accept="image/*" style="display: none;">
+                            </div>
+                        </div>
+                        
+                        <!-- Size Control -->
+                        <div>
+                            <label style="
+                                display: block;
+                                margin-bottom: 8px;
+                                font-size: 13px;
+                                font-weight: 500;
+                                color: #344054;
+                            " data-i18n="paymentMethods.size">Display size</label>
+                            <div style="
+                                background: #f9fafb;
+                                border: 1px solid #eaecf0;
+                                border-radius: 8px;
+                                padding: 16px;
+                            ">
+                                <input type="range" id="payment-method-size" min="32" max="80" step="4" value="${method.size || 48}" style="
+                                    width: 100%;
+                                    -webkit-appearance: none;
+                                    height: 6px;
+                                    background: #eaecf0;
+                                    border-radius: 3px;
+                                    outline: none;
+                                    cursor: pointer;
+                                ">
+                                <div style="
+                                    display: flex;
+                                    justify-content: space-between;
+                                    align-items: center;
+                                    margin-top: 12px;
+                                ">
+                                    <span style="font-size: 12px; color: #667085;">Small</span>
+                                    <span id="payment-method-size-value" style="
+                                        font-size: 14px;
+                                        font-weight: 600;
+                                        color: #344054;
+                                        background: #fff;
+                                        padding: 4px 12px;
+                                        border-radius: 6px;
+                                        border: 1px solid #eaecf0;
+                                    ">${method.size || 48}px</span>
+                                    <span style="font-size: 12px; color: #667085;">Large</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Save/Cancel Buttons -->
+                <div style="
+                    padding: 20px 24px;
+                    border-top: 1px solid #e1e3e5;
+                    background: #fff;
+                    display: flex;
+                    gap: 12px;
+                ">
+                    <button id="cancel-payment-method" class="shopify-button-secondary" style="
+                        flex: 1;
+                        padding: 12px 20px;
+                        background: #fff;
+                        border: 1px solid #d0d5dd;
+                        border-radius: 8px;
+                        cursor: pointer;
+                        font-size: 14px;
+                        font-weight: 500;
+                        color: #344054;
+                        transition: all 0.2s;
+                    " onmouseover="this.style.background='#f9fafb'; this.style.borderColor='#98a2b3'"
+                      onmouseout="this.style.background='#fff'; this.style.borderColor='#d0d5dd'">
+                        <span data-i18n="common.cancel">Cancel</span>
+                    </button>
+                    <button id="save-payment-method" class="shopify-button" style="
+                        flex: 1;
+                        padding: 12px 20px;
+                        background: linear-gradient(180deg, #212326 0%, #1a1b1d 100%);
+                        color: #fff;
+                        border: none;
+                        border-radius: 8px;
+                        font-size: 14px;
+                        font-weight: 500;
+                        cursor: pointer;
+                        transition: all 0.1s;
+                        box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+                    " data-method-id="${method.id || ''}"
+                      onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 2px 4px rgba(0,0,0,0.15)'"
+                      onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 1px 2px rgba(0,0,0,0.1)'">
+                        <span data-i18n="common.save">Save</span>
+                    </button>
+                </div>
+            </div>
+        `;
+    }
+    
+    // Function to attach payment methods event listeners
+    function attachPaymentMethodsEventListeners() {
+        console.log('[DEBUG] Attaching payment methods event listeners');
+        
+        // Back button
+        $('.back-to-footer-settings').off('click').on('click', function() {
+            window.switchSidebarView('footerSettings');
+        });
+        
+        // Add payment method button
+        $('#add-payment-method').off('click').on('click', function() {
+            $('#sidebar-dynamic-content').html(renderPaymentMethodEditForm());
+            attachPaymentMethodEditEventListeners();
+            setTimeout(applyTranslations, 0);
+        });
+        
+        // Edit payment method buttons
+        $('.edit-payment-method').off('click').on('click', function() {
+            const methodId = $(this).data('method-id');
+            const method = currentSectionsConfig.footer.paymentMethods.find(m => (m.id || currentSectionsConfig.footer.paymentMethods.indexOf(m)) == methodId);
+            if (method) {
+                $('#sidebar-dynamic-content').html(renderPaymentMethodEditForm(method));
+                attachPaymentMethodEditEventListeners();
+                setTimeout(applyTranslations, 0);
+            }
+        });
+        
+        // Delete payment method buttons
+        $('.delete-payment-method').off('click').on('click', function() {
+            const methodId = $(this).data('method-id');
+            if (confirm(translations[currentLanguage]['paymentMethods.confirmDelete'] || 'Are you sure you want to delete this payment method?')) {
+                // Remove from array
+                currentSectionsConfig.footer.paymentMethods = currentSectionsConfig.footer.paymentMethods.filter((m, index) => 
+                    (m.id || index) != methodId
+                );
+                
+                // Re-render the list
+                $('#sidebar-dynamic-content').html(renderPaymentMethodsSettingsView());
+                attachPaymentMethodsEventListeners();
+                setTimeout(applyTranslations, 0);
+                
+                // Mark as changed
+                hasPendingPageStructureChanges = true;
+                updateSaveButtonState();
+                renderPreview();
+            }
+        });
+    }
+    
+    // Function to attach payment method edit form event listeners
+    function attachPaymentMethodEditEventListeners() {
+        console.log('[DEBUG] Attaching payment method edit event listeners');
+        
+        // Back button
+        $('.back-to-payment-methods').off('click').on('click', function() {
+            window.switchSidebarView('paymentMethodsSettings');
+        });
+        
+        // Cancel button
+        $('#cancel-payment-method').off('click').on('click', function() {
+            window.switchSidebarView('paymentMethodsSettings');
+        });
+        
+        // Image upload click
+        $('#payment-method-image-container').off('click').on('click', function(e) {
+            // Prevent triggering on clear button or its children
+            if (!$(e.target).closest('#clear-payment-image').length && !$(e.target).is('input')) {
+                e.preventDefault();
+                e.stopPropagation();
+                $('#payment-method-image-input')[0].click();
+            }
+        });
+        
+        // Image file input change
+        $('#payment-method-image-input').off('change').on('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                // Check file size (max 25MB)
+                if (file.size > 25 * 1024 * 1024) {
+                    alert(translations[currentLanguage]['paymentMethods.fileTooLarge'] || 'File is too large. Maximum size is 25MB.');
+                    return;
+                }
+                
+                // Read file as data URL
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const imageUrl = e.target.result;
+                    
+                    // Update preview
+                    $('#payment-method-image-container').html(`
+                        <img id="payment-method-preview" src="${imageUrl}" style="
+                            max-width: 100%;
+                            max-height: 60px;
+                            margin-bottom: 12px;
+                        ">
+                        <div style="margin-top: 12px;">
+                            <button id="clear-payment-image" class="shopify-button-secondary" style="
+                                padding: 8px 16px;
+                                background: #fff;
+                                border: 1px solid #e3e5e7;
+                                border-radius: 4px;
+                                cursor: pointer;
+                                font-size: 13px;
+                            ">
+                                <span data-i18n="paymentMethods.clearImage">Clear image</span>
+                            </button>
+                        </div>
+                    `);
+                    
+                    // Store image data
+                    $('#payment-method-image-container').data('image-url', imageUrl);
+                    
+                    // Re-attach clear button listener
+                    setTimeout(() => {
+                        $('#clear-payment-image').off('click').on('click', function(e) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            clearPaymentImage();
+                        });
+                    }, 100);
+                    
+                    setTimeout(applyTranslations, 0);
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+        
+        // Clear image button
+        setTimeout(() => {
+            $('#clear-payment-image').off('click').on('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                clearPaymentImage();
+            });
+        }, 100);
+        
+        // Size slider
+        $('#payment-method-size').off('input').on('input', function() {
+            const value = $(this).val();
+            $('#payment-method-size-value').text(value + 'px');
+        });
+        
+        // Save button
+        $('#save-payment-method').off('click').on('click', function() {
+            const methodId = $(this).data('method-id');
+            const name = $('#payment-method-name').val().trim();
+            const image = $('#payment-method-image-container').data('image-url') || $('#payment-method-preview').attr('src') || '';
+            const size = parseInt($('#payment-method-size').val());
+            
+            // Validate
+            if (!name) {
+                alert(translations[currentLanguage]['paymentMethods.nameRequired'] || 'Please enter a name for the payment method.');
+                return;
+            }
+            
+            // Create method object
+            const methodData = {
+                name: name,
+                image: image,
+                size: size
+            };
+            
+            // Update or add
+            if (methodId) {
+                // Update existing
+                const index = currentSectionsConfig.footer.paymentMethods.findIndex(m => (m.id || currentSectionsConfig.footer.paymentMethods.indexOf(m)) == methodId);
+                if (index !== -1) {
+                    currentSectionsConfig.footer.paymentMethods[index] = { ...currentSectionsConfig.footer.paymentMethods[index], ...methodData };
+                }
+            } else {
+                // Add new
+                methodData.id = 'payment-' + Date.now();
+                currentSectionsConfig.footer.paymentMethods.push(methodData);
+            }
+            
+            // Mark as changed and go back
+            hasPendingPageStructureChanges = true;
+            updateSaveButtonState();
+            renderPreview();
+            window.switchSidebarView('paymentMethodsSettings');
+        });
+    }
+    
+    // Helper function to clear payment image
+    function clearPaymentImage() {
+        $('#payment-method-image-container').html(`
+            <i class="material-icons" style="font-size: 48px; color: #ccc; margin-bottom: 8px;">cloud_upload</i>
+            <p style="color: #8c9196; margin: 8px 0; font-size: 14px;" data-i18n="paymentMethods.uploadPrompt">Click to upload or drag and drop</p>
+            <p style="color: #8c9196; margin: 0; font-size: 12px;" data-i18n="paymentMethods.imageFormats">SVG, PNG, JPG or GIF (max. 25MB)</p>
+            <input type="file" id="payment-method-image-input" accept="image/*" style="display: none;">
+        `);
+        $('#payment-method-image-container').removeData('image-url');
+        $('#payment-method-image-input').val(''); // Clear the file input
+        setTimeout(applyTranslations, 0);
     }
     
     // Function to render announcement items
@@ -21617,7 +22355,7 @@ document.head.appendChild(style);
         }
     }
     
-    // Make updateSaveButtonState globally accessible for modules
+    // Make it globally accessible
     window.updateSaveButtonState = updateSaveButtonState;
     
     // Function to force sync visibility toggles after any changes

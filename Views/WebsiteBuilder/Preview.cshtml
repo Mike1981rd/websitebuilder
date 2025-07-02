@@ -826,29 +826,58 @@
                                 `;
                             }
                         }
+                    } else if (sectionId === 'footer') {
+                        console.log('[PREVIEW] Processing footer section in sectionOrder');
+                        const footerConfig = currentSectionsConfig.footer;
+                        
+                        if (footerConfig && !footerConfig.isHidden) {
+                            if (window.WebsiteBuilderModules && window.WebsiteBuilderModules.Footer && window.WebsiteBuilderModules.Footer.render) {
+                                console.log('[PREVIEW] Rendering footer with module');
+                                finalHtml += window.WebsiteBuilderModules.Footer.render(footerConfig);
+                                // Mark that footer was rendered to avoid duplication
+                                window._footerRendered = true;
+                            } else {
+                                console.log('[PREVIEW] Footer module not available in sectionOrder');
+                            }
+                        }
                     }
                     // Aquí se agregarán más secciones en el futuro
                 });
             }
             
-            // Siempre renderizar el footer al final (si hay contenido)
-            if (finalHtml && finalHtml.trim() !== '') {
-                if (typeof renderFooter === 'function') {
-                    finalHtml += renderFooter();
-                } else {
-                    // Fallback simple para el footer
-                    finalHtml += `
-                        <div class="section-wrapper footer-section" data-section-id="footer" style="background-color: #1a1a1a; color: #ffffff; padding: 40px 0; margin-top: 40px;">
-                            <div class="container" style="max-width: 1200px; margin: 0 auto; padding: 0 20px;">
-                                <div style="text-align: center; padding: 60px 0;">
-                                    <i class="material-icons" style="font-size: 48px; color: #666;">view_day</i>
-                                    <p style="margin-top: 20px; color: #999;">Footer</p>
+            // Renderizar el footer al final si no fue renderizado en sectionOrder
+            if (finalHtml && finalHtml.trim() !== '' && !window._footerRendered) {
+                // Renderizar el footer configurado
+                console.log('[PREVIEW] Processing footer section (not in sectionOrder)');
+                const footerConfig = currentSectionsConfig.footer;
+                
+                if (footerConfig && !footerConfig.isHidden) {
+                    if (window.WebsiteBuilderModules && window.WebsiteBuilderModules.Footer && window.WebsiteBuilderModules.Footer.render) {
+                        console.log('[PREVIEW] Rendering footer with module');
+                        finalHtml += window.WebsiteBuilderModules.Footer.render(footerConfig);
+                    } else if (typeof renderFooter === 'function') {
+                        finalHtml += renderFooter();
+                    } else {
+                        console.log('[PREVIEW] Footer module not available, using fallback');
+                        // Fallback simple para el footer
+                        finalHtml += `
+                            <div class="section-wrapper footer-section" data-section-id="footer" style="background-color: #1a1a1a; color: #ffffff; padding: 40px 0; margin-top: 40px;">
+                                <div class="container" style="max-width: 1200px; margin: 0 auto; padding: 0 20px;">
+                                    <div style="text-align: center; padding: 60px 0;">
+                                        <i class="material-icons" style="font-size: 48px; color: #666;">view_day</i>
+                                        <p style="margin-top: 20px; color: #999;">Footer</p>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    `;
+                        `;
+                    }
+                } else {
+                    console.log('[PREVIEW] Footer is hidden or not configured');
                 }
             }
+            
+            // Reset footer rendered flag
+            window._footerRendered = false;
             
             // Si no hay contenido, mostrar mensaje
             if (!finalHtml || finalHtml.trim() === '') {

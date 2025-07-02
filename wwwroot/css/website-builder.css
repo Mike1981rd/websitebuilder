@@ -48,6 +48,73 @@
     background-color: #1a1a1a;
 }
 
+/* Custom range slider styles for payment methods and footer height */
+#payment-method-size,
+#footer-height {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 6px;
+    background: #eaecf0;
+    border-radius: 3px;
+    outline: none;
+    cursor: pointer;
+}
+
+#payment-method-size::-webkit-slider-thumb,
+#footer-height::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    background: #2962ff;
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    transition: all 0.2s;
+}
+
+#payment-method-size::-moz-range-thumb,
+#footer-height::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    background: #2962ff;
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    transition: all 0.2s;
+}
+
+#payment-method-size::-webkit-slider-thumb:hover,
+#footer-height::-webkit-slider-thumb:hover {
+    transform: scale(1.2);
+    box-shadow: 0 2px 6px rgba(41,98,255,0.4);
+}
+
+#payment-method-size::-moz-range-thumb:hover,
+#footer-height::-moz-range-thumb:hover {
+    transform: scale(1.2);
+    box-shadow: 0 2px 6px rgba(41,98,255,0.4);
+}
+
+#payment-method-size::-webkit-slider-runnable-track,
+#footer-height::-webkit-slider-runnable-track {
+    width: 100%;
+    height: 6px;
+    cursor: pointer;
+    background: #eaecf0;
+    border-radius: 3px;
+}
+
+#payment-method-size::-moz-range-track,
+#footer-height::-moz-range-track {
+    width: 100%;
+    height: 6px;
+    cursor: pointer;
+    background: #eaecf0;
+    border-radius: 3px;
+}
+
 /* Newsletter Module - Position and Alignment Buttons */
 .position-btn, .alignment-btn {
     background: #f5f5f5;
