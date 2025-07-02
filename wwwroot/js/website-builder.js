@@ -419,21 +419,9 @@ async function loadCurrentWebsite() {
                                         type: 'social',
                                         title: 'Siguenos en',
                                         order: 5
-                                    },
-                                    'block-6': {
-                                        id: 'block-6',
-                                        type: 'newsletter',
-                                        title: 'Subscribete',
-                                        order: 6
-                                    },
-                                    'block-7': {
-                                        id: 'block-7',
-                                        type: 'logo',
-                                        title: '',
-                                        order: 7
                                     }
                                 },
-                                blockOrder: ['block-1', 'block-2', 'block-3', 'block-4', 'block-5', 'block-6', 'block-7']
+                                blockOrder: ['block-1', 'block-2', 'block-3', 'block-4', 'block-5']
                             },
                             announcements: {},
                             announcementOrder: [],
@@ -6749,83 +6737,89 @@ $(document).ready(async function() {
         const block = currentSectionsConfig.footer?.blocks?.[blockId] || {};
         
         return `
-            <div class="sidebar-view-header">
-                <button class="back-button" onclick="window.switchSidebarView('blockList')">
-                    <i class="material-icons">arrow_back</i>
-                </button>
-                <h3 data-i18n="footerLogoWithText.title">Logo with text</h3>
-            </div>
-            
-            <div class="sidebar-view-content settings-panel">
-                <!-- Logo Section -->
-                <div class="settings-section">
-                    <h4 data-i18n="footerLogoWithText.logo">Logo</h4>
-                    
-                    <!-- Logo upload -->
-                    <div class="settings-field">
-                        <label data-i18n="footerLogoWithText.logoImage">Logo</label>
-                        <div class="logo-upload-container">
-                            ${block.logo ? `
-                                <div class="logo-preview">
-                                    <img src="${block.logo}" alt="Logo" class="logo-image">
-                                </div>
-                                <button class="shopify-button secondary" onclick="document.getElementById('footer-logo-input-${blockId}').click()">
-                                    <span data-i18n="common.changeImage">Change image</span>
-                                </button>
-                            ` : `
-                                <div class="logo-placeholder">
-                                    <i class="material-icons">image</i>
-                                </div>
-                                <button class="shopify-button secondary" onclick="document.getElementById('footer-logo-input-${blockId}').click()">
-                                    <span data-i18n="common.selectImage">Select image</span>
-                                </button>
-                            `}
-                            <input type="file" id="footer-logo-input-${blockId}" accept="image/*" style="display: none;">
-                        </div>
-                    </div>
-                    
-                    <!-- Logo size -->
-                    <div class="settings-field">
-                        <label data-i18n="footerLogoWithText.logoSize">Logo size</label>
-                        <div class="shopify-slider-container">
-                            <input type="range" id="footer-logo-size" min="50" max="250" value="${block.logoSize || 120}" step="10" class="shopify-slider">
-                            <div class="shopify-value-box">
-                                <input type="number" id="footer-logo-size-value" min="50" max="250" value="${block.logoSize || 120}" class="shopify-value-input">
-                                <span class="shopify-unit">px</span>
-                            </div>
-                        </div>
-                    </div>
+            <div style="display: flex; flex-direction: column; height: 100%; position: relative; overflow: hidden;">
+                <div class="sidebar-view-header" style="position: relative; z-index: 10;">
+                    <button class="back-to-sections-btn">
+                        <i class="material-icons">arrow_back</i>
+                    </button>
+                    <h3 data-i18n="footerLogoWithText.title">Logo with text</h3>
                 </div>
                 
-                <!-- Text Section -->
-                <div class="settings-section">
-                    <h4 data-i18n="footerLogoWithText.text">Text</h4>
-                    
-                    <!-- Heading -->
-                    <div class="settings-field">
-                        <label data-i18n="footerLogoWithText.heading">Heading</label>
-                        <input type="text" class="shopify-input" id="footer-logo-heading" value="${block.heading || ''}" placeholder="Enter heading">
+                <div style="padding: 20px; overflow-y: auto; overflow-x: hidden; flex: 1; height: calc(100% - 60px); box-sizing: border-box;">
+                    <!-- Logo Section -->
+                    <div class="settings-group">
+                        <h4 style="font-size: 13px; font-weight: 500; margin-bottom: 12px; color: #5c5e60;" data-i18n="footerLogoWithText.logo">Logo</h4>
+                        
+                        <!-- Logo upload -->
+                        <div class="settings-field">
+                            <label data-i18n="footerLogoWithText.logoImage">Logo</label>
+                            <div class="logo-upload-container" style="margin-top: 8px;">
+                                ${block.logo ? `
+                                    <div class="logo-preview" style="margin-bottom: 12px; border: 1px solid #e3e3e3; border-radius: 4px; padding: 20px; text-align: center; background: #f7f7f7;">
+                                        <img src="${block.logo}" alt="Logo" style="max-width: 100%; max-height: 80px; object-fit: contain;">
+                                    </div>
+                                    <button class="shopify-button secondary logo-upload-btn" data-block-id="${blockId}">
+                                        <span data-i18n="common.changeImage">Change image</span>
+                                    </button>
+                                    <button class="shopify-button secondary remove-logo-btn" data-block-id="${blockId}" style="margin-left: 8px;">
+                                        <span data-i18n="common.removeImage">Remove</span>
+                                    </button>
+                                ` : `
+                                    <div class="logo-placeholder" style="border: 1px dashed #c9cccf; border-radius: 4px; padding: 40px; text-align: center; background: #f9fafb; margin-bottom: 12px;">
+                                        <i class="material-icons" style="font-size: 48px; color: #c9cccf;">image</i>
+                                        <p style="margin: 8px 0 0 0; color: #6c7079; font-size: 13px;">No image selected</p>
+                                    </div>
+                                    <button class="shopify-button secondary logo-upload-btn" data-block-id="${blockId}">
+                                        <span data-i18n="common.selectImage">Select image</span>
+                                    </button>
+                                `}
+                                <input type="file" id="footer-logo-input-${blockId}" accept="image/*" style="display: none;">
+                            </div>
+                        </div>
+                        
+                        <!-- Logo size -->
+                        <div class="settings-field" style="margin-top: 16px;">
+                            <label data-i18n="footerLogoWithText.logoSize">Logo size</label>
+                            <div class="shopify-slider-container">
+                                <input type="range" id="footer-logo-size" min="50" max="250" value="${block.logoSize || 120}" step="10" class="shopify-slider">
+                                <div class="shopify-value-box">
+                                    <input type="number" id="footer-logo-size-value" min="50" max="250" value="${block.logoSize || 120}" class="shopify-value-input">
+                                    <span class="shopify-unit">px</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     
-                    <!-- Body -->
-                    <div class="settings-field">
-                        <label data-i18n="footerLogoWithText.body">Body</label>
-                        <div class="rich-text-editor">
-                            <div class="text-formatting-toolbar">
-                                <button class="format-btn" data-command="bold" title="Bold">
-                                    <i class="material-icons">format_bold</i>
-                                </button>
-                                <button class="format-btn" data-command="italic" title="Italic">
-                                    <i class="material-icons">format_italic</i>
-                                </button>
-                                <button class="format-btn" data-command="insertUnorderedList" title="Bullet list">
-                                    <i class="material-icons">format_list_bulleted</i>
-                                </button>
-                                <button class="format-btn" data-command="insertOrderedList" title="Numbered list">
-                                    <i class="material-icons">format_list_numbered</i>
-                                </button>
+                    <!-- Text Section -->
+                    <div class="settings-group" style="margin-top: 30px;">
+                        <h4 style="font-size: 13px; font-weight: 500; margin-bottom: 12px; color: #5c5e60;" data-i18n="footerLogoWithText.text">Text</h4>
+                        
+                        <!-- Heading -->
+                        <div class="settings-field">
+                            <label data-i18n="footerLogoWithText.heading">Heading</label>
+                            <input type="text" class="shopify-input" id="footer-logo-heading" value="${block.heading || ''}" placeholder="Enter heading">
+                        </div>
+                        
+                        <!-- Body -->
+                        <div class="settings-field" style="margin-top: 16px;">
+                            <label data-i18n="footerLogoWithText.body" style="display: block; margin-bottom: 8px;">Body</label>
+                            <div class="rich-text-editor">
+                                <div class="text-formatting-toolbar" style="border: 1px solid #c9cccf; border-bottom: none; border-radius: 4px 4px 0 0; padding: 8px; background: #f7f7f7; display: flex; gap: 4px;">
+                                    <button class="format-btn" data-command="bold" title="Bold" style="padding: 4px 8px; border: 1px solid transparent; border-radius: 3px; background: transparent; cursor: pointer;">
+                                        <i class="material-icons" style="font-size: 18px;">format_bold</i>
+                                    </button>
+                                    <button class="format-btn" data-command="italic" title="Italic" style="padding: 4px 8px; border: 1px solid transparent; border-radius: 3px; background: transparent; cursor: pointer;">
+                                        <i class="material-icons" style="font-size: 18px;">format_italic</i>
+                                    </button>
+                                    <button class="format-btn" data-command="insertUnorderedList" title="Bullet list" style="padding: 4px 8px; border: 1px solid transparent; border-radius: 3px; background: transparent; cursor: pointer;">
+                                        <i class="material-icons" style="font-size: 18px;">format_list_bulleted</i>
+                                    </button>
+                                    <button class="format-btn" data-command="insertOrderedList" title="Numbered list" style="padding: 4px 8px; border: 1px solid transparent; border-radius: 3px; background: transparent; cursor: pointer;">
+                                        <i class="material-icons" style="font-size: 18px;">format_list_numbered</i>
+                                    </button>
+                                </div>
+                                <div contenteditable="true" class="rich-text-content shopify-input" id="footer-logo-body" style="min-height: 100px; border-radius: 0 0 4px 4px; padding: 12px;">${block.body || ''}</div>
                             </div>
-                            <div contenteditable="true" class="rich-text-content shopify-input" id="footer-logo-body" style="min-height: 100px;">${block.body || ''}</div>
                         </div>
                     </div>
                 </div>
@@ -6837,12 +6831,40 @@ $(document).ready(async function() {
     function attachFooterLogoWithTextEventListeners(blockId) {
         console.log('[DEBUG] Attaching footer logo with text event listeners', blockId);
         
+        // Back button
+        $('.back-to-sections-btn').off('click').on('click', function() {
+            window.switchSidebarView('blockList');
+        });
+        
+        // Logo upload button clicks
+        $('.logo-upload-btn').off('click').on('click', function() {
+            const btnBlockId = $(this).data('block-id');
+            $(`#footer-logo-input-${btnBlockId}`).click();
+        });
+        
+        // Remove logo button
+        $('.remove-logo-btn').off('click').on('click', function() {
+            const btnBlockId = $(this).data('block-id');
+            if (currentSectionsConfig.footer?.blocks?.[btnBlockId]) {
+                currentSectionsConfig.footer.blocks[btnBlockId].logo = '';
+                hasPendingPageStructureChanges = true;
+                updateSaveButtonState();
+                renderPreview();
+                // Refresh the view to show the placeholder
+                window.switchSidebarView('footerLogoWithTextSettings', { blockId: btnBlockId });
+            }
+        });
+        
         // Logo upload
         $(`#footer-logo-input-${blockId}`).on('change', function(e) {
             const file = e.target.files[0];
             if (file) {
                 const reader = new FileReader();
                 reader.onload = function(event) {
+                    if (!currentSectionsConfig.footer?.blocks?.[blockId]) {
+                        console.error('[DEBUG] Footer block not found:', blockId);
+                        return;
+                    }
                     currentSectionsConfig.footer.blocks[blockId].logo = event.target.result;
                     hasPendingPageStructureChanges = true;
                     updateSaveButtonState();
@@ -6859,35 +6881,47 @@ $(document).ready(async function() {
             const value = parseInt($(this).val());
             $('#footer-logo-size').val(value);
             $('#footer-logo-size-value').val(value);
-            currentSectionsConfig.footer.blocks[blockId].logoSize = value;
-            hasPendingPageStructureChanges = true;
-            updateSaveButtonState();
-            renderPreview();
+            if (currentSectionsConfig.footer?.blocks?.[blockId]) {
+                currentSectionsConfig.footer.blocks[blockId].logoSize = value;
+                hasPendingPageStructureChanges = true;
+                updateSaveButtonState();
+                renderPreview();
+            }
         });
         
         // Heading
         $('#footer-logo-heading').on('input', function() {
-            currentSectionsConfig.footer.blocks[blockId].heading = $(this).val();
-            hasPendingPageStructureChanges = true;
-            updateSaveButtonState();
-            renderPreview();
+            if (currentSectionsConfig.footer?.blocks?.[blockId]) {
+                currentSectionsConfig.footer.blocks[blockId].heading = $(this).val();
+                hasPendingPageStructureChanges = true;
+                updateSaveButtonState();
+                renderPreview();
+            }
         });
         
         // Body - Rich text editor
         $('#footer-logo-body').on('input', function() {
-            currentSectionsConfig.footer.blocks[blockId].body = $(this).html();
-            hasPendingPageStructureChanges = true;
-            updateSaveButtonState();
-            renderPreview();
+            if (currentSectionsConfig.footer?.blocks?.[blockId]) {
+                currentSectionsConfig.footer.blocks[blockId].body = $(this).html();
+                hasPendingPageStructureChanges = true;
+                updateSaveButtonState();
+                renderPreview();
+            }
         });
         
         // Text formatting toolbar
-        $('.format-btn').on('click', function(e) {
+        $('.format-btn').off('click').on('click', function(e) {
             e.preventDefault();
             const command = $(this).data('command');
             document.execCommand(command, false, null);
             $('#footer-logo-body').trigger('input');
         });
+        
+        // Apply hover effect to format buttons
+        $('.format-btn').hover(
+            function() { $(this).css('background', '#e4e5e7'); },
+            function() { $(this).css('background', 'transparent'); }
+        );
     }
     
     // Function to render footer subscribe settings view
@@ -6897,60 +6931,64 @@ $(document).ready(async function() {
         const block = currentSectionsConfig.footer?.blocks?.[blockId] || {};
         
         return `
-            <div class="sidebar-view-header">
-                <button class="back-button" onclick="window.switchSidebarView('blockList')">
-                    <i class="material-icons">arrow_back</i>
-                </button>
-                <h3 data-i18n="footerSubscribe.title">Subscribe</h3>
-            </div>
-            
-            <div class="sidebar-view-content settings-panel">
-                <div class="settings-info-box">
-                    <p data-i18n="footerSubscribe.info">Each email subscription creates a <a href="#" onclick="alert('Customer accounts page'); return false;">customer account</a>.</p>
+            <div style="display: flex; flex-direction: column; height: 100%; position: relative; overflow: hidden;">
+                <div class="sidebar-view-header" style="position: relative; z-index: 10;">
+                    <button class="back-to-sections-btn">
+                        <i class="material-icons">arrow_back</i>
+                    </button>
+                    <h3 data-i18n="footerSubscribe.title">Subscribe</h3>
                 </div>
                 
-                <!-- Content Section -->
-                <div class="settings-section">
-                    <h4 data-i18n="footerSubscribe.content">Content</h4>
-                    
-                    <!-- Heading -->
-                    <div class="settings-field">
-                        <label data-i18n="footerSubscribe.heading">Heading</label>
-                        <input type="text" class="shopify-input" id="footer-subscribe-heading" value="${block.heading || 'Subscribete'}" placeholder="Enter heading">
+                <div style="padding: 20px; overflow-y: auto; overflow-x: hidden; flex: 1; height: calc(100% - 60px); box-sizing: border-box;">
+                    <div class="settings-info-box" style="background: #f9fafb; border: 1px solid #e3e5e7; border-radius: 4px; padding: 12px 16px; margin-bottom: 20px;">
+                        <p style="margin: 0; font-size: 13px; color: #202223;" data-i18n="footerSubscribe.info">
+                            Each email subscription creates a <a href="#" class="customer-accounts-link" style="color: #2c6ecb; text-decoration: none;">customer account</a>.
+                        </p>
                     </div>
                     
-                    <!-- Body -->
-                    <div class="settings-field">
-                        <label data-i18n="footerSubscribe.body">Body</label>
-                        <div class="rich-text-editor">
-                            <div class="text-formatting-toolbar">
-                                <button class="format-btn" data-command="bold" title="Bold">
-                                    <i class="material-icons">format_bold</i>
-                                </button>
-                                <button class="format-btn" data-command="italic" title="Italic">
-                                    <i class="material-icons">format_italic</i>
-                                </button>
-                                <button class="format-btn" data-command="createLink" title="Link">
-                                    <i class="material-icons">link</i>
-                                </button>
+                    <!-- Content Section -->
+                    <div class="settings-group">
+                        <h4 style="font-size: 13px; font-weight: 500; margin-bottom: 12px; color: #5c5e60;" data-i18n="footerSubscribe.content">Content</h4>
+                        
+                        <!-- Heading -->
+                        <div class="settings-field">
+                            <label data-i18n="footerSubscribe.heading">Heading</label>
+                            <input type="text" class="shopify-input" id="footer-subscribe-heading" value="${block.heading || 'Subscribete'}" placeholder="Enter heading">
+                        </div>
+                        
+                        <!-- Body -->
+                        <div class="settings-field" style="margin-top: 16px;">
+                            <label data-i18n="footerSubscribe.body" style="display: block; margin-bottom: 8px;">Body</label>
+                            <div class="rich-text-editor">
+                                <div class="text-formatting-toolbar" style="border: 1px solid #c9cccf; border-bottom: none; border-radius: 4px 4px 0 0; padding: 8px; background: #f7f7f7; display: flex; gap: 4px;">
+                                    <button class="format-btn" data-command="bold" title="Bold" style="padding: 4px 8px; border: 1px solid transparent; border-radius: 3px; background: transparent; cursor: pointer;">
+                                        <i class="material-icons" style="font-size: 18px;">format_bold</i>
+                                    </button>
+                                    <button class="format-btn" data-command="italic" title="Italic" style="padding: 4px 8px; border: 1px solid transparent; border-radius: 3px; background: transparent; cursor: pointer;">
+                                        <i class="material-icons" style="font-size: 18px;">format_italic</i>
+                                    </button>
+                                    <button class="format-btn" data-command="createLink" title="Link" style="padding: 4px 8px; border: 1px solid transparent; border-radius: 3px; background: transparent; cursor: pointer;">
+                                        <i class="material-icons" style="font-size: 18px;">link</i>
+                                    </button>
+                                </div>
+                                <div contenteditable="true" class="rich-text-content shopify-input" id="footer-subscribe-body" style="min-height: 80px; border-radius: 0 0 4px 4px; padding: 12px;">${block.body || ''}</div>
                             </div>
-                            <div contenteditable="true" class="rich-text-content shopify-input" id="footer-subscribe-body" style="min-height: 80px;">${block.body || ''}</div>
                         </div>
                     </div>
-                </div>
-                
-                <!-- Input Style Section -->
-                <div class="settings-section">
-                    <h4 data-i18n="footerSubscribe.inputStyle">Input style</h4>
                     
-                    <div class="settings-field">
-                        <div class="button-group">
-                            <button class="button-group-btn ${block.inputStyle === 'solid' || !block.inputStyle ? 'active' : ''}" data-style="solid">
-                                <span data-i18n="footerSubscribe.solid">Solid</span>
-                            </button>
-                            <button class="button-group-btn ${block.inputStyle === 'outline' ? 'active' : ''}" data-style="outline">
-                                <span data-i18n="footerSubscribe.outline">Outline</span>
-                            </button>
+                    <!-- Input Style Section -->
+                    <div class="settings-group" style="margin-top: 30px;">
+                        <h4 style="font-size: 13px; font-weight: 500; margin-bottom: 12px; color: #5c5e60;" data-i18n="footerSubscribe.inputStyle">Input style</h4>
+                        
+                        <div class="settings-field">
+                            <div class="button-group" style="display: flex; border: 1px solid #c9cccf; border-radius: 4px; overflow: hidden;">
+                                <button class="button-group-btn ${block.inputStyle === 'solid' || !block.inputStyle ? 'active' : ''}" data-style="solid" style="flex: 1; padding: 8px 16px; background: ${block.inputStyle === 'solid' || !block.inputStyle ? '#008060' : 'white'}; color: ${block.inputStyle === 'solid' || !block.inputStyle ? 'white' : '#202223'}; border: none; cursor: pointer; transition: all 0.2s;">
+                                    <span data-i18n="footerSubscribe.solid">Solid</span>
+                                </button>
+                                <button class="button-group-btn ${block.inputStyle === 'outline' ? 'active' : ''}" data-style="outline" style="flex: 1; padding: 8px 16px; background: ${block.inputStyle === 'outline' ? '#008060' : 'white'}; color: ${block.inputStyle === 'outline' ? 'white' : '#202223'}; border: none; border-left: 1px solid #c9cccf; cursor: pointer; transition: all 0.2s;">
+                                    <span data-i18n="footerSubscribe.outline">Outline</span>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -6962,24 +7000,39 @@ $(document).ready(async function() {
     function attachFooterSubscribeEventListeners(blockId) {
         console.log('[DEBUG] Attaching footer subscribe event listeners', blockId);
         
+        // Back button
+        $('.back-to-sections-btn').off('click').on('click', function() {
+            window.switchSidebarView('blockList');
+        });
+        
+        // Customer accounts link
+        $('.customer-accounts-link').off('click').on('click', function(e) {
+            e.preventDefault();
+            alert('Customer accounts page');
+        });
+        
         // Heading
         $('#footer-subscribe-heading').on('input', function() {
-            currentSectionsConfig.footer.blocks[blockId].heading = $(this).val();
-            hasPendingPageStructureChanges = true;
-            updateSaveButtonState();
-            renderPreview();
+            if (currentSectionsConfig.footer?.blocks?.[blockId]) {
+                currentSectionsConfig.footer.blocks[blockId].heading = $(this).val();
+                hasPendingPageStructureChanges = true;
+                updateSaveButtonState();
+                renderPreview();
+            }
         });
         
         // Body - Rich text editor
         $('#footer-subscribe-body').on('input', function() {
-            currentSectionsConfig.footer.blocks[blockId].body = $(this).html();
-            hasPendingPageStructureChanges = true;
-            updateSaveButtonState();
-            renderPreview();
+            if (currentSectionsConfig.footer?.blocks?.[blockId]) {
+                currentSectionsConfig.footer.blocks[blockId].body = $(this).html();
+                hasPendingPageStructureChanges = true;
+                updateSaveButtonState();
+                renderPreview();
+            }
         });
         
         // Text formatting toolbar
-        $('.format-btn').on('click', function(e) {
+        $('.format-btn').off('click').on('click', function(e) {
             e.preventDefault();
             const command = $(this).data('command');
             if (command === 'createLink') {
@@ -6993,16 +7046,45 @@ $(document).ready(async function() {
             $('#footer-subscribe-body').trigger('input');
         });
         
+        // Apply hover effect to format buttons
+        $('.format-btn').hover(
+            function() { $(this).css('background', '#e4e5e7'); },
+            function() { $(this).css('background', 'transparent'); }
+        );
+        
         // Input style buttons
-        $('.button-group-btn').on('click', function() {
+        $('.button-group-btn').off('click').on('click', function() {
             const style = $(this).data('style');
-            $('.button-group-btn').removeClass('active');
-            $(this).addClass('active');
-            currentSectionsConfig.footer.blocks[blockId].inputStyle = style;
-            hasPendingPageStructureChanges = true;
-            updateSaveButtonState();
-            renderPreview();
+            $('.button-group-btn').removeClass('active').css({
+                'background': 'white',
+                'color': '#202223'
+            });
+            $(this).addClass('active').css({
+                'background': '#008060',
+                'color': 'white'
+            });
+            
+            if (currentSectionsConfig.footer?.blocks?.[blockId]) {
+                currentSectionsConfig.footer.blocks[blockId].inputStyle = style;
+                hasPendingPageStructureChanges = true;
+                updateSaveButtonState();
+                renderPreview();
+            }
         });
+        
+        // Hover effect for style buttons
+        $('.button-group-btn').hover(
+            function() {
+                if (!$(this).hasClass('active')) {
+                    $(this).css('background', '#f7f7f7');
+                }
+            },
+            function() {
+                if (!$(this).hasClass('active')) {
+                    $(this).css('background', 'white');
+                }
+            }
+        );
     }
     
     // Function to render footer menu settings view
@@ -7012,41 +7094,43 @@ $(document).ready(async function() {
         const block = currentSectionsConfig.footer?.blocks?.[blockId] || {};
         
         return `
-            <div class="sidebar-view-header">
-                <button class="back-button" onclick="window.switchSidebarView('blockList')">
-                    <i class="material-icons">arrow_back</i>
-                </button>
-                <h3 data-i18n="footerMenu.title">Menu</h3>
-            </div>
-            
-            <div class="sidebar-view-content settings-panel">
-                <!-- Content Section -->
-                <div class="settings-section">
-                    <h4 data-i18n="footerMenu.content">Content</h4>
-                    
-                    <!-- Heading -->
-                    <div class="settings-field">
-                        <label data-i18n="footerMenu.heading">Heading</label>
-                        <input type="text" class="shopify-input" id="footer-menu-heading" value="${block.heading || 'Soporte'}" placeholder="Enter heading">
-                    </div>
-                    
-                    <!-- Menu selector -->
-                    <div class="settings-field">
-                        <label data-i18n="footerMenu.menu">Menu</label>
-                        <select class="shopify-select" id="footer-menu-select">
-                            <option value="" ${!block.menuId ? 'selected' : ''} data-i18n="footerMenu.selectMenu">Select menu</option>
-                            ${currentMenusData ? currentMenusData.map(menu => `
-                                <option value="${menu.id}" ${block.menuId === menu.id ? 'selected' : ''}>${menu.name}</option>
-                            `).join('') : ''}
-                        </select>
-                    </div>
-                    
-                    <!-- Create/Edit menu link -->
-                    <div class="settings-field">
-                        <a href="#" class="theme-settings-link" onclick="window.switchSidebarView('menusList'); return false;">
-                            <span data-i18n="footerMenu.createEditMenu">Create or edit menus</span>
-                            <i class="material-icons">arrow_forward</i>
-                        </a>
+            <div style="display: flex; flex-direction: column; height: 100%; position: relative; overflow: hidden;">
+                <div class="sidebar-view-header" style="position: relative; z-index: 10;">
+                    <button class="back-to-sections-btn">
+                        <i class="material-icons">arrow_back</i>
+                    </button>
+                    <h3 data-i18n="footerMenu.title">Menu</h3>
+                </div>
+                
+                <div style="padding: 20px; overflow-y: auto; overflow-x: hidden; flex: 1; height: calc(100% - 60px); box-sizing: border-box;">
+                    <!-- Content Section -->
+                    <div class="settings-group">
+                        <h4 style="font-size: 13px; font-weight: 500; margin-bottom: 12px; color: #5c5e60;" data-i18n="footerMenu.content">Content</h4>
+                        
+                        <!-- Heading -->
+                        <div class="settings-field">
+                            <label data-i18n="footerMenu.heading">Heading</label>
+                            <input type="text" class="shopify-input" id="footer-menu-heading" value="${block.heading || 'Soporte'}" placeholder="Enter heading">
+                        </div>
+                        
+                        <!-- Menu selector -->
+                        <div class="settings-field" style="margin-top: 16px;">
+                            <label data-i18n="footerMenu.menu">Menu</label>
+                            <select class="shopify-select" id="footer-menu-select">
+                                <option value="" ${!block.menuId ? 'selected' : ''} data-i18n="footerMenu.selectMenu">Select menu</option>
+                                ${currentMenusData ? currentMenusData.map(menu => `
+                                    <option value="${menu.id}" ${block.menuId === menu.id ? 'selected' : ''}>${menu.name}</option>
+                                `).join('') : ''}
+                            </select>
+                        </div>
+                        
+                        <!-- Create/Edit menu link -->
+                        <div class="settings-field" style="margin-top: 16px;">
+                            <a href="#" class="menu-management-link" style="display: inline-flex; align-items: center; gap: 4px; color: #2c6ecb; text-decoration: none; font-size: 13px;">
+                                <span data-i18n="footerMenu.createEditMenu">Create or edit menus</span>
+                                <i class="material-icons" style="font-size: 16px;">arrow_forward</i>
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -7057,34 +7141,58 @@ $(document).ready(async function() {
     function attachFooterMenuEventListeners(blockId) {
         console.log('[DEBUG] Attaching footer menu event listeners', blockId);
         
+        // Back button
+        $('.back-to-sections-btn').off('click').on('click', function() {
+            window.switchSidebarView('blockList');
+        });
+        
+        // Menu management link
+        $('.menu-management-link').off('click').on('click', function(e) {
+            e.preventDefault();
+            window.switchSidebarView('menusList');
+        });
+        
+        // Apply hover effect to menu link
+        $('.menu-management-link').hover(
+            function() { $(this).css('text-decoration', 'underline'); },
+            function() { $(this).css('text-decoration', 'none'); }
+        );
+        
         // Load menus data if not already loaded
         if (!currentMenusData) {
             loadMenusData().then(() => {
                 // Refresh the menu selector
-                const menuId = currentSectionsConfig.footer.blocks[blockId].menuId;
+                const menuId = currentSectionsConfig.footer?.blocks?.[blockId]?.menuId;
                 $('#footer-menu-select').html(`
                     <option value="" ${!menuId ? 'selected' : ''}>Select menu</option>
                     ${currentMenusData.map(menu => `
                         <option value="${menu.id}" ${menuId === menu.id ? 'selected' : ''}>${menu.name}</option>
                     `).join('')}
                 `);
+                
+                // Apply translations to dynamically loaded options
+                setTimeout(applyTranslations, 0);
             });
         }
         
         // Heading
         $('#footer-menu-heading').on('input', function() {
-            currentSectionsConfig.footer.blocks[blockId].heading = $(this).val();
-            hasPendingPageStructureChanges = true;
-            updateSaveButtonState();
-            renderPreview();
+            if (currentSectionsConfig.footer?.blocks?.[blockId]) {
+                currentSectionsConfig.footer.blocks[blockId].heading = $(this).val();
+                hasPendingPageStructureChanges = true;
+                updateSaveButtonState();
+                renderPreview();
+            }
         });
         
         // Menu selector
         $('#footer-menu-select').on('change', function() {
-            currentSectionsConfig.footer.blocks[blockId].menuId = $(this).val();
-            hasPendingPageStructureChanges = true;
-            updateSaveButtonState();
-            renderPreview();
+            if (currentSectionsConfig.footer?.blocks?.[blockId]) {
+                currentSectionsConfig.footer.blocks[blockId].menuId = $(this).val();
+                hasPendingPageStructureChanges = true;
+                updateSaveButtonState();
+                renderPreview();
+            }
         });
     }
     
@@ -7095,46 +7203,48 @@ $(document).ready(async function() {
         const block = currentSectionsConfig.footer?.blocks?.[blockId] || {};
         
         return `
-            <div class="sidebar-view-header">
-                <button class="back-button" onclick="window.switchSidebarView('blockList')">
-                    <i class="material-icons">arrow_back</i>
-                </button>
-                <h3 data-i18n="footerText.title">Text</h3>
-            </div>
-            
-            <div class="sidebar-view-content settings-panel">
-                <!-- Content Section -->
-                <div class="settings-section">
-                    <h4 data-i18n="footerText.content">Content</h4>
-                    
-                    <!-- Heading -->
-                    <div class="settings-field">
-                        <label data-i18n="footerText.heading">Heading</label>
-                        <input type="text" class="shopify-input" id="footer-text-heading" value="${block.heading || 'Direccion'}" placeholder="Enter heading">
-                    </div>
-                    
-                    <!-- Body -->
-                    <div class="settings-field">
-                        <label data-i18n="footerText.body">Body</label>
-                        <div class="rich-text-editor">
-                            <div class="text-formatting-toolbar">
-                                <button class="format-btn" data-command="bold" title="Bold">
-                                    <i class="material-icons">format_bold</i>
-                                </button>
-                                <button class="format-btn" data-command="italic" title="Italic">
-                                    <i class="material-icons">format_italic</i>
-                                </button>
-                                <button class="format-btn" data-command="createLink" title="Link">
-                                    <i class="material-icons">link</i>
-                                </button>
-                                <button class="format-btn" data-command="insertUnorderedList" title="Bullet list">
-                                    <i class="material-icons">format_list_bulleted</i>
-                                </button>
-                                <button class="format-btn" data-command="insertOrderedList" title="Numbered list">
-                                    <i class="material-icons">format_list_numbered</i>
-                                </button>
+            <div style="display: flex; flex-direction: column; height: 100%; position: relative; overflow: hidden;">
+                <div class="sidebar-view-header" style="position: relative; z-index: 10;">
+                    <button class="back-to-sections-btn">
+                        <i class="material-icons">arrow_back</i>
+                    </button>
+                    <h3 data-i18n="footerText.title">Text</h3>
+                </div>
+                
+                <div style="padding: 20px; overflow-y: auto; overflow-x: hidden; flex: 1; height: calc(100% - 60px); box-sizing: border-box;">
+                    <!-- Content Section -->
+                    <div class="settings-group">
+                        <h4 style="font-size: 13px; font-weight: 500; margin-bottom: 12px; color: #5c5e60;" data-i18n="footerText.content">Content</h4>
+                        
+                        <!-- Heading -->
+                        <div class="settings-field">
+                            <label data-i18n="footerText.heading">Heading</label>
+                            <input type="text" class="shopify-input" id="footer-text-heading" value="${block.heading || 'Direccion'}" placeholder="Enter heading">
+                        </div>
+                        
+                        <!-- Body -->
+                        <div class="settings-field" style="margin-top: 16px;">
+                            <label data-i18n="footerText.body" style="display: block; margin-bottom: 8px;">Body</label>
+                            <div class="rich-text-editor">
+                                <div class="text-formatting-toolbar" style="border: 1px solid #c9cccf; border-bottom: none; border-radius: 4px 4px 0 0; padding: 8px; background: #f7f7f7; display: flex; gap: 4px;">
+                                    <button class="format-btn" data-command="bold" title="Bold" style="padding: 4px 8px; border: 1px solid transparent; border-radius: 3px; background: transparent; cursor: pointer;">
+                                        <i class="material-icons" style="font-size: 18px;">format_bold</i>
+                                    </button>
+                                    <button class="format-btn" data-command="italic" title="Italic" style="padding: 4px 8px; border: 1px solid transparent; border-radius: 3px; background: transparent; cursor: pointer;">
+                                        <i class="material-icons" style="font-size: 18px;">format_italic</i>
+                                    </button>
+                                    <button class="format-btn" data-command="createLink" title="Link" style="padding: 4px 8px; border: 1px solid transparent; border-radius: 3px; background: transparent; cursor: pointer;">
+                                        <i class="material-icons" style="font-size: 18px;">link</i>
+                                    </button>
+                                    <button class="format-btn" data-command="insertUnorderedList" title="Bullet list" style="padding: 4px 8px; border: 1px solid transparent; border-radius: 3px; background: transparent; cursor: pointer;">
+                                        <i class="material-icons" style="font-size: 18px;">format_list_bulleted</i>
+                                    </button>
+                                    <button class="format-btn" data-command="insertOrderedList" title="Numbered list" style="padding: 4px 8px; border: 1px solid transparent; border-radius: 3px; background: transparent; cursor: pointer;">
+                                        <i class="material-icons" style="font-size: 18px;">format_list_numbered</i>
+                                    </button>
+                                </div>
+                                <div contenteditable="true" class="rich-text-content shopify-input" id="footer-text-body" style="min-height: 120px; border-radius: 0 0 4px 4px; padding: 12px;">${block.body || 'Calle Leonardo Da Vinci #87, Renacimiento, Santo Domingo, República Dominicana'}</div>
                             </div>
-                            <div contenteditable="true" class="rich-text-content shopify-input" id="footer-text-body" style="min-height: 120px;">${block.body || 'Calle Leonardo Da Vinci #87, Renacimiento, Santo Domingo, República Dominicana'}</div>
                         </div>
                     </div>
                 </div>
@@ -7146,24 +7256,33 @@ $(document).ready(async function() {
     function attachFooterTextEventListeners(blockId) {
         console.log('[DEBUG] Attaching footer text event listeners', blockId);
         
+        // Back button
+        $('.back-to-sections-btn').off('click').on('click', function() {
+            window.switchSidebarView('blockList');
+        });
+        
         // Heading
         $('#footer-text-heading').on('input', function() {
-            currentSectionsConfig.footer.blocks[blockId].heading = $(this).val();
-            hasPendingPageStructureChanges = true;
-            updateSaveButtonState();
-            renderPreview();
+            if (currentSectionsConfig.footer?.blocks?.[blockId]) {
+                currentSectionsConfig.footer.blocks[blockId].heading = $(this).val();
+                hasPendingPageStructureChanges = true;
+                updateSaveButtonState();
+                renderPreview();
+            }
         });
         
         // Body - Rich text editor
         $('#footer-text-body').on('input', function() {
-            currentSectionsConfig.footer.blocks[blockId].body = $(this).html();
-            hasPendingPageStructureChanges = true;
-            updateSaveButtonState();
-            renderPreview();
+            if (currentSectionsConfig.footer?.blocks?.[blockId]) {
+                currentSectionsConfig.footer.blocks[blockId].body = $(this).html();
+                hasPendingPageStructureChanges = true;
+                updateSaveButtonState();
+                renderPreview();
+            }
         });
         
         // Text formatting toolbar
-        $('.format-btn').on('click', function(e) {
+        $('.format-btn').off('click').on('click', function(e) {
             e.preventDefault();
             const command = $(this).data('command');
             if (command === 'createLink') {
@@ -7176,6 +7295,12 @@ $(document).ready(async function() {
             }
             $('#footer-text-body').trigger('input');
         });
+        
+        // Apply hover effect to format buttons
+        $('.format-btn').hover(
+            function() { $(this).css('background', '#e4e5e7'); },
+            function() { $(this).css('background', 'transparent'); }
+        );
     }
     
     // Function to render footer social media settings view
@@ -7184,91 +7309,157 @@ $(document).ready(async function() {
         const blockId = data?.blockId;
         const block = currentSectionsConfig.footer?.blocks?.[blockId] || {};
         
+        // Initialize social media data if not exists
+        if (!block.socialMedia) {
+            block.socialMedia = {
+                facebook: { enabled: false, url: '' },
+                instagram: { enabled: false, url: '' },
+                twitter: { enabled: false, url: '' },
+                pinterest: { enabled: false, url: '' },
+                youtube: { enabled: false, url: '' },
+                tiktok: { enabled: false, url: '' },
+                linkedin: { enabled: false, url: '' },
+                snapchat: { enabled: false, url: '' }
+            };
+        }
+        
         return `
-            <div class="sidebar-view-header">
-                <button class="back-button" onclick="window.switchSidebarView('blockList')">
-                    <i class="material-icons">arrow_back</i>
-                </button>
-                <h3 data-i18n="footerSocialMedia.title">Social media</h3>
-            </div>
-            
-            <div class="sidebar-view-content settings-panel">
-                <!-- Content Section -->
-                <div class="settings-section">
-                    <h4 data-i18n="footerSocialMedia.content">Content</h4>
-                    
-                    <!-- Heading -->
-                    <div class="settings-field">
-                        <label data-i18n="footerSocialMedia.heading">Heading</label>
-                        <input type="text" class="shopify-input" id="footer-social-heading" value="${block.heading || 'Síguenos en'}" placeholder="Enter heading">
-                    </div>
+            <div style="display: flex; flex-direction: column; height: 100%; position: relative; overflow: hidden;">
+                <div class="sidebar-view-header" style="position: relative; z-index: 10;">
+                    <button class="back-to-sections-btn">
+                        <i class="material-icons">arrow_back</i>
+                    </button>
+                    <h3 data-i18n="footerSocialMedia.title">Social media</h3>
                 </div>
                 
-                <!-- Social Media Toggles Section -->
-                <div class="settings-section">
-                    <h4 data-i18n="footerSocialMedia.socialNetworks">Social networks</h4>
-                    
-                    <!-- Facebook -->
-                    <div class="settings-field">
-                        <label class="toggle-field">
-                            <span>Facebook</span>
-                            <input type="checkbox" class="shopify-toggle" id="footer-social-facebook" ${block.showFacebook !== false ? 'checked' : ''}>
-                            <label for="footer-social-facebook" class="toggle-slider"></label>
-                        </label>
+                <div style="padding: 20px; overflow-y: auto; overflow-x: hidden; flex: 1; height: calc(100% - 60px); box-sizing: border-box;">
+                    <!-- Content Section -->
+                    <div class="settings-group">
+                        <h4 style="font-size: 13px; font-weight: 500; margin-bottom: 12px; color: #5c5e60;" data-i18n="footerSocialMedia.content">Content</h4>
+                        
+                        <!-- Heading -->
+                        <div class="settings-field">
+                            <label data-i18n="footerSocialMedia.heading">Heading</label>
+                            <input type="text" class="shopify-input" id="footer-social-heading" value="${block.heading || 'Síguenos en'}" placeholder="Enter heading">
+                        </div>
                     </div>
                     
-                    <!-- Instagram -->
-                    <div class="settings-field">
-                        <label class="toggle-field">
-                            <span>Instagram</span>
-                            <input type="checkbox" class="shopify-toggle" id="footer-social-instagram" ${block.showInstagram !== false ? 'checked' : ''}>
-                            <label for="footer-social-instagram" class="toggle-slider"></label>
-                        </label>
+                    <!-- Social Media Networks Section -->
+                    <div class="settings-group" style="margin-top: 30px;">
+                        <h4 style="font-size: 13px; font-weight: 500; margin-bottom: 12px; color: #5c5e60;" data-i18n="footerSocialMedia.socialNetworks">Social networks</h4>
+                        
+                        <!-- Facebook -->
+                        <div class="social-media-item" style="border: 1px solid #e3e5e7; border-radius: 4px; padding: 16px; margin-bottom: 12px;">
+                            <label style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+                                <span style="font-weight: 500; color: #202223;">Facebook</span>
+                                <div style="display: flex; align-items: center;">
+                                    <input type="checkbox" id="footer-social-facebook-toggle" class="shopify-toggle" ${block.socialMedia?.facebook?.enabled ? 'checked' : ''}>
+                                    <label for="footer-social-facebook-toggle" class="toggle-slider"></label>
+                                </div>
+                            </label>
+                            <div class="url-field" style="display: ${block.socialMedia?.facebook?.enabled ? 'block' : 'none'};">
+                                <input type="url" class="shopify-input" id="footer-social-facebook-url" value="${block.socialMedia?.facebook?.url || ''}" placeholder="https://facebook.com/your-page">
+                            </div>
+                        </div>
+                        
+                        <!-- Instagram -->
+                        <div class="social-media-item" style="border: 1px solid #e3e5e7; border-radius: 4px; padding: 16px; margin-bottom: 12px;">
+                            <label style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+                                <span style="font-weight: 500; color: #202223;">Instagram</span>
+                                <div style="display: flex; align-items: center;">
+                                    <input type="checkbox" id="footer-social-instagram-toggle" class="shopify-toggle" ${block.socialMedia?.instagram?.enabled ? 'checked' : ''}>
+                                    <label for="footer-social-instagram-toggle" class="toggle-slider"></label>
+                                </div>
+                            </label>
+                            <div class="url-field" style="display: ${block.socialMedia?.instagram?.enabled ? 'block' : 'none'};">
+                                <input type="url" class="shopify-input" id="footer-social-instagram-url" value="${block.socialMedia?.instagram?.url || ''}" placeholder="https://instagram.com/your-profile">
+                            </div>
+                        </div>
+                        
+                        <!-- Twitter/X -->
+                        <div class="social-media-item" style="border: 1px solid #e3e5e7; border-radius: 4px; padding: 16px; margin-bottom: 12px;">
+                            <label style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+                                <span style="font-weight: 500; color: #202223;">Twitter / X</span>
+                                <div style="display: flex; align-items: center;">
+                                    <input type="checkbox" id="footer-social-twitter-toggle" class="shopify-toggle" ${block.socialMedia?.twitter?.enabled ? 'checked' : ''}>
+                                    <label for="footer-social-twitter-toggle" class="toggle-slider"></label>
+                                </div>
+                            </label>
+                            <div class="url-field" style="display: ${block.socialMedia?.twitter?.enabled ? 'block' : 'none'};">
+                                <input type="url" class="shopify-input" id="footer-social-twitter-url" value="${block.socialMedia?.twitter?.url || ''}" placeholder="https://twitter.com/your-handle">
+                            </div>
+                        </div>
+                        
+                        <!-- Pinterest -->
+                        <div class="social-media-item" style="border: 1px solid #e3e5e7; border-radius: 4px; padding: 16px; margin-bottom: 12px;">
+                            <label style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+                                <span style="font-weight: 500; color: #202223;">Pinterest</span>
+                                <div style="display: flex; align-items: center;">
+                                    <input type="checkbox" id="footer-social-pinterest-toggle" class="shopify-toggle" ${block.socialMedia?.pinterest?.enabled ? 'checked' : ''}>
+                                    <label for="footer-social-pinterest-toggle" class="toggle-slider"></label>
+                                </div>
+                            </label>
+                            <div class="url-field" style="display: ${block.socialMedia?.pinterest?.enabled ? 'block' : 'none'};">
+                                <input type="url" class="shopify-input" id="footer-social-pinterest-url" value="${block.socialMedia?.pinterest?.url || ''}" placeholder="https://pinterest.com/your-profile">
+                            </div>
+                        </div>
+                        
+                        <!-- YouTube -->
+                        <div class="social-media-item" style="border: 1px solid #e3e5e7; border-radius: 4px; padding: 16px; margin-bottom: 12px;">
+                            <label style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+                                <span style="font-weight: 500; color: #202223;">YouTube</span>
+                                <div style="display: flex; align-items: center;">
+                                    <input type="checkbox" id="footer-social-youtube-toggle" class="shopify-toggle" ${block.socialMedia?.youtube?.enabled ? 'checked' : ''}>
+                                    <label for="footer-social-youtube-toggle" class="toggle-slider"></label>
+                                </div>
+                            </label>
+                            <div class="url-field" style="display: ${block.socialMedia?.youtube?.enabled ? 'block' : 'none'};">
+                                <input type="url" class="shopify-input" id="footer-social-youtube-url" value="${block.socialMedia?.youtube?.url || ''}" placeholder="https://youtube.com/@your-channel">
+                            </div>
+                        </div>
+                        
+                        <!-- TikTok -->
+                        <div class="social-media-item" style="border: 1px solid #e3e5e7; border-radius: 4px; padding: 16px; margin-bottom: 12px;">
+                            <label style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+                                <span style="font-weight: 500; color: #202223;">TikTok</span>
+                                <div style="display: flex; align-items: center;">
+                                    <input type="checkbox" id="footer-social-tiktok-toggle" class="shopify-toggle" ${block.socialMedia?.tiktok?.enabled ? 'checked' : ''}>
+                                    <label for="footer-social-tiktok-toggle" class="toggle-slider"></label>
+                                </div>
+                            </label>
+                            <div class="url-field" style="display: ${block.socialMedia?.tiktok?.enabled ? 'block' : 'none'};">
+                                <input type="url" class="shopify-input" id="footer-social-tiktok-url" value="${block.socialMedia?.tiktok?.url || ''}" placeholder="https://tiktok.com/@your-profile">
+                            </div>
+                        </div>
+                        
+                        <!-- LinkedIn -->
+                        <div class="social-media-item" style="border: 1px solid #e3e5e7; border-radius: 4px; padding: 16px; margin-bottom: 12px;">
+                            <label style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+                                <span style="font-weight: 500; color: #202223;">LinkedIn</span>
+                                <div style="display: flex; align-items: center;">
+                                    <input type="checkbox" id="footer-social-linkedin-toggle" class="shopify-toggle" ${block.socialMedia?.linkedin?.enabled ? 'checked' : ''}>
+                                    <label for="footer-social-linkedin-toggle" class="toggle-slider"></label>
+                                </div>
+                            </label>
+                            <div class="url-field" style="display: ${block.socialMedia?.linkedin?.enabled ? 'block' : 'none'};">
+                                <input type="url" class="shopify-input" id="footer-social-linkedin-url" value="${block.socialMedia?.linkedin?.url || ''}" placeholder="https://linkedin.com/company/your-company">
+                            </div>
+                        </div>
+                        
+                        <!-- Snapchat -->
+                        <div class="social-media-item" style="border: 1px solid #e3e5e7; border-radius: 4px; padding: 16px; margin-bottom: 12px;">
+                            <label style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+                                <span style="font-weight: 500; color: #202223;">Snapchat</span>
+                                <div style="display: flex; align-items: center;">
+                                    <input type="checkbox" id="footer-social-snapchat-toggle" class="shopify-toggle" ${block.socialMedia?.snapchat?.enabled ? 'checked' : ''}>
+                                    <label for="footer-social-snapchat-toggle" class="toggle-slider"></label>
+                                </div>
+                            </label>
+                            <div class="url-field" style="display: ${block.socialMedia?.snapchat?.enabled ? 'block' : 'none'};">
+                                <input type="url" class="shopify-input" id="footer-social-snapchat-url" value="${block.socialMedia?.snapchat?.url || ''}" placeholder="https://snapchat.com/add/your-username">
+                            </div>
+                        </div>
                     </div>
-                    
-                    <!-- Twitter -->
-                    <div class="settings-field">
-                        <label class="toggle-field">
-                            <span>Twitter</span>
-                            <input type="checkbox" class="shopify-toggle" id="footer-social-twitter" ${block.showTwitter !== false ? 'checked' : ''}>
-                            <label for="footer-social-twitter" class="toggle-slider"></label>
-                        </label>
-                    </div>
-                    
-                    <!-- Pinterest -->
-                    <div class="settings-field">
-                        <label class="toggle-field">
-                            <span>Pinterest</span>
-                            <input type="checkbox" class="shopify-toggle" id="footer-social-pinterest" ${block.showPinterest !== false ? 'checked' : ''}>
-                            <label for="footer-social-pinterest" class="toggle-slider"></label>
-                        </label>
-                    </div>
-                    
-                    <!-- YouTube -->
-                    <div class="settings-field">
-                        <label class="toggle-field">
-                            <span>YouTube</span>
-                            <input type="checkbox" class="shopify-toggle" id="footer-social-youtube" ${block.showYoutube || false ? 'checked' : ''}>
-                            <label for="footer-social-youtube" class="toggle-slider"></label>
-                        </label>
-                    </div>
-                    
-                    <!-- TikTok -->
-                    <div class="settings-field">
-                        <label class="toggle-field">
-                            <span>TikTok</span>
-                            <input type="checkbox" class="shopify-toggle" id="footer-social-tiktok" ${block.showTiktok || false ? 'checked' : ''}>
-                            <label for="footer-social-tiktok" class="toggle-slider"></label>
-                        </label>
-                    </div>
-                </div>
-                
-                <!-- Settings Link -->
-                <div class="settings-field" style="margin-top: 20px;">
-                    <a href="#" class="theme-settings-link" onclick="window.switchSidebarView('themeSettingsView'); return false;">
-                        <span data-i18n="footerSocialMedia.socialAccountsSettings">To add social media accounts, go to theme settings</span>
-                        <i class="material-icons">arrow_forward</i>
-                    </a>
                 </div>
             </div>
         `;
@@ -7278,56 +7469,83 @@ $(document).ready(async function() {
     function attachFooterSocialMediaEventListeners(blockId) {
         console.log('[DEBUG] Attaching footer social media event listeners', blockId);
         
+        // Back button
+        $('.back-to-sections-btn').off('click').on('click', function() {
+            window.switchSidebarView('blockList');
+        });
+        
+        // Initialize social media object if not exists
+        if (!currentSectionsConfig.footer?.blocks?.[blockId]) {
+            console.error('[DEBUG] Footer block not found:', blockId);
+            return;
+        }
+        
+        if (!currentSectionsConfig.footer.blocks[blockId].socialMedia) {
+            currentSectionsConfig.footer.blocks[blockId].socialMedia = {
+                facebook: { enabled: false, url: '' },
+                instagram: { enabled: false, url: '' },
+                twitter: { enabled: false, url: '' },
+                pinterest: { enabled: false, url: '' },
+                youtube: { enabled: false, url: '' },
+                tiktok: { enabled: false, url: '' },
+                linkedin: { enabled: false, url: '' },
+                snapchat: { enabled: false, url: '' }
+            };
+        }
+        
         // Heading
         $('#footer-social-heading').on('input', function() {
-            currentSectionsConfig.footer.blocks[blockId].heading = $(this).val();
-            hasPendingPageStructureChanges = true;
-            updateSaveButtonState();
-            renderPreview();
+            if (currentSectionsConfig.footer?.blocks?.[blockId]) {
+                currentSectionsConfig.footer.blocks[blockId].heading = $(this).val();
+                hasPendingPageStructureChanges = true;
+                updateSaveButtonState();
+                renderPreview();
+            }
         });
         
-        // Social media toggles
-        $('#footer-social-facebook').on('change', function() {
-            currentSectionsConfig.footer.blocks[blockId].showFacebook = $(this).is(':checked');
-            hasPendingPageStructureChanges = true;
-            updateSaveButtonState();
-            renderPreview();
+        // Social media networks array for easier handling
+        const socialNetworks = ['facebook', 'instagram', 'twitter', 'pinterest', 'youtube', 'tiktok', 'linkedin', 'snapchat'];
+        
+        // Handle toggles and URL inputs for each social network
+        socialNetworks.forEach(network => {
+            // Toggle handler
+            $(`#footer-social-${network}-toggle`).off('change').on('change', function() {
+                const isEnabled = $(this).is(':checked');
+                const $urlField = $(this).closest('.social-media-item').find('.url-field');
+                
+                if (currentSectionsConfig.footer?.blocks?.[blockId]?.socialMedia) {
+                    currentSectionsConfig.footer.blocks[blockId].socialMedia[network].enabled = isEnabled;
+                    
+                    // Show/hide URL field with animation
+                    if (isEnabled) {
+                        $urlField.slideDown(200);
+                        // Focus on the URL input when enabled
+                        setTimeout(() => {
+                            $urlField.find('input').focus();
+                        }, 250);
+                    } else {
+                        $urlField.slideUp(200);
+                    }
+                    
+                    hasPendingPageStructureChanges = true;
+                    updateSaveButtonState();
+                    renderPreview();
+                }
+            });
+            
+            // URL input handler
+            $(`#footer-social-${network}-url`).off('input').on('input', function() {
+                if (currentSectionsConfig.footer?.blocks?.[blockId]?.socialMedia) {
+                    currentSectionsConfig.footer.blocks[blockId].socialMedia[network].url = $(this).val();
+                    hasPendingPageStructureChanges = true;
+                    updateSaveButtonState();
+                    renderPreview();
+                }
+            });
         });
         
-        $('#footer-social-instagram').on('change', function() {
-            currentSectionsConfig.footer.blocks[blockId].showInstagram = $(this).is(':checked');
-            hasPendingPageStructureChanges = true;
-            updateSaveButtonState();
-            renderPreview();
-        });
-        
-        $('#footer-social-twitter').on('change', function() {
-            currentSectionsConfig.footer.blocks[blockId].showTwitter = $(this).is(':checked');
-            hasPendingPageStructureChanges = true;
-            updateSaveButtonState();
-            renderPreview();
-        });
-        
-        $('#footer-social-pinterest').on('change', function() {
-            currentSectionsConfig.footer.blocks[blockId].showPinterest = $(this).is(':checked');
-            hasPendingPageStructureChanges = true;
-            updateSaveButtonState();
-            renderPreview();
-        });
-        
-        $('#footer-social-youtube').on('change', function() {
-            currentSectionsConfig.footer.blocks[blockId].showYoutube = $(this).is(':checked');
-            hasPendingPageStructureChanges = true;
-            updateSaveButtonState();
-            renderPreview();
-        });
-        
-        $('#footer-social-tiktok').on('change', function() {
-            currentSectionsConfig.footer.blocks[blockId].showTiktok = $(this).is(':checked');
-            hasPendingPageStructureChanges = true;
-            updateSaveButtonState();
-            renderPreview();
-        });
+        // Apply transitions for smooth animations
+        $('.url-field').css('transition', 'all 0.2s ease');
     }
     
     // Function to render announcement items
@@ -14161,29 +14379,6 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                 
                 // Close modal
                 modal.close();
-                
-                // Open settings for the new block
-                window.currentFooterBlockId = blockId;
-                window.currentFooterBlockType = blockType;
-                
-                // Navigate to specific block settings
-                switch(blockType) {
-                    case 'logo-with-text':
-                        switchSidebarView('footerLogoWithTextSettings', { blockId });
-                        break;
-                    case 'subscribe':
-                        switchSidebarView('footerSubscribeSettings', { blockId });
-                        break;
-                    case 'menu':
-                        switchSidebarView('footerMenuSettings', { blockId });
-                        break;
-                    case 'text':
-                        switchSidebarView('footerTextSettings', { blockId });
-                        break;
-                    case 'social-media':
-                        switchSidebarView('footerSocialMediaSettings', { blockId });
-                        break;
-                }
             });
         }
         
@@ -23404,6 +23599,45 @@ document.head.appendChild(style);
         }
         
         console.log('=== END CHECK ===');
+    };
+    
+    window.configureFooterBlock = function(blockId, blockType) {
+        console.log('[DEBUG] Configuring footer block:', blockId, blockType);
+        
+        if (!currentSectionsConfig.footer?.blocks?.[blockId]) {
+            console.error('[DEBUG] Footer block not found:', blockId);
+            return;
+        }
+        
+        // Ensure the block has the correct default structure
+        const block = currentSectionsConfig.footer.blocks[blockId];
+        if (!block.type) {
+            block.type = blockType || 'text';
+        }
+        
+        // Navigate to the appropriate settings view based on block type
+        switch(block.type) {
+            case 'logo-with-text':
+            case 'logo':
+                window.switchSidebarView('footerLogoWithTextSettings', { blockId });
+                break;
+            case 'subscribe':
+            case 'newsletter':
+                window.switchSidebarView('footerSubscribeSettings', { blockId });
+                break;
+            case 'menu':
+                window.switchSidebarView('footerMenuSettings', { blockId });
+                break;
+            case 'text':
+                window.switchSidebarView('footerTextSettings', { blockId });
+                break;
+            case 'social-media':
+            case 'social':
+                window.switchSidebarView('footerSocialMediaSettings', { blockId });
+                break;
+            default:
+                console.error('[DEBUG] Unknown footer block type:', block.type);
+        }
     };
     
     window.executeModuleFunction = function(moduleName, functionName, ...args) {

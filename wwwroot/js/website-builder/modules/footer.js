@@ -28,60 +28,9 @@ window.WebsiteBuilderModules.Footer = {
             window.getFontNameFromValueSafe(headingTypography.font || 'helvetica') : 
             'Helvetica';
         
-        // Always show the complete footer structure with mock data
-        // Merge existing blocks with mock data to ensure all 7 blocks are shown
-        const defaultBlocks = {
-            'block-1': {
-                id: 'block-1',
-                type: 'text',
-                title: 'Soporte',
-                content: 'support@purrteam.com\n+1 809-637-4142',
-                order: 1
-            },
-            'block-2': {
-                id: 'block-2',
-                type: 'text',
-                title: 'Ventas',
-                content: 'support@purrteam.com\n+1 809-637-4142',
-                order: 2
-            },
-            'block-3': {
-                id: 'block-3',
-                type: 'menu',
-                title: 'Menu',
-                menuId: 'footer-menu',
-                order: 3
-            },
-            'block-4': {
-                id: 'block-4',
-                type: 'text',
-                title: 'Direccion',
-                content: 'Calle Leonardo Da Vinci #87,\nRenacimiento, Santo Domingo,\nRepublica Dominicana',
-                order: 4
-            },
-            'block-5': {
-                id: 'block-5',
-                type: 'social',
-                title: 'Siguenos en',
-                order: 5
-            },
-            'block-6': {
-                id: 'block-6',
-                type: 'newsletter',
-                title: 'Subscribete',
-                order: 6
-            },
-            'block-7': {
-                id: 'block-7',
-                type: 'logo',
-                title: '',
-                order: 7
-            }
-        };
-        
-        // Always use all 7 blocks for the complete structure
-        const blocks = defaultBlocks;
-        const blockOrder = ['block-1', 'block-2', 'block-3', 'block-4', 'block-5', 'block-6', 'block-7'];
+        // Use real blocks from configuration instead of mock data
+        const blocks = config.blocks || {};
+        const blockOrder = config.blockOrder || [];
         
         let html = `
             <style>
@@ -263,62 +212,25 @@ window.WebsiteBuilderModules.Footer = {
     renderBlocks: function(blocks, blockOrder, schemeColors, columnCount) {
         let html = '';
         
-        if (columnCount === 3) {
-            // For 3 columns: show first 3 blocks, then next 3, then last 1
-            const firstRowBlocks = blockOrder.slice(0, 3);
-            const secondRowBlocks = blockOrder.slice(3, 6);
-            const thirdRowBlocks = blockOrder.slice(6, 7);
-            
-            // First row
-            firstRowBlocks.forEach(blockId => {
-                const block = blocks[blockId];
-                if (block) {
-                    html += window.WebsiteBuilderModules.Footer.renderBlock(block, schemeColors);
-                }
-            });
-            
-            // Second row
-            secondRowBlocks.forEach(blockId => {
-                const block = blocks[blockId];
-                if (block) {
-                    html += window.WebsiteBuilderModules.Footer.renderBlock(block, schemeColors);
-                }
-            });
-            
-            // Third row (centered)
-            thirdRowBlocks.forEach(blockId => {
-                const block = blocks[blockId];
-                if (block) {
-                    html += window.WebsiteBuilderModules.Footer.renderBlock(block, schemeColors);
-                }
-            });
-            
-            // Add empty divs to complete the last row
-            for (let i = 0; i < 2; i++) {
-                html += '<div class="footer-block"></div>';
+        // If no blocks, return empty
+        if (!blockOrder || blockOrder.length === 0) {
+            return '<div class="footer-block" style="text-align: center; color: #999;">No blocks added yet</div>';
+        }
+        
+        // Render blocks based on column count
+        blockOrder.forEach((blockId, index) => {
+            const block = blocks[blockId];
+            if (block && !block.isHidden) {
+                html += window.WebsiteBuilderModules.Footer.renderBlock(block, schemeColors);
             }
-        } else {
-            // For 4 columns: show first 4 blocks, then next 3
-            const firstRowBlocks = blockOrder.slice(0, 4);
-            const secondRowBlocks = blockOrder.slice(4, 7);
-            
-            // First row
-            firstRowBlocks.forEach(blockId => {
-                const block = blocks[blockId];
-                if (block) {
-                    html += window.WebsiteBuilderModules.Footer.renderBlock(block, schemeColors);
-                }
-            });
-            
-            // Second row
-            secondRowBlocks.forEach(blockId => {
-                const block = blocks[blockId];
-                if (block) {
-                    html += window.WebsiteBuilderModules.Footer.renderBlock(block, schemeColors);
-                }
-            });
-            
-            // Add empty div to complete the grid
+        });
+        
+        // Add empty divs to complete the grid if needed
+        const blocksRendered = blockOrder.filter(blockId => blocks[blockId] && !blocks[blockId].isHidden).length;
+        const totalCells = columnCount === 3 ? 6 : 8; // 3 columns = 2 rows of 3, 4 columns = 2 rows of 4
+        const emptyCellsNeeded = totalCells - blocksRendered;
+        
+        for (let i = 0; i < emptyCellsNeeded; i++) {
             html += '<div class="footer-block"></div>';
         }
         
@@ -331,59 +243,64 @@ window.WebsiteBuilderModules.Footer = {
         switch (block.type) {
             case 'text':
                 content = `
-                    ${block.title ? `<h3 class="footer-block-title">${block.title}</h3>` : ''}
+                    ${block.heading || block.title ? `<h3 class="footer-block-title">${block.heading || block.title}</h3>` : ''}
                     <div class="footer-block-content">
-                        ${(block.content || '').split('\n').join('<br>')}
+                        ${(block.body || block.content || '').split('\n').join('<br>')}
                     </div>
                 `;
                 break;
                 
             case 'menu':
-                const menuItems = [
+                // TODO: In the future, this should load real menu items from block.menuId
+                const menuItems = block.menuItems || [
                     'Terminos & Condiciones de Uso',
                     'Politicas de Privacidad',
                     'Politicas de Cookies'
                 ];
                 content = `
-                    ${block.title ? `<h3 class="footer-block-title">${block.title}</h3>` : ''}
+                    ${block.heading || block.title ? `<h3 class="footer-block-title">${block.heading || block.title}</h3>` : ''}
                     <ul class="footer-menu">
-                        ${menuItems.map(item => `<li><a href="#">${item}</a></li>`).join('')}
+                        ${menuItems.map(item => `<li><a href="#">${typeof item === 'string' ? item : item.text}</a></li>`).join('')}
                     </ul>
                 `;
                 break;
                 
             case 'social':
+            case 'social-media':
                 content = `
-                    ${block.title ? `<h3 class="footer-block-title">${block.title}</h3>` : ''}
+                    ${block.heading || block.title ? `<h3 class="footer-block-title">${block.heading || block.title}</h3>` : ''}
                     <div class="social-icons">
-                        <a href="#" title="Instagram"><i class="material-icons">photo_camera</i></a>
-                        <a href="#" title="Facebook"><i class="material-icons">facebook</i></a>
-                        <a href="#" title="Twitter"><i class="material-icons">close</i></a>
-                        <a href="#" title="Pinterest"><i class="material-icons">push_pin</i></a>
+                        ${block.showInstagram !== false ? '<a href="#" title="Instagram"><i class="material-icons">photo_camera</i></a>' : ''}
+                        ${block.showFacebook !== false ? '<a href="#" title="Facebook"><i class="material-icons">facebook</i></a>' : ''}
+                        ${block.showTwitter !== false ? '<a href="#" title="Twitter"><i class="material-icons">close</i></a>' : ''}
+                        ${block.showPinterest !== false ? '<a href="#" title="Pinterest"><i class="material-icons">push_pin</i></a>' : ''}
+                        ${block.showYoutube ? '<a href="#" title="YouTube"><i class="material-icons">play_circle</i></a>' : ''}
+                        ${block.showTiktok ? '<a href="#" title="TikTok"><i class="material-icons">music_note</i></a>' : ''}
                     </div>
                 `;
                 break;
                 
-            case 'newsletter':
+            case 'logo-with-text':
                 content = `
-                    ${block.title ? `<h3 class="footer-block-title">${block.title}</h3>` : ''}
+                    <div class="footer-logo">
+                        ${block.logo ? `<img src="${block.logo}" alt="Logo" style="max-height: ${block.logoSize || 60}px; margin-bottom: 10px;">` : ''}
+                        ${block.heading ? `<h3 class="footer-block-title">${block.heading}</h3>` : ''}
+                        ${block.body ? `<div class="footer-block-content">${block.body}</div>` : ''}
+                    </div>
+                `;
+                break;
+                
+            case 'subscribe':
+                content = `
+                    ${block.heading ? `<h3 class="footer-block-title">${block.heading}</h3>` : ''}
+                    ${block.body ? `<div class="footer-block-content" style="margin-bottom: 15px;">${block.body}</div>` : ''}
                     <form class="newsletter-form" onsubmit="return false;">
-                        <input type="email" class="newsletter-input" placeholder="Correo electronico">
-                        <button type="submit" class="newsletter-button">→</button>
+                        <input type="email" class="newsletter-input" placeholder="Email" required>
+                        <button type="submit" class="newsletter-button">Subscribe</button>
                     </form>
                 `;
                 break;
                 
-            case 'logo':
-                content = `
-                    <div class="footer-logo">
-                        <div style="width: 80px; height: 80px; background: linear-gradient(45deg, #4A90E2, #7B68EE); border-radius: 50%; margin: 0 auto 10px; display: flex; align-items: center; justify-content: center;">
-                            <span style="color: white; font-size: 36px; font-weight: bold;">A</span>
-                        </div>
-                        <div style="font-size: 24px; font-weight: 600; letter-spacing: 2px;">AURORA</div>
-                    </div>
-                `;
-                break;
         }
         
         return `<div class="footer-block">${content}</div>`;

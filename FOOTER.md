@@ -412,6 +412,145 @@ blockOrder.forEach((blockId, index) => {
 ### Comando para Empezar
 "Claude, necesito continuar con la sincronización del drag & drop del footer. El problema está en que los bloques mockup no respetan el blockOrder. Ver sección 'PRÓXIMA SESIÓN' en FOOTER.md"
 
+## 🔧 Fix: Vista de configuración Logo with Text mal implementada
+
+### Contexto del Problema
+La vista de configuración del bloque "Logo with text" del footer estaba mal implementada con varios problemas de UI/UX que no cumplían con las reglas establecidas en FLUJO-REAL-MODULOS.md.
+
+### 🔴 UBICACIÓN CRÍTICA DEL CÓDIGO
+**IMPORTANTE**: La vista del logo NO está en el módulo footer.js, está en el archivo principal:
+- **Archivo**: `/wwwroot/js/website-builder.js`
+- **Función**: `renderFooterLogoWithTextSettingsView` (línea ~6746)
+- **Event Listeners**: `attachFooterLogoWithTextEventListeners` (línea ~6843)
+- **Case en switchSidebarView**: línea ~5971
+
+### Problemas Encontrados
+1. **Estructura de scrollbar incorrecta**: Usaba `sidebar-view-content` sin la estructura flex correcta
+2. **Títulos mal formateados**: Usaba `<h4>` sin estilos Shopify (debe ser `font-size: 13px; font-weight: 500; color: #5c5e60;`)
+3. **Espaciado inconsistente**: Sin márgenes entre secciones
+4. **Botones con onclick inline**: Violaba el patrón de event listeners
+5. **Sin botón para remover imagen**: No había forma de eliminar un logo cargado
+
+### Estructura Correcta Implementada
+
+#### 1. Contenedor Principal con Scrollbar Correcto
+```html
+<div style="display: flex; flex-direction: column; height: 100%; position: relative; overflow: hidden;">
+    <div class="sidebar-view-header" style="position: relative; z-index: 10;">
+        <!-- Header fijo -->
+    </div>
+    
+    <div style="padding: 20px; overflow-y: auto; overflow-x: hidden; flex: 1; height: calc(100% - 60px); box-sizing: border-box;">
+        <!-- Contenido scrollable -->
+    </div>
+</div>
+```
+
+**Por qué**: Esto evita el problema de doble scrollbar. El contenedor principal tiene `overflow: hidden` y solo el área de contenido tiene `overflow-y: auto`.
+
+#### 2. Grupos de Configuración con Estilo Correcto
+```html
+<div class="settings-group">
+    <h4 style="font-size: 13px; font-weight: 500; margin-bottom: 12px; color: #5c5e60;">Logo</h4>
+    <!-- Campos -->
+</div>
+
+<div class="settings-group" style="margin-top: 30px;">
+    <h4 style="font-size: 13px; font-weight: 500; margin-bottom: 12px; color: #5c5e60;">Text</h4>
+    <!-- Campos -->
+</div>
+```
+
+#### 3. Upload de Imagen Mejorado
+```html
+<!-- Estado sin imagen -->
+<div class="logo-placeholder" style="border: 1px dashed #c9cccf; border-radius: 4px; padding: 40px; text-align: center; background: #f9fafb; margin-bottom: 12px;">
+    <i class="material-icons" style="font-size: 48px; color: #c9cccf;">image</i>
+    <p style="margin: 8px 0 0 0; color: #6c7079; font-size: 13px;">No image selected</p>
+</div>
+<button class="shopify-button secondary logo-upload-btn" data-block-id="${blockId}">
+    <span data-i18n="common.selectImage">Select image</span>
+</button>
+
+<!-- Estado con imagen -->
+<div class="logo-preview" style="margin-bottom: 12px; border: 1px solid #e3e3e3; border-radius: 4px; padding: 20px; text-align: center; background: #f7f7f7;">
+    <img src="${block.logo}" alt="Logo" style="max-width: 100%; max-height: 80px; object-fit: contain;">
+</div>
+<button class="shopify-button secondary logo-upload-btn" data-block-id="${blockId}">
+    <span data-i18n="common.changeImage">Change image</span>
+</button>
+<button class="shopify-button secondary remove-logo-btn" data-block-id="${blockId}" style="margin-left: 8px;">
+    <span data-i18n="common.removeImage">Remove</span>
+</button>
+```
+
+#### 4. Event Listeners Correctos (NO onclick inline)
+```javascript
+// Back button
+$('.back-to-sections-btn').off('click').on('click', function() {
+    window.switchSidebarView('blockList');
+});
+
+// Logo upload button clicks
+$('.logo-upload-btn').off('click').on('click', function() {
+    const btnBlockId = $(this).data('block-id');
+    $(`#footer-logo-input-${btnBlockId}`).click();
+});
+
+// Remove logo button
+$('.remove-logo-btn').off('click').on('click', function() {
+    const btnBlockId = $(this).data('block-id');
+    if (currentSectionsConfig.footer?.blocks?.[btnBlockId]) {
+        currentSectionsConfig.footer.blocks[btnBlockId].logo = '';
+        hasPendingPageStructureChanges = true;
+        updateSaveButtonState();
+        renderPreview();
+        window.switchSidebarView('footerLogoWithTextSettings', { blockId: btnBlockId });
+    }
+});
+```
+
+### Función Helper Agregada
+Se creó `window.configureFooterBlock` (línea ~23455) para manejar la navegación a diferentes vistas de configuración de bloques del footer:
+
+```javascript
+window.configureFooterBlock = function(blockId, blockType) {
+    // Valida que el bloque existe
+    // Redirige a la vista correcta según el tipo
+    switch(block.type) {
+        case 'logo-with-text':
+        case 'logo':
+            window.switchSidebarView('footerLogoWithTextSettings', { blockId });
+            break;
+        // ... otros casos
+    }
+};
+```
+
+### Checklist para Futuras Vistas de Configuración
+- [ ] Usar estructura flex con scrollbar solo en el contenido
+- [ ] Headers de sección con estilo: `font-size: 13px; font-weight: 500; color: #5c5e60;`
+- [ ] Espaciado entre grupos: `margin-top: 30px;`
+- [ ] NO usar onclick inline - usar clases y event listeners
+- [ ] Botón back debe usar clase `.back-to-sections-btn`
+- [ ] Incluir opción de remover/limpiar cuando sea aplicable
+- [ ] Validar existencia de datos antes de modificar: `if (currentSectionsConfig.footer?.blocks?.[blockId])`
+
+### Búsqueda Rápida para Encontrar Vistas de Footer
+```bash
+# Buscar todas las vistas de configuración del footer
+grep -n "function render.*Footer.*SettingsView" website-builder.js
+
+# Buscar el switch case específico
+grep -n "case 'footer.*Settings':" website-builder.js
+
+# Buscar dónde se llama a una vista específica
+grep -n "switchSidebarView('footerLogoWithTextSettings'" website-builder.js
+```
+
+### Lección Aprendida
+Las vistas de configuración de bloques del footer NO están en el módulo `/modules/footer.js`, están en el archivo principal `website-builder.js`. Esto puede causar confusión al buscar el código.
+
 ---
 *Documento creado: 2025-01-07*
-*Última actualización: 2025-01-07*
+*Última actualización: 2025-01-08*
