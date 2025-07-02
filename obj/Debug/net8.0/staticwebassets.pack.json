@@ -5,8 +5,68 @@
       "PackagePath": "staticwebassets\\Hotel.gd5o6vedgh.bundle.scp.css"
     },
     {
+      "Id": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\TestImages\\Accordion1.png",
+      "PackagePath": "staticwebassets\\TestImages\\Accordion1.png"
+    },
+    {
+      "Id": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\TestImages\\Accordion2.png",
+      "PackagePath": "staticwebassets\\TestImages\\Accordion2.png"
+    },
+    {
+      "Id": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\TestImages\\Accordion3.png",
+      "PackagePath": "staticwebassets\\TestImages\\Accordion3.png"
+    },
+    {
+      "Id": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\TestImages\\AccordionMenuPreview.png",
+      "PackagePath": "staticwebassets\\TestImages\\AccordionMenuPreview.png"
+    },
+    {
+      "Id": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\TestImages\\Contenttab1.png",
+      "PackagePath": "staticwebassets\\TestImages\\Contenttab1.png"
+    },
+    {
+      "Id": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\TestImages\\Contenttab2.png",
+      "PackagePath": "staticwebassets\\TestImages\\Contenttab2.png"
+    },
+    {
+      "Id": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\TestImages\\Contenttab3.png",
+      "PackagePath": "staticwebassets\\TestImages\\Contenttab3.png"
+    },
+    {
       "Id": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\TestImages\\VariasFilas.png",
       "PackagePath": "staticwebassets\\TestImages\\VariasFilas.png"
+    },
+    {
+      "Id": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\TestImages\\contactform1.png",
+      "PackagePath": "staticwebassets\\TestImages\\contactform1.png"
+    },
+    {
+      "Id": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\TestImages\\contactform2.png",
+      "PackagePath": "staticwebassets\\TestImages\\contactform2.png"
+    },
+    {
+      "Id": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\TestImages\\contactformeditorstructure.png",
+      "PackagePath": "staticwebassets\\TestImages\\contactformeditorstructure.png"
+    },
+    {
+      "Id": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\TestImages\\contactformpreviewmodal.png",
+      "PackagePath": "staticwebassets\\TestImages\\contactformpreviewmodal.png"
+    },
+    {
+      "Id": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\TestImages\\footer-estructura.png",
+      "PackagePath": "staticwebassets\\TestImages\\footer-estructura.png"
+    },
+    {
+      "Id": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\TestImages\\footer.png",
+      "PackagePath": "staticwebassets\\TestImages\\footer.png"
+    },
+    {
+      "Id": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\TestImages\\galleryeditorstructure.png",
+      "PackagePath": "staticwebassets\\TestImages\\galleryeditorstructure.png"
+    },
+    {
+      "Id": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\TestImages\\imagebannereditor.png",
+      "PackagePath": "staticwebassets\\TestImages\\imagebannereditor.png"
     },
     {
       "Id": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\TestImages\\imagewithtexthoverpreview.png",
@@ -17,8 +77,64 @@
       "PackagePath": "staticwebassets\\TestImages\\multicolumimage.png"
     },
     {
+      "Id": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\TestImages\\newsletter1.png",
+      "PackagePath": "staticwebassets\\TestImages\\newsletter1.png"
+    },
+    {
+      "Id": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\TestImages\\newsletter2.png",
+      "PackagePath": "staticwebassets\\TestImages\\newsletter2.png"
+    },
+    {
+      "Id": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\TestImages\\newsletter3.png",
+      "PackagePath": "staticwebassets\\TestImages\\newsletter3.png"
+    },
+    {
+      "Id": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\TestImages\\newsletter4.png",
+      "PackagePath": "staticwebassets\\TestImages\\newsletter4.png"
+    },
+    {
+      "Id": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\TestImages\\newsletterstructure.png",
+      "PackagePath": "staticwebassets\\TestImages\\newsletterstructure.png"
+    },
+    {
+      "Id": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\TestImages\\richtexteditorstructure.png",
+      "PackagePath": "staticwebassets\\TestImages\\richtexteditorstructure.png"
+    },
+    {
+      "Id": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\TestImages\\richtextpreviewmodal.png",
+      "PackagePath": "staticwebassets\\TestImages\\richtextpreviewmodal.png"
+    },
+    {
+      "Id": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\TestImages\\richtextsetup.png",
+      "PackagePath": "staticwebassets\\TestImages\\richtextsetup.png"
+    },
+    {
+      "Id": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\TestImages\\richtextsetup2.png",
+      "PackagePath": "staticwebassets\\TestImages\\richtextsetup2.png"
+    },
+    {
+      "Id": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\TestImages\\richtextsetup3.png",
+      "PackagePath": "staticwebassets\\TestImages\\richtextsetup3.png"
+    },
+    {
+      "Id": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\TestImages\\richtextsetup4.png",
+      "PackagePath": "staticwebassets\\TestImages\\richtextsetup4.png"
+    },
+    {
+      "Id": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\TestImages\\richtextsetup5.png",
+      "PackagePath": "staticwebassets\\TestImages\\richtextsetup5.png"
+    },
+    {
+      "Id": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\TestImages\\richtextsetup6.png",
+      "PackagePath": "staticwebassets\\TestImages\\richtextsetup6.png"
+    },
+    {
       "Id": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\TestImages\\slideshowpreview.png",
       "PackagePath": "staticwebassets\\TestImages\\slideshowpreview.png"
+    },
+    {
+      "Id": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\TestImages\\testimonialstructure.png",
+      "PackagePath": "staticwebassets\\TestImages\\testimonialstructure.png"
     },
     {
       "Id": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\css\\admin-panel.css",
@@ -81,12 +197,48 @@
       "PackagePath": "staticwebassets\\js\\website-builder.js.backup"
     },
     {
+      "Id": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\js\\website-builder\\modules\\accordion.js",
+      "PackagePath": "staticwebassets\\js\\website-builder\\modules\\accordion.js"
+    },
+    {
+      "Id": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\js\\website-builder\\modules\\contact-form.js",
+      "PackagePath": "staticwebassets\\js\\website-builder\\modules\\contact-form.js"
+    },
+    {
+      "Id": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\js\\website-builder\\modules\\footer.js",
+      "PackagePath": "staticwebassets\\js\\website-builder\\modules\\footer.js"
+    },
+    {
+      "Id": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\js\\website-builder\\modules\\gallery.js",
+      "PackagePath": "staticwebassets\\js\\website-builder\\modules\\gallery.js"
+    },
+    {
+      "Id": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\js\\website-builder\\modules\\image-banner-settings.js",
+      "PackagePath": "staticwebassets\\js\\website-builder\\modules\\image-banner-settings.js"
+    },
+    {
+      "Id": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\js\\website-builder\\modules\\image-banner.js",
+      "PackagePath": "staticwebassets\\js\\website-builder\\modules\\image-banner.js"
+    },
+    {
       "Id": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\js\\website-builder\\modules\\image-with-text.js",
       "PackagePath": "staticwebassets\\js\\website-builder\\modules\\image-with-text.js"
     },
     {
       "Id": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\js\\website-builder\\modules\\multicolumn.js",
       "PackagePath": "staticwebassets\\js\\website-builder\\modules\\multicolumn.js"
+    },
+    {
+      "Id": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\js\\website-builder\\modules\\newsletter.js",
+      "PackagePath": "staticwebassets\\js\\website-builder\\modules\\newsletter.js"
+    },
+    {
+      "Id": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\js\\website-builder\\modules\\richtext.js",
+      "PackagePath": "staticwebassets\\js\\website-builder\\modules\\richtext.js"
+    },
+    {
+      "Id": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\js\\website-builder\\modules\\testimonials.js",
+      "PackagePath": "staticwebassets\\js\\website-builder\\modules\\testimonials.js"
     },
     {
       "Id": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\js\\website-render-functions.js",
@@ -379,6 +531,10 @@
     {
       "Id": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\uploads\\website-logos\\1_mobile_c45cf4ad-e77d-4fd6-a762-39a8409f52ed.png",
       "PackagePath": "staticwebassets\\uploads\\website-logos\\1_mobile_c45cf4ad-e77d-4fd6-a762-39a8409f52ed.png"
+    },
+    {
+      "Id": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\uploads\\website-videos\\1_video_a1a9a037-34cf-47fd-8fd2-0c9413d21bd9.mp4",
+      "PackagePath": "staticwebassets\\uploads\\website-videos\\1_video_a1a9a037-34cf-47fd-8fd2-0c9413d21bd9.mp4"
     },
     {
       "Id": "obj\\Debug\\net8.0\\staticwebassets\\msbuild.Hotel.Microsoft.AspNetCore.StaticWebAssetEndpoints.props",

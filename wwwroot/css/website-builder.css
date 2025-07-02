@@ -1240,7 +1240,8 @@
 }
 
 /* Add Section Button - Modern Style */
-.add-section-button {
+.add-section-button,
+.add-footer-block-button {
     display: flex;
     align-items: center;
     gap: 8px;
@@ -1257,32 +1258,38 @@
     transition: all 0.2s ease;
 }
 
-.dark-mode .add-section-button {
+.dark-mode .add-section-button,
+.dark-mode .add-footer-block-button {
     border-color: #616161;
     color: #e3e3e3;
 }
 
-.add-section-button:hover {
+.add-section-button:hover,
+.add-footer-block-button:hover {
     background-color: #f6f6f7;
     border-color: #8c9196;
     transform: translateY(-1px);
 }
 
-.dark-mode .add-section-button:hover {
+.dark-mode .add-section-button:hover,
+.dark-mode .add-footer-block-button:hover {
     background-color: rgba(255, 255, 255, 0.04);
     border-color: #8c9196;
 }
 
-.add-section-button i {
+.add-section-button i,
+.add-footer-block-button i {
     font-size: 16px !important;
     color: #8c9196;
 }
 
-.dark-mode .add-section-button i {
+.dark-mode .add-section-button i,
+.dark-mode .add-footer-block-button i {
     color: #8c9196;
 }
 
-.add-section-button::before {
+.add-section-button::before,
+.add-footer-block-button::before {
     content: '';
     position: absolute;
     left: -16px;
@@ -1292,7 +1299,8 @@
     border-top: 1px dotted #c1c6cc;
 }
 
-.dark-mode .add-section-button::before {
+.dark-mode .add-section-button::before,
+.dark-mode .add-footer-block-button::before {
     border-top-color: #616161;
 }
 

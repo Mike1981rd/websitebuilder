@@ -2344,3 +2344,33 @@ if (typeof document !== 'undefined') {
         setTimeout(initializeSlideshows, 100);
     }
 }
+
+// Function to render footer
+function renderFooter(config) {
+    if (!config) {
+        config = { colorScheme: 'scheme1', isHidden: false };
+    }
+    
+    // Try to use the module first
+    if (window.WebsiteBuilderModules && window.WebsiteBuilderModules.Footer && window.WebsiteBuilderModules.Footer.render) {
+        return window.WebsiteBuilderModules.Footer.render(config);
+    }
+    
+    // Fallback
+    const schemeColors = getColorSchemeValues(config.colorScheme || 'scheme1');
+    
+    return `
+        <div class="section-wrapper footer-section" data-section-id="footer" style="padding: 40px 0; background: ${schemeColors.background};">
+            <div class="section-header-tag">
+                <span class="material-symbols-outlined" style="font-size: 16px; margin-right: 6px;">foundation</span>
+                ${window.translations?.[window.currentLanguage]?.['sections.footer'] || 'Footer'}
+            </div>
+            <div class="container" style="max-width: 1200px; margin: 0 auto; padding: 0 20px;">
+                <div style="text-align: center; color: ${schemeColors.text}; padding: 40px 0;">
+                    <i class="material-icons" style="font-size: 48px; opacity: 0.3;">foundation</i>
+                    <p style="margin-top: 20px; color: #666;">Footer - Configure from settings</p>
+                </div>
+            </div>
+        </div>
+    `;
+}

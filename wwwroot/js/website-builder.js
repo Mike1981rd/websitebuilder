@@ -134,9 +134,13 @@ let currentSectionsConfig = {
             icons: true
         }
     },
+    footer: {
+        colorScheme: 'scheme1',
+        isHidden: false
+    },
     announcements: {}, // Almacenar configuración individual de cada anuncio
     announcementOrder: [], // Orden de los anuncios
-    sectionOrder: ['announcement', 'header'] // Orden de las secciones principales
+    sectionOrder: ['announcement', 'header', 'footer'] // Orden de las secciones principales
 };
 
 // Make currentSectionsConfig globally accessible
@@ -371,9 +375,69 @@ async function loadCurrentWebsite() {
                                 stickyHeader: 'on-scroll-up'
                                 // Removed isHidden: false to avoid overwriting saved values
                             },
+                            footer: {
+                                colorScheme: 'scheme1',
+                                isHidden: false,
+                                useBackgroundColor: true,
+                                width: 'screen',
+                                desktopColumnCount: 4,
+                                showSeparator: true,
+                                showBottomBar: true,
+                                showPaymentIcons: true,
+                                copyrightText: 'Purrteam All Rights Reserved by Mango Pos Solutions LLC© Copyright 2022.',
+                                blocks: {
+                                    'block-1': {
+                                        id: 'block-1',
+                                        type: 'text',
+                                        title: 'Soporte',
+                                        content: 'support@purrteam.com\n+1 809-637-4142',
+                                        order: 1
+                                    },
+                                    'block-2': {
+                                        id: 'block-2',
+                                        type: 'text',
+                                        title: 'Ventas',
+                                        content: 'support@purrteam.com\n+1 809-637-4142',
+                                        order: 2
+                                    },
+                                    'block-3': {
+                                        id: 'block-3',
+                                        type: 'menu',
+                                        title: 'Menu',
+                                        menuId: 'footer-menu',
+                                        order: 3
+                                    },
+                                    'block-4': {
+                                        id: 'block-4',
+                                        type: 'text',
+                                        title: 'Direccion',
+                                        content: 'Calle Leonardo Da Vinci #87,\nRenacimiento, Santo Domingo,\nRepublica Dominicana',
+                                        order: 4
+                                    },
+                                    'block-5': {
+                                        id: 'block-5',
+                                        type: 'social',
+                                        title: 'Siguenos en',
+                                        order: 5
+                                    },
+                                    'block-6': {
+                                        id: 'block-6',
+                                        type: 'newsletter',
+                                        title: 'Subscribete',
+                                        order: 6
+                                    },
+                                    'block-7': {
+                                        id: 'block-7',
+                                        type: 'logo',
+                                        title: '',
+                                        order: 7
+                                    }
+                                },
+                                blockOrder: ['block-1', 'block-2', 'block-3', 'block-4', 'block-5', 'block-6', 'block-7']
+                            },
                             announcements: {},
                             announcementOrder: [],
-                            sectionOrder: ['announcement', 'header']
+                            sectionOrder: ['announcement', 'header', 'footer']
                         };
                         
                         // Deep merge saved config with defaults
@@ -388,7 +452,7 @@ async function loadCurrentWebsite() {
                             currentSectionsConfig.header.isHidden = sectionsData.header.isHidden;
                         }
                         // Also preserve isHidden for other sections
-                        ['slideshow', 'multicolumn', 'imageWithText'].forEach(sectionType => {
+                        ['slideshow', 'multicolumn', 'imageWithText', 'footer'].forEach(sectionType => {
                             if (sectionsData[sectionType] && sectionsData[sectionType].hasOwnProperty('isHidden')) {
                                 currentSectionsConfig[sectionType].isHidden = sectionsData[sectionType].isHidden;
                                 console.log(`[DEBUG] Preserved ${sectionType}.isHidden:`, sectionsData[sectionType].isHidden);
@@ -407,6 +471,12 @@ async function loadCurrentWebsite() {
                                 });
                             }
                         });
+                        
+                        // CRITICAL: Ensure footer is in sectionOrder if it exists in config
+                        if (currentSectionsConfig.footer && !currentSectionsConfig.sectionOrder.includes('footer')) {
+                            currentSectionsConfig.sectionOrder.push('footer');
+                            console.log('[DEBUG] Added footer to sectionOrder');
+                        }
                         
                         window.currentSectionsConfig = currentSectionsConfig;
                         
@@ -432,7 +502,8 @@ async function loadCurrentWebsite() {
                         }
                         
                         // Ensure slideshow is properly initialized
-                        if (!currentSectionsConfig.slideshow) {
+                        // COMMENTED OUT - Slideshow should not be added by default
+                        /*if (!currentSectionsConfig.slideshow) {
                             const defaultSlideId = 'slide-' + Date.now();
                             currentSectionsConfig.slideshow = {
                                 isHidden: false,
@@ -470,10 +541,11 @@ async function loadCurrentWebsite() {
                                 },
                                 slideOrder: [defaultSlideId]
                             };
-                        }
+                        }*/
                         
                         // Add slideshow to section order if not present
-                        if (currentSectionsConfig.sectionOrder && !currentSectionsConfig.sectionOrder.includes('slideshow')) {
+                        // COMMENTED OUT - Slideshow should not be added by default
+                        /*if (currentSectionsConfig.sectionOrder && !currentSectionsConfig.sectionOrder.includes('slideshow')) {
                             // Add slideshow after header
                             const headerIndex = currentSectionsConfig.sectionOrder.indexOf('header');
                             if (headerIndex >= 0) {
@@ -481,7 +553,7 @@ async function loadCurrentWebsite() {
                             } else {
                                 currentSectionsConfig.sectionOrder.push('slideshow');
                             }
-                        }
+                        }*/
                     console.log('[DEBUG] Loaded sections config from DB:', currentSectionsConfig);
                 }
             } catch (e) {
@@ -490,9 +562,24 @@ async function loadCurrentWebsite() {
                 currentSectionsConfig = {
                     announcementBar: {},
                     header: {},
+                    footer: {
+                        isHidden: false,
+                        colorScheme: 'scheme1',
+                        showColorBackground: false,
+                        width: 'screen',
+                        desktopColumnCount: 3,
+                        showSeparator: false,
+                        showPaymentIcons: true,
+                        copyrightNotice: 'Purrteam All Rights Reserved by Mango Pos Solutions LLC© Copyright 2022.',
+                        showLanguageSelector: true,
+                        showCurrencySelector: true,
+                        showPolicyLinks: true,
+                        blocks: {},
+                        blockOrder: []
+                    },
                     announcements: {},
                     announcementOrder: [],
-                    sectionOrder: ['announcement', 'header']
+                    sectionOrder: ['announcement', 'header', 'footer']
                 };
                 window.currentSectionsConfig = currentSectionsConfig;
             }
@@ -502,9 +589,24 @@ async function loadCurrentWebsite() {
             currentSectionsConfig = {
                 announcementBar: {},
                 header: {},
+                footer: {
+                    isHidden: false,
+                    colorScheme: 'scheme1',
+                    showColorBackground: false,
+                    width: 'screen',
+                    desktopColumnCount: 3,
+                    showSeparator: false,
+                    showPaymentIcons: true,
+                    copyrightNotice: 'Purrteam All Rights Reserved by Mango Pos Solutions LLC© Copyright 2022.',
+                    showLanguageSelector: true,
+                    showCurrencySelector: true,
+                    showPolicyLinks: true,
+                    blocks: {},
+                    blockOrder: []
+                },
                 announcements: {},
                 announcementOrder: [],
-                sectionOrder: ['announcement', 'header']
+                sectionOrder: ['announcement', 'header', 'footer']
             };
             window.currentSectionsConfig = currentSectionsConfig;
         }
@@ -540,6 +642,25 @@ async function loadCurrentWebsite() {
                         currentSectionsConfig = sectionsData;
                         window.currentSectionsConfig = currentSectionsConfig;
                         console.log('[DEBUG] Using sections from sectionsConfigJson');
+                        
+                        // Ensure footer is initialized with defaults if missing
+                        if (!currentSectionsConfig.footer) {
+                            currentSectionsConfig.footer = {
+                                isHidden: false,
+                                colorScheme: 'scheme1',
+                                showColorBackground: false,
+                                width: 'screen',
+                                desktopColumnCount: 3,
+                                showSeparator: false,
+                                showPaymentIcons: true,
+                                copyrightNotice: 'Purrteam All Rights Reserved by Mango Pos Solutions LLC© Copyright 2022.',
+                                showLanguageSelector: true,
+                                showCurrencySelector: true,
+                                showPolicyLinks: true,
+                                blocks: {},
+                                blockOrder: []
+                            };
+                        }
                     }
                 }
             } catch (e) {
@@ -1893,6 +2014,36 @@ function renderRichText(config) {
     `;
 }
 
+function renderFooter(config) {
+    if (!config || config.isHidden) return '';
+    
+    // Try to use the module first
+    if (window.WebsiteBuilderModules && window.WebsiteBuilderModules.Footer && window.WebsiteBuilderModules.Footer.render) {
+        return window.WebsiteBuilderModules.Footer.render(config);
+    }
+    
+    // Fallback
+    const schemeColors = getColorSchemeValues(config.colorScheme || 'scheme1');
+    
+    return `
+        <div class="section-wrapper footer-section" data-section-id="footer" style="padding: 40px 0; background: ${schemeColors.background};">
+            <div class="section-header-tag">
+                <span class="material-symbols-outlined" style="font-size: 16px; margin-right: 6px;">foundation</span>
+                ${translations[currentLanguage]?.['sections.footer'] || 'Footer'}
+            </div>
+            <div class="container" style="max-width: 1200px; margin: 0 auto; padding: 0 20px;">
+                <div style="text-align: center; color: ${schemeColors.text}; padding: 40px 0;">
+                    <i class="material-icons" style="font-size: 48px; opacity: 0.3;">foundation</i>
+                    <p style="margin-top: 20px; color: #666;">Footer - Configure from settings</p>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+// Make it available globally
+window.renderFooter = renderFooter;
+
 /**
  * Renderiza todas las secciones de la página en el iframe de previsualización.
  */
@@ -2051,6 +2202,16 @@ function renderPreview() {
                             </div>`;
                         }
                     }
+                } else if (sectionId === 'footer') {
+                    const config = currentSectionsConfig.footer;
+                    if (config && !config.isHidden) {
+                        const moduleRender = iframeWindow.WebsiteBuilderModules?.Footer?.render;
+                        if (moduleRender) {
+                            finalHtml += moduleRender(config);
+                        } else if (iframeWindow.renderFooter) {
+                            finalHtml += iframeWindow.renderFooter(config);
+                        }
+                    }
                 }
             });
         }
@@ -2069,7 +2230,8 @@ function renderPreview() {
             'imageBanner': window.WebsiteBuilderModules?.ImageBanner?.render || renderImageBanner,
             'newsletter': window.WebsiteBuilderModules?.Newsletter?.render || renderNewsletter,
             'gallery': window.WebsiteBuilderModules?.Gallery?.render || renderGallery,
-            'richText': window.WebsiteBuilderModules?.RichText?.render || renderRichText
+            'richText': window.WebsiteBuilderModules?.RichText?.render || renderRichText,
+            'footer': window.WebsiteBuilderModules?.Footer?.render || renderFooter
         };
         
         // Renderizar secciones según el orden definido
@@ -2232,6 +2394,11 @@ function renderPreview() {
                 $('.topbar-nav-icon').removeClass('active');
                 $('.topbar-nav-icon[data-view="sections"]').addClass('active');
                 window.switchSidebarView('imageWithTextSettings', { sectionId: sectionId });
+            } else if (sectionId === 'footer') {
+                // Logic for footer section
+                $('.topbar-nav-icon').removeClass('active');
+                $('.topbar-nav-icon[data-view="sections"]').addClass('active');
+                window.switchSidebarView('footerSettings');
             }
             // Aquí añadiremos más 'else if' para otras secciones en el futuro.
         });
@@ -5789,6 +5956,48 @@ $(document).ready(async function() {
             } else {
                 console.error('[DEBUG] Missing contactFormId or config for contact form settings');
             }
+        } else if (viewName === 'footerSettings') {
+            // Footer main settings view - usar módulo
+            console.log('[DEBUG] Rendering footer settings');
+            const html = executeModuleFunction('Footer', 'renderSettings', window.currentSectionsConfig?.footer);
+            
+            if (html) {
+                dynamicContentArea.innerHTML = html;
+                executeModuleFunction('Footer', 'attachEventListeners');
+                setTimeout(applyTranslations, 0);
+            } else {
+                console.error('[DEBUG] No HTML returned from footer renderSettings');
+            }
+        } else if (viewName === 'footerLogoWithTextSettings') {
+            // Footer logo with text block settings
+            console.log('[DEBUG] Rendering footer logo with text settings', data);
+            dynamicContentArea.innerHTML = renderFooterLogoWithTextSettingsView(data);
+            attachFooterLogoWithTextEventListeners(data?.blockId);
+            setTimeout(applyTranslations, 0);
+        } else if (viewName === 'footerSubscribeSettings') {
+            // Footer subscribe block settings
+            console.log('[DEBUG] Rendering footer subscribe settings', data);
+            dynamicContentArea.innerHTML = renderFooterSubscribeSettingsView(data);
+            attachFooterSubscribeEventListeners(data?.blockId);
+            setTimeout(applyTranslations, 0);
+        } else if (viewName === 'footerMenuSettings') {
+            // Footer menu block settings
+            console.log('[DEBUG] Rendering footer menu settings', data);
+            dynamicContentArea.innerHTML = renderFooterMenuSettingsView(data);
+            attachFooterMenuEventListeners(data?.blockId);
+            setTimeout(applyTranslations, 0);
+        } else if (viewName === 'footerTextSettings') {
+            // Footer text block settings
+            console.log('[DEBUG] Rendering footer text settings', data);
+            dynamicContentArea.innerHTML = renderFooterTextSettingsView(data);
+            attachFooterTextEventListeners(data?.blockId);
+            setTimeout(applyTranslations, 0);
+        } else if (viewName === 'footerSocialMediaSettings') {
+            // Footer social media block settings
+            console.log('[DEBUG] Rendering footer social media settings', data);
+            dynamicContentArea.innerHTML = renderFooterSocialMediaSettingsView(data);
+            attachFooterSocialMediaEventListeners(data?.blockId);
+            setTimeout(applyTranslations, 0);
         } else {
             dynamicContentArea.innerHTML = `<p class="sidebar-loading-text">${lang.sidebarLoadingText}</p>`;
         }
@@ -6200,7 +6409,7 @@ $(document).ready(async function() {
         };
         
         // Use saved order or default
-        const order = currentSectionsConfig.sectionOrder || ['announcement', 'header'];
+        const order = currentSectionsConfig.sectionOrder || ['announcement', 'header', 'footer'];
         
         for (const sectionType of order) {
             if (sections[sectionType] && sections[sectionType].html) {
@@ -6212,6 +6421,913 @@ $(document).ready(async function() {
         }
         
         return html;
+    }
+    
+    // Function to render footer blocks
+    function renderFooterBlocks() {
+        console.log('[DEBUG] Rendering footer blocks:', currentSectionsConfig.footer);
+        let blocksHtml = '';
+        
+        if (!currentSectionsConfig.footer || !currentSectionsConfig.footer.blockOrder || currentSectionsConfig.footer.blockOrder.length === 0) {
+            return '';
+        }
+        
+        const blocks = currentSectionsConfig.footer.blocks || {};
+        const blockOrder = currentSectionsConfig.footer.blockOrder;
+        
+        blocksHtml = '<div id="footer-blocks-wrapper" style="position: relative;">';
+        
+        blockOrder.forEach((blockId, index) => {
+            const block = blocks[blockId];
+            if (block) {
+                const blockName = getFooterBlockName(block.type);
+                blocksHtml += `
+                    <div class="sidebar-subsection footer-block-item" data-block-type="footer-block" data-element-id="${blockId}" style="padding-left: 30px;">
+                        <i class="material-icons drag-handle">drag_handle</i>
+                        <span class="subsection-text" style="margin-left: 30px;">${blockName}</span>
+                        <div class="subsection-actions">
+                            <button class="action-icon visibility-toggle ${block.isHidden ? 'is-hidden' : ''}" data-element-id="${blockId}" data-element-type="footer-block" title="Toggle visibility">
+                                <i class="material-icons icon-visible">visibility</i>
+                                <i class="material-icons icon-hidden">visibility_off</i>
+                            </button>
+                            <button class="action-icon delete-footer-block" data-block-id="${blockId}" title="Delete">
+                                <i class="material-icons">delete</i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }
+        });
+        
+        blocksHtml += '</div>';
+        return blocksHtml;
+    }
+    
+    // Helper function to get footer block name
+    function getFooterBlockName(type) {
+        const names = {
+            'logo-with-text': 'Logo with text',
+            'subscribe': 'Subscribe',
+            'menu': 'Menu',
+            'text': 'Text',
+            'social-media': 'Social media'
+        };
+        return names[type] || type;
+    }
+    
+    // Function to render footer settings view
+    function renderFooterSettingsView() {
+        console.log('[DEBUG] Rendering footer settings view', currentSectionsConfig.footer);
+        const footer = currentSectionsConfig.footer || {};
+        
+        return `
+            <div class="sidebar-view-header">
+                <button class="back-button" onclick="window.switchSidebarView('blockList')">
+                    <i class="material-icons">arrow_back</i>
+                </button>
+                <h3 data-i18n="footerSettings.title">Pie de página</h3>
+            </div>
+            
+            <div class="sidebar-view-content settings-panel">
+                <!-- Colors Section -->
+                <div class="settings-section">
+                    <h4 data-i18n="footerSettings.colors">Colores</h4>
+                    
+                    <!-- Color Scheme -->
+                    <div class="settings-field">
+                        <label data-i18n="footerSettings.colorScheme">Color scheme</label>
+                        <select class="shopify-select" id="footer-color-scheme">
+                            <option value="scheme1" ${footer.colorScheme === 'scheme1' ? 'selected' : ''}>Scheme 1</option>
+                            <option value="scheme2" ${footer.colorScheme === 'scheme2' ? 'selected' : ''}>Scheme 2</option>
+                            <option value="scheme3" ${footer.colorScheme === 'scheme3' ? 'selected' : ''}>Scheme 3</option>
+                            <option value="scheme4" ${footer.colorScheme === 'scheme4' ? 'selected' : ''}>Scheme 4</option>
+                            <option value="scheme5" ${footer.colorScheme === 'scheme5' ? 'selected' : ''}>Scheme 5</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Color background toggle -->
+                    <div class="settings-field">
+                        <label class="toggle-field">
+                            <span data-i18n="footerSettings.colorBackground">Color background</span>
+                            <input type="checkbox" class="shopify-toggle" id="footer-show-color-background" ${footer.showColorBackground ? 'checked' : ''}>
+                            <label for="footer-show-color-background" class="toggle-slider"></label>
+                        </label>
+                    </div>
+                    
+                    <!-- Width -->
+                    <div class="settings-field">
+                        <label data-i18n="footerSettings.width">Width</label>
+                        <select class="shopify-select" id="footer-width">
+                            <option value="screen" ${footer.width === 'screen' ? 'selected' : ''} data-i18n="footerSettings.widthScreen">Full width</option>
+                            <option value="container" ${footer.width === 'container' ? 'selected' : ''} data-i18n="footerSettings.widthContainer">Container</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <!-- Layout Section -->
+                <div class="settings-section">
+                    <h4 data-i18n="footerSettings.layout">Layout</h4>
+                    
+                    <!-- Desktop column count -->
+                    <div class="settings-field">
+                        <label data-i18n="footerSettings.desktopColumnCount">Desktop column count</label>
+                        <select class="shopify-select" id="footer-desktop-column-count">
+                            <option value="1" ${footer.desktopColumnCount === 1 ? 'selected' : ''}>1</option>
+                            <option value="2" ${footer.desktopColumnCount === 2 ? 'selected' : ''}>2</option>
+                            <option value="3" ${footer.desktopColumnCount === 3 ? 'selected' : ''}>3</option>
+                            <option value="4" ${footer.desktopColumnCount === 4 ? 'selected' : ''}>4</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Show separator toggle -->
+                    <div class="settings-field">
+                        <label class="toggle-field">
+                            <span data-i18n="footerSettings.showSeparator">Show separator</span>
+                            <input type="checkbox" class="shopify-toggle" id="footer-show-separator" ${footer.showSeparator ? 'checked' : ''}>
+                            <label for="footer-show-separator" class="toggle-slider"></label>
+                        </label>
+                    </div>
+                </div>
+                
+                <!-- Content Section -->
+                <div class="settings-section">
+                    <h4 data-i18n="footerSettings.content">Content</h4>
+                    
+                    <!-- Show payment icons toggle -->
+                    <div class="settings-field">
+                        <label class="toggle-field">
+                            <span data-i18n="footerSettings.showPaymentIcons">Show payment icons</span>
+                            <input type="checkbox" class="shopify-toggle" id="footer-show-payment-icons" ${footer.showPaymentIcons ? 'checked' : ''}>
+                            <label for="footer-show-payment-icons" class="toggle-slider"></label>
+                        </label>
+                    </div>
+                    
+                    <!-- Copyright notice -->
+                    <div class="settings-field">
+                        <label data-i18n="footerSettings.copyrightNotice">Copyright notice</label>
+                        <textarea class="shopify-input" id="footer-copyright-notice" rows="2">${footer.copyrightNotice || ''}</textarea>
+                    </div>
+                    
+                    <!-- Show language selector toggle -->
+                    <div class="settings-field">
+                        <label class="toggle-field">
+                            <span data-i18n="footerSettings.showLanguageSelector">Show language selector</span>
+                            <input type="checkbox" class="shopify-toggle" id="footer-show-language-selector" ${footer.showLanguageSelector ? 'checked' : ''}>
+                            <label for="footer-show-language-selector" class="toggle-slider"></label>
+                        </label>
+                    </div>
+                    
+                    <!-- Show currency selector toggle -->
+                    <div class="settings-field">
+                        <label class="toggle-field">
+                            <span data-i18n="footerSettings.showCurrencySelector">Show currency selector</span>
+                            <input type="checkbox" class="shopify-toggle" id="footer-show-currency-selector" ${footer.showCurrencySelector ? 'checked' : ''}>
+                            <label for="footer-show-currency-selector" class="toggle-slider"></label>
+                        </label>
+                    </div>
+                    
+                    <!-- Show policy links toggle -->
+                    <div class="settings-field">
+                        <label class="toggle-field">
+                            <span data-i18n="footerSettings.showPolicyLinks">Show policy links</span>
+                            <input type="checkbox" class="shopify-toggle" id="footer-show-policy-links" ${footer.showPolicyLinks ? 'checked' : ''}>
+                            <label for="footer-show-policy-links" class="toggle-slider"></label>
+                        </label>
+                    </div>
+                </div>
+                
+                <!-- Padding Section -->
+                <div class="settings-section">
+                    <h4 data-i18n="footerSettings.padding">Padding</h4>
+                    
+                    <!-- Top padding -->
+                    <div class="settings-field">
+                        <label data-i18n="footerSettings.topPadding">Top</label>
+                        <div class="shopify-slider-container">
+                            <input type="range" id="footer-top-padding" min="0" max="100" value="${footer.topPadding || 40}" step="5" class="shopify-slider">
+                            <div class="shopify-value-box">
+                                <input type="number" id="footer-top-padding-value" min="0" max="100" value="${footer.topPadding || 40}" class="shopify-value-input">
+                                <span class="shopify-unit">px</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Bottom padding -->
+                    <div class="settings-field">
+                        <label data-i18n="footerSettings.bottomPadding">Bottom</label>
+                        <div class="shopify-slider-container">
+                            <input type="range" id="footer-bottom-padding" min="0" max="100" value="${footer.bottomPadding || 40}" step="5" class="shopify-slider">
+                            <div class="shopify-value-box">
+                                <input type="number" id="footer-bottom-padding-value" min="0" max="100" value="${footer.bottomPadding || 40}" class="shopify-value-input">
+                                <span class="shopify-unit">px</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Theme Settings Link -->
+                <div class="settings-field" style="margin-top: 40px;">
+                    <a href="#" class="theme-settings-link" onclick="window.switchSidebarView('themeSettingsView'); return false;">
+                        <span data-i18n="common.themeSettings">Theme settings</span>
+                        <i class="material-icons">arrow_forward</i>
+                    </a>
+                </div>
+            </div>
+        `;
+    }
+    
+    // Function to attach footer settings event listeners
+    function attachFooterSettingsEventListeners() {
+        console.log('[DEBUG] Attaching footer settings event listeners');
+        
+        // Color scheme change
+        $('#footer-color-scheme').on('change', function() {
+            currentSectionsConfig.footer.colorScheme = $(this).val();
+            hasPendingPageStructureChanges = true;
+            updateSaveButtonState();
+            renderPreview();
+        });
+        
+        // Color background toggle
+        $('#footer-show-color-background').on('change', function() {
+            currentSectionsConfig.footer.showColorBackground = $(this).is(':checked');
+            hasPendingPageStructureChanges = true;
+            updateSaveButtonState();
+            renderPreview();
+        });
+        
+        // Width change
+        $('#footer-width').on('change', function() {
+            currentSectionsConfig.footer.width = $(this).val();
+            hasPendingPageStructureChanges = true;
+            updateSaveButtonState();
+            renderPreview();
+        });
+        
+        // Desktop column count change
+        $('#footer-desktop-column-count').on('change', function() {
+            currentSectionsConfig.footer.desktopColumnCount = parseInt($(this).val());
+            hasPendingPageStructureChanges = true;
+            updateSaveButtonState();
+            renderPreview();
+        });
+        
+        // Show separator toggle
+        $('#footer-show-separator').on('change', function() {
+            currentSectionsConfig.footer.showSeparator = $(this).is(':checked');
+            hasPendingPageStructureChanges = true;
+            updateSaveButtonState();
+            renderPreview();
+        });
+        
+        // Show payment icons toggle
+        $('#footer-show-payment-icons').on('change', function() {
+            currentSectionsConfig.footer.showPaymentIcons = $(this).is(':checked');
+            hasPendingPageStructureChanges = true;
+            updateSaveButtonState();
+            renderPreview();
+        });
+        
+        // Copyright notice change
+        $('#footer-copyright-notice').on('input', function() {
+            currentSectionsConfig.footer.copyrightNotice = $(this).val();
+            hasPendingPageStructureChanges = true;
+            updateSaveButtonState();
+            renderPreview();
+        });
+        
+        // Show language selector toggle
+        $('#footer-show-language-selector').on('change', function() {
+            currentSectionsConfig.footer.showLanguageSelector = $(this).is(':checked');
+            hasPendingPageStructureChanges = true;
+            updateSaveButtonState();
+            renderPreview();
+        });
+        
+        // Show currency selector toggle
+        $('#footer-show-currency-selector').on('change', function() {
+            currentSectionsConfig.footer.showCurrencySelector = $(this).is(':checked');
+            hasPendingPageStructureChanges = true;
+            updateSaveButtonState();
+            renderPreview();
+        });
+        
+        // Show policy links toggle
+        $('#footer-show-policy-links').on('change', function() {
+            currentSectionsConfig.footer.showPolicyLinks = $(this).is(':checked');
+            hasPendingPageStructureChanges = true;
+            updateSaveButtonState();
+            renderPreview();
+        });
+        
+        // Padding sliders
+        $('#footer-top-padding, #footer-top-padding-value').on('input', function() {
+            const value = parseInt($(this).val());
+            $('#footer-top-padding').val(value);
+            $('#footer-top-padding-value').val(value);
+            currentSectionsConfig.footer.topPadding = value;
+            hasPendingPageStructureChanges = true;
+            updateSaveButtonState();
+            renderPreview();
+        });
+        
+        $('#footer-bottom-padding, #footer-bottom-padding-value').on('input', function() {
+            const value = parseInt($(this).val());
+            $('#footer-bottom-padding').val(value);
+            $('#footer-bottom-padding-value').val(value);
+            currentSectionsConfig.footer.bottomPadding = value;
+            hasPendingPageStructureChanges = true;
+            updateSaveButtonState();
+            renderPreview();
+        });
+    }
+    
+    // Function to render footer logo with text settings view
+    function renderFooterLogoWithTextSettingsView(data) {
+        console.log('[DEBUG] Rendering footer logo with text settings', data);
+        const blockId = data?.blockId;
+        const block = currentSectionsConfig.footer?.blocks?.[blockId] || {};
+        
+        return `
+            <div class="sidebar-view-header">
+                <button class="back-button" onclick="window.switchSidebarView('blockList')">
+                    <i class="material-icons">arrow_back</i>
+                </button>
+                <h3 data-i18n="footerLogoWithText.title">Logo with text</h3>
+            </div>
+            
+            <div class="sidebar-view-content settings-panel">
+                <!-- Logo Section -->
+                <div class="settings-section">
+                    <h4 data-i18n="footerLogoWithText.logo">Logo</h4>
+                    
+                    <!-- Logo upload -->
+                    <div class="settings-field">
+                        <label data-i18n="footerLogoWithText.logoImage">Logo</label>
+                        <div class="logo-upload-container">
+                            ${block.logo ? `
+                                <div class="logo-preview">
+                                    <img src="${block.logo}" alt="Logo" class="logo-image">
+                                </div>
+                                <button class="shopify-button secondary" onclick="document.getElementById('footer-logo-input-${blockId}').click()">
+                                    <span data-i18n="common.changeImage">Change image</span>
+                                </button>
+                            ` : `
+                                <div class="logo-placeholder">
+                                    <i class="material-icons">image</i>
+                                </div>
+                                <button class="shopify-button secondary" onclick="document.getElementById('footer-logo-input-${blockId}').click()">
+                                    <span data-i18n="common.selectImage">Select image</span>
+                                </button>
+                            `}
+                            <input type="file" id="footer-logo-input-${blockId}" accept="image/*" style="display: none;">
+                        </div>
+                    </div>
+                    
+                    <!-- Logo size -->
+                    <div class="settings-field">
+                        <label data-i18n="footerLogoWithText.logoSize">Logo size</label>
+                        <div class="shopify-slider-container">
+                            <input type="range" id="footer-logo-size" min="50" max="250" value="${block.logoSize || 120}" step="10" class="shopify-slider">
+                            <div class="shopify-value-box">
+                                <input type="number" id="footer-logo-size-value" min="50" max="250" value="${block.logoSize || 120}" class="shopify-value-input">
+                                <span class="shopify-unit">px</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Text Section -->
+                <div class="settings-section">
+                    <h4 data-i18n="footerLogoWithText.text">Text</h4>
+                    
+                    <!-- Heading -->
+                    <div class="settings-field">
+                        <label data-i18n="footerLogoWithText.heading">Heading</label>
+                        <input type="text" class="shopify-input" id="footer-logo-heading" value="${block.heading || ''}" placeholder="Enter heading">
+                    </div>
+                    
+                    <!-- Body -->
+                    <div class="settings-field">
+                        <label data-i18n="footerLogoWithText.body">Body</label>
+                        <div class="rich-text-editor">
+                            <div class="text-formatting-toolbar">
+                                <button class="format-btn" data-command="bold" title="Bold">
+                                    <i class="material-icons">format_bold</i>
+                                </button>
+                                <button class="format-btn" data-command="italic" title="Italic">
+                                    <i class="material-icons">format_italic</i>
+                                </button>
+                                <button class="format-btn" data-command="insertUnorderedList" title="Bullet list">
+                                    <i class="material-icons">format_list_bulleted</i>
+                                </button>
+                                <button class="format-btn" data-command="insertOrderedList" title="Numbered list">
+                                    <i class="material-icons">format_list_numbered</i>
+                                </button>
+                            </div>
+                            <div contenteditable="true" class="rich-text-content shopify-input" id="footer-logo-body" style="min-height: 100px;">${block.body || ''}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    
+    // Function to attach footer logo with text event listeners
+    function attachFooterLogoWithTextEventListeners(blockId) {
+        console.log('[DEBUG] Attaching footer logo with text event listeners', blockId);
+        
+        // Logo upload
+        $(`#footer-logo-input-${blockId}`).on('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    currentSectionsConfig.footer.blocks[blockId].logo = event.target.result;
+                    hasPendingPageStructureChanges = true;
+                    updateSaveButtonState();
+                    renderPreview();
+                    // Refresh the view to show the uploaded image
+                    window.switchSidebarView('footerLogoWithTextSettings', { blockId });
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+        
+        // Logo size
+        $('#footer-logo-size, #footer-logo-size-value').on('input', function() {
+            const value = parseInt($(this).val());
+            $('#footer-logo-size').val(value);
+            $('#footer-logo-size-value').val(value);
+            currentSectionsConfig.footer.blocks[blockId].logoSize = value;
+            hasPendingPageStructureChanges = true;
+            updateSaveButtonState();
+            renderPreview();
+        });
+        
+        // Heading
+        $('#footer-logo-heading').on('input', function() {
+            currentSectionsConfig.footer.blocks[blockId].heading = $(this).val();
+            hasPendingPageStructureChanges = true;
+            updateSaveButtonState();
+            renderPreview();
+        });
+        
+        // Body - Rich text editor
+        $('#footer-logo-body').on('input', function() {
+            currentSectionsConfig.footer.blocks[blockId].body = $(this).html();
+            hasPendingPageStructureChanges = true;
+            updateSaveButtonState();
+            renderPreview();
+        });
+        
+        // Text formatting toolbar
+        $('.format-btn').on('click', function(e) {
+            e.preventDefault();
+            const command = $(this).data('command');
+            document.execCommand(command, false, null);
+            $('#footer-logo-body').trigger('input');
+        });
+    }
+    
+    // Function to render footer subscribe settings view
+    function renderFooterSubscribeSettingsView(data) {
+        console.log('[DEBUG] Rendering footer subscribe settings', data);
+        const blockId = data?.blockId;
+        const block = currentSectionsConfig.footer?.blocks?.[blockId] || {};
+        
+        return `
+            <div class="sidebar-view-header">
+                <button class="back-button" onclick="window.switchSidebarView('blockList')">
+                    <i class="material-icons">arrow_back</i>
+                </button>
+                <h3 data-i18n="footerSubscribe.title">Subscribe</h3>
+            </div>
+            
+            <div class="sidebar-view-content settings-panel">
+                <div class="settings-info-box">
+                    <p data-i18n="footerSubscribe.info">Each email subscription creates a <a href="#" onclick="alert('Customer accounts page'); return false;">customer account</a>.</p>
+                </div>
+                
+                <!-- Content Section -->
+                <div class="settings-section">
+                    <h4 data-i18n="footerSubscribe.content">Content</h4>
+                    
+                    <!-- Heading -->
+                    <div class="settings-field">
+                        <label data-i18n="footerSubscribe.heading">Heading</label>
+                        <input type="text" class="shopify-input" id="footer-subscribe-heading" value="${block.heading || 'Subscribete'}" placeholder="Enter heading">
+                    </div>
+                    
+                    <!-- Body -->
+                    <div class="settings-field">
+                        <label data-i18n="footerSubscribe.body">Body</label>
+                        <div class="rich-text-editor">
+                            <div class="text-formatting-toolbar">
+                                <button class="format-btn" data-command="bold" title="Bold">
+                                    <i class="material-icons">format_bold</i>
+                                </button>
+                                <button class="format-btn" data-command="italic" title="Italic">
+                                    <i class="material-icons">format_italic</i>
+                                </button>
+                                <button class="format-btn" data-command="createLink" title="Link">
+                                    <i class="material-icons">link</i>
+                                </button>
+                            </div>
+                            <div contenteditable="true" class="rich-text-content shopify-input" id="footer-subscribe-body" style="min-height: 80px;">${block.body || ''}</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Input Style Section -->
+                <div class="settings-section">
+                    <h4 data-i18n="footerSubscribe.inputStyle">Input style</h4>
+                    
+                    <div class="settings-field">
+                        <div class="button-group">
+                            <button class="button-group-btn ${block.inputStyle === 'solid' || !block.inputStyle ? 'active' : ''}" data-style="solid">
+                                <span data-i18n="footerSubscribe.solid">Solid</span>
+                            </button>
+                            <button class="button-group-btn ${block.inputStyle === 'outline' ? 'active' : ''}" data-style="outline">
+                                <span data-i18n="footerSubscribe.outline">Outline</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    
+    // Function to attach footer subscribe event listeners
+    function attachFooterSubscribeEventListeners(blockId) {
+        console.log('[DEBUG] Attaching footer subscribe event listeners', blockId);
+        
+        // Heading
+        $('#footer-subscribe-heading').on('input', function() {
+            currentSectionsConfig.footer.blocks[blockId].heading = $(this).val();
+            hasPendingPageStructureChanges = true;
+            updateSaveButtonState();
+            renderPreview();
+        });
+        
+        // Body - Rich text editor
+        $('#footer-subscribe-body').on('input', function() {
+            currentSectionsConfig.footer.blocks[blockId].body = $(this).html();
+            hasPendingPageStructureChanges = true;
+            updateSaveButtonState();
+            renderPreview();
+        });
+        
+        // Text formatting toolbar
+        $('.format-btn').on('click', function(e) {
+            e.preventDefault();
+            const command = $(this).data('command');
+            if (command === 'createLink') {
+                const url = prompt('Enter URL:');
+                if (url) {
+                    document.execCommand(command, false, url);
+                }
+            } else {
+                document.execCommand(command, false, null);
+            }
+            $('#footer-subscribe-body').trigger('input');
+        });
+        
+        // Input style buttons
+        $('.button-group-btn').on('click', function() {
+            const style = $(this).data('style');
+            $('.button-group-btn').removeClass('active');
+            $(this).addClass('active');
+            currentSectionsConfig.footer.blocks[blockId].inputStyle = style;
+            hasPendingPageStructureChanges = true;
+            updateSaveButtonState();
+            renderPreview();
+        });
+    }
+    
+    // Function to render footer menu settings view
+    function renderFooterMenuSettingsView(data) {
+        console.log('[DEBUG] Rendering footer menu settings', data);
+        const blockId = data?.blockId;
+        const block = currentSectionsConfig.footer?.blocks?.[blockId] || {};
+        
+        return `
+            <div class="sidebar-view-header">
+                <button class="back-button" onclick="window.switchSidebarView('blockList')">
+                    <i class="material-icons">arrow_back</i>
+                </button>
+                <h3 data-i18n="footerMenu.title">Menu</h3>
+            </div>
+            
+            <div class="sidebar-view-content settings-panel">
+                <!-- Content Section -->
+                <div class="settings-section">
+                    <h4 data-i18n="footerMenu.content">Content</h4>
+                    
+                    <!-- Heading -->
+                    <div class="settings-field">
+                        <label data-i18n="footerMenu.heading">Heading</label>
+                        <input type="text" class="shopify-input" id="footer-menu-heading" value="${block.heading || 'Soporte'}" placeholder="Enter heading">
+                    </div>
+                    
+                    <!-- Menu selector -->
+                    <div class="settings-field">
+                        <label data-i18n="footerMenu.menu">Menu</label>
+                        <select class="shopify-select" id="footer-menu-select">
+                            <option value="" ${!block.menuId ? 'selected' : ''} data-i18n="footerMenu.selectMenu">Select menu</option>
+                            ${currentMenusData ? currentMenusData.map(menu => `
+                                <option value="${menu.id}" ${block.menuId === menu.id ? 'selected' : ''}>${menu.name}</option>
+                            `).join('') : ''}
+                        </select>
+                    </div>
+                    
+                    <!-- Create/Edit menu link -->
+                    <div class="settings-field">
+                        <a href="#" class="theme-settings-link" onclick="window.switchSidebarView('menusList'); return false;">
+                            <span data-i18n="footerMenu.createEditMenu">Create or edit menus</span>
+                            <i class="material-icons">arrow_forward</i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    
+    // Function to attach footer menu event listeners
+    function attachFooterMenuEventListeners(blockId) {
+        console.log('[DEBUG] Attaching footer menu event listeners', blockId);
+        
+        // Load menus data if not already loaded
+        if (!currentMenusData) {
+            loadMenusData().then(() => {
+                // Refresh the menu selector
+                const menuId = currentSectionsConfig.footer.blocks[blockId].menuId;
+                $('#footer-menu-select').html(`
+                    <option value="" ${!menuId ? 'selected' : ''}>Select menu</option>
+                    ${currentMenusData.map(menu => `
+                        <option value="${menu.id}" ${menuId === menu.id ? 'selected' : ''}>${menu.name}</option>
+                    `).join('')}
+                `);
+            });
+        }
+        
+        // Heading
+        $('#footer-menu-heading').on('input', function() {
+            currentSectionsConfig.footer.blocks[blockId].heading = $(this).val();
+            hasPendingPageStructureChanges = true;
+            updateSaveButtonState();
+            renderPreview();
+        });
+        
+        // Menu selector
+        $('#footer-menu-select').on('change', function() {
+            currentSectionsConfig.footer.blocks[blockId].menuId = $(this).val();
+            hasPendingPageStructureChanges = true;
+            updateSaveButtonState();
+            renderPreview();
+        });
+    }
+    
+    // Function to render footer text settings view
+    function renderFooterTextSettingsView(data) {
+        console.log('[DEBUG] Rendering footer text settings', data);
+        const blockId = data?.blockId;
+        const block = currentSectionsConfig.footer?.blocks?.[blockId] || {};
+        
+        return `
+            <div class="sidebar-view-header">
+                <button class="back-button" onclick="window.switchSidebarView('blockList')">
+                    <i class="material-icons">arrow_back</i>
+                </button>
+                <h3 data-i18n="footerText.title">Text</h3>
+            </div>
+            
+            <div class="sidebar-view-content settings-panel">
+                <!-- Content Section -->
+                <div class="settings-section">
+                    <h4 data-i18n="footerText.content">Content</h4>
+                    
+                    <!-- Heading -->
+                    <div class="settings-field">
+                        <label data-i18n="footerText.heading">Heading</label>
+                        <input type="text" class="shopify-input" id="footer-text-heading" value="${block.heading || 'Direccion'}" placeholder="Enter heading">
+                    </div>
+                    
+                    <!-- Body -->
+                    <div class="settings-field">
+                        <label data-i18n="footerText.body">Body</label>
+                        <div class="rich-text-editor">
+                            <div class="text-formatting-toolbar">
+                                <button class="format-btn" data-command="bold" title="Bold">
+                                    <i class="material-icons">format_bold</i>
+                                </button>
+                                <button class="format-btn" data-command="italic" title="Italic">
+                                    <i class="material-icons">format_italic</i>
+                                </button>
+                                <button class="format-btn" data-command="createLink" title="Link">
+                                    <i class="material-icons">link</i>
+                                </button>
+                                <button class="format-btn" data-command="insertUnorderedList" title="Bullet list">
+                                    <i class="material-icons">format_list_bulleted</i>
+                                </button>
+                                <button class="format-btn" data-command="insertOrderedList" title="Numbered list">
+                                    <i class="material-icons">format_list_numbered</i>
+                                </button>
+                            </div>
+                            <div contenteditable="true" class="rich-text-content shopify-input" id="footer-text-body" style="min-height: 120px;">${block.body || 'Calle Leonardo Da Vinci #87, Renacimiento, Santo Domingo, República Dominicana'}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    
+    // Function to attach footer text event listeners
+    function attachFooterTextEventListeners(blockId) {
+        console.log('[DEBUG] Attaching footer text event listeners', blockId);
+        
+        // Heading
+        $('#footer-text-heading').on('input', function() {
+            currentSectionsConfig.footer.blocks[blockId].heading = $(this).val();
+            hasPendingPageStructureChanges = true;
+            updateSaveButtonState();
+            renderPreview();
+        });
+        
+        // Body - Rich text editor
+        $('#footer-text-body').on('input', function() {
+            currentSectionsConfig.footer.blocks[blockId].body = $(this).html();
+            hasPendingPageStructureChanges = true;
+            updateSaveButtonState();
+            renderPreview();
+        });
+        
+        // Text formatting toolbar
+        $('.format-btn').on('click', function(e) {
+            e.preventDefault();
+            const command = $(this).data('command');
+            if (command === 'createLink') {
+                const url = prompt('Enter URL:');
+                if (url) {
+                    document.execCommand(command, false, url);
+                }
+            } else {
+                document.execCommand(command, false, null);
+            }
+            $('#footer-text-body').trigger('input');
+        });
+    }
+    
+    // Function to render footer social media settings view
+    function renderFooterSocialMediaSettingsView(data) {
+        console.log('[DEBUG] Rendering footer social media settings', data);
+        const blockId = data?.blockId;
+        const block = currentSectionsConfig.footer?.blocks?.[blockId] || {};
+        
+        return `
+            <div class="sidebar-view-header">
+                <button class="back-button" onclick="window.switchSidebarView('blockList')">
+                    <i class="material-icons">arrow_back</i>
+                </button>
+                <h3 data-i18n="footerSocialMedia.title">Social media</h3>
+            </div>
+            
+            <div class="sidebar-view-content settings-panel">
+                <!-- Content Section -->
+                <div class="settings-section">
+                    <h4 data-i18n="footerSocialMedia.content">Content</h4>
+                    
+                    <!-- Heading -->
+                    <div class="settings-field">
+                        <label data-i18n="footerSocialMedia.heading">Heading</label>
+                        <input type="text" class="shopify-input" id="footer-social-heading" value="${block.heading || 'Síguenos en'}" placeholder="Enter heading">
+                    </div>
+                </div>
+                
+                <!-- Social Media Toggles Section -->
+                <div class="settings-section">
+                    <h4 data-i18n="footerSocialMedia.socialNetworks">Social networks</h4>
+                    
+                    <!-- Facebook -->
+                    <div class="settings-field">
+                        <label class="toggle-field">
+                            <span>Facebook</span>
+                            <input type="checkbox" class="shopify-toggle" id="footer-social-facebook" ${block.showFacebook !== false ? 'checked' : ''}>
+                            <label for="footer-social-facebook" class="toggle-slider"></label>
+                        </label>
+                    </div>
+                    
+                    <!-- Instagram -->
+                    <div class="settings-field">
+                        <label class="toggle-field">
+                            <span>Instagram</span>
+                            <input type="checkbox" class="shopify-toggle" id="footer-social-instagram" ${block.showInstagram !== false ? 'checked' : ''}>
+                            <label for="footer-social-instagram" class="toggle-slider"></label>
+                        </label>
+                    </div>
+                    
+                    <!-- Twitter -->
+                    <div class="settings-field">
+                        <label class="toggle-field">
+                            <span>Twitter</span>
+                            <input type="checkbox" class="shopify-toggle" id="footer-social-twitter" ${block.showTwitter !== false ? 'checked' : ''}>
+                            <label for="footer-social-twitter" class="toggle-slider"></label>
+                        </label>
+                    </div>
+                    
+                    <!-- Pinterest -->
+                    <div class="settings-field">
+                        <label class="toggle-field">
+                            <span>Pinterest</span>
+                            <input type="checkbox" class="shopify-toggle" id="footer-social-pinterest" ${block.showPinterest !== false ? 'checked' : ''}>
+                            <label for="footer-social-pinterest" class="toggle-slider"></label>
+                        </label>
+                    </div>
+                    
+                    <!-- YouTube -->
+                    <div class="settings-field">
+                        <label class="toggle-field">
+                            <span>YouTube</span>
+                            <input type="checkbox" class="shopify-toggle" id="footer-social-youtube" ${block.showYoutube || false ? 'checked' : ''}>
+                            <label for="footer-social-youtube" class="toggle-slider"></label>
+                        </label>
+                    </div>
+                    
+                    <!-- TikTok -->
+                    <div class="settings-field">
+                        <label class="toggle-field">
+                            <span>TikTok</span>
+                            <input type="checkbox" class="shopify-toggle" id="footer-social-tiktok" ${block.showTiktok || false ? 'checked' : ''}>
+                            <label for="footer-social-tiktok" class="toggle-slider"></label>
+                        </label>
+                    </div>
+                </div>
+                
+                <!-- Settings Link -->
+                <div class="settings-field" style="margin-top: 20px;">
+                    <a href="#" class="theme-settings-link" onclick="window.switchSidebarView('themeSettingsView'); return false;">
+                        <span data-i18n="footerSocialMedia.socialAccountsSettings">To add social media accounts, go to theme settings</span>
+                        <i class="material-icons">arrow_forward</i>
+                    </a>
+                </div>
+            </div>
+        `;
+    }
+    
+    // Function to attach footer social media event listeners
+    function attachFooterSocialMediaEventListeners(blockId) {
+        console.log('[DEBUG] Attaching footer social media event listeners', blockId);
+        
+        // Heading
+        $('#footer-social-heading').on('input', function() {
+            currentSectionsConfig.footer.blocks[blockId].heading = $(this).val();
+            hasPendingPageStructureChanges = true;
+            updateSaveButtonState();
+            renderPreview();
+        });
+        
+        // Social media toggles
+        $('#footer-social-facebook').on('change', function() {
+            currentSectionsConfig.footer.blocks[blockId].showFacebook = $(this).is(':checked');
+            hasPendingPageStructureChanges = true;
+            updateSaveButtonState();
+            renderPreview();
+        });
+        
+        $('#footer-social-instagram').on('change', function() {
+            currentSectionsConfig.footer.blocks[blockId].showInstagram = $(this).is(':checked');
+            hasPendingPageStructureChanges = true;
+            updateSaveButtonState();
+            renderPreview();
+        });
+        
+        $('#footer-social-twitter').on('change', function() {
+            currentSectionsConfig.footer.blocks[blockId].showTwitter = $(this).is(':checked');
+            hasPendingPageStructureChanges = true;
+            updateSaveButtonState();
+            renderPreview();
+        });
+        
+        $('#footer-social-pinterest').on('change', function() {
+            currentSectionsConfig.footer.blocks[blockId].showPinterest = $(this).is(':checked');
+            hasPendingPageStructureChanges = true;
+            updateSaveButtonState();
+            renderPreview();
+        });
+        
+        $('#footer-social-youtube').on('change', function() {
+            currentSectionsConfig.footer.blocks[blockId].showYoutube = $(this).is(':checked');
+            hasPendingPageStructureChanges = true;
+            updateSaveButtonState();
+            renderPreview();
+        });
+        
+        $('#footer-social-tiktok').on('change', function() {
+            currentSectionsConfig.footer.blocks[blockId].showTiktok = $(this).is(':checked');
+            hasPendingPageStructureChanges = true;
+            updateSaveButtonState();
+            renderPreview();
+        });
     }
     
     // Function to render announcement items
@@ -6700,15 +7816,22 @@ $(document).ready(async function() {
                     </div>
                     <i class="material-icons section-expand-icon">chevron_right</i>
                 </div>
-                <div class="sidebar-section-content">
-                    <div class="sidebar-subsection" data-block-type="footer">
+                <div class="sidebar-section-content" id="footer-sections-container">
+                    <div class="sidebar-subsection" data-block-type="footer" data-section-id="footer">
                         <i class="material-icons" style="font-size: 16px;">view_day</i>
-                        <span data-i18n="sections.footerSection">Pie de página</span>
+                        <span class="subsection-text" data-i18n="sections.footerSection">Pie de página</span>
+                        <div class="subsection-actions">
+                            <button class="action-icon visibility-toggle ${currentSectionsConfig.footer?.isHidden ? 'is-hidden' : ''}" data-section="footer" title="Toggle visibility">
+                                <i class="material-icons icon-visible">visibility</i>
+                                <i class="material-icons icon-hidden">visibility_off</i>
+                            </button>
+                        </div>
                     </div>
+                    ${renderFooterBlocks()}
                     <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e3e3e3;">
-                        <div class="add-section-button add-footer-section" data-group="footer">
+                        <div class="add-footer-block-button">
                             <i class="material-icons">add_circle</i>
-                            <span data-i18n="sections.addFooterSection">Agregar sección de pie de página</span>
+                            <span data-i18n="sections.addFooterBlock">Agregar bloques</span>
                         </div>
                     </div>
                 </div>
@@ -10158,6 +11281,57 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
             openAddSectionModal(group);
         });
         
+        // Add footer block button
+        $('.add-footer-block-button').on('click', function(e) {
+            e.stopPropagation();
+            console.log('[DEBUG] Add footer block button clicked');
+            openFooterBlockModal();
+        });
+        
+        // Delete footer block handler
+        $(document).off('click.deleteFooterBlock').on('click.deleteFooterBlock', '.delete-footer-block', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const blockId = $(this).data('block-id');
+            
+            if (confirm('¿Estás seguro de eliminar este bloque?')) {
+                // Remove from configuration
+                if (currentSectionsConfig.footer?.blocks?.[blockId]) {
+                    delete currentSectionsConfig.footer.blocks[blockId];
+                    
+                    // Remove from blockOrder
+                    const index = currentSectionsConfig.footer.blockOrder.indexOf(blockId);
+                    if (index > -1) {
+                        currentSectionsConfig.footer.blockOrder.splice(index, 1);
+                    }
+                    
+                    // Update UI
+                    const footerBlocksHtml = renderFooterBlocks();
+                    $('#footer-blocks-wrapper').parent().find('#footer-blocks-wrapper').remove();
+                    if (footerBlocksHtml) {
+                        $('.sidebar-subsection[data-block-type="footer"]').after(footerBlocksHtml);
+                    }
+                    
+                    // Update collapse button visibility
+                    if (currentSectionsConfig.footer.blockOrder.length === 0) {
+                        $('.sidebar-subsection[data-block-type="footer"] .collapse-toggle').remove();
+                    }
+                    
+                    // Initialize sortable for footer blocks
+                    setTimeout(() => {
+                        initializeFooterBlocksSortable();
+                    }, 100);
+                    
+                    hasPendingPageStructureChanges = true;
+                    updateSaveButtonState();
+                    renderPreview();
+                    
+                    console.log('[DEBUG] Footer block deleted:', blockId);
+                }
+            }
+        });
+        
         // Subsection clicks - Using event delegation for dynamic elements
         $(document).on('click', '.sidebar-subsection', function(e) {
             // Don't trigger if clicking on action buttons
@@ -10244,6 +11418,38 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
             else if (blockType === 'newsletter') {
                 console.log('[DEBUG] Newsletter section clicked, opening settings');
                 switchSidebarView('newsletterSettings');
+            }
+            // Handle footer click
+            else if (blockType === 'footer') {
+                console.log('[DEBUG] Footer section clicked, opening settings');
+                switchSidebarView('footerSettings');
+            }
+            // Handle footer block click
+            else if (blockType === 'footer-block') {
+                const blockId = $(this).data('element-id');
+                const block = currentSectionsConfig.footer?.blocks?.[blockId];
+                if (blockId && block) {
+                    window.currentFooterBlockId = blockId;
+                    window.currentFooterBlockType = block.type;
+                    // Navigate to specific block settings based on type
+                    switch(block.type) {
+                        case 'logo-with-text':
+                            switchSidebarView('footerLogoWithTextSettings', { blockId });
+                            break;
+                        case 'subscribe':
+                            switchSidebarView('footerSubscribeSettings', { blockId });
+                            break;
+                        case 'menu':
+                            switchSidebarView('footerMenuSettings', { blockId });
+                            break;
+                        case 'text':
+                            switchSidebarView('footerTextSettings', { blockId });
+                            break;
+                        case 'social-media':
+                            switchSidebarView('footerSocialMediaSettings', { blockId });
+                            break;
+                    }
+                }
             }
             // Handle gallery click
             else if (blockType === 'gallery') {
@@ -11925,6 +13131,25 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                         window.forceChildVisibilitySync(imageId, newHiddenState);
                     }
                 }
+            } else if (section === 'footer' || blockType === 'footer') {
+                // Handle footer visibility
+                currentSectionsConfig.footer.isHidden = newHiddenState;
+                console.log(`[DEBUG] Footer saved as: ${newHiddenState ? 'hidden' : 'visible'}`);
+                
+                if (window.forceVisibilitySync) {
+                    window.forceVisibilitySync('footer', newHiddenState);
+                }
+            } else if (blockType === 'footer-block' && elementId) {
+                // Handle footer block visibility
+                if (currentSectionsConfig.footer && currentSectionsConfig.footer.blocks && currentSectionsConfig.footer.blocks[elementId]) {
+                    currentSectionsConfig.footer.blocks[elementId].isHidden = newHiddenState;
+                    console.log(`[DEBUG] Footer block ${elementId} saved as: ${newHiddenState ? 'hidden' : 'visible'}`);
+                    
+                    // Force sync the child visibility toggle state
+                    if (window.forceChildVisibilitySync) {
+                        window.forceChildVisibilitySync(elementId, newHiddenState);
+                    }
+                }
             }
             
             // Activar bandera de cambios pendientes
@@ -11987,6 +13212,15 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
             console.log('[GALLERY] Current image order:', currentSectionsConfig.gallery.imageOrder);
             setTimeout(() => {
                 initializeGalleryImagesSortable();
+            }, 100);
+        }
+        
+        // Initialize sortable for footer blocks if they exist
+        if (currentSectionsConfig.footer && currentSectionsConfig.footer.blockOrder && currentSectionsConfig.footer.blockOrder.length > 0) {
+            console.log('[FOOTER] Initializing sortable from attachBlockListEventListeners');
+            console.log('[FOOTER] Current block order:', currentSectionsConfig.footer.blockOrder);
+            setTimeout(() => {
+                initializeFooterBlocksSortable();
             }, 100);
         }
         
@@ -12821,6 +14055,231 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                 });
             }
         });
+    }
+    
+    // Function to open footer block modal
+    function openFooterBlockModal() {
+        console.log('[DEBUG] Opening footer block modal');
+        
+        // Create modal if it doesn't exist
+        if ($('.footer-block-modal').length === 0) {
+            const modalHtml = `
+                <div class="modal footer-block-modal" style="z-index: 1003;">
+                    <div class="modal-content" style="max-width: 600px; max-height: 80vh; overflow-y: auto;">
+                        <div class="modal-header" style="padding: 20px 24px; border-bottom: 1px solid #e0e0e0;">
+                            <h4 style="margin: 0; font-size: 18px; font-weight: 600;" data-i18n="footer.addBlock">Agregar bloque</h4>
+                            <button class="modal-close" style="position: absolute; top: 20px; right: 20px; background: none; border: none; cursor: pointer;">
+                                <i class="material-icons" style="color: #6d7175;">close</i>
+                            </button>
+                        </div>
+                        <div class="modal-body" style="padding: 24px;">
+                            <div class="footer-block-options" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px;">
+                                <div class="footer-block-option" data-block-type="logo-with-text" style="padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px; cursor: pointer; text-align: center; transition: all 0.2s;">
+                                    <i class="material-icons" style="font-size: 32px; color: #8c9196; margin-bottom: 8px;">image</i>
+                                    <h5 style="margin: 0; font-size: 14px; font-weight: 500;">Logo with text</h5>
+                                </div>
+                                <div class="footer-block-option" data-block-type="subscribe" style="padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px; cursor: pointer; text-align: center; transition: all 0.2s;">
+                                    <i class="material-icons" style="font-size: 32px; color: #8c9196; margin-bottom: 8px;">mail_outline</i>
+                                    <h5 style="margin: 0; font-size: 14px; font-weight: 500;">Subscribe</h5>
+                                </div>
+                                <div class="footer-block-option" data-block-type="menu" style="padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px; cursor: pointer; text-align: center; transition: all 0.2s;">
+                                    <i class="material-icons" style="font-size: 32px; color: #8c9196; margin-bottom: 8px;">menu</i>
+                                    <h5 style="margin: 0; font-size: 14px; font-weight: 500;">Menu</h5>
+                                </div>
+                                <div class="footer-block-option" data-block-type="text" style="padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px; cursor: pointer; text-align: center; transition: all 0.2s;">
+                                    <i class="material-icons" style="font-size: 32px; color: #8c9196; margin-bottom: 8px;">text_fields</i>
+                                    <h5 style="margin: 0; font-size: 14px; font-weight: 500;">Text</h5>
+                                </div>
+                                <div class="footer-block-option" data-block-type="social-media" style="padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px; cursor: pointer; text-align: center; transition: all 0.2s;">
+                                    <i class="material-icons" style="font-size: 32px; color: #8c9196; margin-bottom: 8px;">share</i>
+                                    <h5 style="margin: 0; font-size: 14px; font-weight: 500;">Social media</h5>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            $('body').append(modalHtml);
+            
+            // Add hover effect with CSS
+            const style = $('<style>').text(`
+                .footer-block-option:hover {
+                    border-color: #2962ff !important;
+                    background-color: #f6f6f7 !important;
+                    transform: translateY(-2px);
+                }
+            `);
+            $('head').append(style);
+            
+            // Initialize modal
+            const modal = M.Modal.init(document.querySelector('.footer-block-modal'), {
+                dismissible: true,
+                opacity: 0.5
+            });
+            
+            // Handle block option clicks
+            $('.footer-block-option').on('click', function() {
+                const blockType = $(this).data('block-type');
+                console.log('[DEBUG] Footer block selected:', blockType);
+                
+                // Create new block
+                const blockId = `footer-block-${Date.now()}`;
+                
+                if (!currentSectionsConfig.footer.blocks) {
+                    currentSectionsConfig.footer.blocks = {};
+                }
+                if (!currentSectionsConfig.footer.blockOrder) {
+                    currentSectionsConfig.footer.blockOrder = [];
+                }
+                
+                // Add block with default configuration based on type
+                currentSectionsConfig.footer.blocks[blockId] = {
+                    id: blockId,
+                    type: blockType,
+                    isHidden: false,
+                    // Add type-specific defaults
+                    ...getFooterBlockDefaults(blockType)
+                };
+                
+                currentSectionsConfig.footer.blockOrder.push(blockId);
+                
+                // Update UI
+                const footerBlocksHtml = renderFooterBlocks();
+                $('#footer-blocks-wrapper').parent().find('#footer-blocks-wrapper').remove();
+                $('.sidebar-subsection[data-block-type="footer"]').after(footerBlocksHtml);
+                
+                // Initialize sortable for footer blocks
+                setTimeout(() => {
+                    initializeFooterBlocksSortable();
+                }, 100);
+                
+                // Mark as changed
+                hasPendingPageStructureChanges = true;
+                updateSaveButtonState();
+                renderPreview();
+                
+                // Close modal
+                modal.close();
+                
+                // Open settings for the new block
+                window.currentFooterBlockId = blockId;
+                window.currentFooterBlockType = blockType;
+                
+                // Navigate to specific block settings
+                switch(blockType) {
+                    case 'logo-with-text':
+                        switchSidebarView('footerLogoWithTextSettings', { blockId });
+                        break;
+                    case 'subscribe':
+                        switchSidebarView('footerSubscribeSettings', { blockId });
+                        break;
+                    case 'menu':
+                        switchSidebarView('footerMenuSettings', { blockId });
+                        break;
+                    case 'text':
+                        switchSidebarView('footerTextSettings', { blockId });
+                        break;
+                    case 'social-media':
+                        switchSidebarView('footerSocialMediaSettings', { blockId });
+                        break;
+                }
+            });
+        }
+        
+        // Open the modal
+        const modal = M.Modal.getInstance(document.querySelector('.footer-block-modal'));
+        modal.open();
+    }
+    
+    // Function to initialize footer blocks sortable
+    function initializeFooterBlocksSortable() {
+        console.log('[DEBUG] Initializing footer blocks sortable');
+        
+        const $wrapper = $('#footer-blocks-wrapper');
+        if (!$wrapper.length) {
+            console.error('[DEBUG] Footer blocks wrapper not found');
+            return;
+        }
+        
+        $wrapper.sortable({
+            items: '.footer-block-item',
+            handle: '.drag-handle',
+            placeholder: 'sortable-placeholder',
+            forcePlaceholderSize: true,
+            cursor: 'move',
+            tolerance: 'pointer',
+            axis: 'y',
+            containment: 'parent',
+            start: function(e, ui) {
+                console.log('[DEBUG] Started dragging footer block');
+                ui.placeholder.height(ui.item.outerHeight());
+                ui.placeholder.css({
+                    'visibility': 'visible',
+                    'background': '#f0f0f0',
+                    'border': '2px dashed #2962ff',
+                    'border-radius': '4px',
+                    'margin-bottom': '1px',
+                    'padding-left': '30px'
+                });
+            },
+            stop: function(e, ui) {
+                const newOrder = [];
+                $wrapper.find('.footer-block-item').each(function() {
+                    const blockId = $(this).data('element-id');
+                    if (blockId) {
+                        newOrder.push(blockId);
+                    }
+                });
+                
+                console.log('[DEBUG] New footer block order:', newOrder);
+                
+                if (currentSectionsConfig.footer) {
+                    currentSectionsConfig.footer.blockOrder = newOrder;
+                    hasPendingPageStructureChanges = true;
+                    updateSaveButtonState();
+                    renderPreview();
+                }
+            }
+        });
+        
+        console.log('[DEBUG] Footer blocks sortable initialized for', $wrapper.find('.footer-block-item').length, 'items');
+    }
+    
+    // Helper function to get default configuration for footer blocks
+    function getFooterBlockDefaults(type) {
+        const defaults = {
+            'logo-with-text': {
+                logo: '',
+                logoSize: 120,
+                heading: '',
+                body: ''
+            },
+            'subscribe': {
+                heading: 'Subscribete',
+                body: '',
+                inputStyle: 'solid'
+            },
+            'menu': {
+                heading: 'Soporte',
+                menuId: ''
+            },
+            'text': {
+                heading: 'Direccion',
+                body: 'Calle Leonardo Da Vinci #87, Renacimiento, Santo Domingo, República Dominicana'
+            },
+            'social-media': {
+                heading: 'Síguenos en',
+                showFacebook: true,
+                showInstagram: true,
+                showTwitter: true,
+                showPinterest: true,
+                showYoutube: false,
+                showTiktok: false
+            }
+        };
+        
+        return defaults[type] || {};
     }
     
     // Function to open add section modal
