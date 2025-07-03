@@ -19,6 +19,8 @@ window.WebsiteBuilderModules.Footer = {
         const showSeparator = config.showSeparator !== false;
         const showBottomBar = config.showBottomBar !== false;
         const footerHeight = config.footerHeight || 300;
+        // Factor de escala basado en la altura (300px es el baseline)
+        const scaleFactor = footerHeight / 300;
         
         console.log('[FOOTER DEBUG] Using height:', footerHeight);
         
@@ -29,6 +31,9 @@ window.WebsiteBuilderModules.Footer = {
         const bodyFont = window.getFontNameFromValueSafe ? 
             window.getFontNameFromValueSafe(bodyTypography.font || 'helvetica') : 
             'Helvetica';
+        
+        console.log('[FOOTER DEBUG] Body typography:', bodyTypography);
+        console.log('[FOOTER DEBUG] Body font resolved to:', bodyFont);
         
         const headingFont = window.getFontNameFromValueSafe ? 
             window.getFontNameFromValueSafe(headingTypography.font || 'helvetica') : 
@@ -49,70 +54,85 @@ window.WebsiteBuilderModules.Footer = {
                 }
                 
                 #${uniqueId} {
-                    min-height: ${footerHeight}px !important;
+                    min-height: ${footerHeight}px;
                     box-sizing: border-box;
+                    position: relative;
                 }
                 
                 #${uniqueId}.section-wrapper {
-                    min-height: ${footerHeight}px !important;
-                    height: auto !important;
+                    min-height: ${footerHeight}px;
                 }
                 
                 #${uniqueId} .footer-container {
                     ${width === 'container' ? 'max-width: 1200px; margin: 0 auto;' : ''}
-                    padding: 40px 20px 20px;
-                    height: 100%;
+                    padding: ${Math.max(15, Math.round(25 * scaleFactor))}px 20px ${Math.max(10, Math.round(15 * scaleFactor))}px;
+                    min-height: 100%;
                     display: flex;
                     flex-direction: column;
-                    justify-content: space-between;
+                    justify-content: flex-start;
                     box-sizing: border-box;
                 }
                 
                 #${uniqueId} .footer-grid {
                     display: grid;
                     grid-template-columns: repeat(${columnCount}, 1fr);
-                    gap: 30px;
-                    margin-bottom: 30px;
+                    column-gap: ${Math.max(15, Math.round(25 * scaleFactor))}px;
+                    row-gap: ${Math.max(10, Math.round(20 * scaleFactor))}px;
+                    margin-bottom: ${Math.max(5, Math.round(10 * scaleFactor))}px;
                 }
                 
                 #${uniqueId} .footer-block {
-                    min-height: 150px;
+                    min-height: auto;
                 }
                 
                 #${uniqueId} .footer-block-title {
                     font-family: ${headingFont};
-                    font-size: 16px;
+                    font-size: ${Math.max(12, Math.round(16 * scaleFactor))}px;
                     font-weight: 600;
-                    margin-bottom: 15px;
+                    margin-bottom: ${Math.max(5, Math.round(10 * scaleFactor))}px;
                     color: ${schemeColors.text};
                 }
                 
                 #${uniqueId} .footer-block-content {
-                    font-size: 14px;
-                    line-height: 1.6;
+                    font-family: ${bodyFont} !important;
+                    font-size: ${Math.max(10, Math.round(14 * scaleFactor))}px !important;
+                    line-height: ${Math.max(1.2, 1.6 * scaleFactor)};
                     color: ${schemeColors.text};
                     opacity: 0.8;
+                    white-space: pre-line;
+                }
+                
+                #${uniqueId} .footer-block-content br {
+                    display: block;
+                    content: "";
+                    margin: 0;
+                }
+                
+                /* Specific styles for text blocks */
+                #${uniqueId} .footer-block:has(.footer-block-content) .footer-block-content {
+                    font-family: ${bodyFont} !important;
+                    font-size: ${Math.max(12, Math.round(14 * scaleFactor))}px !important;
                 }
                 
                 #${uniqueId} .footer-separator {
                     border-top: 1px solid ${schemeColors.border};
-                    margin: 30px 0;
+                    margin: ${Math.max(5, Math.round(8 * scaleFactor))}px 0;
                     opacity: 0.3;
                 }
                 
                 #${uniqueId} .footer-bottom-bar {
-                    padding: 24px 0;
+                    padding: ${Math.max(10, Math.round(15 * scaleFactor))}px 0;
                     border-top: 1px solid ${schemeColors.border};
                 }
                 
                 #${uniqueId} .social-icons {
                     display: flex;
-                    gap: 15px;
+                    gap: ${Math.round(15 * scaleFactor)}px;
                 }
                 
                 #${uniqueId} .social-icons a {
                     color: ${schemeColors.text};
-                    font-size: 20px;
+                    font-size: ${Math.max(16, Math.round(20 * scaleFactor))}px;
                     transition: opacity 0.3s;
                 }
                 
@@ -133,21 +153,23 @@ window.WebsiteBuilderModules.Footer = {
                 
                 #${uniqueId} .newsletter-input {
                     flex: 1;
-                    padding: 10px 15px;
+                    padding: ${Math.round(10 * scaleFactor)}px ${Math.round(15 * scaleFactor)}px;
                     border: 1px solid ${schemeColors.border};
                     background: transparent;
                     color: ${schemeColors.text};
                     border-radius: 4px;
+                    font-size: ${Math.max(12, Math.round(14 * scaleFactor))}px;
                 }
                 
                 #${uniqueId} .newsletter-button {
-                    padding: 10px 20px;
+                    padding: ${Math.round(10 * scaleFactor)}px ${Math.round(20 * scaleFactor)}px;
                     background: ${schemeColors.text};
                     color: ${schemeColors.background};
                     border: none;
                     border-radius: 4px;
                     cursor: pointer;
                     transition: opacity 0.3s;
+                    font-size: ${Math.max(12, Math.round(14 * scaleFactor))}px;
                 }
                 
                 #${uniqueId} .newsletter-button:hover {
@@ -155,12 +177,12 @@ window.WebsiteBuilderModules.Footer = {
                 }
                 
                 #${uniqueId} .footer-logo {
-                    text-align: center;
+                    text-align: left;
                 }
                 
                 #${uniqueId} .footer-logo img {
-                    max-height: 60px;
-                    margin-bottom: 10px;
+                    max-height: ${Math.max(25, Math.round(50 * scaleFactor))}px;
+                    margin-bottom: ${Math.max(5, Math.round(8 * scaleFactor))}px;
                 }
                 
                 #${uniqueId} .footer-menu {
@@ -170,7 +192,7 @@ window.WebsiteBuilderModules.Footer = {
                 }
                 
                 #${uniqueId} .footer-menu li {
-                    margin-bottom: 10px;
+                    margin-bottom: ${Math.max(3, Math.round(6 * scaleFactor))}px;
                 }
                 
                 #${uniqueId} .footer-menu a {
@@ -186,12 +208,12 @@ window.WebsiteBuilderModules.Footer = {
                 
                 #${uniqueId} .payment-icons {
                     display: flex;
-                    gap: 10px;
+                    gap: ${Math.round(10 * scaleFactor)}px;
                     align-items: center;
                 }
                 
                 #${uniqueId} .payment-icons img {
-                    height: 30px;
+                    height: ${Math.max(20, Math.round(30 * scaleFactor))}px;
                     opacity: 0.8;
                 }
                 
@@ -199,6 +221,10 @@ window.WebsiteBuilderModules.Footer = {
                     #${uniqueId} .footer-grid {
                         grid-template-columns: 1fr;
                         gap: 20px;
+                    }
+                    
+                    #${uniqueId} .footer-logo {
+                        text-align: center;
                     }
                     
                     #${uniqueId} .footer-bottom-bar {
@@ -243,23 +269,53 @@ window.WebsiteBuilderModules.Footer = {
                     -webkit-appearance: none;
                     appearance: none;
                 }
+                
+                /* Range slider styles */
+                .footer-height-slider::-webkit-slider-thumb {
+                    -webkit-appearance: none;
+                    appearance: none;
+                    width: 16px;
+                    height: 16px;
+                    background: #2962ff;
+                    cursor: pointer;
+                    border-radius: 50%;
+                    transition: background 0.2s;
+                }
+                
+                .footer-height-slider::-webkit-slider-thumb:hover {
+                    background: #1854ea;
+                }
+                
+                .footer-height-slider::-moz-range-thumb {
+                    width: 16px;
+                    height: 16px;
+                    background: #2962ff;
+                    cursor: pointer;
+                    border-radius: 50%;
+                    border: none;
+                    transition: background 0.2s;
+                }
+                
+                .footer-height-slider::-moz-range-thumb:hover {
+                    background: #1854ea;
+                }
             </style>
             
-            <footer id="${uniqueId}" class="section-wrapper" data-section-id="footer" style="min-height: ${footerHeight}px !important; display: flex; flex-direction: column; box-sizing: border-box;">
+            <footer id="${uniqueId}" class="section-wrapper" data-section-id="footer" style="min-height: ${footerHeight}px; position: relative; box-sizing: border-box;">
                 <div class="section-header-tag">
                     <span class="material-symbols-outlined" style="font-size: 16px;">contact_support</span>
                     ${window.translations && window.translations[window.currentLanguage] ? 
                         (window.translations[window.currentLanguage]['sections.footer'] || 'Footer') : 
                         'Footer'}
                 </div>
-                <div class="footer-container" style="flex: 1;">
+                <div class="footer-container">
                     <div class="footer-grid">
                         ${window.WebsiteBuilderModules.Footer.renderBlocks(blocks, blockOrder, schemeColors, columnCount)}
                     </div>
                     
                     ${showSeparator ? '<div class="footer-separator"></div>' : ''}
                     
-                    ${showBottomBar ? window.WebsiteBuilderModules.Footer.renderBottomBar(config, schemeColors) : ''}
+                    ${showBottomBar ? window.WebsiteBuilderModules.Footer.renderBottomBar(config, schemeColors, scaleFactor) : ''}
                 </div>
             </footer>
         `;
@@ -506,20 +562,20 @@ window.WebsiteBuilderModules.Footer = {
         return `<div class="footer-block">${content}</div>`;
     },
     
-    renderBottomBar: function(config, schemeColors) {
+    renderBottomBar: function(config, schemeColors, scaleFactor) {
         return `
             <div class="footer-bottom-bar" style="
                 border-top: 1px solid ${schemeColors.border};
-                padding: 24px 0;
-                margin-top: 40px;
+                padding: ${Math.max(10, Math.round(15 * scaleFactor))}px 0;
+                margin-top: ${Math.max(10, Math.round(15 * scaleFactor))}px;
             ">
                 <div style="
                     display: flex;
                     justify-content: space-between;
                     align-items: center;
                     flex-wrap: wrap;
-                    gap: 24px;
-                    margin-bottom: 24px;
+                    gap: ${Math.max(12, Math.round(20 * scaleFactor))}px;
+                    margin-bottom: ${Math.max(10, Math.round(15 * scaleFactor))}px;
                 ">
                     <!-- Language and Currency Selectors -->
                     <div style="display: flex; gap: 12px; align-items: center;">
@@ -555,17 +611,6 @@ window.WebsiteBuilderModules.Footer = {
                             <option value="usd">USD</option>
                             <option value="eur">EUR</option>
                         </select>
-                    </div>
-                    
-                    <!-- Copyright Text -->
-                    <div style="
-                        font-size: 12px;
-                        color: ${schemeColors.text};
-                        opacity: 0.7;
-                        text-align: center;
-                        flex: 1;
-                    ">
-                        ${config.copyrightText || 'Purrteam All Rights Reserved by Mango Pos Solutions LLC© Copyright 2022.'}
                     </div>
                     
                     <!-- Payment Icons -->
@@ -610,16 +655,28 @@ window.WebsiteBuilderModules.Footer = {
                     ` : ''}
                 </div>
                 
-                <!-- Policy Links -->
+                <!-- Copyright and Policy Links Row -->
                 <div style="
                     display: flex;
-                    justify-content: center;
-                    gap: 24px;
-                    font-size: 12px;
-                    padding-top: 20px;
+                    justify-content: space-between;
+                    align-items: center;
+                    flex-wrap: wrap;
+                    gap: ${Math.max(15, Math.round(20 * scaleFactor))}px;
+                    font-size: ${Math.max(10, Math.round(12 * scaleFactor))}px;
+                    padding-top: ${Math.max(10, Math.round(15 * scaleFactor))}px;
                     border-top: 1px solid ${schemeColors.border};
                     opacity: 0.7;
                 ">
+                    <!-- Copyright on the left -->
+                    <div style="flex: 1;">
+                        ${config.copyrightText || 'Purrteam All Rights Reserved by Mango Pos Solutions LLC© Copyright 2022.'}
+                    </div>
+                    
+                    <!-- Policy Links on the right -->
+                    <div style="
+                        display: flex;
+                        gap: ${Math.max(12, Math.round(20 * scaleFactor))}px;
+                    ">
                     <a href="#" style="
                         color: ${schemeColors.text};
                         text-decoration: none;
@@ -648,6 +705,7 @@ window.WebsiteBuilderModules.Footer = {
                     " onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.7'">
                         Política de envío
                     </a>
+                    </div>
                 </div>
             </div>
         `;
@@ -746,7 +804,7 @@ window.WebsiteBuilderModules.Footer = {
                         padding: 16px;
                         margin-top: 8px;
                     ">
-                        <input type="range" id="footer-height" min="200" max="600" step="20" value="${config.footerHeight || 300}" style="
+                        <input type="range" id="footer-height" min="100" max="600" step="10" value="${config.footerHeight || 300}" style="
                             width: 100%;
                             -webkit-appearance: none;
                             height: 6px;
@@ -754,7 +812,7 @@ window.WebsiteBuilderModules.Footer = {
                             border-radius: 3px;
                             outline: none;
                             cursor: pointer;
-                        ">
+                        " class="footer-height-slider">
                         <div style="
                             display: flex;
                             justify-content: space-between;

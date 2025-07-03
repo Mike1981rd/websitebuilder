@@ -137,6 +137,7 @@ let currentSectionsConfig = {
     footer: {
         colorScheme: 'scheme1',
         isHidden: false,
+        footerHeight: 300, // Default footer height in pixels
         paymentMethods: [] // Initialize as empty array
     },
     announcements: {}, // Almacenar configuración individual de cada anuncio
@@ -379,6 +380,7 @@ async function loadCurrentWebsite() {
                             footer: {
                                 colorScheme: 'scheme1',
                                 isHidden: false,
+                                footerHeight: 300, // Default footer height
                                 useBackgroundColor: true,
                                 width: 'screen',
                                 desktopColumnCount: 4,
@@ -6556,6 +6558,18 @@ $(document).ready(async function() {
                             <input type="checkbox" class="shopify-toggle" id="footer-show-separator" ${footer.showSeparator ? 'checked' : ''}>
                             <label for="footer-show-separator" class="toggle-slider"></label>
                         </label>
+                    </div>
+                    
+                    <!-- Footer height -->
+                    <div class="settings-field">
+                        <label data-i18n="footerSettings.height">Height</label>
+                        <div class="shopify-slider-container">
+                            <input type="range" id="footer-height" min="200" max="600" value="${footer.footerHeight || 300}" step="20" class="shopify-slider">
+                            <div class="shopify-value-box">
+                                <input type="number" id="footer-height-value" min="200" max="600" value="${footer.footerHeight || 300}" class="shopify-value-input">
+                                <span class="shopify-unit">px</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 
