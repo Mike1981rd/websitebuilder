@@ -264,8 +264,8 @@
       <RelatedAsset></RelatedAsset>
       <AssetTraitName></AssetTraitName>
       <AssetTraitValue></AssetTraitValue>
-      <Fingerprint>ctq9ebisv2</Fingerprint>
-      <Integrity>AOpndo5w3AsvTglZXJprxIWqSnHANAME/Y8mRZqQlE0=</Integrity>
+      <Fingerprint>ytf5qlolxg</Fingerprint>
+      <Integrity>Zm0D5pUjDqZ4m0+YHJ5VcU39SUIIsvmviJP3RdjRqn8=</Integrity>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
       <OriginalItemSpec>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\js\website-builder.js'))</OriginalItemSpec>
@@ -300,8 +300,8 @@
       <RelatedAsset></RelatedAsset>
       <AssetTraitName></AssetTraitName>
       <AssetTraitValue></AssetTraitValue>
-      <Fingerprint>6jqv47tkyo</Fingerprint>
-      <Integrity>7pfEcgx726G5Tgl1BNjlti9ylTqG9+iSPx1xEXqiWjo=</Integrity>
+      <Fingerprint>6wp5dzbbom</Fingerprint>
+      <Integrity>quTnRlfC9kOCge6cDU5t8+pO1Eo/pAp/ZSmKvH3D8n4=</Integrity>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
       <OriginalItemSpec>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\js\website-builder\modules\accordion.js'))</OriginalItemSpec>
@@ -318,8 +318,8 @@
       <RelatedAsset></RelatedAsset>
       <AssetTraitName></AssetTraitName>
       <AssetTraitValue></AssetTraitValue>
-      <Fingerprint>lwaa8t0bdz</Fingerprint>
-      <Integrity>S06xJ6/3GmvNmZMPnK7cURa4iLo49lG0e/87RWu6vOw=</Integrity>
+      <Fingerprint>grw67e20rw</Fingerprint>
+      <Integrity>pJVp9+ePIuD16ecK7JaSpDnE+QqW3ddrVIqrFLE8ma0=</Integrity>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
       <OriginalItemSpec>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\js\website-builder\modules\contact-form.js'))</OriginalItemSpec>

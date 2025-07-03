@@ -1580,6 +1580,7 @@ window.WebsiteBuilderModules.Accordion = {
                 tolerance: 'pointer',
                 axis: 'y', // Restringir movimiento solo vertical
                 containment: 'parent', // Mantener dentro del contenedor
+                connectWith: false, // Explicitly prevent connection with parent sortables
                 start: function(e, ui) {
                     console.log('[ACCORDION] Drag started for item:', ui.item.data('item-id'));
                     

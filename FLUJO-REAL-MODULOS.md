@@ -1501,6 +1501,13 @@ window.translations.en['sections.accordion'] = 'Accordion/FAQ';
 5. **Nombres inconsistentes**: Un solo nombre usado consistentemente
 6. **Ícono drag handle pegado al texto en elementos hijos**: SIEMPRE agregar `style="margin-left: 30px;"` al span de texto en elementos hijos con drag handle (accordion items, testimonials, gallery images). Sin este margen, el texto se superpone con el ícono drag_indicator
 
+7. **Contact Forms se reposicionan después de guardar**: 
+   - **Síntoma**: Después de drag & drop y guardar, los contact forms vuelven a su posición original en el sidebar
+   - **Causa**: Había una función `reconstructContactForms()` que manipulaba el DOM directamente después de guardar, ignorando el orden en `sectionOrder`
+   - **Solución**: Eliminar todas las llamadas a `reconstructContactForms()` y dejar que `renderTemplateSections()` los renderice correctamente desde `sectionOrder` como todas las demás secciones
+   - **Ubicación del fix**: website-builder.js líneas 6087-6114 ya tenían el código correcto, solo había que eliminar la interferencia
+   - **Lección**: NO crear funciones especiales de reconstrucción DOM para secciones individuales. Usar el sistema de renderizado centralizado
+
 ## CONCLUSIÓN
 
 Este flujo garantiza que cada etapa se construye sobre bases sólidas, con las soluciones a problemas comunes integradas desde el inicio. Siguiendo este orden exacto, el desarrollo de cualquier módulo nuevo debería tomar máximo 1 hora en lugar de 3-4 horas resolviendo problemas.

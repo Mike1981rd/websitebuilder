@@ -3688,6 +3688,13 @@ function initializeMenuItemsSortable() {
             tolerance: 'pointer',
             placeholder: 'sortable-placeholder',
             helper: 'clone',
+            receive: function(e, ui) {
+                // Prevent parent sections from being dropped here
+                if (!ui.item.hasClass('menu-item-row')) {
+                    ui.sender.sortable('cancel');
+                    return false;
+                }
+            },
             start: function(e, ui) {
                 ui.placeholder.css({
                     'height': ui.item.outerHeight(),
@@ -3835,6 +3842,13 @@ function initializeNavigationSortable() {
             tolerance: 'pointer',
             placeholder: 'sortable-placeholder',
             helper: 'clone',
+            receive: function(e, ui) {
+                // Prevent parent sections from being dropped here
+                if (!ui.item.hasClass('navigation-item')) {
+                    ui.sender.sortable('cancel');
+                    return false;
+                }
+            },
             start: function(e, ui) {
                 ui.placeholder.css({
                     'height': ui.item.outerHeight(),
@@ -3868,7 +3882,14 @@ function initializeNavigationSortable() {
             axis: 'y',
             tolerance: 'pointer',
             placeholder: 'sortable-placeholder',
-            helper: 'clone'
+            helper: 'clone',
+            receive: function(e, ui) {
+                // Prevent parent sections from being dropped here
+                if (!ui.item.hasClass('navigation-subitem')) {
+                    ui.sender.sortable('cancel');
+                    return false;
+                }
+            }
         });
     }
 }
@@ -9723,6 +9744,13 @@ $(document).ready(async function() {
             placeholder: 'sortable-placeholder',
             forcePlaceholderSize: true,
             tolerance: 'pointer',
+            receive: function(e, ui) {
+                // Prevent parent sections from being dropped here
+                if (!ui.item.hasClass('multicolumn-row-item')) {
+                    ui.sender.sortable('cancel');
+                    return false;
+                }
+            },
             start: function(e, ui) {
                 ui.placeholder.height(ui.item.outerHeight());
             },
@@ -12865,6 +12893,14 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                 tolerance: 'pointer',
                 containment: 'parent',
                 axis: 'y',
+                connectWith: false, // Explicitly prevent connection with parent sortables
+                receive: function(e, ui) {
+                    // Prevent parent sections from being dropped here
+                    if (ui.item.hasClass('sidebar-subsection')) {
+                        ui.sender.sortable('cancel');
+                        return false;
+                    }
+                },
                 start: function(e, ui) {
                     // Add placeholder styling
                     ui.placeholder.height(ui.item.height());
@@ -12928,6 +12964,13 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                 tolerance: 'pointer',
                 axis: 'y',
                 containment: 'parent',
+                receive: function(e, ui) {
+                    // Prevent parent sections from being dropped here
+                    if (ui.item.hasClass('sidebar-subsection') && ui.item.attr('data-block-type') !== 'accordion-item') {
+                        ui.sender.sortable('cancel');
+                        return false;
+                    }
+                },
                 start: function(e, ui) {
                     console.log('[ACCORDION] Drag started for item:', ui.item.data('element-id'));
                     
@@ -14610,6 +14653,14 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                                 tolerance: 'pointer',
                                 placeholder: 'sortable-placeholder',
                                 helper: 'clone',
+                                connectWith: false, // Explicitly prevent connection with parent sortables
+                                receive: function(e, ui) {
+                                    // Prevent parent sections from being dropped here
+                                    if (ui.item.hasClass('sidebar-subsection') && ui.item.attr('data-block-type') !== 'announcement-item') {
+                                        ui.sender.sortable('cancel');
+                                        return false;
+                                    }
+                                },
                                 start: function(e, ui) {
                                     ui.placeholder.css({
                                         'height': ui.item.outerHeight(),
@@ -14701,11 +14752,143 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                         axis: 'y',
                         tolerance: 'pointer',
                         placeholder: 'sortable-placeholder',
-                        connectWith: '.sidebar-section-content:first',
+                        connectWith: '#header-sections-container, #template-sections-container, #footer-sections-container',
+                        // Track if we're over a child container
+                        over: function(e, ui) {
+                            // Store the current container for later validation
+                            ui.item.data('current-over-container', $(this).attr('id'));
+                            
+                            // Additional check for hover position
+                            const $container = $(this);
+                            const containerId = $container.attr('id');
+                            
+                            // List of child wrapper IDs
+                            const childWrappers = [
+                                'multicolumn-columns-wrapper',
+                                'imageWithText-blocks-wrapper',
+                                'children-container',
+                                'testimonials-items-wrapper',
+                                'accordion-items-wrapper',
+                                'gallery-items-wrapper',
+                                'gallery-images-wrapper',
+                                'slideshow-slides-wrapper',
+                                'announcement-items-wrapper'
+                            ];
+                            
+                            // If hovering over a child container, prevent drop
+                            if (childWrappers.includes(containerId) || containerId?.includes('-wrapper')) {
+                                console.log('[DRAG&DROP] Over child container:', containerId);
+                                ui.placeholder.hide();
+                                $container.css('background-color', '#ffcccc');
+                            }
+                        },
+                        // Real-time validation while dragging
+                        sort: function(e, ui) {
+                            // Check if placeholder is in a child container
+                            const $placeholderParent = ui.placeholder.parent();
+                            const parentId = $placeholderParent.attr('id');
+                            
+                            // List of child wrapper IDs
+                            const childWrappers = [
+                                'multicolumn-columns-wrapper',
+                                'imageWithText-blocks-wrapper',
+                                'children-container',
+                                'testimonials-items-wrapper',
+                                'accordion-items-wrapper',
+                                'gallery-items-wrapper',
+                                'gallery-images-wrapper',
+                                'slideshow-slides-wrapper',
+                                'announcement-items-wrapper'
+                            ];
+                            
+                            // If placeholder is in a child container, hide it
+                            if (childWrappers.includes(parentId) || parentId?.includes('-wrapper')) {
+                                ui.placeholder.hide();
+                                // Add visual feedback
+                                $placeholderParent.css('background-color', '#ffcccc');
+                            } else {
+                                ui.placeholder.show();
+                                // Remove visual feedback from any child containers
+                                $('.ui-sortable').css('background-color', '');
+                            }
+                        },
+                        // Prevent dropping into child containers
+                        beforeStop: function(e, ui) {
+                            const $item = ui.item;
+                            const $placeholder = ui.placeholder;
+                            const $target = $placeholder.parent();
+                            const targetId = $target.attr('id');
+                            
+                            // List of child wrapper IDs that should not accept parent sections
+                            const childWrappers = [
+                                'multicolumn-columns-wrapper',
+                                'imageWithText-blocks-wrapper',
+                                'children-container', // Image with text settings view container
+                                'testimonials-items-wrapper',
+                                'accordion-items-wrapper',
+                                'gallery-items-wrapper',
+                                'gallery-images-wrapper',
+                                'slideshow-slides-wrapper',
+                                'announcement-items-wrapper'
+                            ];
+                            
+                            // Also check class-based child containers
+                            const isChildContainer = childWrappers.includes(targetId) || 
+                                                   $target.hasClass('child-sortable-container') ||
+                                                   $target.attr('id')?.includes('-wrapper');
+                            
+                            // Additional check: verify that the item is not being placed after a parent section's child wrapper
+                            const $prev = $placeholder.prev();
+                            const $next = $placeholder.next();
+                            
+                            // Check if we're trying to place between a parent and its wrapper
+                            let invalidPosition = false;
+                            if ($prev.length && $prev.hasClass('sidebar-subsection')) {
+                                const prevId = $prev.data('section-id') || $prev.data('block-type');
+                                const expectedWrapperId = prevId + '-' + (prevId === 'slideshow' ? 'slides' : 
+                                                                         prevId === 'multicolumn' ? 'columns' : 
+                                                                         prevId === 'imageWithText' ? 'blocks' : 
+                                                                         prevId === 'testimonials' ? 'items' : 
+                                                                         prevId === 'accordion' ? 'items' : 
+                                                                         prevId === 'gallery' ? 'images' : '') + '-wrapper';
+                                
+                                if ($next.length && $next.attr('id') === expectedWrapperId) {
+                                    console.log('[DRAG&DROP] INVALID: Trying to place between parent and its wrapper');
+                                    invalidPosition = true;
+                                }
+                            }
+                            
+                            if (isChildContainer || invalidPosition) {
+                                console.log('[DRAG&DROP] Preventing invalid drop. Child container:', isChildContainer, 'Invalid position:', invalidPosition);
+                                
+                                // Visual feedback
+                                $item.css('background-color', '#ffcccc');
+                                setTimeout(() => {
+                                    $item.css('background-color', '');
+                                }, 500);
+                                
+                                $(this).sortable('cancel');
+                                return false;
+                            }
+                        },
                         helper: function(e, ui) {
                             const helper = ui.clone();
                             helper.css('background-color', '#f5f5f5');
                             return helper;
+                        },
+                        // Prevent parent sections from being accepted in child containers
+                        receive: function(e, ui) {
+                            // Get the target container
+                            const $target = $(this);
+                            const targetId = $target.attr('id');
+                            
+                            // Check if this is a child container (they have -wrapper suffix)
+                            if (targetId && targetId.includes('-wrapper')) {
+                                console.log('[DRAG&DROP] Preventing parent section drop into child container:', targetId);
+                                // Cancel the drop
+                                $(ui.sender).sortable('cancel');
+                                return false;
+                            }
                         },
                         start: function(e, ui) {
                             ui.placeholder.css({
@@ -14729,6 +14912,56 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                                 ui.item.data('detached-children', $childWrapper.detach());
                             } else {
                                 console.log('[DRAG&DROP] No pre-stored child wrapper for:', sectionId);
+                            }
+                        },
+                        // Additional validation in update event to catch edge cases
+                        update: function(e, ui) {
+                            // Define child wrapper IDs
+                            const childWrappers = [
+                                'multicolumn-columns-wrapper',
+                                'imageWithText-blocks-wrapper',
+                                'children-container',
+                                'testimonials-items-wrapper',
+                                'accordion-items-wrapper',
+                                'gallery-items-wrapper',
+                                'gallery-images-wrapper',
+                                'slideshow-slides-wrapper',
+                                'announcement-items-wrapper'
+                            ];
+                            
+                            // Check if any parent section ended up inside a child wrapper
+                            let invalidPlacement = false;
+                            childWrappers.forEach(wrapperId => {
+                                const $wrapper = $('#' + wrapperId);
+                                if ($wrapper.length) {
+                                    // Check if there are any parent sections inside this wrapper
+                                    const $parentSectionsInside = $wrapper.find('> .sidebar-subsection[data-section-id]');
+                                    if ($parentSectionsInside.length > 0) {
+                                        console.log('[DRAG&DROP] INVALID: Found parent section inside child wrapper:', wrapperId);
+                                        invalidPlacement = true;
+                                        
+                                        // Move the parent section out of the wrapper to after it
+                                        $parentSectionsInside.each(function() {
+                                            const $section = $(this);
+                                            console.log('[DRAG&DROP] Moving section out of wrapper:', $section.data('section-id'));
+                                            $section.insertAfter($wrapper);
+                                        });
+                                    }
+                                }
+                            });
+                            
+                            // If we had to fix invalid placements, cancel this sort operation
+                            if (invalidPlacement) {
+                                console.log('[DRAG&DROP] Cancelling sort due to invalid placement');
+                                $(this).sortable('cancel');
+                                
+                                // Show a visual feedback
+                                ui.item.css('background-color', '#ffcccc');
+                                setTimeout(() => {
+                                    ui.item.css('background-color', '');
+                                }, 500);
+                                
+                                return false;
                             }
                         },
                         stop: function(e, ui) {
@@ -14799,6 +15032,221 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                     });
                 }
                 
+                // Initialize sortable for header sections container
+                const $headerContainer = $('#header-sections-container');
+                if ($headerContainer.length > 0) {
+                    console.log('[DRAG&DROP] Initializing sortable for header sections');
+                    
+                    if ($headerContainer.hasClass('ui-sortable')) {
+                        $headerContainer.sortable('destroy');
+                    }
+                    
+                    $headerContainer.sortable({
+                        items: '> .sidebar-subsection',
+                        handle: '.drag-handle',
+                        axis: 'y',
+                        tolerance: 'pointer',
+                        placeholder: 'sortable-placeholder',
+                        connectWith: '#header-sections-container, #template-sections-container, #footer-sections-container',
+                        // Real-time validation while dragging
+                        sort: function(e, ui) {
+                            // Check if placeholder is in a child container
+                            const $placeholderParent = ui.placeholder.parent();
+                            const parentId = $placeholderParent.attr('id');
+                            
+                            // List of child wrapper IDs
+                            const childWrappers = [
+                                'multicolumn-columns-wrapper',
+                                'imageWithText-blocks-wrapper',
+                                'children-container',
+                                'testimonials-items-wrapper',
+                                'accordion-items-wrapper',
+                                'gallery-items-wrapper',
+                                'gallery-images-wrapper',
+                                'slideshow-slides-wrapper',
+                                'announcement-items-wrapper'
+                            ];
+                            
+                            // If placeholder is in a child container, hide it
+                            if (childWrappers.includes(parentId) || parentId?.includes('-wrapper')) {
+                                ui.placeholder.hide();
+                                $placeholderParent.css('background-color', '#ffcccc');
+                            } else {
+                                ui.placeholder.show();
+                                $('.ui-sortable').css('background-color', '');
+                            }
+                        },
+                        // Prevent dropping into child containers
+                        beforeStop: function(e, ui) {
+                            const $target = ui.placeholder.parent();
+                            const targetId = $target.attr('id');
+                            
+                            // List of child wrapper IDs that should not accept parent sections
+                            const childWrappers = [
+                                'multicolumn-columns-wrapper',
+                                'imageWithText-blocks-wrapper',
+                                'children-container', // Image with text settings view container
+                                'testimonials-items-wrapper',
+                                'accordion-items-wrapper',
+                                'gallery-items-wrapper',
+                                'slideshow-slides-wrapper'
+                            ];
+                            
+                            if (childWrappers.includes(targetId)) {
+                                console.log('[DRAG&DROP] Preventing drop into child wrapper:', targetId);
+                                $(this).sortable('cancel');
+                                return false;
+                            }
+                        },
+                        helper: function(e, ui) {
+                            const helper = ui.clone();
+                            helper.css('background-color', '#f5f5f5');
+                            return helper;
+                        },
+                        // Prevent parent sections from being accepted in child containers
+                        receive: function(e, ui) {
+                            const $target = $(this);
+                            const targetId = $target.attr('id');
+                            
+                            // Prevent non-header sections from being dropped in header container
+                            if (targetId === 'header-sections-container') {
+                                const blockType = ui.item.data('block-type');
+                                const validHeaderSections = ['announcement', 'header'];
+                                if (!validHeaderSections.includes(blockType)) {
+                                    console.log('[DRAG&DROP] Rejecting non-header section in header container');
+                                    $(ui.sender).sortable('cancel');
+                                    return false;
+                                }
+                            }
+                        },
+                        stop: function(e, ui) {
+                            // Update section order
+                            const newOrder = [];
+                            
+                            // Get all sections from all containers
+                            $('.sidebar-section-content').find('> .sidebar-subsection').each(function() {
+                                const $this = $(this);
+                                const sectionId = $this.data('section-id') || $this.data('block-type');
+                                if (sectionId && !newOrder.includes(sectionId)) {
+                                    newOrder.push(sectionId);
+                                }
+                            });
+                            
+                            currentSectionsConfig.sectionOrder = newOrder;
+                            hasPendingPageStructureChanges = true;
+                            updateSaveButtonState();
+                            renderPreview();
+                        }
+                    });
+                }
+                
+                // Initialize sortable for footer sections container
+                const $footerContainer = $('#footer-sections-container');
+                if ($footerContainer.length > 0) {
+                    console.log('[DRAG&DROP] Initializing sortable for footer sections');
+                    
+                    if ($footerContainer.hasClass('ui-sortable')) {
+                        $footerContainer.sortable('destroy');
+                    }
+                    
+                    $footerContainer.sortable({
+                        items: '> .sidebar-subsection',
+                        handle: '.drag-handle',
+                        axis: 'y',
+                        tolerance: 'pointer',
+                        placeholder: 'sortable-placeholder',
+                        connectWith: '#header-sections-container, #template-sections-container, #footer-sections-container',
+                        // Real-time validation while dragging
+                        sort: function(e, ui) {
+                            // Check if placeholder is in a child container
+                            const $placeholderParent = ui.placeholder.parent();
+                            const parentId = $placeholderParent.attr('id');
+                            
+                            // List of child wrapper IDs
+                            const childWrappers = [
+                                'multicolumn-columns-wrapper',
+                                'imageWithText-blocks-wrapper',
+                                'children-container',
+                                'testimonials-items-wrapper',
+                                'accordion-items-wrapper',
+                                'gallery-items-wrapper',
+                                'gallery-images-wrapper',
+                                'slideshow-slides-wrapper',
+                                'announcement-items-wrapper'
+                            ];
+                            
+                            // If placeholder is in a child container, hide it
+                            if (childWrappers.includes(parentId) || parentId?.includes('-wrapper')) {
+                                ui.placeholder.hide();
+                                $placeholderParent.css('background-color', '#ffcccc');
+                            } else {
+                                ui.placeholder.show();
+                                $('.ui-sortable').css('background-color', '');
+                            }
+                        },
+                        // Prevent dropping into child containers
+                        beforeStop: function(e, ui) {
+                            const $target = ui.placeholder.parent();
+                            const targetId = $target.attr('id');
+                            
+                            // List of child wrapper IDs that should not accept parent sections
+                            const childWrappers = [
+                                'multicolumn-columns-wrapper',
+                                'imageWithText-blocks-wrapper',
+                                'children-container', // Image with text settings view container
+                                'testimonials-items-wrapper',
+                                'accordion-items-wrapper',
+                                'gallery-items-wrapper',
+                                'slideshow-slides-wrapper'
+                            ];
+                            
+                            if (childWrappers.includes(targetId)) {
+                                console.log('[DRAG&DROP] Preventing drop into child wrapper:', targetId);
+                                $(this).sortable('cancel');
+                                return false;
+                            }
+                        },
+                        helper: function(e, ui) {
+                            const helper = ui.clone();
+                            helper.css('background-color', '#f5f5f5');
+                            return helper;
+                        },
+                        // Prevent parent sections from being accepted in child containers
+                        receive: function(e, ui) {
+                            const $target = $(this);
+                            const targetId = $target.attr('id');
+                            
+                            // Prevent non-footer sections from being dropped in footer container
+                            if (targetId === 'footer-sections-container') {
+                                const blockType = ui.item.data('block-type');
+                                if (blockType !== 'footer') {
+                                    console.log('[DRAG&DROP] Rejecting non-footer section in footer container');
+                                    $(ui.sender).sortable('cancel');
+                                    return false;
+                                }
+                            }
+                        },
+                        stop: function(e, ui) {
+                            // Update section order
+                            const newOrder = [];
+                            
+                            // Get all sections from all containers
+                            $('.sidebar-section-content').find('> .sidebar-subsection').each(function() {
+                                const $this = $(this);
+                                const sectionId = $this.data('section-id') || $this.data('block-type');
+                                if (sectionId && !newOrder.includes(sectionId)) {
+                                    newOrder.push(sectionId);
+                                }
+                            });
+                            
+                            currentSectionsConfig.sectionOrder = newOrder;
+                            hasPendingPageStructureChanges = true;
+                            updateSaveButtonState();
+                            renderPreview();
+                        }
+                    });
+                }
+                
                 console.log('[DRAG&DROP] ✓ Sortable aplicado con restricciones');
             } else {
                 console.error('[DRAG&DROP] jQuery UI sortable no está disponible');
@@ -14824,6 +15272,16 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                             axis: 'y',
                             tolerance: 'pointer',
                             containment: 'parent',
+                            greedy: true, // Prevent event bubbling to parent sortables
+                            // Prevent parent sections from being dropped here
+                            receive: function(e, ui) {
+                                // Only accept slideshow slide items, reject all parent sections
+                                if (!ui.item.hasClass('slideshow-slide-item')) {
+                                    console.log('[DRAG&DROP] Rejecting non-slide item in slideshow wrapper');
+                                    $(ui.sender).sortable('cancel');
+                                    return false;
+                                }
+                            },
                             stop: function(e, ui) {
                                 updateSlideOrder();
                             }
@@ -14843,6 +15301,26 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                             axis: 'y',
                             tolerance: 'pointer',
                             containment: 'parent',
+                            greedy: true, // Prevent event bubbling to parent sortables
+                            connectWith: false, // Explicitly prevent connection with parent sortables
+                            // Prevent parent sections from being dropped here
+                            receive: function(e, ui) {
+                                // Only accept multicolumn column items, reject all parent sections
+                                if (!ui.item.hasClass('multicolumn-column-item')) {
+                                    console.log('[DRAG&DROP] Rejecting non-column item in multicolumn wrapper');
+                                    $(ui.sender).sortable('cancel');
+                                    return false;
+                                }
+                            },
+                            // Double-check: prevent any parent sections
+                            over: function(e, ui) {
+                                if (!ui.item.hasClass('multicolumn-column-item')) {
+                                    ui.placeholder.hide();
+                                }
+                            },
+                            out: function(e, ui) {
+                                ui.placeholder.show();
+                            },
                             stop: function(e, ui) {
                                 updateColumnOrder();
                             }
@@ -14862,6 +15340,26 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                             axis: 'y',
                             tolerance: 'pointer',
                             containment: 'parent',
+                            greedy: true, // Prevent event bubbling to parent sortables
+                            connectWith: false, // Explicitly prevent connection with parent sortables
+                            // Prevent parent sections from being dropped here
+                            receive: function(e, ui) {
+                                // Only accept imageWithText block items, reject all parent sections
+                                if (!ui.item.hasClass('imageWithText-block-item')) {
+                                    console.log('[DRAG&DROP] Rejecting non-block item in imageWithText wrapper');
+                                    $(ui.sender).sortable('cancel');
+                                    return false;
+                                }
+                            },
+                            // Double-check: prevent any parent sections
+                            over: function(e, ui) {
+                                if (!ui.item.hasClass('imageWithText-block-item')) {
+                                    ui.placeholder.hide();
+                                }
+                            },
+                            out: function(e, ui) {
+                                ui.placeholder.show();
+                            },
                             stop: function(e, ui) {
                                 updateImageWithTextOrder();
                             }
@@ -14881,6 +15379,16 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                             axis: 'y',
                             tolerance: 'pointer',
                             containment: 'parent',
+                            greedy: true, // Prevent event bubbling to parent sortables
+                            // Prevent parent sections from being dropped here
+                            receive: function(e, ui) {
+                                // Only accept testimonial items, reject all parent sections
+                                if (!ui.item.hasClass('testimonial-item')) {
+                                    console.log('[DRAG&DROP] Rejecting non-testimonial item in testimonials wrapper');
+                                    $(ui.sender).sortable('cancel');
+                                    return false;
+                                }
+                            },
                             stop: function(e, ui) {
                                 updateTestimonialsOrder();
                             }
@@ -14900,6 +15408,16 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                             axis: 'y',
                             tolerance: 'pointer',
                             containment: 'parent',
+                            greedy: true, // Prevent event bubbling to parent sortables
+                            // Prevent parent sections from being dropped here
+                            receive: function(e, ui) {
+                                // Only accept accordion items, reject all parent sections
+                                if (!ui.item.hasClass('accordion-item')) {
+                                    console.log('[DRAG&DROP] Rejecting non-accordion item in accordion wrapper');
+                                    $(ui.sender).sortable('cancel');
+                                    return false;
+                                }
+                            },
                             stop: function(e, ui) {
                                 updateAccordionOrder();
                             }
@@ -14919,6 +15437,16 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                             axis: 'y',
                             tolerance: 'pointer',
                             containment: 'parent',
+                            greedy: true, // Prevent event bubbling to parent sortables
+                            // Prevent parent sections from being dropped here
+                            receive: function(e, ui) {
+                                // Only accept gallery image items, reject all parent sections
+                                if (!ui.item.hasClass('gallery-image-item')) {
+                                    console.log('[DRAG&DROP] Rejecting non-gallery item in gallery wrapper');
+                                    $(ui.sender).sortable('cancel');
+                                    return false;
+                                }
+                            },
                             stop: function(e, ui) {
                                 updateGalleryOrder();
                             }
@@ -20846,6 +21374,16 @@ document.head.appendChild(style);
             placeholder: 'block-item-placeholder',
             tolerance: 'pointer',
             cursor: 'move',
+            connectWith: false, // Explicitly prevent connection with parent sortables
+            // Prevent parent sections from being dropped here
+            receive: function(e, ui) {
+                // Only accept imageWithText block items, reject all parent sections
+                if (!ui.item.hasClass('imageWithText-block-item')) {
+                    console.log('[DRAG&DROP] Rejecting non-block item in imageWithText wrapper');
+                    $(ui.sender).sortable('cancel');
+                    return false;
+                }
+            },
             start: function(e, ui) {
                 ui.placeholder.css({
                     'height': ui.item.outerHeight(),
@@ -20913,6 +21451,17 @@ document.head.appendChild(style);
             placeholder: 'column-item-placeholder',
             tolerance: 'pointer',
             cursor: 'move',
+            greedy: true, // Prevent event bubbling to parent sortables
+            connectWith: false, // Explicitly prevent connection with parent sortables
+            // Prevent parent sections from being dropped here
+            receive: function(e, ui) {
+                // Only accept multicolumn column items, reject all parent sections
+                if (!ui.item.hasClass('multicolumn-column-item')) {
+                    console.log('[DRAG&DROP] Rejecting non-column item in multicolumn wrapper');
+                    $(ui.sender).sortable('cancel');
+                    return false;
+                }
+            },
             start: function(e, ui) {
                 ui.placeholder.css({
                     'height': ui.item.outerHeight(),
@@ -21031,6 +21580,26 @@ document.head.appendChild(style);
                         revert: 200,
                         delay: 150, // Add delay to prevent accidental drags
                         distance: 5, // Minimum distance before drag starts
+                        greedy: true, // Prevent event bubbling to parent sortables
+                        connectWith: false, // Explicitly prevent connection with parent sortables
+                        // Prevent parent sections from being dropped here
+                        receive: function(e, ui) {
+                            // Only accept imageWithText block items, reject all parent sections
+                            if (!ui.item.hasClass('imageWithText-block-item') && !ui.item.hasClass('image-with-text-block-item')) {
+                                console.log('[DRAG&DROP] Rejecting non-block item in imageWithText wrapper');
+                                $(ui.sender).sortable('cancel');
+                                return false;
+                            }
+                        },
+                        // Double-check: prevent any parent sections
+                        over: function(e, ui) {
+                            if (!ui.item.hasClass('imageWithText-block-item') && !ui.item.hasClass('image-with-text-block-item')) {
+                                ui.placeholder.hide();
+                            }
+                        },
+                        out: function(e, ui) {
+                            ui.placeholder.show();
+                        },
                         create: function(event, ui) {
                             console.log('[IMAGE-WITH-TEXT] Sortable created successfully');
                             // Log all handles
@@ -22328,6 +22897,13 @@ document.head.appendChild(style);
             tolerance: 'pointer',
             cursor: 'move',
             connectWith: '.submenu-container',
+            receive: function(e, ui) {
+                // Prevent parent sections from being dropped here
+                if (!ui.item.hasClass('submenu-item')) {
+                    ui.sender.sortable('cancel');
+                    return false;
+                }
+            },
             start: function(e, ui) {
                 ui.placeholder.height(ui.item.height());
             },
