@@ -336,8 +336,8 @@
       <RelatedAsset></RelatedAsset>
       <AssetTraitName></AssetTraitName>
       <AssetTraitValue></AssetTraitValue>
-      <Fingerprint>89gg31s62m</Fingerprint>
-      <Integrity>TH24bBc680JVTIoRn5VYoF7Ws/IkguRPvbekQxo28Gw=</Integrity>
+      <Fingerprint>xvlscmofr9</Fingerprint>
+      <Integrity>zUHwSlvQBNAbNVwKhMTknTsT31SISVjSwaPITOKc5I4=</Integrity>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
       <OriginalItemSpec>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\js\website-builder\modules\footer.js'))</OriginalItemSpec>

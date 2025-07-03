@@ -1,6 +1,6 @@
 {
   "Version": 1,
-  "Hash": "7hshx1OwG9bhd0xe9m9CmNaJieiDa7HaJJYvLS3Pc+0=",
+  "Hash": "hueDtr9vKst3TLijaJ5GWEts5FVmfRuuTZAQSniDEdI=",
   "Source": "Hotel",
   "BasePath": "_content/Hotel",
   "Mode": "Default",
@@ -430,8 +430,8 @@
       "RelatedAsset": "",
       "AssetTraitName": "",
       "AssetTraitValue": "",
-      "Fingerprint": "89gg31s62m",
-      "Integrity": "TH24bBc680JVTIoRn5VYoF7Ws/IkguRPvbekQxo28Gw=",
+      "Fingerprint": "xvlscmofr9",
+      "Integrity": "zUHwSlvQBNAbNVwKhMTknTsT31SISVjSwaPITOKc5I4=",
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
       "OriginalItemSpec": "wwwroot\\js\\website-builder\\modules\\footer.js"
@@ -4412,51 +4412,6 @@
       ]
     },
     {
-      "Route": "js/website-builder/modules/footer.89gg31s62m.js",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\js\\website-builder\\modules\\footer.js",
-      "Selectors": [],
-      "ResponseHeaders": [
-        {
-          "Name": "Accept-Ranges",
-          "Value": "bytes"
-        },
-        {
-          "Name": "Content-Length",
-          "Value": "54374"
-        },
-        {
-          "Name": "Content-Type",
-          "Value": "text/javascript"
-        },
-        {
-          "Name": "ETag",
-          "Value": "\"TH24bBc680JVTIoRn5VYoF7Ws/IkguRPvbekQxo28Gw=\""
-        },
-        {
-          "Name": "Last-Modified",
-          "Value": "Thu, 03 Jul 2025 00:13:19 GMT"
-        },
-        {
-          "Name": "Cache-Control",
-          "Value": "max-age=31536000, immutable"
-        }
-      ],
-      "EndpointProperties": [
-        {
-          "Name": "fingerprint",
-          "Value": "89gg31s62m"
-        },
-        {
-          "Name": "label",
-          "Value": "js/website-builder/modules/footer.js"
-        },
-        {
-          "Name": "integrity",
-          "Value": "sha256-TH24bBc680JVTIoRn5VYoF7Ws/IkguRPvbekQxo28Gw="
-        }
-      ]
-    },
-    {
       "Route": "js/website-builder/modules/footer.js",
       "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\js\\website-builder\\modules\\footer.js",
       "Selectors": [],
@@ -4467,7 +4422,7 @@
         },
         {
           "Name": "Content-Length",
-          "Value": "54374"
+          "Value": "55206"
         },
         {
           "Name": "Content-Type",
@@ -4475,11 +4430,11 @@
         },
         {
           "Name": "ETag",
-          "Value": "\"TH24bBc680JVTIoRn5VYoF7Ws/IkguRPvbekQxo28Gw=\""
+          "Value": "\"zUHwSlvQBNAbNVwKhMTknTsT31SISVjSwaPITOKc5I4=\""
         },
         {
           "Name": "Last-Modified",
-          "Value": "Thu, 03 Jul 2025 00:13:19 GMT"
+          "Value": "Thu, 03 Jul 2025 00:22:25 GMT"
         },
         {
           "Name": "Cache-Control",
@@ -4489,7 +4444,52 @@
       "EndpointProperties": [
         {
           "Name": "integrity",
-          "Value": "sha256-TH24bBc680JVTIoRn5VYoF7Ws/IkguRPvbekQxo28Gw="
+          "Value": "sha256-zUHwSlvQBNAbNVwKhMTknTsT31SISVjSwaPITOKc5I4="
+        }
+      ]
+    },
+    {
+      "Route": "js/website-builder/modules/footer.xvlscmofr9.js",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\js\\website-builder\\modules\\footer.js",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "55206"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "text/javascript"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"zUHwSlvQBNAbNVwKhMTknTsT31SISVjSwaPITOKc5I4=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Thu, 03 Jul 2025 00:22:25 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=31536000, immutable"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "fingerprint",
+          "Value": "xvlscmofr9"
+        },
+        {
+          "Name": "label",
+          "Value": "js/website-builder/modules/footer.js"
+        },
+        {
+          "Name": "integrity",
+          "Value": "sha256-zUHwSlvQBNAbNVwKhMTknTsT31SISVjSwaPITOKc5I4="
         }
       ]
     },

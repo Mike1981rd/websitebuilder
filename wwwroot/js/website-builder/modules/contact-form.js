@@ -322,43 +322,25 @@ window.WebsiteBuilderModules.ContactForm = {
         // Add to section order
         window.currentSectionsConfig.sectionOrder.push(contactFormId);
         
-        // Create sidebar element following the documented structure
-        const sidebarElement = `
-            <div class="sidebar-subsection" 
-                 data-element-id="${contactFormId}" 
-                 data-block-type="contact-form"
-                 data-section-id="${contactFormId}">
-                <i class="material-icons drag-handle">drag_handle</i>
-                <span class="subsection-text">Contact form</span>
-                <div class="subsection-actions">
-                    <button class="action-icon visibility-toggle ${defaultConfig.isHidden ? 'is-hidden' : ''}" 
-                            data-element-id="${contactFormId}"
-                            data-section="contact-form"
-                            title="Toggle visibility">
-                        <i class="material-icons icon-visible">visibility</i>
-                        <i class="material-icons icon-hidden">visibility_off</i>
-                    </button>
-                    <button class="action-icon delete-icon" 
-                            data-element-id="${contactFormId}"
-                            data-section="contact-form" 
-                            title="Delete">
-                        <i class="material-icons">delete</i>
-                    </button>
-                </div>
-            </div>
-        `;
-        
-        // Add to sidebar - specifically to template sections container
+        // Re-render just the template sections content
         const templateContainer = document.getElementById('template-sections-container');
-        if (templateContainer) {
-            // Find the "Add section" button container
-            const addSectionButton = templateContainer.querySelector('.add-section-button.add-template-section');
-            if (addSectionButton && addSectionButton.parentElement) {
-                // Insert before the add section button container
-                addSectionButton.parentElement.insertAdjacentHTML('beforebegin', sidebarElement);
+        if (templateContainer && window.renderTemplateSections) {
+            // Find the add section button to preserve it
+            const addSectionDiv = templateContainer.querySelector('div:has(.add-section-button.add-template-section)');
+            
+            // Render the updated sections
+            const sectionsHTML = window.renderTemplateSections();
+            
+            // Update the container while preserving the add button
+            if (addSectionDiv) {
+                templateContainer.innerHTML = sectionsHTML + addSectionDiv.outerHTML;
             } else {
-                // Fallback: append to template container
-                templateContainer.insertAdjacentHTML('beforeend', sidebarElement);
+                templateContainer.innerHTML = sectionsHTML;
+            }
+            
+            // Re-apply translations
+            if (window.applyTranslations) {
+                setTimeout(window.applyTranslations, 0);
             }
         }
         
@@ -989,12 +971,7 @@ window.WebsiteBuilderModules.ContactForm = {
         // Back button - CRÍTICO: usar la clase correcta
         $('.back-to-sections-btn').off('click.contactForm').on('click.contactForm', function() {
             window.switchSidebarView('blockList');
-            // Reconstruir contact forms después de volver a la lista
-            setTimeout(() => {
-                if (window.WebsiteBuilderModules && window.WebsiteBuilderModules.ContactForm && window.WebsiteBuilderModules.ContactForm.reconstructContactForms) {
-                    window.WebsiteBuilderModules.ContactForm.reconstructContactForms();
-                }
-            }, 100);
+            // Contact forms are now rendered by renderTemplateSections in switchSidebarView
         });
         
         // Color scheme

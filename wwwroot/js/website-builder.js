@@ -6083,20 +6083,62 @@ $(document).ready(async function() {
         ) || [];
         
         templateSections.forEach(sectionId => {
-            // Handle contact forms separately
+            // Handle contact forms
             if (sectionId.startsWith('contact-form-')) {
                 const contactForm = currentSectionsConfig.contactForms?.[sectionId];
                 if (contactForm) {
-                    // Contact forms are rendered by the module's addContactForm function
-                    // They manage their own DOM elements
-                    return; // Skip to next iteration
+                    html += `
+                        <div class="sidebar-subsection" 
+                             data-element-id="${sectionId}" 
+                             data-block-type="contact-form"
+                             data-section-id="${sectionId}">
+                            <i class="material-icons drag-handle">drag_handle</i>
+                            <span class="subsection-text">Contact form</span>
+                            <div class="subsection-actions">
+                                <button class="action-icon visibility-toggle ${contactForm.isHidden ? 'is-hidden' : ''}" 
+                                        data-element-id="${sectionId}"
+                                        data-section="contact-form"
+                                        title="Toggle visibility">
+                                    <i class="material-icons icon-visible">visibility</i>
+                                    <i class="material-icons icon-hidden">visibility_off</i>
+                                </button>
+                                <button class="action-icon delete-icon" 
+                                        data-element-id="${sectionId}"
+                                        data-section="contact-form" 
+                                        title="Delete">
+                                    <i class="material-icons">delete</i>
+                                </button>
+                            </div>
+                        </div>
+                    `;
                 }
             } else if (sectionId.startsWith('image-with-text-')) {
                 const imageWithText = currentSectionsConfig.imageWithTextSections?.[sectionId];
                 if (imageWithText) {
-                    // Image with text sections are rendered by the module's addImageWithText function
-                    // They manage their own DOM elements
-                    return; // Skip to next iteration
+                    html += `
+                        <div class="sidebar-subsection" 
+                             data-element-id="${sectionId}" 
+                             data-block-type="image-with-text"
+                             data-section-id="${sectionId}">
+                            <i class="material-icons drag-handle">drag_handle</i>
+                            <span class="subsection-text">Image with text</span>
+                            <div class="subsection-actions">
+                                <button class="action-icon visibility-toggle ${imageWithText.isHidden ? 'is-hidden' : ''}" 
+                                        data-element-id="${sectionId}"
+                                        data-section="image-with-text"
+                                        title="Toggle visibility">
+                                    <i class="material-icons icon-visible">visibility</i>
+                                    <i class="material-icons icon-hidden">visibility_off</i>
+                                </button>
+                                <button class="action-icon delete-icon" 
+                                        data-element-id="${sectionId}"
+                                        data-section="image-with-text" 
+                                        title="Delete">
+                                    <i class="material-icons">delete</i>
+                                </button>
+                            </div>
+                        </div>
+                    `;
                 }
             } else if (currentSectionsConfig[sectionId]) {
                 const section = currentSectionsConfig[sectionId];
@@ -22581,14 +22623,8 @@ document.head.appendChild(style);
                                     if (typeof syncVisibilityToggleStates === 'function') {
                                         syncVisibilityToggleStates();
                                     }
-                                    // Reconstruct contact forms after reloading
-                                    if (window.WebsiteBuilderModules && window.WebsiteBuilderModules.ContactForm && window.WebsiteBuilderModules.ContactForm.reconstructContactForms) {
-                                        window.WebsiteBuilderModules.ContactForm.reconstructContactForms();
-                                    }
-                                    // Reconstruct image with text sections after reloading
-                                    if (window.WebsiteBuilderModules && window.WebsiteBuilderModules.ImageWithText && window.WebsiteBuilderModules.ImageWithText.reconstructImageWithTextSections) {
-                                        window.WebsiteBuilderModules.ImageWithText.reconstructImageWithTextSections();
-                                    }
+                                    // Contact forms and image-with-text sections are now rendered by renderTemplateSections
+                                    // No need to reconstruct them separately
                                 }, 100);
                             });
                         }, 500);
