@@ -370,18 +370,35 @@ function renderHeader(config) {
 
 // Función para renderizar la barra de anuncios
 function renderAnnouncementBar(config) {
+    console.log('[ANNOUNCEMENT-BAR] Rendering with config:', config);
     if (!config || config.isHidden) return '';
 
     // Obtener anuncios visibles
     const visibleAnnouncements = [];
-    if (currentSectionsConfig.announcementOrder && currentSectionsConfig.announcements) {
-        currentSectionsConfig.announcementOrder.forEach(id => {
-            const announcement = currentSectionsConfig.announcements[id];
+    
+    // Intentar obtener currentSectionsConfig de diferentes fuentes
+    let sectionsConfig = null;
+    if (typeof window !== 'undefined' && window.currentSectionsConfig) {
+        sectionsConfig = window.currentSectionsConfig;
+    } else if (typeof currentSectionsConfig !== 'undefined') {
+        sectionsConfig = currentSectionsConfig;
+    }
+    
+    console.log('[ANNOUNCEMENT-BAR] sectionsConfig:', sectionsConfig);
+    
+    if (sectionsConfig && sectionsConfig.announcementOrder && sectionsConfig.announcements) {
+        console.log('[ANNOUNCEMENT-BAR] Found announcementOrder:', sectionsConfig.announcementOrder);
+        console.log('[ANNOUNCEMENT-BAR] Found announcements:', sectionsConfig.announcements);
+        
+        sectionsConfig.announcementOrder.forEach(id => {
+            const announcement = sectionsConfig.announcements[id];
             if (announcement && !announcement.isHidden) {
                 visibleAnnouncements.push({ id, ...announcement });
             }
         });
     }
+    
+    console.log('[ANNOUNCEMENT-BAR] Visible announcements:', visibleAnnouncements);
 
     if (visibleAnnouncements.length === 0) {
         visibleAnnouncements.push({ text: 'Welcome to our store!', link: '', icon: 'none' });
@@ -423,11 +440,19 @@ function renderAnnouncementBar(config) {
         announcementContent = marqueeItems.join('<span class="marquee-separator">•</span>');
     } else {
         // Normal single announcement display
-        if (currentAnnouncementIndex >= visibleAnnouncements.length) {
-            currentAnnouncementIndex = 0;
+        // Obtener currentAnnouncementIndex de diferentes fuentes
+        let announcementIndex = 0;
+        if (typeof window !== 'undefined' && typeof window.currentAnnouncementIndex !== 'undefined') {
+            announcementIndex = window.currentAnnouncementIndex;
+        } else if (typeof currentAnnouncementIndex !== 'undefined') {
+            announcementIndex = currentAnnouncementIndex;
         }
         
-        const currentAnnouncement = visibleAnnouncements[currentAnnouncementIndex];
+        if (announcementIndex >= visibleAnnouncements.length) {
+            announcementIndex = 0;
+        }
+        
+        const currentAnnouncement = visibleAnnouncements[announcementIndex];
         let announcementText = currentAnnouncement.text;
         
         // Handle icon display based on icon source

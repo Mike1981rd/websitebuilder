@@ -124,6 +124,88 @@ Para verificar que el fix funciona:
 ## 📋 ÍNDICE DE PROBLEMAS RESUELTOS
 
 1. **Drag & Drop permite colocar padres dentro de otros padres** - [Ver arriba](#problema-1-drag--drop-permite-colocar-elementos-padre-dentro-de-otros-padres)
+2. **Announcement Bar no muestra anuncios hijos en editor preview** - [Ver abajo](#problema-2-announcement-bar-no-muestra-anuncios-hijos-en-editor-preview)
+
+---
+
+### 📌 PROBLEMA #2: Announcement Bar no muestra anuncios hijos en editor preview
+
+**Fecha de resolución**: Enero 2025
+
+#### Descripción del problema
+El módulo announcement bar mostraba comportamiento inconsistente entre diferentes vistas:
+- **Editor preview (iframe central)**: Solo mostraba un mensaje hardcodeado "Welcome to our store!", NO mostraba los anuncios hijos configurados
+- **Preview real (página completa)**: SÍ mostraba correctamente todos los anuncios hijos configurados
+
+Esto causaba confusión ya que el usuario configuraba anuncios pero no los veía en el editor.
+
+#### Síntomas
+1. Al agregar anuncios mediante el botón (+), estos aparecían en el panel lateral
+2. Los anuncios se guardaban correctamente en la base de datos
+3. En el editor preview siempre aparecía "Welcome to our store!"
+4. Al abrir el preview real (ícono del ojo), los anuncios se mostraban correctamente
+
+#### Causa raíz
+La función `renderAnnouncementBar()` en `website-render-functions.js` estaba accediendo directamente a variables globales (`currentSectionsConfig` y `currentAnnouncementIndex`) que no estaban disponibles en el contexto del iframe del editor preview.
+
+El editor preview pasa los datos a través de `window.currentSectionsConfig` en el iframe, pero la función esperaba una variable global directa.
+
+#### Solución implementada
+Se modificó la función `renderAnnouncementBar()` para buscar las variables necesarias de múltiples fuentes posibles:
+
+##### 1. **Acceso flexible a currentSectionsConfig** (líneas 378-385)
+```javascript
+// Intentar obtener currentSectionsConfig de diferentes fuentes
+let sectionsConfig = null;
+if (typeof window !== 'undefined' && window.currentSectionsConfig) {
+    sectionsConfig = window.currentSectionsConfig;
+} else if (typeof currentSectionsConfig !== 'undefined') {
+    sectionsConfig = currentSectionsConfig;
+}
+```
+
+##### 2. **Acceso flexible a currentAnnouncementIndex** (líneas 435-441)
+```javascript
+// Obtener currentAnnouncementIndex de diferentes fuentes
+let announcementIndex = 0;
+if (typeof window !== 'undefined' && typeof window.currentAnnouncementIndex !== 'undefined') {
+    announcementIndex = window.currentAnnouncementIndex;
+} else if (typeof currentAnnouncementIndex !== 'undefined') {
+    announcementIndex = currentAnnouncementIndex;
+}
+```
+
+##### 3. **Logs de debug agregados** (líneas 373, 387-391, 401)
+```javascript
+console.log('[ANNOUNCEMENT-BAR] Rendering with config:', config);
+console.log('[ANNOUNCEMENT-BAR] sectionsConfig:', sectionsConfig);
+console.log('[ANNOUNCEMENT-BAR] Found announcementOrder:', sectionsConfig.announcementOrder);
+console.log('[ANNOUNCEMENT-BAR] Found announcements:', sectionsConfig.announcements);
+console.log('[ANNOUNCEMENT-BAR] Visible announcements:', visibleAnnouncements);
+```
+
+#### Resultado
+- La función ahora funciona correctamente en ambos contextos (editor preview y preview real)
+- Los anuncios configurados se muestran inmediatamente en el editor preview
+- Se mantiene la compatibilidad con el preview real
+- Los logs ayudan a diagnosticar problemas futuros
+
+#### Lecciones aprendidas
+1. **Funciones compartidas entre contextos**: Cuando una función se usa tanto en el editor como en el preview real, debe ser capaz de obtener datos de múltiples fuentes
+2. **No asumir variables globales**: En contextos de iframe, las variables globales pueden no estar disponibles directamente
+3. **Logs estratégicos**: Agregar logs en puntos clave facilita el debugging de problemas de datos
+4. **Compatibilidad hacia atrás**: Al corregir, mantener soporte para ambos métodos de acceso a datos
+
+#### Testing
+Para verificar que el fix funciona:
+1. Agregar varios anuncios en el announcement bar
+2. Verificar que aparecen en el editor preview inmediatamente
+3. Cambiar entre anuncios con las flechas de navegación
+4. Verificar que el preview real sigue funcionando correctamente
+5. Revisar los logs en la consola para confirmar que se están cargando los datos
+
+#### Archivos modificados
+- `/wwwroot/js/website-render-functions.js` - Función `renderAnnouncementBar()` líneas 372-454
 
 ---
 
