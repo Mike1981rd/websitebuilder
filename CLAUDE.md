@@ -1,5 +1,19 @@
 # Memoria del Proyecto Hotel
 
+<critical-rules>
+ESTAS REGLAS SON OBLIGATORIAS Y DEBEN SEGUIRSE SIEMPRE:
+
+1. MIGRACIONES DE ENTITY FRAMEWORK:
+   - NUNCA crear archivos .cs de migración
+   - SOLO proporcionar el nombre de la migración
+   - SIEMPRE esperar que el usuario ejecute Add-Migration y Update-Database
+   - Si necesitas una migración, responde EXACTAMENTE así:
+     "Nombre de migración: [NombreMigración]"
+
+2. AL FINAL DE CADA RESPUESTA:
+   - SIEMPRE incluir una sección que confirme el cumplimiento de estas reglas críticas
+</critical-rules>
+
 ## Reglas Importantes
 
 ### Migraciones de Entity Framework

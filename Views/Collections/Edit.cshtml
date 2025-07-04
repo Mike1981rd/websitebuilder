@@ -344,6 +344,7 @@
         display: inline-block;
         width: 48px;
         height: 24px;
+        flex-shrink: 0; /* Prevent shrinking */
     }
 
     .switch input {
@@ -382,6 +383,18 @@
 
     input:checked + .slider:before {
         transform: translateX(24px);
+    }
+    
+    .toggle-label {
+        margin-bottom: 0;
+        cursor: pointer;
+        font-size: 0.9rem;
+        color: #333;
+        white-space: nowrap; /* Prevent text wrapping */
+    }
+    
+    body.dark-mode .toggle-label {
+        color: #e0e0e0;
     }
 
     /* SEO section */
@@ -597,9 +610,40 @@
     </nav>
 </div>
 
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="fas fa-check-circle"></i> @TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="fas fa-exclamation-triangle"></i> @TempData["ErrorMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+@if (!ViewData.ModelState.IsValid)
+{
+    <div class="alert alert-warning alert-dismissible fade show" role="alert">
+        <i class="fas fa-exclamation-circle"></i> Por favor, corrija los siguientes errores:
+        <ul class="mb-0 mt-2">
+            @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+            {
+                <li>@error.ErrorMessage</li>
+            }
+        </ul>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
 <form asp-action="Edit" method="post" id="editForm">
     <input type="hidden" asp-for="Id" />
     <input type="hidden" asp-for="CreatedAt" />
+    <input type="hidden" asp-for="SortOrder" />
     
     <div class="form-container">
         <!-- Main form section -->
@@ -756,7 +800,7 @@
                         <input type="checkbox" asp-for="IsActive">
                         <span class="slider"></span>
                     </label>
-                    <label for="IsActive" style="margin-bottom: 0; cursor: pointer;" data-i18n="active">Activa</label>
+                    <label for="IsActive" class="toggle-label" data-i18n="active">Activa</label>
                 </div>
                 <div class="help-text" style="margin-top: 8px;" data-i18n="active_help">
                     Las colecciones activas son visibles en tu tienda
@@ -848,6 +892,7 @@
                 const command = this.dataset.command;
                 
                 if (command === 'createLink') {
+                    const currentLang = localStorage.getItem('preferredLanguage') || 'es';
                     const linkPrompt = translations[currentLang]['link_prompt'] || 'Ingrese la URL del enlace:';
                     const url = prompt(linkPrompt);
                     if (url) {
@@ -1062,11 +1107,24 @@
         });
 
         function handleImageFile(file) {
-            // For now, we'll use a data URL. In production, you'd upload to server
+            // Validar tamaño del archivo
+            const maxSizeMB = 25; // 25MB máximo
+            const maxSizeBytes = maxSizeMB * 1024 * 1024;
+            
+            if (file.size > maxSizeBytes) {
+                const currentLang = localStorage.getItem('preferredLanguage') || 'es';
+                const message = translations[currentLang]['image_too_large'] || `La imagen es demasiado grande. El tamaño máximo es ${maxSizeMB}MB.`;
+                alert(message);
+                return;
+            }
+            
+            // Leer archivo como Data URL
             const reader = new FileReader();
             reader.onload = function(e) {
                 previewImg.src = e.target.result;
-                imageUrlInput.value = e.target.result; // In production, this would be the uploaded URL
+                // Guardar el Data URL en el input (ahora el campo soporta texto largo)
+                imageUrlInput.value = e.target.result;
+                
                 imageUploadArea.style.display = 'none';
                 imagePreview.style.display = 'block';
             };
@@ -1104,8 +1162,21 @@
 
         // Form submission
         document.getElementById('editForm').addEventListener('submit', function(e) {
+            console.log('[DEBUG] Form submit event triggered');
+            
             // Update description textarea before submit
             updateDescription();
+            
+            // Log form data for debugging
+            const formData = new FormData(this);
+            console.log('[DEBUG] Form data:');
+            for (let [key, value] of formData.entries()) {
+                if (key === 'ImageUrl' && value) {
+                    console.log(`${key}: [DATA URL - ${value.length} chars]`);
+                } else {
+                    console.log(`${key}: ${value}`);
+                }
+            }
             
             // Validate at least one sales channel
             const checkedChannels = document.querySelectorAll('input[name="selectedChannels"]:checked');
@@ -1116,6 +1187,8 @@
                 alert(alertMessage);
                 return false;
             }
+            
+            console.log('[DEBUG] Form validation passed, submitting...');
         });
 
         // Translations
@@ -1166,7 +1239,11 @@
                 created: "Creado",
                 updated: "Actualizado",
                 delete_confirm: "¿Estás seguro de eliminar la colección \"{title}\"? Esta acción no se puede deshacer.",
-                select_channel_alert: "Selecciona al menos un canal de venta"
+                select_channel_alert: "Selecciona al menos un canal de venta",
+                
+                // Image upload
+                image_too_large: "La imagen es demasiado grande. El tamaño máximo es 25MB.",
+                image_upload_pending: "Nota: La funcionalidad de carga de imágenes estará disponible próximamente."
             },
             en: {
                 edit_collection: "Edit collection",
@@ -1214,7 +1291,11 @@
                 created: "Created",
                 updated: "Updated",
                 delete_confirm: "Are you sure you want to delete the collection \"{title}\"? This action cannot be undone.",
-                select_channel_alert: "Select at least one sales channel"
+                select_channel_alert: "Select at least one sales channel",
+                
+                // Image upload
+                image_too_large: "The image is too large. Maximum size is 25MB.",
+                image_upload_pending: "Note: Image upload functionality will be available soon."
             }
         };
 
@@ -1240,6 +1321,26 @@
             updateCharCount('seoTitleCount', seoTitleInput.value.length, 60);
             updateCharCount('seoDescCount', seoDescInput.value.length, 160);
             validateHandle();
+            
+            // Handle alert close buttons
+            document.querySelectorAll('.alert .btn-close').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const alert = this.closest('.alert');
+                    alert.style.transition = 'opacity 0.3s';
+                    alert.style.opacity = '0';
+                    setTimeout(() => alert.remove(), 300);
+                });
+            });
+            
+            // Auto-dismiss success messages after 5 seconds
+            const successAlert = document.querySelector('.alert-success');
+            if (successAlert) {
+                setTimeout(() => {
+                    successAlert.style.transition = 'opacity 0.3s';
+                    successAlert.style.opacity = '0';
+                    setTimeout(() => successAlert.remove(), 300);
+                }, 5000);
+            }
         });
     </script>
 }

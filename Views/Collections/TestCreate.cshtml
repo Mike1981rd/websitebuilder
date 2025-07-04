@@ -1,0 +1,44 @@
+@model Hotel.Models.Collection
+@{
+    ViewData["Title"] = "Test Create Collection";
+    Layout = "_MaterializeExactLayout";
+}
+
+<h4>Test Create Collection</h4>
+
+<form asp-action="Create" method="post">
+    @Html.AntiForgeryToken()
+    
+    <div>
+        <label asp-for="Title"></label>
+        <input asp-for="Title" value="Test Collection" />
+        <span asp-validation-for="Title"></span>
+    </div>
+    
+    <div>
+        <label asp-for="Handle"></label>
+        <input asp-for="Handle" value="test-collection" />
+        <span asp-validation-for="Handle"></span>
+    </div>
+    
+    <div>
+        <label>Sales Channel</label>
+        <input type="checkbox" name="selectedChannels" value="tienda-online" checked />
+        Tienda Online
+    </div>
+    
+    <div>
+        <input type="checkbox" asp-for="IsActive" checked />
+        <label asp-for="IsActive"></label>
+    </div>
+    
+    <button type="submit">Submit Test</button>
+</form>
+
+<hr />
+
+<h5>Debug: Submit with JavaScript</h5>
+<button onclick="document.querySelector('form').submit()">JS Submit</button>
+
+<h5>Debug: Submit with requestSubmit</h5>
+<button onclick="document.querySelector('form').requestSubmit()">Request Submit</button>

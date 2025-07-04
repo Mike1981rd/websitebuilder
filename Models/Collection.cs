@@ -16,17 +16,15 @@ namespace Hotel.Models
 
         [Display(Name = "Descripción")]
         [DataType(DataType.Html)]
-        public string Description { get; set; }
+        public string? Description { get; set; } = "";
 
-        [Required]
         [StringLength(255)]
-        [RegularExpression(@"^[a-z0-9-]+$", ErrorMessage = "El handle solo puede contener letras minúsculas, números y guiones")]
         [Display(Name = "Handle")]
-        public string Handle { get; set; } // URL slug único
+        public string? Handle { get; set; } = ""; // URL slug único
 
         [Display(Name = "URL de imagen")]
-        [StringLength(500)]
-        public string ImageUrl { get; set; }
+        [Column(TypeName = "text")]
+        public string? ImageUrl { get; set; } = "";
 
         [Display(Name = "Activa")]
         public bool IsActive { get; set; } = true;
@@ -38,11 +36,11 @@ namespace Hotel.Models
         // SEO
         [Display(Name = "Título SEO")]
         [StringLength(60, ErrorMessage = "El título SEO no puede exceder 60 caracteres")]
-        public string SeoTitle { get; set; }
+        public string? SeoTitle { get; set; } = "";
 
         [Display(Name = "Descripción SEO")]
         [StringLength(160, ErrorMessage = "La descripción SEO no puede exceder 160 caracteres")]
-        public string SeoDescription { get; set; }
+        public string? SeoDescription { get; set; } = "";
 
         // Canales de venta (JSON array)
         [Display(Name = "Canales de venta")]
@@ -51,10 +49,10 @@ namespace Hotel.Models
 
         // Auditoría
         [Display(Name = "Fecha de creación")]
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime CreatedAt { get; set; }
 
         [Display(Name = "Fecha de actualización")]
-        public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime UpdatedAt { get; set; }
 
         // Navegación (se usará cuando creemos Product)
         public virtual ICollection<CollectionProduct> CollectionProducts { get; set; } = new List<CollectionProduct>();

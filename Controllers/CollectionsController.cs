@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Text.RegularExpressions;
 using System.Text.Json;
+using Npgsql;
 
 namespace Hotel.Controllers
 {
@@ -62,49 +63,184 @@ namespace Hotel.Controllers
             return View();
         }
 
+        // GET: Collections/TestCreate - TEMPORAL PARA DEBUG
+        public IActionResult TestCreate()
+        {
+            return View();
+        }
+
+        // GET: Collections/CreateSimple - TEMPORAL PARA DEBUG
+        public IActionResult CreateSimple()
+        {
+            ViewBag.SalesChannels = GetAvailableSalesChannels();
+            return View();
+        }
+
         // POST: Collections/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(Collection collection, string[] selectedChannels)
         {
+            _logger.LogInformation("=====================================================");
+            _logger.LogInformation("[CREATE POST] MÉTODO CREATE POST ALCANZADO");
+            _logger.LogInformation($"[CREATE POST] Title recibido: {collection?.Title}");
+            _logger.LogInformation($"[CREATE POST] Request Method: {Request.Method}");
+            _logger.LogInformation($"[CREATE POST] Content Type: {Request.ContentType}");
+            _logger.LogInformation($"[CREATE POST] Form Keys: {string.Join(", ", Request.Form.Keys)}");
+            _logger.LogInformation("=====================================================");
+            
             try
             {
-                // Generar handle automáticamente si no se proporciona
-                if (string.IsNullOrWhiteSpace(collection.Handle))
+                _logger.LogInformation("=== INICIANDO CREATE POST ===");
+                _logger.LogInformation($"Title recibido: '{collection.Title}'");
+                _logger.LogInformation($"Description recibido: '{collection.Description}'");
+                _logger.LogInformation($"Handle recibido: '{collection.Handle}'");
+                _logger.LogInformation($"ImageUrl recibido - primeros 100 chars: '{collection.ImageUrl?.Substring(0, Math.Min(collection.ImageUrl?.Length ?? 0, 100))}'");
+                _logger.LogInformation($"ImageUrl longitud: {collection.ImageUrl?.Length ?? 0} caracteres");
+                _logger.LogInformation($"ModelState.IsValid: {ModelState.IsValid}");
+                
+                if (!ModelState.IsValid)
                 {
-                    collection.Handle = GenerateHandle(collection.Title);
+                    _logger.LogWarning("ModelState no es válido. Errores:");
+                    foreach (var modelError in ModelState.Values.SelectMany(v => v.Errors))
+                    {
+                        _logger.LogWarning($"Error: {modelError.ErrorMessage}");
+                    }
                 }
 
-                // Validar que el handle sea único
-                if (await _context.Collections.AnyAsync(c => c.Handle == collection.Handle))
+                // Remover validaciones de campos opcionales y asignar valores vacíos si son null
+                if (string.IsNullOrWhiteSpace(collection.Description))
                 {
-                    ModelState.AddModelError("Handle", "Este handle ya está en uso");
+                    ModelState.Remove("Description");
+                    collection.Description = "";
+                }
+                if (string.IsNullOrWhiteSpace(collection.Handle))
+                {
+                    ModelState.Remove("Handle");
+                    collection.Handle = "";
+                }
+                if (string.IsNullOrWhiteSpace(collection.ImageUrl))
+                {
+                    ModelState.Remove("ImageUrl");
+                    collection.ImageUrl = "";  // DEBE asignar vacío porque el campo es NOT NULL
+                }
+                if (string.IsNullOrWhiteSpace(collection.SeoTitle))
+                {
+                    ModelState.Remove("SeoTitle");
+                    collection.SeoTitle = "";
+                }
+                if (string.IsNullOrWhiteSpace(collection.SeoDescription))
+                {
+                    ModelState.Remove("SeoDescription");
+                    collection.SeoDescription = "";
+                }
+
+                // Validar solo el título manualmente
+                if (string.IsNullOrWhiteSpace(collection.Title))
+                {
+                    ModelState.AddModelError("Title", "El título es requerido");
                     ViewBag.SalesChannels = GetAvailableSalesChannels();
+                    _logger.LogWarning("Título vacío, retornando a la vista");
                     return View(collection);
                 }
 
-                // Establecer canales de venta
-                if (selectedChannels != null && selectedChannels.Length > 0)
+                // Si llegamos aquí, el título existe
+                _logger.LogInformation($"Título válido: '{collection.Title}'");
+
+                // Generar handle si no existe
+                if (string.IsNullOrWhiteSpace(collection.Handle))
                 {
-                    collection.SalesChannels = JsonSerializer.Serialize(selectedChannels);
+                    collection.Handle = GenerateHandle(collection.Title);
+                    _logger.LogInformation($"Handle generado: '{collection.Handle}'");
                 }
 
-                // Establecer fechas
+                // Establecer valores por defecto
                 collection.CreatedAt = DateTime.UtcNow;
                 collection.UpdatedAt = DateTime.UtcNow;
-
-                _context.Add(collection);
-                await _context.SaveChangesAsync();
-
-                _logger.LogInformation($"Colección creada: {collection.Title} (ID: {collection.Id})");
-                TempData["SuccessMessage"] = "Colección creada exitosamente";
+                collection.SalesChannels = selectedChannels?.Length > 0 
+                    ? JsonSerializer.Serialize(selectedChannels) 
+                    : "[\"tienda-online\"]";
                 
-                return RedirectToAction(nameof(Edit), new { id = collection.Id });
+                // Asegurar que SortOrder tenga un valor
+                if (string.IsNullOrWhiteSpace(collection.SortOrder))
+                {
+                    collection.SortOrder = "manual";
+                }
+                
+                _logger.LogInformation($"SalesChannels: {collection.SalesChannels}");
+                _logger.LogInformation($"IsActive: {collection.IsActive}");
+                
+                // Log todos los valores antes de guardar
+                _logger.LogInformation("=== VALORES FINALES ANTES DE GUARDAR ===");
+                _logger.LogInformation($"Title: '{collection.Title}'");
+                _logger.LogInformation($"Description: '{collection.Description}'");
+                _logger.LogInformation($"Handle: '{collection.Handle}'");
+                _logger.LogInformation($"ImageUrl: '{collection.ImageUrl}'");
+                _logger.LogInformation($"SeoTitle: '{collection.SeoTitle}'");
+                _logger.LogInformation($"SeoDescription: '{collection.SeoDescription}'");
+                _logger.LogInformation($"SortOrder: '{collection.SortOrder}'");
+                _logger.LogInformation($"SalesChannels: '{collection.SalesChannels}'");
+                _logger.LogInformation($"IsActive: {collection.IsActive}");
+                _logger.LogInformation($"CreatedAt: {collection.CreatedAt:yyyy-MM-dd HH:mm:ss}");
+                _logger.LogInformation($"UpdatedAt: {collection.UpdatedAt:yyyy-MM-dd HH:mm:ss}");
+
+                // Guardar
+                _context.Collections.Add(collection);
+                _logger.LogInformation("Entidad agregada al contexto, intentando SaveChangesAsync...");
+                
+                var result = await _context.SaveChangesAsync();
+                
+                _logger.LogInformation($"SaveChangesAsync resultado: {result} registros guardados");
+                _logger.LogInformation($"Colección creada con ID: {collection.Id}");
+
+                TempData["SuccessMessage"] = "Colección creada exitosamente";
+                return RedirectToAction(nameof(Index));
+            }
+            catch (DbUpdateException dbEx)
+            {
+                _logger.LogError(dbEx, "Error de base de datos al crear la colección");
+                _logger.LogError($"Inner Exception: {dbEx.InnerException?.Message}");
+                _logger.LogError($"StackTrace: {dbEx.StackTrace}");
+                
+                var errorMessage = "Error al guardar en la base de datos: ";
+                if (dbEx.InnerException != null)
+                {
+                    errorMessage += dbEx.InnerException.Message;
+                    
+                    // Si es un error de PostgreSQL, mostrar más detalles
+                    if (dbEx.InnerException is Npgsql.PostgresException pgEx)
+                    {
+                        _logger.LogError($"PostgreSQL Error Code: {pgEx.SqlState}");
+                        _logger.LogError($"PostgreSQL Detail: {pgEx.Detail}");
+                        _logger.LogError($"PostgreSQL Column: {pgEx.ColumnName}");
+                        errorMessage = $"Error PostgreSQL: {pgEx.MessageText}";
+                        if (!string.IsNullOrEmpty(pgEx.Detail))
+                        {
+                            errorMessage += $" - Detalle: {pgEx.Detail}";
+                        }
+                        if (!string.IsNullOrEmpty(pgEx.ColumnName))
+                        {
+                            errorMessage += $" - Columna: {pgEx.ColumnName}";
+                        }
+                    }
+                }
+                else
+                {
+                    errorMessage += dbEx.Message;
+                }
+                
+                TempData["ErrorMessage"] = errorMessage;
+                ViewBag.SalesChannels = GetAvailableSalesChannels();
+                return View(collection);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error al crear la colección");
-                TempData["ErrorMessage"] = "Error al crear la colección";
+                _logger.LogError(ex, "Error general al crear la colección");
+                _logger.LogError($"Tipo de excepción: {ex.GetType().FullName}");
+                _logger.LogError($"Mensaje: {ex.Message}");
+                _logger.LogError($"StackTrace: {ex.StackTrace}");
+                
+                TempData["ErrorMessage"] = $"Error inesperado: {ex.Message}";
                 ViewBag.SalesChannels = GetAvailableSalesChannels();
                 return View(collection);
             }
@@ -142,6 +278,47 @@ namespace Hotel.Controllers
 
             try
             {
+                _logger.LogInformation("=== INICIANDO EDIT POST ===");
+                _logger.LogInformation($"ID: {id}, Title: '{collection.Title}'");
+                _logger.LogInformation($"ModelState.IsValid: {ModelState.IsValid}");
+                
+                // Validar título primero
+                if (string.IsNullOrWhiteSpace(collection.Title))
+                {
+                    ModelState.AddModelError("Title", "El título es requerido");
+                    ViewBag.SalesChannels = GetAvailableSalesChannels();
+                    ViewBag.SelectedChannels = selectedChannels;
+                    return View(collection);
+                }
+                
+                // Remover validaciones de campos opcionales y asignar valores por defecto solo si son null
+                if (string.IsNullOrWhiteSpace(collection.Description))
+                {
+                    ModelState.Remove("Description");
+                    if (collection.Description == null) collection.Description = "";
+                }
+                if (string.IsNullOrWhiteSpace(collection.Handle))
+                {
+                    ModelState.Remove("Handle");
+                    // Si el handle está vacío, generar uno
+                    collection.Handle = GenerateHandle(collection.Title);
+                }
+                if (string.IsNullOrWhiteSpace(collection.ImageUrl))
+                {
+                    ModelState.Remove("ImageUrl");
+                    if (collection.ImageUrl == null) collection.ImageUrl = "";
+                }
+                if (string.IsNullOrWhiteSpace(collection.SeoTitle))
+                {
+                    ModelState.Remove("SeoTitle");
+                    if (collection.SeoTitle == null) collection.SeoTitle = "";
+                }
+                if (string.IsNullOrWhiteSpace(collection.SeoDescription))
+                {
+                    ModelState.Remove("SeoDescription");
+                    if (collection.SeoDescription == null) collection.SeoDescription = "";
+                }
+
                 // Obtener la colección original para preservar algunos campos
                 var originalCollection = await _context.Collections
                     .AsNoTracking()
@@ -166,18 +343,41 @@ namespace Hotel.Controllers
                 {
                     collection.SalesChannels = JsonSerializer.Serialize(selectedChannels);
                 }
+                else
+                {
+                    collection.SalesChannels = "[\"tienda-online\"]";
+                }
+
+                // Asegurar que SortOrder tenga un valor
+                if (string.IsNullOrWhiteSpace(collection.SortOrder))
+                {
+                    collection.SortOrder = originalCollection.SortOrder ?? "manual";
+                }
 
                 // Preservar fecha de creación y actualizar fecha de modificación
                 collection.CreatedAt = originalCollection.CreatedAt;
                 collection.UpdatedAt = DateTime.UtcNow;
 
-                _context.Update(collection);
-                await _context.SaveChangesAsync();
+                // Log antes de actualizar
+                _logger.LogInformation("=== VALORES FINALES ANTES DE UPDATE ===");
+                _logger.LogInformation($"Id: {collection.Id}");
+                _logger.LogInformation($"Title: '{collection.Title}'");
+                _logger.LogInformation($"Handle: '{collection.Handle}'");
+                _logger.LogInformation($"IsActive: {collection.IsActive}");
+                _logger.LogInformation($"SalesChannels: '{collection.SalesChannels}'");
+                _logger.LogInformation($"SortOrder: '{collection.SortOrder}'");
+                _logger.LogInformation($"CreatedAt: {collection.CreatedAt:yyyy-MM-dd HH:mm:ss}");
+                _logger.LogInformation($"UpdatedAt: {collection.UpdatedAt:yyyy-MM-dd HH:mm:ss}");
 
+                _context.Update(collection);
+                var saveResult = await _context.SaveChangesAsync();
+                
+                _logger.LogInformation($"SaveChangesAsync resultado: {saveResult} registros actualizados");
                 _logger.LogInformation($"Colección actualizada: {collection.Title} (ID: {collection.Id})");
                 TempData["SuccessMessage"] = "Colección actualizada exitosamente";
                 
-                return RedirectToAction(nameof(Edit), new { id = collection.Id });
+                _logger.LogInformation("Redirigiendo a Index...");
+                return RedirectToAction(nameof(Index));
             }
             catch (DbUpdateConcurrencyException)
             {
@@ -265,6 +465,32 @@ namespace Hotel.Controllers
 
             var handle = GenerateHandle(title);
             return Json(new { handle });
+        }
+
+        // AJAX: Subir imagen (placeholder para implementación futura)
+        [HttpPost]
+        public async Task<IActionResult> UploadImage()
+        {
+            try
+            {
+                // TODO: Implementar lógica de subida de imagen
+                // 1. Validar el archivo
+                // 2. Guardar en el servidor o servicio de almacenamiento
+                // 3. Devolver la URL
+                
+                return Json(new { 
+                    success = false, 
+                    message = "La funcionalidad de carga de imágenes estará disponible próximamente." 
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al subir imagen");
+                return Json(new { 
+                    success = false, 
+                    message = "Error al procesar la imagen." 
+                });
+            }
         }
 
         // Métodos auxiliares

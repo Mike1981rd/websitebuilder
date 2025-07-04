@@ -133,6 +133,10 @@ namespace Hotel.Data
                 .Property(c => c.SalesChannels)
                 .HasColumnType("jsonb");
 
+            modelBuilder.Entity<Collection>()
+                .Property(c => c.ImageUrl)
+                .HasColumnType("text");
+
             // Configuración de CollectionProduct (relación muchos a muchos)
             modelBuilder.Entity<CollectionProduct>()
                 .HasKey(cp => new { cp.CollectionId, cp.ProductId });

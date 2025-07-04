@@ -7,6 +7,9 @@ using Hotel.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Configurar Npgsql para manejar correctamente DateTime con PostgreSQL
+AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+
 // Configure request size limits for large JSON payloads
 builder.Services.Configure<FormOptions>(options =>
 {

@@ -637,6 +637,85 @@
     .expand-icon {
         transition: transform 0.2s;
     }
+    
+    /* Alert styles */
+    .alert {
+        padding: 16px 20px;
+        margin-bottom: 20px;
+        border-radius: 4px;
+        position: relative;
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+    }
+    
+    .alert i {
+        font-size: 20px;
+        flex-shrink: 0;
+        margin-top: 2px;
+    }
+    
+    .alert-success {
+        background-color: #d4edda;
+        border: 1px solid #c3e6cb;
+        color: #155724;
+    }
+    
+    .alert-danger {
+        background-color: #f8d7da;
+        border: 1px solid #f5c6cb;
+        color: #721c24;
+    }
+    
+    .alert-warning {
+        background-color: #fff3cd;
+        border: 1px solid #ffeeba;
+        color: #856404;
+    }
+    
+    body.dark-mode .alert-success {
+        background-color: #1e3a28;
+        border-color: #2d5a3d;
+        color: #a8d5ba;
+    }
+    
+    body.dark-mode .alert-danger {
+        background-color: #3d1f23;
+        border-color: #5a2d32;
+        color: #d5a8ad;
+    }
+    
+    body.dark-mode .alert-warning {
+        background-color: #3d3a1f;
+        border-color: #5a552d;
+        color: #d5cfa8;
+    }
+    
+    .alert .btn-close {
+        position: absolute;
+        top: 16px;
+        right: 16px;
+        background: none;
+        border: none;
+        font-size: 20px;
+        cursor: pointer;
+        opacity: 0.5;
+        line-height: 1;
+        padding: 0;
+        color: inherit;
+    }
+    
+    .alert .btn-close:hover {
+        opacity: 0.8;
+    }
+    
+    .alert .btn-close::before {
+        content: '×';
+    }
+    
+    .alert ul {
+        margin-bottom: 0;
+    }
 </style>
 
 <div class="page-header">
@@ -650,7 +729,38 @@
     </nav>
 </div>
 
-<form asp-action="Create" method="post" id="createForm">
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="fas fa-check-circle"></i> @TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="fas fa-exclamation-triangle"></i> @TempData["ErrorMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+@if (!ViewData.ModelState.IsValid)
+{
+    <div class="alert alert-warning alert-dismissible fade show" role="alert">
+        <i class="fas fa-exclamation-circle"></i> Por favor, corrija los siguientes errores:
+        <ul class="mb-0 mt-2">
+            @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+            {
+                <li>@error.ErrorMessage</li>
+            }
+        </ul>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<form asp-action="Create" asp-controller="Collections" method="post" id="createForm">
+    @Html.AntiForgeryToken()
     <div class="form-container">
         <!-- Main form section -->
         <div class="main-form">
@@ -906,9 +1016,13 @@
 
 @section Scripts {
     <script>
+        
         // Initialize rich text editor
         const descriptionEditor = document.getElementById('descriptionEditor');
         const descriptionTextarea = document.querySelector('textarea[name="Description"]');
+        
+        console.log('[DEBUG] descriptionEditor:', descriptionEditor);
+        console.log('[DEBUG] descriptionTextarea:', descriptionTextarea);
 
         // Track active states for formatting buttons
         function updateActiveStates() {
@@ -1190,11 +1304,24 @@
         });
 
         function handleImageFile(file) {
-            // For now, we'll use a data URL. In production, you'd upload to server
+            // Validar tamaño del archivo
+            const maxSizeMB = 25; // 25MB máximo
+            const maxSizeBytes = maxSizeMB * 1024 * 1024;
+            
+            if (file.size > maxSizeBytes) {
+                const currentLang = localStorage.getItem('preferredLanguage') || 'es';
+                const message = translations[currentLang]['image_too_large'] || `La imagen es demasiado grande. El tamaño máximo es ${maxSizeMB}MB.`;
+                alert(message);
+                return;
+            }
+            
+            // Leer archivo como Data URL
             const reader = new FileReader();
             reader.onload = function(e) {
                 previewImg.src = e.target.result;
-                imageUrlInput.value = e.target.result; // In production, this would be the uploaded URL
+                // Guardar el Data URL en el input (ahora el campo soporta texto largo)
+                imageUrlInput.value = e.target.result;
+                
                 imageUploadArea.style.display = 'none';
                 imagePreview.style.display = 'block';
             };
@@ -1208,20 +1335,28 @@
             imagePreview.style.display = 'none';
         }
 
-        // Form submission
+        // Form submission - Solo actualizar descripción
         document.getElementById('createForm').addEventListener('submit', function(e) {
-            // Update description textarea before submit
+            console.log('[DEBUG] Form submit triggered');
+            
+            // Actualizar descripción antes de enviar
             updateDescription();
             
-            // Validate at least one sales channel
-            const checkedChannels = document.querySelectorAll('input[name="selectedChannels"]:checked');
-            if (checkedChannels.length === 0) {
-                e.preventDefault();
-                const currentLang = localStorage.getItem('preferredLanguage') || 'es';
-                const message = translations[currentLang]['select_channel_error'] || 'Selecciona al menos un canal de venta';
-                alert(message);
-                return false;
+            // Log form data
+            const formData = new FormData(this);
+            console.log('[DEBUG] Form data being sent:');
+            for (let [key, value] of formData.entries()) {
+                console.log(`${key}: ${value}`);
             }
+            
+            // Verificar campos críticos
+            const title = document.querySelector('input[name="Title"]').value;
+            const description = document.querySelector('textarea[name="Description"]').value;
+            console.log('[DEBUG] Title:', title);
+            console.log('[DEBUG] Description length:', description.length);
+            
+            // No prevenir el submit, dejar que continúe
+            console.log('[DEBUG] Allowing form submission to continue');
         });
 
         // Translations
@@ -1295,7 +1430,11 @@
                 // Handle validation
                 'handle_available': 'Este handle está disponible',
                 'handle_taken': 'Este handle ya está en uso',
-                'handle_invalid': 'El handle contiene caracteres no válidos'
+                'handle_invalid': 'El handle contiene caracteres no válidos',
+                
+                // Image upload
+                'image_too_large': 'La imagen es demasiado grande. El tamaño máximo es 25MB.',
+                'image_upload_pending': 'Nota: La funcionalidad de carga de imágenes estará disponible próximamente.'
             },
             en: {
                 // Breadcrumb
@@ -1366,7 +1505,11 @@
                 // Handle validation
                 'handle_available': 'This handle is available',
                 'handle_taken': 'This handle is already in use',
-                'handle_invalid': 'The handle contains invalid characters'
+                'handle_invalid': 'The handle contains invalid characters',
+                
+                // Image upload
+                'image_too_large': 'The image is too large. Maximum size is 25MB.',
+                'image_upload_pending': 'Note: Image upload functionality will be available soon.'
             }
         };
 
@@ -1391,6 +1534,26 @@
             updateSeoPreview();
             updateCharCount('seoTitleCount', seoTitleInput.value.length, 60);
             updateCharCount('seoDescCount', seoDescInput.value.length, 160);
+            
+            // Handle alert close buttons
+            document.querySelectorAll('.alert .btn-close').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const alert = this.closest('.alert');
+                    alert.style.transition = 'opacity 0.3s';
+                    alert.style.opacity = '0';
+                    setTimeout(() => alert.remove(), 300);
+                });
+            });
+            
+            // Auto-dismiss success messages after 5 seconds
+            const successAlert = document.querySelector('.alert-success');
+            if (successAlert) {
+                setTimeout(() => {
+                    successAlert.style.transition = 'opacity 0.3s';
+                    successAlert.style.opacity = '0';
+                    setTimeout(() => successAlert.remove(), 300);
+                }, 5000);
+            }
         });
     </script>
 }

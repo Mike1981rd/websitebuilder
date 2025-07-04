@@ -519,7 +519,7 @@
             <!-- Toolbar -->
             <div class="collections-toolbar">
                 <div class="search-wrapper">
-                    <i class="material-icons search-icon">search</i>
+                    <i class="fas fa-search search-icon"></i>
                     <input type="text" class="search-input" placeholder="Buscar colecciones..." id="searchInput" data-i18n-placeholder="search_collections">
                 </div>
                 <a href="@Url.Action("Create", "Collections")" class="btn-create">
@@ -571,7 +571,7 @@
                                     else
                                     {
                                         <div class="no-image">
-                                            <i class="material-icons">image</i>
+                                            <i class="fas fa-image"></i>
                                         </div>
                                     }
                                 </td>
@@ -595,7 +595,7 @@
                                 </td>
                                 <td class="actions-cell">
                                     <button class="actions-menu" onclick="showActionsMenu(@collection.Id, event)">
-                                        <i class="material-icons">more_vert</i>
+                                        <i class="fas fa-ellipsis-v"></i>
                                     </button>
                                 </td>
                             </tr>
@@ -615,7 +615,7 @@
             <!-- Empty state -->
             <div class="empty-state">
                 <div class="empty-state-icon">
-                    <i class="material-icons">category</i>
+                    <i class="fas fa-folder-open"></i>
                 </div>
                 <h2 data-i18n="no_collections">No hay colecciones aún</h2>
                 <p data-i18n="no_collections_desc">Las colecciones te ayudan a organizar tus productos</p>
@@ -631,11 +631,11 @@
 <!-- Actions dropdown menu -->
 <div id="actionsDropdown" style="position: absolute; display: none; background: white; box-shadow: 0 2px 10px rgba(0,0,0,0.1); border-radius: 4px; min-width: 150px; z-index: 1000;">
     <a href="#" onclick="editCollection(currentCollectionId)" style="display: block; padding: 8px 16px; color: #333; text-decoration: none; font-size: 14px;">
-        <i class="material-icons" style="font-size: 18px; vertical-align: middle; margin-right: 8px;">edit</i>
+        <i class="fas fa-edit" style="font-size: 16px; vertical-align: middle; margin-right: 8px;"></i>
         <span data-i18n="edit">Editar</span>
     </a>
     <a href="#" onclick="deleteCollection(currentCollectionId, currentCollectionTitle)" style="display: block; padding: 8px 16px; color: #333; text-decoration: none; font-size: 14px;">
-        <i class="material-icons" style="font-size: 18px; vertical-align: middle; margin-right: 8px;">delete</i>
+        <i class="fas fa-trash" style="font-size: 16px; vertical-align: middle; margin-right: 8px;"></i>
         <span data-i18n="delete">Eliminar</span>
     </a>
 </div>
