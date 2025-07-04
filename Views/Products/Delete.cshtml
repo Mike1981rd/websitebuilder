@@ -1,0 +1,282 @@
+@model Hotel.Models.Product
+@{
+    ViewData["Title"] = "Delete Product";
+    Layout = "_MaterializeExactLayout";
+}
+
+<style>
+    .delete-page {
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 40px 20px;
+    }
+
+    .delete-card {
+        background: #ffffff;
+        border-radius: 8px;
+        padding: 32px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        border: 1px solid #e5e7eb;
+        text-align: center;
+    }
+
+    body.dark-mode .delete-card {
+        background: #2d2d3d;
+        border-color: #3a3b4a;
+    }
+
+    .delete-icon {
+        width: 64px;
+        height: 64px;
+        background-color: #fee2e2;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 24px;
+    }
+
+    body.dark-mode .delete-icon {
+        background-color: rgba(239, 68, 68, 0.1);
+    }
+
+    .delete-icon i {
+        font-size: 32px;
+        color: #ef4444;
+    }
+
+    .delete-title {
+        font-size: 24px;
+        font-weight: 600;
+        color: #1a1a1a;
+        margin: 0 0 16px 0;
+    }
+
+    body.dark-mode .delete-title {
+        color: #ffffff;
+    }
+
+    .delete-message {
+        font-size: 16px;
+        color: #6b7280;
+        margin: 0 0 32px 0;
+        line-height: 1.5;
+    }
+
+    body.dark-mode .delete-message {
+        color: #9ca3af;
+    }
+
+    .product-details {
+        background-color: #f9fafb;
+        border-radius: 6px;
+        padding: 16px;
+        margin-bottom: 32px;
+        text-align: left;
+    }
+
+    body.dark-mode .product-details {
+        background-color: #1a1a2e;
+    }
+
+    .detail-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 8px;
+        font-size: 14px;
+    }
+
+    .detail-row:last-child {
+        margin-bottom: 0;
+    }
+
+    .detail-label {
+        color: #6b7280;
+        font-weight: 500;
+    }
+
+    body.dark-mode .detail-label {
+        color: #9ca3af;
+    }
+
+    .detail-value {
+        color: #1a1a1a;
+        font-weight: 500;
+    }
+
+    body.dark-mode .detail-value {
+        color: #ffffff;
+    }
+
+    .warning-message {
+        background-color: #fef3c7;
+        border: 1px solid #f59e0b;
+        border-radius: 6px;
+        padding: 12px 16px;
+        margin-bottom: 32px;
+        color: #92400e;
+        font-size: 14px;
+        text-align: left;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    body.dark-mode .warning-message {
+        background-color: rgba(245, 158, 11, 0.1);
+        border-color: #f59e0b;
+        color: #fbbf24;
+    }
+
+    .warning-message i {
+        font-size: 20px;
+        color: #f59e0b;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 12px;
+        justify-content: center;
+    }
+
+    .btn-cancel {
+        background-color: #f3f4f6;
+        color: #1a1a1a;
+        padding: 10px 24px;
+        border-radius: 6px;
+        font-size: 14px;
+        font-weight: 500;
+        border: 1px solid #e5e7eb;
+        cursor: pointer;
+        transition: all 0.2s;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+    body.dark-mode .btn-cancel {
+        background-color: #3a3b4a;
+        color: #ffffff;
+        border-color: #4a4b5a;
+    }
+
+    .btn-cancel:hover {
+        background-color: #e5e7eb;
+        transform: translateY(-1px);
+        color: #1a1a1a;
+        text-decoration: none;
+    }
+
+    body.dark-mode .btn-cancel:hover {
+        background-color: #4a4b5a;
+        color: #ffffff;
+    }
+
+    .btn-delete {
+        background-color: #ef4444;
+        color: #ffffff;
+        padding: 10px 24px;
+        border-radius: 6px;
+        font-size: 14px;
+        font-weight: 500;
+        border: none;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .btn-delete:hover {
+        background-color: #dc2626;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(239, 68, 68, 0.25);
+    }
+</style>
+
+<div class="delete-page">
+    <div class="delete-card">
+        <div class="delete-icon">
+            <i class="fas fa-trash-alt"></i>
+        </div>
+        
+        <h1 class="delete-title" data-i18n="delete_product">Eliminar producto</h1>
+        
+        <p class="delete-message">
+            <span data-i18n="delete_product_confirm">¿Estás seguro de que deseas eliminar el producto</span>
+            <strong>@Model.Title</strong>?
+        </p>
+
+        @if (Model.Images?.Any() == true || Model.Variants?.Any() == true)
+        {
+            <div class="product-details">
+                @if (Model.Images?.Any() == true)
+                {
+                    <div class="detail-row">
+                        <span class="detail-label" data-i18n="images">Imágenes</span>
+                        <span class="detail-value">@Model.Images.Count</span>
+                    </div>
+                }
+                @if (Model.Variants?.Any() == true)
+                {
+                    <div class="detail-row">
+                        <span class="detail-label" data-i18n="variants">Variantes</span>
+                        <span class="detail-value">@Model.Variants.Count</span>
+                    </div>
+                }
+            </div>
+        }
+
+        <div class="warning-message">
+            <i class="fas fa-exclamation-triangle"></i>
+            <span data-i18n="delete_warning">Esta acción no se puede deshacer. El producto y todos sus datos asociados serán eliminados permanentemente.</span>
+        </div>
+
+        <form asp-action="Delete" asp-route-id="@Model.Id" method="post">
+            @Html.AntiForgeryToken()
+            <div class="action-buttons">
+                <a href="@Url.Action("Index", "Products")" class="btn-cancel" data-i18n="cancel">Cancelar</a>
+                <button type="submit" class="btn-delete" data-i18n="delete_permanently">Eliminar permanentemente</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Translations for delete page
+        const deleteTranslations = {
+            es: {
+                'delete_product': 'Eliminar producto',
+                'delete_product_confirm': '¿Estás seguro de que deseas eliminar el producto',
+                'images': 'Imágenes',
+                'variants': 'Variantes',
+                'delete_warning': 'Esta acción no se puede deshacer. El producto y todos sus datos asociados serán eliminados permanentemente.',
+                'cancel': 'Cancelar',
+                'delete_permanently': 'Eliminar permanentemente'
+            },
+            en: {
+                'delete_product': 'Delete product',
+                'delete_product_confirm': 'Are you sure you want to delete the product',
+                'images': 'Images',
+                'variants': 'Variants',
+                'delete_warning': 'This action cannot be undone. The product and all associated data will be permanently deleted.',
+                'cancel': 'Cancel',
+                'delete_permanently': 'Delete permanently'
+            }
+        };
+
+        // Add translations to the global translations object
+        if (typeof translations !== 'undefined') {
+            if (!translations.es) translations.es = {};
+            if (!translations.en) translations.en = {};
+            
+            Object.assign(translations.es, deleteTranslations.es);
+            Object.assign(translations.en, deleteTranslations.en);
+        }
+        
+        // Apply translations
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof translatePage === 'function') {
+                const currentLang = localStorage.getItem('preferredLanguage') || 'es';
+                translatePage(currentLang);
+            }
+        });
+    </script>
+}

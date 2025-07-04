@@ -69,6 +69,6 @@ namespace Hotel.Models
 
         // Navegación
         public virtual Collection Collection { get; set; }
-        // Product se agregará cuando creemos el modelo Product
+        public virtual Product Product { get; set; }
     }
 }

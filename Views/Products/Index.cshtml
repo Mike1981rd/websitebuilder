@@ -1,0 +1,976 @@
+@{
+    ViewData["Title"] = "Products";
+    Layout = "_MaterializeExactLayout";
+}
+
+@{
+    var products = ViewData["Products"] as dynamic;
+    var totalProducts = ViewData["TotalProducts"] ?? 0;
+    var activeProducts = ViewData["ActiveProducts"] ?? 0;
+    var draftProducts = ViewData["DraftProducts"] ?? 0;
+    var archivedProducts = ViewData["ArchivedProducts"] ?? 0;
+    var totalInventoryValue = ViewData["TotalInventoryValue"] ?? 0M;
+    var currentStatus = ViewData["CurrentStatus"]?.ToString() ?? "all";
+    var currentSearch = ViewData["CurrentSearch"]?.ToString() ?? "";
+}
+
+<style>
+    /* Page container */
+    .products-page {
+        padding: 0;
+        background-color: transparent;
+    }
+
+    /* Metrics section */
+    .metrics-section {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 20px;
+        margin-bottom: 24px;
+    }
+
+    .metric-card {
+        background: #ffffff;
+        border-radius: 8px;
+        padding: 20px;
+        border: 1px solid #e5e7eb;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    }
+
+    body.dark-mode .metric-card {
+        background: #2d2d3d;
+        border-color: #3a3b4a;
+    }
+
+    .metric-title {
+        font-size: 14px;
+        color: #6c757d;
+        margin-bottom: 8px;
+    }
+
+    body.dark-mode .metric-title {
+        color: #9ca3af;
+    }
+
+    .metric-value {
+        font-size: 24px;
+        font-weight: 600;
+        color: #1a1a1a;
+    }
+
+    body.dark-mode .metric-value {
+        color: #ffffff;
+    }
+
+    .metric-subtitle {
+        font-size: 12px;
+        color: #6c757d;
+        margin-top: 4px;
+    }
+
+    /* Header section */
+    .page-header {
+        margin-bottom: 24px;
+    }
+
+    .page-header h1 {
+        font-size: 28px;
+        font-weight: 600;
+        color: #1a1a1a;
+        margin: 0;
+    }
+
+    body.dark-mode .page-header h1 {
+        color: #ffffff;
+    }
+
+    /* Main card container */
+    .products-card {
+        background: #ffffff;
+        border-radius: 8px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        border: 1px solid #e5e7eb;
+        overflow: hidden;
+    }
+
+    body.dark-mode .products-card {
+        background: #2d2d3d;
+        border-color: #3a3b4a;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Tabs navigation */
+    .tabs-nav {
+        display: flex;
+        border-bottom: 1px solid #e5e7eb;
+        background-color: #fafbfc;
+    }
+
+    body.dark-mode .tabs-nav {
+        background-color: #262637;
+        border-bottom-color: #3a3b4a;
+    }
+
+    .tab-item {
+        padding: 12px 20px;
+        font-size: 14px;
+        font-weight: 500;
+        color: #6c757d;
+        text-decoration: none;
+        border-bottom: 2px solid transparent;
+        transition: all 0.2s;
+        cursor: pointer;
+    }
+
+    .tab-item:hover {
+        color: #1a1a1a;
+    }
+
+    body.dark-mode .tab-item:hover {
+        color: #ffffff;
+    }
+
+    .tab-item.active {
+        color: var(--primary);
+        border-bottom-color: var(--primary);
+    }
+
+    /* Toolbar */
+    .products-toolbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 16px 20px;
+        gap: 16px;
+        flex-wrap: wrap;
+    }
+
+    /* Search box */
+    .search-wrapper {
+        position: relative;
+        flex: 1;
+        max-width: 400px;
+    }
+
+    .search-input {
+        width: 100%;
+        padding: 8px 16px 8px 36px;
+        border: 1px solid #e5e7eb;
+        border-radius: 6px;
+        font-size: 14px;
+        background-color: #ffffff;
+        transition: all 0.2s;
+    }
+
+    body.dark-mode .search-input {
+        background-color: #1a1a2e;
+        border-color: #3a3b4a;
+        color: #ffffff;
+    }
+
+    .search-input:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.1);
+    }
+
+    .search-icon {
+        position: absolute;
+        left: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 16px;
+        color: #6c757d;
+    }
+
+    /* Action buttons */
+    .action-buttons {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+    }
+
+    .btn-secondary {
+        background-color: #f3f4f6;
+        color: #1a1a1a;
+        padding: 8px 16px;
+        border-radius: 6px;
+        font-size: 14px;
+        font-weight: 500;
+        border: 1px solid #e5e7eb;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        text-decoration: none;
+    }
+
+    body.dark-mode .btn-secondary {
+        background-color: #3a3b4a;
+        color: #ffffff;
+        border-color: #4a4b5a;
+    }
+
+    .btn-secondary:hover {
+        background-color: #e5e7eb;
+        transform: translateY(-1px);
+    }
+
+    body.dark-mode .btn-secondary:hover {
+        background-color: #4a4b5a;
+    }
+
+    .btn-create {
+        background-color: var(--primary);
+        color: #ffffff;
+        padding: 8px 16px;
+        border-radius: 6px;
+        font-size: 14px;
+        font-weight: 500;
+        border: none;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        text-decoration: none;
+    }
+
+    .btn-create:hover {
+        background-color: var(--primary);
+        opacity: 0.9;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(var(--primary-rgb), 0.25);
+        color: #ffffff;
+        text-decoration: none;
+    }
+
+    /* Dropdown button */
+    .dropdown {
+        position: relative;
+        display: inline-block;
+    }
+
+    .dropdown-toggle {
+        background-color: #f3f4f6;
+        color: #1a1a1a;
+        padding: 8px 16px;
+        border-radius: 6px;
+        font-size: 14px;
+        font-weight: 500;
+        border: 1px solid #e5e7eb;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    body.dark-mode .dropdown-toggle {
+        background-color: #3a3b4a;
+        color: #ffffff;
+        border-color: #4a4b5a;
+    }
+
+    .dropdown-menu {
+        position: absolute;
+        top: 100%;
+        right: 0;
+        margin-top: 4px;
+        background: #ffffff;
+        border: 1px solid #e5e7eb;
+        border-radius: 6px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        min-width: 180px;
+        display: none;
+        z-index: 1000;
+    }
+
+    body.dark-mode .dropdown-menu {
+        background: #2d2d3d;
+        border-color: #3a3b4a;
+    }
+
+    .dropdown-menu.show {
+        display: block;
+    }
+
+    .dropdown-item {
+        display: block;
+        padding: 8px 16px;
+        color: #1a1a1a;
+        text-decoration: none;
+        font-size: 14px;
+        transition: background-color 0.2s;
+    }
+
+    body.dark-mode .dropdown-item {
+        color: #ffffff;
+    }
+
+    .dropdown-item:hover {
+        background-color: #f3f4f6;
+    }
+
+    body.dark-mode .dropdown-item:hover {
+        background-color: #3a3b4a;
+    }
+
+    /* Table styles */
+    .products-table {
+        width: 100%;
+        background: #ffffff;
+    }
+
+    body.dark-mode .products-table {
+        background: #2d2d3d;
+    }
+
+    .products-table table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 0;
+    }
+
+    .products-table th {
+        padding: 12px 20px;
+        text-align: left;
+        font-weight: 500;
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: #6c757d;
+        background-color: #fafbfc;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    body.dark-mode .products-table th {
+        background-color: #262637;
+        color: #9ca3af;
+        border-bottom-color: #3a3b4a;
+    }
+
+    .products-table td {
+        padding: 16px 20px;
+        border-bottom: 1px solid #e5e7eb;
+        vertical-align: middle;
+    }
+
+    body.dark-mode .products-table td {
+        border-bottom-color: #3a3b4a;
+    }
+
+    .products-table tbody tr:hover {
+        background-color: #f9fafb;
+    }
+
+    body.dark-mode .products-table tbody tr:hover {
+        background-color: #323345;
+    }
+
+    /* Checkbox styling */
+    .checkbox-cell {
+        width: 40px;
+        padding-left: 20px !important;
+        padding-right: 0 !important;
+    }
+
+    input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+        border: 2px solid #d1d5db;
+        border-radius: 4px;
+        background-color: #ffffff;
+        cursor: pointer;
+        position: relative;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        appearance: none;
+        transition: all 0.2s;
+    }
+
+    body.dark-mode input[type="checkbox"] {
+        border-color: #4a4b5a;
+        background-color: #1a1a2e;
+    }
+
+    input[type="checkbox"]:checked {
+        background-color: var(--primary);
+        border-color: var(--primary);
+    }
+
+    input[type="checkbox"]:checked::after {
+        content: '✓';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        color: #ffffff;
+        font-size: 12px;
+        font-weight: bold;
+    }
+
+    /* Product image and title */
+    .product-cell {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .product-image, .no-image {
+        width: 40px;
+        height: 40px;
+        border-radius: 6px;
+        object-fit: cover;
+    }
+
+    .no-image {
+        background-color: #f3f4f6;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #9ca3af;
+    }
+
+    body.dark-mode .no-image {
+        background-color: #1a1a2e;
+        color: #6b7280;
+    }
+
+    .product-info {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+
+    .product-title {
+        font-size: 14px;
+        font-weight: 500;
+        color: #1a1a1a;
+        text-decoration: none;
+        transition: color 0.2s;
+    }
+
+    body.dark-mode .product-title {
+        color: #ffffff;
+    }
+
+    .product-title:hover {
+        color: var(--primary);
+    }
+
+    .product-variants {
+        font-size: 12px;
+        color: #6c757d;
+    }
+
+    body.dark-mode .product-variants {
+        color: #9ca3af;
+    }
+
+    /* Status badge */
+    .status-badge {
+        display: inline-block;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 12px;
+        font-weight: 500;
+    }
+
+    .status-active {
+        background-color: #d1fae5;
+        color: #065f46;
+    }
+
+    .status-draft {
+        background-color: #f3f4f6;
+        color: #6b7280;
+    }
+
+    .status-archived {
+        background-color: #fef3c7;
+        color: #92400e;
+    }
+
+    body.dark-mode .status-active {
+        background-color: #064e3b;
+        color: #d1fae5;
+    }
+
+    body.dark-mode .status-draft {
+        background-color: #374151;
+        color: #d1d5db;
+    }
+
+    body.dark-mode .status-archived {
+        background-color: #78350f;
+        color: #fef3c7;
+    }
+
+    /* Empty state */
+    .empty-state {
+        text-align: center;
+        padding: 80px 20px;
+    }
+
+    .empty-state-icon {
+        width: 120px;
+        height: 120px;
+        margin: 0 auto 24px;
+        background-color: #f3f4f6;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    body.dark-mode .empty-state-icon {
+        background-color: #1a1a2e;
+    }
+
+    .empty-state-icon i {
+        font-size: 48px;
+        color: #9ca3af;
+    }
+
+    .empty-state h2 {
+        font-size: 20px;
+        font-weight: 600;
+        color: #1a1a1a;
+        margin: 0 0 8px 0;
+    }
+
+    body.dark-mode .empty-state h2 {
+        color: #ffffff;
+    }
+
+    .empty-state p {
+        font-size: 14px;
+        color: #6c757d;
+        margin: 0 0 24px 0;
+    }
+
+    body.dark-mode .empty-state p {
+        color: #9ca3af;
+    }
+
+    /* More info link */
+    .more-info-link {
+        text-align: center;
+        padding: 20px;
+        font-size: 14px;
+    }
+
+    .more-info-link a {
+        color: #0066cc;
+        text-decoration: none;
+    }
+
+    .more-info-link a:hover {
+        text-decoration: underline;
+    }
+
+    /* Responsive */
+    @@media (max-width: 768px) {
+        .metrics-section {
+            grid-template-columns: 1fr;
+        }
+
+        .products-toolbar {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .search-wrapper {
+            max-width: 100%;
+        }
+
+        .action-buttons {
+            flex-wrap: wrap;
+            width: 100%;
+        }
+
+        .btn-create, .btn-secondary {
+            flex: 1;
+            justify-content: center;
+        }
+
+        .products-table {
+            overflow-x: auto;
+        }
+
+        .products-table table {
+            min-width: 800px;
+        }
+    }
+</style>
+
+<div class="products-page">
+    <!-- Metrics Section -->
+    <div class="metrics-section">
+        <div class="metric-card">
+            <div class="metric-title" data-i18n="sales_rate">Tasa de venta promedio</div>
+            <div class="metric-value">0%</div>
+            <div class="metric-subtitle">—</div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-title" data-i18n="inventory_remaining">Productos por días de inventario restantes</div>
+            <div class="metric-value" data-i18n="no_data">Sin datos</div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-title" data-i18n="abc_analysis">Análisis ABC de productos</div>
+            <div class="metric-value">US$@string.Format("{0:N2}", totalInventoryValue)</div>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <div class="page-header">
+        <h1 data-i18n="products">Productos</h1>
+    </div>
+
+    <!-- Main Card -->
+    <div class="products-card">
+        <!-- Tabs -->
+        <div class="tabs-nav">
+            <a href="?status=all" class="tab-item @(currentStatus == "all" ? "active" : "")" data-i18n="all">Todos</a>
+            <a href="?status=active" class="tab-item @(currentStatus == "active" ? "active" : "")" data-i18n="active">Activos</a>
+            <a href="?status=draft" class="tab-item @(currentStatus == "draft" ? "active" : "")" data-i18n="drafts">Borradores</a>
+            <a href="?status=archived" class="tab-item @(currentStatus == "archived" ? "active" : "")" data-i18n="archived">Archivados</a>
+        </div>
+
+        @if (products != null && products.Count > 0)
+        {
+            <!-- Toolbar -->
+            <div class="products-toolbar">
+                <div class="search-wrapper">
+                    <i class="fas fa-search search-icon"></i>
+                    <input type="text" class="search-input" placeholder="Buscar productos..." id="searchInput" 
+                           data-i18n-placeholder="search_products" value="@currentSearch">
+                </div>
+                <div class="action-buttons">
+                    <button class="btn-secondary">
+                        <i class="fas fa-download"></i>
+                        <span data-i18n="export">Exportar</span>
+                    </button>
+                    <button class="btn-secondary">
+                        <i class="fas fa-upload"></i>
+                        <span data-i18n="import">Importar</span>
+                    </button>
+                    <div class="dropdown">
+                        <button class="dropdown-toggle" onclick="toggleDropdown('actionsDropdown')">
+                            <span data-i18n="more_actions">Más acciones</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </button>
+                        <div class="dropdown-menu" id="actionsDropdown">
+                            <a href="#" class="dropdown-item" data-i18n="bulk_edit">Edición masiva</a>
+                            <a href="#" class="dropdown-item" data-i18n="duplicate">Duplicar</a>
+                            <a href="#" class="dropdown-item" data-i18n="delete_selected">Eliminar seleccionados</a>
+                        </div>
+                    </div>
+                    <a href="@Url.Action("Create", "Products")" class="btn-create">
+                        <span data-i18n="add_product">Agregar producto</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Table -->
+            <div class="products-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th class="checkbox-cell">
+                                <input type="checkbox" id="selectAllHeader">
+                            </th>
+                            <th data-i18n="product">Producto</th>
+                            <th data-i18n="status">Estado</th>
+                            <th data-i18n="inventory">Inventario</th>
+                            <th data-i18n="category">Categoría</th>
+                            <th data-i18n="channels">Canales</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var product in products)
+                        {
+                            <tr>
+                                <td class="checkbox-cell">
+                                    <input type="checkbox" class="product-checkbox" data-id="@product.Id">
+                                </td>
+                                <td>
+                                    <div class="product-cell">
+                                        @if (!string.IsNullOrEmpty(product.ImageUrl))
+                                        {
+                                            <img src="@product.ImageUrl" alt="@product.Title" class="product-image">
+                                        }
+                                        else
+                                        {
+                                            <div class="no-image">
+                                                <i class="fas fa-image"></i>
+                                            </div>
+                                        }
+                                        <div class="product-info">
+                                            <a href="@Url.Action("Edit", "Products", new { id = product.Id })" class="product-title">
+                                                @product.Title
+                                            </a>
+                                            @if (product.VariantCount > 0)
+                                            {
+                                                <span class="product-variants">
+                                                    @product.VariantCount <span data-i18n="variants">variantes</span>
+                                                </span>
+                                            }
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="status-badge status-@product.Status">
+                                        @if (product.Status == "active")
+                                        {
+                                            <span data-i18n="active">Activo</span>
+                                        }
+                                        else if (product.Status == "draft")
+                                        {
+                                            <span data-i18n="draft">Borrador</span>
+                                        }
+                                        else
+                                        {
+                                            <span data-i18n="archived">Archivado</span>
+                                        }
+                                    </span>
+                                </td>
+                                <td>
+                                    @if (product.HasInventory)
+                                    {
+                                        <span>@product.Quantity <span data-i18n="in_stock">en existencias</span></span>
+                                        @if (product.VariantCount > 0)
+                                        {
+                                            <br>
+                                            <span class="product-variants" data-i18n="for_x_variants">para @product.VariantCount variantes</span>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <span data-i18n="inventory_not_tracked">Inventario no rastreado</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (!string.IsNullOrEmpty(product.ProductType))
+                                    {
+                                        <span>@product.ProductType</span>
+                                    }
+                                    else
+                                    {
+                                        <span>—</span>
+                                    }
+                                </td>
+                                <td>
+                                    <span>@product.CollectionCount</span>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- More info link -->
+            <div class="more-info-link">
+                <span data-i18n="more_info_about">Más información sobre</span> 
+                <a href="#" data-i18n="products_link">productos</a>
+            </div>
+        }
+        else
+        {
+            <!-- Empty state -->
+            <div class="empty-state">
+                <div class="empty-state-icon">
+                    <i class="fas fa-box"></i>
+                </div>
+                <h2 data-i18n="no_products">No hay productos aún</h2>
+                <p data-i18n="no_products_desc">Los productos son los artículos que vendes en tu tienda</p>
+                <a href="@Url.Action("Create", "Products")" class="btn-create">
+                    <span data-i18n="add_first_product">Agregar primer producto</span>
+                </a>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Search functionality
+        const searchInput = document.getElementById('searchInput');
+        if (searchInput) {
+            let searchTimeout;
+            searchInput.addEventListener('input', function(e) {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(() => {
+                    const searchTerm = e.target.value;
+                    const currentUrl = new URL(window.location);
+                    currentUrl.searchParams.set('search', searchTerm);
+                    currentUrl.searchParams.set('page', '1');
+                    window.location.href = currentUrl.toString();
+                }, 500);
+            });
+        }
+
+        // Checkbox functionality
+        const selectAllHeader = document.getElementById('selectAllHeader');
+        const checkboxes = document.querySelectorAll('.product-checkbox');
+
+        if (selectAllHeader) {
+            selectAllHeader.addEventListener('change', function(e) {
+                checkboxes.forEach(cb => cb.checked = e.target.checked);
+            });
+        }
+
+        checkboxes.forEach(cb => {
+            cb.addEventListener('change', function() {
+                const checkedCount = document.querySelectorAll('.product-checkbox:checked').length;
+                if (selectAllHeader) {
+                    if (checkedCount === checkboxes.length && checkboxes.length > 0) {
+                        selectAllHeader.checked = true;
+                        selectAllHeader.indeterminate = false;
+                    } else if (checkedCount > 0) {
+                        selectAllHeader.checked = false;
+                        selectAllHeader.indeterminate = true;
+                    } else {
+                        selectAllHeader.checked = false;
+                        selectAllHeader.indeterminate = false;
+                    }
+                }
+            });
+        });
+
+        // Dropdown functionality
+        function toggleDropdown(dropdownId) {
+            const dropdown = document.getElementById(dropdownId);
+            if (dropdown) {
+                dropdown.classList.toggle('show');
+                
+                // Close on click outside
+                setTimeout(() => {
+                    document.addEventListener('click', function closeDropdown(e) {
+                        if (!e.target.closest('.dropdown')) {
+                            dropdown.classList.remove('show');
+                            document.removeEventListener('click', closeDropdown);
+                        }
+                    });
+                }, 0);
+            }
+        }
+
+        // Translations
+        const productTranslations = {
+            es: {
+                // Page
+                'products': 'Productos',
+                'sales_rate': 'Tasa de venta promedio',
+                'inventory_remaining': 'Productos por días de inventario restantes',
+                'abc_analysis': 'Análisis ABC de productos',
+                'no_data': 'Sin datos',
+                
+                // Tabs
+                'all': 'Todos',
+                'active': 'Activos',
+                'drafts': 'Borradores',
+                'archived': 'Archivados',
+                
+                // Actions
+                'search_products': 'Buscar productos...',
+                'export': 'Exportar',
+                'import': 'Importar',
+                'more_actions': 'Más acciones',
+                'add_product': 'Agregar producto',
+                'bulk_edit': 'Edición masiva',
+                'duplicate': 'Duplicar',
+                'delete_selected': 'Eliminar seleccionados',
+                
+                // Table
+                'product': 'Producto',
+                'status': 'Estado',
+                'inventory': 'Inventario',
+                'category': 'Categoría',
+                'channels': 'Canales',
+                'variants': 'variantes',
+                'active': 'Activo',
+                'draft': 'Borrador',
+                'archived': 'Archivado',
+                'in_stock': 'en existencias',
+                'for_x_variants': 'para X variantes',
+                'inventory_not_tracked': 'Inventario no rastreado',
+                
+                // Empty state
+                'no_products': 'No hay productos aún',
+                'no_products_desc': 'Los productos son los artículos que vendes en tu tienda',
+                'add_first_product': 'Agregar primer producto',
+                
+                // More info
+                'more_info_about': 'Más información sobre',
+                'products_link': 'productos'
+            },
+            en: {
+                // Page
+                'products': 'Products',
+                'sales_rate': 'Average sales rate',
+                'inventory_remaining': 'Products by days of inventory remaining',
+                'abc_analysis': 'ABC product analysis',
+                'no_data': 'No data',
+                
+                // Tabs
+                'all': 'All',
+                'active': 'Active',
+                'drafts': 'Drafts',
+                'archived': 'Archived',
+                
+                // Actions
+                'search_products': 'Search products...',
+                'export': 'Export',
+                'import': 'Import',
+                'more_actions': 'More actions',
+                'add_product': 'Add product',
+                'bulk_edit': 'Bulk edit',
+                'duplicate': 'Duplicate',
+                'delete_selected': 'Delete selected',
+                
+                // Table
+                'product': 'Product',
+                'status': 'Status',
+                'inventory': 'Inventory',
+                'category': 'Category',
+                'channels': 'Channels',
+                'variants': 'variants',
+                'active': 'Active',
+                'draft': 'Draft',
+                'archived': 'Archived',
+                'in_stock': 'in stock',
+                'for_x_variants': 'for X variants',
+                'inventory_not_tracked': 'Inventory not tracked',
+                
+                // Empty state
+                'no_products': 'No products yet',
+                'no_products_desc': 'Products are the items you sell in your store',
+                'add_first_product': 'Add first product',
+                
+                // More info
+                'more_info_about': 'Learn more about',
+                'products_link': 'products'
+            }
+        };
+
+        // Add translations to the global translations object
+        if (typeof translations !== 'undefined') {
+            if (!translations.es) translations.es = {};
+            if (!translations.en) translations.en = {};
+            
+            Object.assign(translations.es, productTranslations.es);
+            Object.assign(translations.en, productTranslations.en);
+        }
+        
+        // Apply translations
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof translatePage === 'function') {
+                const currentLang = localStorage.getItem('preferredLanguage') || 'es';
+                translatePage(currentLang);
+            }
+        });
+    </script>
+}

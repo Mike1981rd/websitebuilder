@@ -68,6 +68,14 @@
                     </li>
 
                     <li class="menu-item">
+                        <a href="@Url.Action("Index", "Products")" class="menu-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Products" ? "active" : "")">
+                            <i class="menu-icon fas fa-box"></i>
+                            <span class="menu-text" data-i18n="menu.products">Productos</span>
+                            <span class="menu-tooltip" data-i18n="menu.products">Productos</span>
+                        </a>
+                    </li>
+
+                    <li class="menu-item">
                         <a href="@Url.Action("Index", "WebsiteBuilder")" class="menu-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "WebsiteBuilder" ? "active" : "")">
                             <i class="menu-icon fas fa-globe"></i>
                             <span class="menu-text" data-i18n="menu.sitioWeb">Sitio Web</span>
@@ -607,6 +615,7 @@
                 'menu.usuarios': 'Usuarios',
                 'menu.clientes': 'Clientes',
                 'menu.collections': 'Colecciones',
+                'menu.products': 'Productos',
                 'menu.sitioWeb': 'Sitio Web',
                 // Search
                 'search.placeholder': 'Buscar (CTRL + K)',
@@ -772,6 +781,7 @@
                 'menu.usuarios': 'Users',
                 'menu.clientes': 'Clients',
                 'menu.collections': 'Collections',
+                'menu.products': 'Products',
                 'menu.sitioWeb': 'Website',
                 // Search
                 'search.placeholder': 'Search (CTRL + K)',

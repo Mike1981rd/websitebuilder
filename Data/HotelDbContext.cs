@@ -24,6 +24,10 @@ namespace Hotel.Data
         public DbSet<WebSite> WebSites { get; set; }
         public DbSet<Collection> Collections { get; set; }
         public DbSet<CollectionProduct> CollectionProducts { get; set; }
+        public DbSet<Product> Products { get; set; }
+        public DbSet<ProductImage> ProductImages { get; set; }
+        public DbSet<ProductVideo> ProductVideos { get; set; }
+        public DbSet<ProductVariant> ProductVariants { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -147,12 +151,12 @@ namespace Hotel.Data
                 .HasForeignKey(cp => cp.CollectionId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // La relación con Product se agregará cuando creemos el modelo Product
-            // modelBuilder.Entity<CollectionProduct>()
-            //     .HasOne(cp => cp.Product)
-            //     .WithMany(p => p.CollectionProducts)
-            //     .HasForeignKey(cp => cp.ProductId)
-            //     .OnDelete(DeleteBehavior.Cascade);
+            // Relación con Product
+            modelBuilder.Entity<CollectionProduct>()
+                .HasOne(cp => cp.Product)
+                .WithMany(p => p.CollectionProducts)
+                .HasForeignKey(cp => cp.ProductId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<WebSite>()
                 .Property(w => w.NavigationJson)
@@ -161,6 +165,76 @@ namespace Hotel.Data
             modelBuilder.Entity<WebSite>()
                 .Property(w => w.SeoSettingsJson)
                 .HasColumnType("jsonb");
+
+            // Configuración de Product
+            modelBuilder.Entity<Product>()
+                .HasIndex(p => p.Handle)
+                .IsUnique();
+
+            modelBuilder.Entity<Product>()
+                .Property(p => p.Price)
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<Product>()
+                .Property(p => p.CompareAtPrice)
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<Product>()
+                .Property(p => p.CostPerItem)
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<Product>()
+                .Property(p => p.Weight)
+                .HasPrecision(10, 3);
+
+            // Configuración de ProductImage
+            modelBuilder.Entity<ProductImage>()
+                .HasOne(pi => pi.Product)
+                .WithMany(p => p.Images)
+                .HasForeignKey(pi => pi.ProductId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<ProductImage>()
+                .Property(pi => pi.ImageUrl)
+                .HasColumnType("text");
+
+            // Configuración de ProductVideo
+            modelBuilder.Entity<ProductVideo>()
+                .HasOne(pv => pv.Product)
+                .WithMany(p => p.Videos)
+                .HasForeignKey(pv => pv.ProductId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<ProductVideo>()
+                .Property(pv => pv.VideoUrl)
+                .HasColumnType("text");
+
+            modelBuilder.Entity<ProductVideo>()
+                .Property(pv => pv.ThumbnailUrl)
+                .HasColumnType("text");
+
+            // Configuración de ProductVariant
+            modelBuilder.Entity<ProductVariant>()
+                .HasOne(pv => pv.Product)
+                .WithMany(p => p.Variants)
+                .HasForeignKey(pv => pv.ProductId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<ProductVariant>()
+                .Property(pv => pv.Price)
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<ProductVariant>()
+                .Property(pv => pv.CompareAtPrice)
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<ProductVariant>()
+                .Property(pv => pv.CostPerItem)
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<ProductVariant>()
+                .Property(pv => pv.Weight)
+                .HasPrecision(10, 3);
 
             // Datos semilla para RoomTypes
             modelBuilder.Entity<RoomType>().HasData(

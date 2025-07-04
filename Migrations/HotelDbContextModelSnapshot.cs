@@ -92,6 +92,8 @@ namespace Hotel.Migrations
 
                     b.HasKey("CollectionId", "ProductId");
 
+                    b.HasIndex("ProductId");
+
                     b.ToTable("CollectionProducts");
                 });
 
@@ -515,6 +517,286 @@ namespace Hotel.Migrations
                         });
                 });
 
+            modelBuilder.Entity("Hotel.Models.Product", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Barcode")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<decimal?>("CompareAtPrice")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<bool>("ContinueSellingWhenOutOfStock")
+                        .HasColumnType("boolean");
+
+                    b.Property<decimal?>("CostPerItem")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<string>("CountryOfOrigin")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("HSCode")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Handle")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<decimal>("Price")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<string>("ProductType")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("PublishedAt")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("RequiresShipping")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("SKU")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("SeoDescription")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("SeoTitle")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Tags")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<bool>("TaxEnabled")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<bool>("TrackQuantity")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<string>("Vendor")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<decimal>("Weight")
+                        .HasPrecision(10, 3)
+                        .HasColumnType("numeric(10,3)");
+
+                    b.Property<string>("WeightUnit")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Handle")
+                        .IsUnique();
+
+                    b.ToTable("Products");
+                });
+
+            modelBuilder.Entity("Hotel.Models.ProductImage", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("AltText")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<string>("ImageUrl")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("Position")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("ProductId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProductId");
+
+                    b.ToTable("ProductImages");
+                });
+
+            modelBuilder.Entity("Hotel.Models.ProductVariant", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Barcode")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<decimal?>("CompareAtPrice")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<decimal?>("CostPerItem")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<string>("GoogleAgeGroup")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("GoogleCondition")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("GoogleGender")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("GoogleMPN")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Option1")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Option2")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Option3")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("Position")
+                        .HasColumnType("integer");
+
+                    b.Property<decimal>("Price")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<int>("ProductId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("SKU")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<bool>("TrackQuantity")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<decimal>("Weight")
+                        .HasPrecision(10, 3)
+                        .HasColumnType("numeric(10,3)");
+
+                    b.Property<string>("WeightUnit")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProductId");
+
+                    b.ToTable("ProductVariants");
+                });
+
+            modelBuilder.Entity("Hotel.Models.ProductVideo", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<int>("Duration")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Position")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("ProductId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("ThumbnailUrl")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("VideoType")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("VideoUrl")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProductId");
+
+                    b.ToTable("ProductVideos");
+                });
+
             modelBuilder.Entity("Hotel.Models.Reservation", b =>
                 {
                     b.Property<int>("Id")
@@ -606,38 +888,38 @@ namespace Hotel.Migrations
                         new
                         {
                             Id = 1,
-                            CreatedAt = new DateTime(2025, 7, 4, 3, 16, 8, 291, DateTimeKind.Utc).AddTicks(3405),
+                            CreatedAt = new DateTime(2025, 7, 4, 4, 46, 22, 472, DateTimeKind.Utc).AddTicks(9106),
                             Description = "Acceso completo al sistema",
                             IsActive = true,
                             Name = "Administrator",
-                            UpdatedAt = new DateTime(2025, 7, 4, 3, 16, 8, 291, DateTimeKind.Utc).AddTicks(3406)
+                            UpdatedAt = new DateTime(2025, 7, 4, 4, 46, 22, 472, DateTimeKind.Utc).AddTicks(9107)
                         },
                         new
                         {
                             Id = 2,
-                            CreatedAt = new DateTime(2025, 7, 4, 3, 16, 8, 291, DateTimeKind.Utc).AddTicks(3410),
+                            CreatedAt = new DateTime(2025, 7, 4, 4, 46, 22, 472, DateTimeKind.Utc).AddTicks(9112),
                             Description = "Acceso de gestión",
                             IsActive = true,
                             Name = "Manager",
-                            UpdatedAt = new DateTime(2025, 7, 4, 3, 16, 8, 291, DateTimeKind.Utc).AddTicks(3410)
+                            UpdatedAt = new DateTime(2025, 7, 4, 4, 46, 22, 472, DateTimeKind.Utc).AddTicks(9112)
                         },
                         new
                         {
                             Id = 3,
-                            CreatedAt = new DateTime(2025, 7, 4, 3, 16, 8, 291, DateTimeKind.Utc).AddTicks(3412),
+                            CreatedAt = new DateTime(2025, 7, 4, 4, 46, 22, 472, DateTimeKind.Utc).AddTicks(9115),
                             Description = "Acceso de soporte",
                             IsActive = true,
                             Name = "Support",
-                            UpdatedAt = new DateTime(2025, 7, 4, 3, 16, 8, 291, DateTimeKind.Utc).AddTicks(3412)
+                            UpdatedAt = new DateTime(2025, 7, 4, 4, 46, 22, 472, DateTimeKind.Utc).AddTicks(9115)
                         },
                         new
                         {
                             Id = 4,
-                            CreatedAt = new DateTime(2025, 7, 4, 3, 16, 8, 291, DateTimeKind.Utc).AddTicks(3413),
+                            CreatedAt = new DateTime(2025, 7, 4, 4, 46, 22, 472, DateTimeKind.Utc).AddTicks(9117),
                             Description = "Acceso básico de usuario",
                             IsActive = true,
                             Name = "Users",
-                            UpdatedAt = new DateTime(2025, 7, 4, 3, 16, 8, 291, DateTimeKind.Utc).AddTicks(3414)
+                            UpdatedAt = new DateTime(2025, 7, 4, 4, 46, 22, 472, DateTimeKind.Utc).AddTicks(9117)
                         });
                 });
 
@@ -742,7 +1024,7 @@ namespace Hotel.Migrations
                         {
                             Id = 1,
                             BasePrice = 50.00m,
-                            CreatedAt = new DateTime(2025, 7, 4, 3, 16, 8, 291, DateTimeKind.Utc).AddTicks(2997),
+                            CreatedAt = new DateTime(2025, 7, 4, 4, 46, 22, 472, DateTimeKind.Utc).AddTicks(8372),
                             Description = "Habitación individual estándar",
                             MaxOccupancy = 1,
                             Name = "Individual"
@@ -751,7 +1033,7 @@ namespace Hotel.Migrations
                         {
                             Id = 2,
                             BasePrice = 80.00m,
-                            CreatedAt = new DateTime(2025, 7, 4, 3, 16, 8, 291, DateTimeKind.Utc).AddTicks(3006),
+                            CreatedAt = new DateTime(2025, 7, 4, 4, 46, 22, 472, DateTimeKind.Utc).AddTicks(8383),
                             Description = "Habitación doble estándar",
                             MaxOccupancy = 2,
                             Name = "Doble"
@@ -760,7 +1042,7 @@ namespace Hotel.Migrations
                         {
                             Id = 3,
                             BasePrice = 150.00m,
-                            CreatedAt = new DateTime(2025, 7, 4, 3, 16, 8, 291, DateTimeKind.Utc).AddTicks(3008),
+                            CreatedAt = new DateTime(2025, 7, 4, 4, 46, 22, 472, DateTimeKind.Utc).AddTicks(8386),
                             Description = "Suite de lujo",
                             MaxOccupancy = 4,
                             Name = "Suite"
@@ -769,7 +1051,7 @@ namespace Hotel.Migrations
                         {
                             Id = 4,
                             BasePrice = 300.00m,
-                            CreatedAt = new DateTime(2025, 7, 4, 3, 16, 8, 291, DateTimeKind.Utc).AddTicks(3010),
+                            CreatedAt = new DateTime(2025, 7, 4, 4, 46, 22, 472, DateTimeKind.Utc).AddTicks(8388),
                             Description = "Suite presidencial de lujo",
                             MaxOccupancy = 6,
                             Name = "Suite Presidencial"
@@ -924,7 +1206,15 @@ namespace Hotel.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("Hotel.Models.Product", "Product")
+                        .WithMany("CollectionProducts")
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.Navigation("Collection");
+
+                    b.Navigation("Product");
                 });
 
             modelBuilder.Entity("Hotel.Models.Payment", b =>
@@ -936,6 +1226,39 @@ namespace Hotel.Migrations
                         .IsRequired();
 
                     b.Navigation("Reservation");
+                });
+
+            modelBuilder.Entity("Hotel.Models.ProductImage", b =>
+                {
+                    b.HasOne("Hotel.Models.Product", "Product")
+                        .WithMany("Images")
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Product");
+                });
+
+            modelBuilder.Entity("Hotel.Models.ProductVariant", b =>
+                {
+                    b.HasOne("Hotel.Models.Product", "Product")
+                        .WithMany("Variants")
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Product");
+                });
+
+            modelBuilder.Entity("Hotel.Models.ProductVideo", b =>
+                {
+                    b.HasOne("Hotel.Models.Product", "Product")
+                        .WithMany("Videos")
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Product");
                 });
 
             modelBuilder.Entity("Hotel.Models.Reservation", b =>
@@ -1021,6 +1344,17 @@ namespace Hotel.Migrations
             modelBuilder.Entity("Hotel.Models.Permission", b =>
                 {
                     b.Navigation("RolePermissions");
+                });
+
+            modelBuilder.Entity("Hotel.Models.Product", b =>
+                {
+                    b.Navigation("CollectionProducts");
+
+                    b.Navigation("Images");
+
+                    b.Navigation("Variants");
+
+                    b.Navigation("Videos");
                 });
 
             modelBuilder.Entity("Hotel.Models.Reservation", b =>
