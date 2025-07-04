@@ -107,12 +107,19 @@
         color: #999;
     }
 
-    /* Rich text editor container */
+    /* Rich text editor - Estilo moderno */
     .editor-container {
-        border: 1px solid #ddd;
-        border-radius: 4px;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
         overflow: hidden;
         background-color: #fff;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        transition: all 0.2s;
+    }
+
+    .editor-container:focus-within {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(233, 30, 99, 0.1);
     }
 
     body.dark-mode .editor-container {
@@ -121,12 +128,27 @@
     }
 
     .editor-toolbar {
-        background-color: #f5f5f5;
-        border-bottom: 1px solid #ddd;
-        padding: 8px;
+        background-color: #f8f9fa;
+        border-bottom: 1px solid #e5e7eb;
+        padding: 0;
         display: flex;
-        gap: 4px;
+        align-items: center;
+        min-height: 48px;
         flex-wrap: wrap;
+    }
+
+    .toolbar-group {
+        display: flex;
+        align-items: center;
+        padding: 8px 4px;
+        gap: 2px;
+    }
+
+    .toolbar-separator {
+        width: 1px;
+        height: 24px;
+        background-color: #dee2e6;
+        margin: 0 4px;
     }
 
     body.dark-mode .editor-toolbar {
@@ -134,15 +156,54 @@
         border-bottom-color: #3a3b4a;
     }
 
+    body.dark-mode .toolbar-separator {
+        background-color: #3a3b4a;
+    }
+
+    .format-select {
+        padding: 6px 12px;
+        border: 1px solid #dee2e6;
+        border-radius: 6px;
+        background-color: #fff;
+        color: #495057;
+        font-size: 14px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    body.dark-mode .format-select {
+        background-color: #2b2c40;
+        border-color: #3a3b4a;
+        color: #b0b3c1;
+    }
+
+    .format-select:hover {
+        border-color: #adb5bd;
+    }
+
+    .format-select:focus {
+        border-color: var(--primary);
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(233, 30, 99, 0.1);
+    }
+
     .editor-btn {
-        padding: 6px 10px;
+        padding: 0;
+        width: 34px;
+        height: 34px;
         background: none;
         border: 1px solid transparent;
-        border-radius: 3px;
+        border-radius: 6px;
         cursor: pointer;
-        font-size: 14px;
-        color: #333;
+        color: #495057;
         transition: all 0.2s;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .editor-btn i {
+        font-size: 14px;
     }
 
     body.dark-mode .editor-btn {
@@ -150,32 +211,46 @@
     }
 
     .editor-btn:hover {
-        background-color: #e0e0e0;
+        background-color: #e9ecef;
+        color: #212529;
     }
 
     body.dark-mode .editor-btn:hover {
         background-color: #3a3b4a;
+        color: #e0e0e0;
     }
 
     .editor-btn.active {
-        background-color: #d0d0d0;
-        border-color: #bbb;
+        background-color: var(--primary);
+        color: #fff;
     }
 
     body.dark-mode .editor-btn.active {
-        background-color: #3a3b4a;
-        border-color: #4a4b5a;
+        background-color: var(--primary);
+        color: #fff;
     }
 
     .editor-content {
-        min-height: 200px;
-        padding: 16px;
-        font-size: 14px;
-        line-height: 1.6;
+        min-height: 300px;
+        padding: 20px;
+        font-size: 16px;
+        line-height: 1.8;
+        color: #212529;
+    }
+
+    body.dark-mode .editor-content {
+        color: #e0e0e0;
     }
 
     .editor-content:focus {
         outline: none;
+    }
+
+    .editor-content:empty:before {
+        content: attr(data-placeholder);
+        color: #adb5bd;
+        pointer-events: none;
+        position: absolute;
     }
 
     /* Image upload area */
@@ -394,12 +469,13 @@
     }
 
     .btn-primary {
-        background-color: #000;
+        background-color: var(--primary);
         color: #fff;
     }
 
     .btn-primary:hover {
-        background-color: #333;
+        background-color: var(--primary);
+        opacity: 0.9;
         color: #fff;
     }
 
@@ -552,46 +628,54 @@
                 <label asp-for="Description" data-i18n="description">Descripción</label>
                 <div class="editor-container">
                     <div class="editor-toolbar">
-                        <select class="editor-btn" id="formatBlock">
-                            <option value="p" data-i18n="paragraph">Párrafo</option>
-                            <option value="h1">H1</option>
-                            <option value="h2">H2</option>
-                            <option value="h3">H3</option>
-                        </select>
-                        <button type="button" class="editor-btn" data-command="bold" title="Negrita">
-                            <i class="material-icons">format_bold</i>
+                        <div class="toolbar-group">
+                            <select class="format-select" id="formatBlock">
+                                <option value="p" data-i18n="paragraph">Párrafo</option>
+                                <option value="h1" data-i18n="heading1">Título 1</option>
+                                <option value="h2" data-i18n="heading2">Título 2</option>
+                                <option value="h3" data-i18n="heading3">Título 3</option>
+                                <option value="h4" data-i18n="heading4">Título 4</option>
+                            </select>
+                        </div>
+                        
+                        <div class="toolbar-separator"></div>
+                        
+                        <div class="toolbar-group">
+                        <button type="button" class="editor-btn" data-command="bold" title="Negrita" data-i18n-title="bold_tooltip">
+                            <i class="fas fa-bold"></i>
                         </button>
-                        <button type="button" class="editor-btn" data-command="italic" title="Cursiva">
-                            <i class="material-icons">format_italic</i>
+                        <button type="button" class="editor-btn" data-command="italic" title="Cursiva" data-i18n-title="italic_tooltip">
+                            <i class="fas fa-italic"></i>
                         </button>
-                        <button type="button" class="editor-btn" data-command="underline" title="Subrayado">
-                            <i class="material-icons">format_underlined</i>
+                        <button type="button" class="editor-btn" data-command="underline" title="Subrayado" data-i18n-title="underline_tooltip">
+                            <i class="fas fa-underline"></i>
                         </button>
-                        <button type="button" class="editor-btn" data-command="strikethrough" title="Tachado">
-                            <i class="material-icons">format_strikethrough</i>
-                        </button>
-                        <span style="width: 1px; height: 20px; background: #ddd; margin: 0 4px;"></span>
-                        <button type="button" class="editor-btn" data-command="justifyLeft" title="Alinear izquierda">
-                            <i class="material-icons">format_align_left</i>
-                        </button>
-                        <button type="button" class="editor-btn" data-command="justifyCenter" title="Centrar">
-                            <i class="material-icons">format_align_center</i>
-                        </button>
-                        <button type="button" class="editor-btn" data-command="justifyRight" title="Alinear derecha">
-                            <i class="material-icons">format_align_right</i>
+                        <button type="button" class="editor-btn" data-command="strikethrough" title="Tachado" data-i18n-title="strikethrough_tooltip">
+                            <i class="fas fa-strikethrough"></i>
                         </button>
                         <span style="width: 1px; height: 20px; background: #ddd; margin: 0 4px;"></span>
-                        <button type="button" class="editor-btn" data-command="insertUnorderedList" title="Lista con viñetas">
-                            <i class="material-icons">format_list_bulleted</i>
+                        <button type="button" class="editor-btn" data-command="justifyLeft" title="Alinear izquierda" data-i18n-title="align_left_tooltip">
+                            <i class="fas fa-align-left"></i>
                         </button>
-                        <button type="button" class="editor-btn" data-command="insertOrderedList" title="Lista numerada">
-                            <i class="material-icons">format_list_numbered</i>
+                        <button type="button" class="editor-btn" data-command="justifyCenter" title="Centrar" data-i18n-title="align_center_tooltip">
+                            <i class="fas fa-align-center"></i>
                         </button>
-                        <button type="button" class="editor-btn" data-command="createLink" title="Insertar enlace">
-                            <i class="material-icons">link</i>
+                        <button type="button" class="editor-btn" data-command="justifyRight" title="Alinear derecha" data-i18n-title="align_right_tooltip">
+                            <i class="fas fa-align-right"></i>
                         </button>
+                        <span style="width: 1px; height: 20px; background: #ddd; margin: 0 4px;"></span>
+                        <button type="button" class="editor-btn" data-command="insertUnorderedList" title="Lista con viñetas" data-i18n-title="bulleted_list_tooltip">
+                            <i class="fas fa-list-ul"></i>
+                        </button>
+                        <button type="button" class="editor-btn" data-command="insertOrderedList" title="Lista numerada" data-i18n-title="numbered_list_tooltip">
+                            <i class="fas fa-list-ol"></i>
+                        </button>
+                        <button type="button" class="editor-btn" data-command="createLink" title="Insertar enlace" data-i18n-title="insert_link_tooltip">
+                            <i class="fas fa-link"></i>
+                        </button>
+                        </div>
                     </div>
-                    <div class="editor-content" contenteditable="true" id="descriptionEditor">@Html.Raw(Model.Description)</div>
+                    <div class="editor-content" contenteditable="true" id="descriptionEditor" data-placeholder="Escribe la descripción de la colección aquí..." data-i18n-data-placeholder="description_placeholder">@Html.Raw(Model.Description)</div>
                 </div>
                 <textarea asp-for="Description" style="display: none;"></textarea>
                 <span asp-validation-for="Description" class="text-danger"></span>
@@ -608,7 +692,7 @@
                 </div>
                 <span asp-validation-for="Handle" class="text-danger"></span>
                 <div id="handleValidation" class="text-info" style="display: none; margin-top: 4px;">
-                    <small><i class="material-icons" style="font-size: 16px; vertical-align: middle;">info</i> <span id="handleMessage"></span></small>
+                    <small><i class="fas fa-info-circle" style="font-size: 16px; vertical-align: middle;"></i> <span id="handleMessage"></span></small>
                 </div>
             </div>
 
@@ -616,7 +700,7 @@
             <div class="collapsible-section">
                 <div class="collapsible-header">
                     <span data-i18n="search_engine_listing">Publicación en motores de búsqueda</span>
-                    <i class="material-icons expand-icon">expand_more</i>
+                    <i class="fas fa-chevron-down expand-icon"></i>
                 </div>
                 <div class="collapsible-content">
                     <div class="form-group">
@@ -649,13 +733,13 @@
 
             <div class="form-actions">
                 <button type="button" class="btn btn-danger" onclick="deleteCollection(@Model.Id, '@Model.Title')">
-                    <i class="material-icons">delete</i>
+                    <i class="fas fa-trash"></i>
                     <span data-i18n="delete">Eliminar</span>
                 </button>
                 <div>
                     <a href="@Url.Action("Index", "Collections")" class="btn btn-secondary" data-i18n="cancel">Cancelar</a>
                     <button type="submit" class="btn btn-primary">
-                        <i class="material-icons">save</i>
+                        <i class="fas fa-save"></i>
                         <span data-i18n="save">Guardar</span>
                     </button>
                 </div>
@@ -735,14 +819,14 @@
                 <div class="image-upload-area" id="imageUploadArea" style="@(!string.IsNullOrEmpty(Model.ImageUrl) ? "display: none;" : "")">
                     <input type="file" id="imageInput" accept="image/*" style="display: none;" />
                     <input type="hidden" asp-for="ImageUrl" />
-                    <i class="material-icons">add_photo_alternate</i>
+                    <i class="fas fa-image"></i>
                     <div class="upload-text" data-i18n="add_image">Agregar imagen</div>
                     <div class="upload-hint" data-i18n="drag_drop_hint">o arrastra una imagen para subirla</div>
                 </div>
                 <div id="imagePreview" style="@(string.IsNullOrEmpty(Model.ImageUrl) ? "display: none;" : "")">
                     <img id="previewImg" src="@Model.ImageUrl" style="width: 100%; border-radius: 4px;" />
                     <button type="button" class="btn btn-secondary" style="width: 100%; margin-top: 8px;" onclick="removeImage()">
-                        <i class="material-icons">delete</i>
+                        <i class="fas fa-trash"></i>
                         <span data-i18n="remove_image">Eliminar imagen</span>
                     </button>
                 </div>
@@ -764,7 +848,8 @@
                 const command = this.dataset.command;
                 
                 if (command === 'createLink') {
-                    const url = prompt('Ingrese la URL del enlace:');
+                    const linkPrompt = translations[currentLang]['link_prompt'] || 'Ingrese la URL del enlace:';
+                    const url = prompt(linkPrompt);
                     if (url) {
                         document.execCommand(command, false, url);
                     }
@@ -774,6 +859,7 @@
                 
                 descriptionEditor.focus();
                 updateDescription();
+                updateActiveStates();
             });
         });
 
@@ -791,6 +877,64 @@
         function updateDescription() {
             descriptionTextarea.value = descriptionEditor.innerHTML;
         }
+
+        // Update active states of toolbar buttons
+        function updateActiveStates() {
+            document.querySelectorAll('.editor-btn[data-command]').forEach(btn => {
+                const command = btn.dataset.command;
+                const isActive = document.queryCommandState(command);
+                if (isActive) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+
+            // Update format select
+            const formatBlock = document.queryCommandValue('formatBlock');
+            if (formatBlock) {
+                document.getElementById('formatBlock').value = formatBlock.toLowerCase();
+            }
+        }
+
+        // Update on selection change
+        document.addEventListener('selectionchange', function() {
+            if (document.activeElement === descriptionEditor) {
+                updateActiveStates();
+            }
+        });
+
+        // Keyboard shortcuts
+        descriptionEditor.addEventListener('keydown', function(e) {
+            if (e.ctrlKey || e.metaKey) {
+                const currentLang = localStorage.getItem('preferredLanguage') || 'es';
+                switch(e.key.toLowerCase()) {
+                    case 'b':
+                        e.preventDefault();
+                        document.execCommand('bold', false, null);
+                        updateActiveStates();
+                        break;
+                    case 'i':
+                        e.preventDefault();
+                        document.execCommand('italic', false, null);
+                        updateActiveStates();
+                        break;
+                    case 'u':
+                        e.preventDefault();
+                        document.execCommand('underline', false, null);
+                        updateActiveStates();
+                        break;
+                    case 'k':
+                        e.preventDefault();
+                        const linkPrompt = translations[currentLang]['link_prompt'] || 'Ingrese la URL del enlace:';
+                        const url = prompt(linkPrompt);
+                        if (url) {
+                            document.execCommand('createLink', false, url);
+                        }
+                        break;
+                }
+            }
+        });
 
         // Handle validation
         let validateTimeout;
@@ -937,7 +1081,11 @@
         }
 
         function deleteCollection(id, title) {
-            if (!confirm(`¿Estás seguro de eliminar la colección "${title}"? Esta acción no se puede deshacer.`)) {
+            const currentLang = localStorage.getItem('preferredLanguage') || 'es';
+            let confirmMessage = translations[currentLang]['delete_confirm'] || `¿Estás seguro de eliminar la colección "${title}"? Esta acción no se puede deshacer.`;
+            confirmMessage = confirmMessage.replace('{title}', title);
+            
+            if (!confirm(confirmMessage)) {
                 return;
             }
 
@@ -963,7 +1111,9 @@
             const checkedChannels = document.querySelectorAll('input[name="selectedChannels"]:checked');
             if (checkedChannels.length === 0) {
                 e.preventDefault();
-                alert('Selecciona al menos un canal de venta');
+                const currentLang = localStorage.getItem('preferredLanguage') || 'es';
+                const alertMessage = translations[currentLang]['select_channel_alert'] || 'Selecciona al menos un canal de venta';
+                alert(alertMessage);
                 return false;
             }
         });
@@ -972,11 +1122,28 @@
         const editCollectionTranslations = {
             es: {
                 edit_collection: "Editar colección",
+                home: "Inicio",
                 collections: "Colecciones",
                 title: "Título",
                 title_placeholder: "ej., Colección de verano, Menos de 100 $, Nuestros favoritos",
                 description: "Descripción",
+                description_placeholder: "Escribe la descripción de la colección aquí...",
                 paragraph: "Párrafo",
+                heading1: "Título 1",
+                heading2: "Título 2",
+                heading3: "Título 3",
+                heading4: "Título 4",
+                bold_tooltip: "Negrita (Ctrl+B)",
+                italic_tooltip: "Cursiva (Ctrl+I)",
+                underline_tooltip: "Subrayado (Ctrl+U)",
+                strikethrough_tooltip: "Tachado",
+                align_left_tooltip: "Alinear izquierda",
+                align_center_tooltip: "Centrar",
+                align_right_tooltip: "Alinear derecha",
+                bulleted_list_tooltip: "Lista con viñetas",
+                numbered_list_tooltip: "Lista numerada",
+                insert_link_tooltip: "Insertar enlace (Ctrl+K)",
+                link_prompt: "Ingrese la URL del enlace:",
                 handle: "Handle",
                 handle_help: "El handle es la parte de la URL que identifica la colección. Se genera automáticamente desde el título.",
                 search_engine_listing: "Publicación en motores de búsqueda",
@@ -997,15 +1164,34 @@
                 cancel: "Cancelar",
                 delete: "Eliminar",
                 created: "Creado",
-                updated: "Actualizado"
+                updated: "Actualizado",
+                delete_confirm: "¿Estás seguro de eliminar la colección \"{title}\"? Esta acción no se puede deshacer.",
+                select_channel_alert: "Selecciona al menos un canal de venta"
             },
             en: {
                 edit_collection: "Edit collection",
+                home: "Home",
                 collections: "Collections",
                 title: "Title",
                 title_placeholder: "e.g., Summer collection, Under $100, Our favorites",
                 description: "Description",
+                description_placeholder: "Write the collection description here...",
                 paragraph: "Paragraph",
+                heading1: "Heading 1",
+                heading2: "Heading 2",
+                heading3: "Heading 3",
+                heading4: "Heading 4",
+                bold_tooltip: "Bold (Ctrl+B)",
+                italic_tooltip: "Italic (Ctrl+I)",
+                underline_tooltip: "Underline (Ctrl+U)",
+                strikethrough_tooltip: "Strikethrough",
+                align_left_tooltip: "Align left",
+                align_center_tooltip: "Center",
+                align_right_tooltip: "Align right",
+                bulleted_list_tooltip: "Bulleted list",
+                numbered_list_tooltip: "Numbered list",
+                insert_link_tooltip: "Insert link (Ctrl+K)",
+                link_prompt: "Enter the link URL:",
                 handle: "Handle",
                 handle_help: "The handle is the part of the URL that identifies the collection. It's automatically generated from the title.",
                 search_engine_listing: "Search engine listing",
@@ -1026,17 +1212,29 @@
                 cancel: "Cancel",
                 delete: "Delete",
                 created: "Created",
-                updated: "Updated"
+                updated: "Updated",
+                delete_confirm: "Are you sure you want to delete the collection \"{title}\"? This action cannot be undone.",
+                select_channel_alert: "Select at least one sales channel"
             }
         };
 
-        // Add translations to global object
-        if (window.addTranslations) {
-            window.addTranslations(editCollectionTranslations);
+        // Merge translations with global object
+        if (typeof translations !== 'undefined') {
+            if (!translations.es) translations.es = {};
+            if (!translations.en) translations.en = {};
+            
+            Object.assign(translations.es, editCollectionTranslations.es);
+            Object.assign(translations.en, editCollectionTranslations.en);
         }
 
         // Initialize on load
         document.addEventListener('DOMContentLoaded', function() {
+            // Apply translations
+            if (typeof translatePage === 'function') {
+                const currentLang = localStorage.getItem('preferredLanguage') || 'es';
+                translatePage(currentLang);
+            }
+            
             updateDescription();
             updateSeoPreview();
             updateCharCount('seoTitleCount', seoTitleInput.value.length, 60);

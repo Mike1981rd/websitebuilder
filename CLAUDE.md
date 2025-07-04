@@ -58,6 +58,58 @@
 9. **Requeridos**: `<span class="required-asterisk">*</span>`
 10. **Traducciones**: Agregar en _MaterializeExactLayout translations object
 
+### Sistema de Colores del Theme (IMPORTANTE)
+El proyecto implementa un sistema de personalización de colores que permite al usuario cambiar el color principal de la interfaz. Todos los módulos DEBEN respetar esta configuración.
+
+#### Cómo funciona:
+1. **Variable CSS principal**: `--primary` definida en `:root` (valor por defecto: #e91e63)
+2. **Almacenamiento**: El color elegido se guarda en `localStorage` con la clave `primaryColor`
+3. **Panel de personalización**: Accesible con el botón flotante de engranaje en el layout principal
+
+#### Implementación en nuevos módulos:
+1. **Botones principales**: Usar `background-color: var(--primary)` en lugar de colores hardcodeados
+   ```css
+   .btn-create {
+       background-color: var(--primary);
+       color: #ffffff;
+   }
+   
+   .btn-create:hover {
+       background-color: var(--primary);
+       opacity: 0.9;
+   }
+   ```
+
+2. **Checkboxes y elementos de selección**:
+   ```css
+   input[type="checkbox"]:checked {
+       background-color: var(--primary);
+       border-color: var(--primary);
+   }
+   ```
+
+3. **Enlaces importantes y elementos destacados**:
+   ```css
+   .important-link {
+       color: var(--primary);
+   }
+   ```
+
+4. **Sombras con color del theme**:
+   ```css
+   .btn:hover {
+       box-shadow: 0 4px 12px rgba(233, 30, 99, 0.25); /* Usar con precaución */
+   }
+   ```
+
+#### Elementos que NO deben usar el color primario:
+- Textos de contenido general
+- Fondos de cards o contenedores
+- Bordes estándar
+- Elementos de navegación secundarios
+
+**Referencia**: Ver implementación en módulos Roles y Collections para ejemplos completos.
+
 ## Website Builder - Implementación Correcta
 
 ### Sistema de Traducciones
