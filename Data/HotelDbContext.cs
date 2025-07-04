@@ -28,6 +28,7 @@ namespace Hotel.Data
         public DbSet<ProductImage> ProductImages { get; set; }
         public DbSet<ProductVideo> ProductVideos { get; set; }
         public DbSet<ProductVariant> ProductVariants { get; set; }
+        public DbSet<Page> Pages { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -236,6 +237,21 @@ namespace Hotel.Data
                 .Property(pv => pv.Weight)
                 .HasPrecision(10, 3);
 
+            // Configuración de Page
+            modelBuilder.Entity<Page>()
+                .HasIndex(p => new { p.CompanyId, p.Handle })
+                .IsUnique();
+
+            modelBuilder.Entity<Page>()
+                .Property(p => p.Content)
+                .HasColumnType("text");
+
+            modelBuilder.Entity<Page>()
+                .HasOne(p => p.Company)
+                .WithMany()
+                .HasForeignKey(p => p.CompanyId)
+                .OnDelete(DeleteBehavior.Restrict);
+
             // Datos semilla para RoomTypes
             modelBuilder.Entity<RoomType>().HasData(
                 new RoomType { Id = 1, Name = "Individual", Description = "Habitación individual estándar", BasePrice = 50.00m, MaxOccupancy = 1 },
@@ -282,6 +298,11 @@ namespace Hotel.Data
             permissions.Add(new Permission { Id = permissionId++, Module = "Productos", Action = "Read", Description = "Ver productos", DisplayOrder = 7 });
             permissions.Add(new Permission { Id = permissionId++, Module = "Productos", Action = "Write", Description = "Editar productos", DisplayOrder = 7 });
             permissions.Add(new Permission { Id = permissionId++, Module = "Productos", Action = "Create", Description = "Crear productos", DisplayOrder = 7 });
+            
+            // Páginas
+            permissions.Add(new Permission { Id = permissionId++, Module = "Páginas", Action = "Read", Description = "Ver páginas", DisplayOrder = 8 });
+            permissions.Add(new Permission { Id = permissionId++, Module = "Páginas", Action = "Write", Description = "Editar páginas", DisplayOrder = 8 });
+            permissions.Add(new Permission { Id = permissionId++, Module = "Páginas", Action = "Create", Description = "Crear páginas", DisplayOrder = 8 });
 
             modelBuilder.Entity<Permission>().HasData(permissions);
 

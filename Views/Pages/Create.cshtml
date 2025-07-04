@@ -1,0 +1,805 @@
+@model Hotel.Models.Page
+
+@{
+    ViewData["Title"] = "Agregar página";
+    Layout = "~/Views/Shared/_MaterializeExactLayout.cshtml";
+}
+
+<style>
+    .page-header {
+        margin-bottom: 30px;
+        padding: 20px 0;
+    }
+
+    .breadcrumb {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 16px;
+        font-size: 14px;
+        color: #6c757d;
+    }
+
+    .breadcrumb a {
+        color: var(--primary);
+        text-decoration: none;
+    }
+
+    .breadcrumb a:hover {
+        text-decoration: underline;
+    }
+
+    .page-title {
+        font-size: 2rem;
+        margin: 0;
+        color: #333;
+    }
+
+    .form-container {
+        display: grid;
+        grid-template-columns: 1fr 380px;
+        gap: 24px;
+        margin-bottom: 80px;
+    }
+
+    .main-content {
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+    }
+
+    .sidebar-content {
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+    }
+
+    .card {
+        background: white;
+        border-radius: 8px;
+        padding: 24px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 500;
+        color: #495057;
+        font-size: 14px;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 10px 16px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 14px;
+        transition: all 0.2s;
+    }
+
+    .form-control:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(233, 30, 99, 0.1);
+    }
+
+    /* Editor de contenido */
+    .editor-container {
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        overflow: hidden;
+        background-color: #fff;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        transition: all 0.2s;
+    }
+
+    .editor-container:focus-within {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(233, 30, 99, 0.1);
+    }
+
+    .editor-toolbar {
+        background-color: #f8f9fa;
+        border-bottom: 1px solid #e5e7eb;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        min-height: 48px;
+        flex-wrap: wrap;
+    }
+
+    .toolbar-group {
+        display: flex;
+        align-items: center;
+        padding: 8px 4px;
+        gap: 2px;
+    }
+
+    .toolbar-separator {
+        width: 1px;
+        height: 24px;
+        background-color: #dee2e6;
+        margin: 0 4px;
+    }
+
+    .editor-btn {
+        padding: 0;
+        width: 34px;
+        height: 34px;
+        background: none;
+        border: 1px solid transparent;
+        border-radius: 6px;
+        cursor: pointer;
+        color: #495057;
+        transition: all 0.2s;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .editor-btn:hover {
+        background-color: #e9ecef;
+        color: #212529;
+    }
+
+    .editor-btn.active {
+        background-color: var(--primary);
+        color: #fff;
+    }
+
+    .editor-btn i {
+        font-size: 14px;
+    }
+
+    .format-select {
+        padding: 6px 12px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        background: white;
+        font-size: 14px;
+        cursor: pointer;
+    }
+
+    .editor-content {
+        min-height: 300px;
+        padding: 20px;
+        font-size: 16px;
+        line-height: 1.8;
+        color: #212529;
+    }
+
+    .editor-content:focus {
+        outline: none;
+    }
+
+    .editor-content:empty:before {
+        content: attr(data-placeholder);
+        color: #adb5bd;
+        pointer-events: none;
+        position: absolute;
+    }
+
+    /* Radio buttons personalizados */
+    .radio-group {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .radio-option {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+    }
+
+    .radio-option input[type="radio"] {
+        width: 20px;
+        height: 20px;
+        accent-color: var(--primary);
+        cursor: pointer;
+    }
+
+    .radio-option label {
+        margin: 0;
+        font-weight: normal;
+        cursor: pointer;
+    }
+
+    /* Secciones expandibles */
+    .expandable-section {
+        border-top: 1px solid #e5e7eb;
+        margin-top: 24px;
+        padding-top: 24px;
+    }
+
+    .expandable-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        cursor: pointer;
+        user-select: none;
+    }
+
+    .expandable-header h3 {
+        margin: 0;
+        font-size: 16px;
+        font-weight: 500;
+    }
+
+    .expandable-content {
+        margin-top: 16px;
+        display: none;
+    }
+
+    .expandable-section.expanded .expandable-content {
+        display: block;
+    }
+
+    .expandable-section .fa-chevron-down {
+        transition: transform 0.2s;
+    }
+
+    .expandable-section.expanded .fa-chevron-down {
+        transform: rotate(180deg);
+    }
+
+    /* Select personalizado */
+    .custom-select {
+        position: relative;
+    }
+
+    .custom-select select {
+        appearance: none;
+        width: 100%;
+        padding: 10px 40px 10px 16px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        background: white;
+        font-size: 14px;
+        cursor: pointer;
+    }
+
+    .custom-select::after {
+        content: '\f078';
+        font-family: 'Font Awesome 5 Free';
+        font-weight: 900;
+        position: absolute;
+        right: 16px;
+        top: 50%;
+        transform: translateY(-50%);
+        pointer-events: none;
+        color: #6c757d;
+    }
+
+    /* Botones de acción */
+    .form-actions {
+        position: fixed;
+        bottom: 0;
+        right: 0;
+        left: 0;
+        background: white;
+        border-top: 1px solid #e5e7eb;
+        padding: 16px 24px;
+        display: flex;
+        justify-content: flex-end;
+        gap: 12px;
+        z-index: 100;
+    }
+
+    .btn {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 4px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+    .btn-primary {
+        background-color: var(--primary);
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background-color: var(--primary);
+        opacity: 0.9;
+    }
+
+    .btn-secondary {
+        background: #e9ecef;
+        color: #495057;
+    }
+
+    .btn-secondary:hover {
+        background: #dee2e6;
+    }
+
+    /* Mensajes de alerta */
+    .alert {
+        padding: 12px 20px;
+        border-radius: 4px;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        position: relative;
+    }
+
+    .alert-success {
+        background-color: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+    }
+
+    .alert-danger {
+        background-color: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+    }
+
+    .alert .btn-close {
+        position: absolute;
+        right: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        font-size: 20px;
+        cursor: pointer;
+        color: inherit;
+        opacity: 0.5;
+    }
+
+    .alert .btn-close:hover {
+        opacity: 0.8;
+    }
+
+    /* Dark mode */
+    body.dark-mode .page-title {
+        color: #fff;
+    }
+
+    body.dark-mode .alert-success {
+        background-color: #1b3a1f;
+        color: #6ec77d;
+        border-color: #2d5434;
+    }
+
+    body.dark-mode .alert-danger {
+        background-color: #3a1b1f;
+        color: #e57373;
+        border-color: #542d34;
+    }
+
+    body.dark-mode .breadcrumb {
+        color: #bbb;
+    }
+
+    body.dark-mode .card {
+        background: #2c3e50;
+    }
+
+    body.dark-mode .form-control,
+    body.dark-mode .format-select,
+    body.dark-mode .custom-select select {
+        background: #34495e;
+        border-color: #34495e;
+        color: #fff;
+    }
+
+    body.dark-mode .editor-container {
+        background: #34495e;
+        border-color: #4a5f7a;
+    }
+
+    body.dark-mode .editor-toolbar {
+        background: #2c3e50;
+        border-color: #4a5f7a;
+    }
+
+    body.dark-mode .editor-content {
+        color: #fff;
+    }
+
+    body.dark-mode .form-actions {
+        background: #1a252f;
+        border-color: #4a5f7a;
+    }
+
+    /* Responsive */
+    @@media (max-width: 1024px) {
+        .form-container {
+            grid-template-columns: 1fr;
+        }
+
+        .sidebar-content {
+            order: 2;
+        }
+    }
+
+    @@media (max-width: 768px) {
+        .form-actions {
+            padding: 12px 16px;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            font-size: 14px;
+        }
+    }
+</style>
+
+<div class="page-header">
+    <div class="breadcrumb">
+        <a href="@Url.Action("Index")" data-i18n="pages.title">Páginas</a>
+        <i class="fas fa-chevron-right" style="font-size: 12px;"></i>
+        <span data-i18n="pages.create">Agregar página</span>
+    </div>
+    <h1 class="page-title" data-i18n="pages.create">Agregar página</h1>
+</div>
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger" role="alert">
+        <i class="fas fa-exclamation-circle"></i>
+        @TempData["ErrorMessage"]
+        <button type="button" class="btn-close" onclick="this.parentElement.style.display='none'">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+}
+
+<form asp-action="Create" method="post" novalidate>
+    <input type="hidden" asp-for="Status" value="0" />
+    <div class="form-container">
+        <div class="main-content">
+            <div class="card">
+                <div class="form-group">
+                    <label asp-for="Title" data-i18n="pages.form.title">Título <span class="required-asterisk" style="color: red;">*</span></label>
+                    <input asp-for="Title" class="form-control" placeholder="ej., sobre nosotros, tabla de tallas, preguntas frecuentes" />
+                    <span asp-validation-for="Title" class="text-danger"></span>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label data-i18n="pages.form.content">Contenido</label>
+                    <div class="editor-container">
+                        <div class="editor-toolbar">
+                            <div class="toolbar-group">
+                                <select class="format-select" id="formatBlock">
+                                    <option value="p">Párrafo</option>
+                                    <option value="h1">Título 1</option>
+                                    <option value="h2">Título 2</option>
+                                    <option value="h3">Título 3</option>
+                                    <option value="h4">Título 4</option>
+                                </select>
+                            </div>
+                            
+                            <div class="toolbar-separator"></div>
+                            
+                            <div class="toolbar-group">
+                                <button type="button" class="editor-btn" data-command="bold" title="Negrita (Ctrl+B)">
+                                    <i class="fas fa-bold"></i>
+                                </button>
+                                <button type="button" class="editor-btn" data-command="italic" title="Cursiva (Ctrl+I)">
+                                    <i class="fas fa-italic"></i>
+                                </button>
+                                <button type="button" class="editor-btn" data-command="underline" title="Subrayado (Ctrl+U)">
+                                    <i class="fas fa-underline"></i>
+                                </button>
+                            </div>
+                            
+                            <div class="toolbar-separator"></div>
+                            
+                            <div class="toolbar-group">
+                                <button type="button" class="editor-btn" data-command="justifyLeft" title="Alinear a la izquierda">
+                                    <i class="fas fa-align-left"></i>
+                                </button>
+                                <button type="button" class="editor-btn" data-command="justifyCenter" title="Centrar">
+                                    <i class="fas fa-align-center"></i>
+                                </button>
+                                <button type="button" class="editor-btn" data-command="justifyRight" title="Alinear a la derecha">
+                                    <i class="fas fa-align-right"></i>
+                                </button>
+                            </div>
+                            
+                            <div class="toolbar-separator"></div>
+                            
+                            <div class="toolbar-group">
+                                <button type="button" class="editor-btn" data-command="insertOrderedList" title="Lista numerada">
+                                    <i class="fas fa-list-ol"></i>
+                                </button>
+                                <button type="button" class="editor-btn" data-command="insertUnorderedList" title="Lista con viñetas">
+                                    <i class="fas fa-list-ul"></i>
+                                </button>
+                            </div>
+                            
+                            <div class="toolbar-separator"></div>
+                            
+                            <div class="toolbar-group">
+                                <button type="button" class="editor-btn" data-command="createLink" title="Insertar enlace">
+                                    <i class="fas fa-link"></i>
+                                </button>
+                                <button type="button" class="editor-btn" data-command="insertImage" title="Insertar imagen">
+                                    <i class="fas fa-image"></i>
+                                </button>
+                            </div>
+                            
+                            <div class="toolbar-separator"></div>
+                            
+                            <div class="toolbar-group">
+                                <button type="button" class="editor-btn" data-command="removeFormat" title="Limpiar formato">
+                                    <i class="fas fa-eraser"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="editor-content" 
+                             contenteditable="true" 
+                             id="contentEditor" 
+                             data-placeholder="Escribe el contenido de tu página aquí..."></div>
+                    </div>
+                    <textarea asp-for="Content" style="display: none;"></textarea>
+                </div>
+            </div>
+
+            <!-- Sección Metacampos -->
+            <div class="card">
+                <div class="expandable-section">
+                    <div class="expandable-header" onclick="toggleSection(this)">
+                        <h3 data-i18n="pages.form.metafields">Metacampos</h3>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="expandable-content">
+                        <div class="form-group">
+                            <label>SPECIFICATIONS</label>
+                            <input type="text" class="form-control" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sección SEO -->
+            <div class="card">
+                <div class="expandable-section">
+                    <div class="expandable-header" onclick="toggleSection(this)">
+                        <h3 data-i18n="pages.form.searchEngines">Publicación en motores de búsqueda</h3>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="expandable-content">
+                        <p style="color: #6c757d; font-size: 14px; margin-bottom: 20px;" 
+                           data-i18n="pages.form.searchEnginesDesc">
+                            Agrega un título y una descripción para ver cómo podría aparecer esta página en una publicación de motor de búsqueda
+                        </p>
+                        <div class="form-group">
+                            <label asp-for="MetaTitle">Meta título</label>
+                            <input asp-for="MetaTitle" class="form-control" />
+                            <span asp-validation-for="MetaTitle" class="text-danger"></span>
+                        </div>
+                        <div class="form-group">
+                            <label asp-for="MetaDescription">Meta descripción</label>
+                            <textarea asp-for="MetaDescription" class="form-control" rows="3"></textarea>
+                            <span asp-validation-for="MetaDescription" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="sidebar-content">
+            <!-- Visibilidad -->
+            <div class="card">
+                <h3 style="margin-top: 0; margin-bottom: 16px; font-size: 16px;" 
+                    data-i18n="pages.form.visibility">Visibilidad</h3>
+                <div class="radio-group">
+                    <div class="radio-option">
+                        <input type="radio" id="visible" name="IsVisible" value="true" checked="checked" />
+                        <label for="visible" data-i18n="pages.form.visible">Visible</label>
+                    </div>
+                    <div class="radio-option">
+                        <input type="radio" id="hidden" name="IsVisible" value="false" />
+                        <label for="hidden" data-i18n="pages.form.hidden">Oculto</label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Plantilla -->
+            <div class="card">
+                <h3 style="margin-top: 0; margin-bottom: 16px; font-size: 16px;" 
+                    data-i18n="pages.form.template">Plantilla</h3>
+                <div class="custom-select">
+                    <select asp-for="TemplateName">
+                        <option value="default" data-i18n="pages.form.defaultTemplate">Página predeterminada</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="form-actions">
+        <a href="@Url.Action("Index")" class="btn btn-secondary" data-i18n="pages.form.cancel">Cancelar</a>
+        <button type="submit" class="btn btn-primary" data-i18n="pages.form.save">Guardar</button>
+    </div>
+</form>
+
+@section Scripts {
+    <script>
+        // Traducciones locales
+        const pagesTranslations = {
+            es: {
+                'pages.title': 'Páginas',
+                'pages.create': 'Agregar página',
+                'pages.form.title': 'Título',
+                'pages.form.content': 'Contenido',
+                'pages.form.visibility': 'Visibilidad',
+                'pages.form.visible': 'Visible',
+                'pages.form.hidden': 'Oculto',
+                'pages.form.template': 'Plantilla',
+                'pages.form.defaultTemplate': 'Página predeterminada',
+                'pages.form.metafields': 'Metacampos',
+                'pages.form.searchEngines': 'Publicación en motores de búsqueda',
+                'pages.form.searchEnginesDesc': 'Agrega un título y una descripción para ver cómo podría aparecer esta página en una publicación de motor de búsqueda',
+                'pages.form.save': 'Guardar',
+                'pages.form.cancel': 'Cancelar'
+            },
+            en: {
+                'pages.title': 'Pages',
+                'pages.create': 'Add page',
+                'pages.form.title': 'Title',
+                'pages.form.content': 'Content',
+                'pages.form.visibility': 'Visibility',
+                'pages.form.visible': 'Visible',
+                'pages.form.hidden': 'Hidden',
+                'pages.form.template': 'Template',
+                'pages.form.defaultTemplate': 'Default page',
+                'pages.form.metafields': 'Metafields',
+                'pages.form.searchEngines': 'Search engine listing',
+                'pages.form.searchEnginesDesc': 'Add a title and description to see how this page might appear in a search engine listing',
+                'pages.form.save': 'Save',
+                'pages.form.cancel': 'Cancel'
+            }
+        };
+
+        // Fusionar con el objeto global ANTES del DOMContentLoaded
+        if (typeof translations !== 'undefined') {
+            if (!translations.es) translations.es = {};
+            if (!translations.en) translations.en = {};
+            
+            Object.assign(translations.es, pagesTranslations.es);
+            Object.assign(translations.en, pagesTranslations.en);
+        }
+
+        // Aplicar traducciones después del DOM ready
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof translatePage === 'function') {
+                const currentLang = localStorage.getItem('preferredLanguage') || 'es';
+                translatePage(currentLang);
+            }
+
+            // Inicializar el editor
+            initializeEditor();
+            
+            // Debug: Log form data before submit
+            document.querySelector('form').addEventListener('submit', function(e) {
+                console.log('=== Form Submission Debug ===');
+                console.log('Title:', document.getElementById('Title').value);
+                console.log('Content:', document.querySelector('textarea[name="Content"]').value);
+                console.log('IsVisible:', document.querySelector('input[name="IsVisible"]:checked')?.value);
+                console.log('Status:', document.querySelector('input[name="Status"]').value);
+                console.log('TemplateName:', document.querySelector('select[name="TemplateName"]').value);
+                
+                // Update content before submit
+                const contentEditor = document.getElementById('contentEditor');
+                const contentTextarea = document.querySelector('textarea[name="Content"]');
+                contentTextarea.value = contentEditor.innerHTML || "";
+                console.log('Final Content value:', contentTextarea.value);
+            });
+        });
+
+        // Función para expandir/contraer secciones
+        function toggleSection(header) {
+            const section = header.closest('.expandable-section');
+            section.classList.toggle('expanded');
+        }
+
+        // Inicializar el editor de contenido
+        function initializeEditor() {
+            const contentEditor = document.getElementById('contentEditor');
+            const contentTextarea = document.querySelector('textarea[name="Content"]');
+            
+            // Inicializar el textarea con el contenido del editor (vacío por defecto)
+            contentTextarea.value = contentEditor.innerHTML || "";
+            
+            // Botones de la toolbar
+            document.querySelectorAll('.editor-btn[data-command]').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const command = this.dataset.command;
+                    
+                    if (command === 'createLink') {
+                        const url = prompt('Ingrese la URL del enlace:');
+                        if (url) {
+                            document.execCommand(command, false, url);
+                        }
+                    } else if (command === 'insertImage') {
+                        const url = prompt('Ingrese la URL de la imagen:');
+                        if (url) {
+                            document.execCommand('insertHTML', false, `<img src="${url}" style="max-width: 100%;">`);
+                        }
+                    } else {
+                        document.execCommand(command, false, null);
+                    }
+                    
+                    contentEditor.focus();
+                    updateContent();
+                    updateActiveStates();
+                });
+            });
+
+            // Selector de formato
+            document.getElementById('formatBlock').addEventListener('change', function() {
+                document.execCommand('formatBlock', false, this.value);
+                contentEditor.focus();
+                updateContent();
+            });
+
+            // Actualizar estados activos
+            function updateActiveStates() {
+                document.querySelectorAll('.editor-btn[data-command]').forEach(btn => {
+                    const command = btn.dataset.command;
+                    const isActive = document.queryCommandState(command);
+                    if (isActive) {
+                        btn.classList.add('active');
+                    } else {
+                        btn.classList.remove('active');
+                    }
+                });
+            }
+
+            // Actualizar en cambios de selección
+            document.addEventListener('selectionchange', function() {
+                if (document.activeElement === contentEditor) {
+                    updateActiveStates();
+                }
+            });
+
+            // Atajos de teclado
+            contentEditor.addEventListener('keydown', function(e) {
+                if (e.ctrlKey || e.metaKey) {
+                    switch(e.key.toLowerCase()) {
+                        case 'b':
+                            e.preventDefault();
+                            document.execCommand('bold', false, null);
+                            updateActiveStates();
+                            break;
+                        case 'i':
+                            e.preventDefault();
+                            document.execCommand('italic', false, null);
+                            updateActiveStates();
+                            break;
+                        case 'u':
+                            e.preventDefault();
+                            document.execCommand('underline', false, null);
+                            updateActiveStates();
+                            break;
+                    }
+                }
+            });
+
+            // Sincronización con textarea
+            function updateContent() {
+                contentTextarea.value = contentEditor.innerHTML;
+            }
+
+            contentEditor.addEventListener('input', updateContent);
+            contentEditor.addEventListener('blur', updateContent);
+        }
+    </script>
+}

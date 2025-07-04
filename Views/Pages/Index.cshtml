@@ -1,0 +1,509 @@
+@model IEnumerable<Hotel.Models.Page>
+
+@{
+    ViewData["Title"] = "Páginas";
+    Layout = "~/Views/Shared/_MaterializeExactLayout.cshtml";
+}
+
+<style>
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+        padding: 20px 0;
+    }
+
+    .page-title {
+        font-size: 2rem;
+        margin: 0;
+        color: #333;
+    }
+
+    .btn-create {
+        background-color: var(--primary);
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 4px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: opacity 0.2s;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .btn-create:hover {
+        background-color: var(--primary);
+        opacity: 0.9;
+        color: white;
+    }
+
+    .filters-section {
+        background: white;
+        border-radius: 8px;
+        padding: 16px;
+        margin-bottom: 20px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    .filters-header {
+        display: flex;
+        gap: 16px;
+        align-items: center;
+        margin-bottom: 16px;
+    }
+
+    .filter-tab {
+        padding: 8px 16px;
+        background: none;
+        border: none;
+        border-bottom: 2px solid transparent;
+        cursor: pointer;
+        font-weight: 500;
+        color: #666;
+        transition: all 0.2s;
+    }
+
+    .filter-tab.active {
+        color: #333;
+        border-bottom-color: var(--primary);
+    }
+
+    .search-bar {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        max-width: 500px;
+    }
+
+    .search-input {
+        flex: 1;
+        padding: 10px 16px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 14px;
+    }
+
+    .search-input:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(233, 30, 99, 0.1);
+    }
+
+    .table-container {
+        background: white;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    .pages-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .pages-table th {
+        background: #f8f9fa;
+        padding: 12px 16px;
+        text-align: left;
+        font-weight: 600;
+        color: #495057;
+        border-bottom: 1px solid #dee2e6;
+        font-size: 14px;
+    }
+
+    .pages-table td {
+        padding: 16px;
+        border-bottom: 1px solid #eee;
+    }
+
+    .pages-table tr:hover {
+        background: #f8f9fa;
+    }
+
+    .page-title-link {
+        color: #2c3e50;
+        text-decoration: none;
+        font-weight: 500;
+    }
+
+    .page-title-link:hover {
+        color: var(--primary);
+    }
+
+    .visibility-badge {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 500;
+    }
+
+    .visibility-badge.visible {
+        background: #d4edda;
+        color: #155724;
+    }
+
+    .visibility-badge.hidden {
+        background: #e9ecef;
+        color: #6c757d;
+    }
+
+    .content-preview {
+        color: #6c757d;
+        font-size: 14px;
+        max-width: 300px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .date-info {
+        color: #6c757d;
+        font-size: 14px;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 8px;
+    }
+
+    .btn-action {
+        padding: 6px 12px;
+        border: 1px solid #ddd;
+        background: white;
+        border-radius: 4px;
+        color: #495057;
+        text-decoration: none;
+        font-size: 14px;
+        transition: all 0.2s;
+    }
+
+    .btn-action:hover {
+        border-color: #adb5bd;
+        background: #f8f9fa;
+    }
+
+    .btn-action.delete {
+        color: #dc3545;
+    }
+
+    .btn-action.delete:hover {
+        background: #dc3545;
+        color: white;
+        border-color: #dc3545;
+    }
+
+    .info-link {
+        display: inline-block;
+        margin-top: 20px;
+        color: var(--primary);
+        text-decoration: none;
+        font-size: 14px;
+    }
+
+    .info-link:hover {
+        text-decoration: underline;
+    }
+
+    /* Dark mode */
+    body.dark-mode .page-title {
+        color: #fff;
+    }
+
+    body.dark-mode .filters-section,
+    body.dark-mode .table-container {
+        background: #2c3e50;
+    }
+
+    body.dark-mode .filter-tab {
+        color: #bbb;
+    }
+
+    body.dark-mode .filter-tab.active {
+        color: #fff;
+    }
+
+    body.dark-mode .search-input {
+        background: #34495e;
+        border-color: #34495e;
+        color: #fff;
+    }
+
+    body.dark-mode .pages-table th {
+        background: #34495e;
+        color: #fff;
+        border-color: #4a5f7a;
+    }
+
+    body.dark-mode .pages-table td {
+        border-color: #4a5f7a;
+    }
+
+    body.dark-mode .pages-table tr:hover {
+        background: #34495e;
+    }
+
+    body.dark-mode .page-title-link {
+        color: #fff;
+    }
+
+    body.dark-mode .btn-action {
+        background: #34495e;
+        border-color: #4a5f7a;
+        color: #fff;
+    }
+
+    body.dark-mode .btn-action:hover {
+        background: #4a5f7a;
+    }
+
+    /* Mensajes de alerta */
+    .alert {
+        padding: 12px 20px;
+        border-radius: 4px;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        position: relative;
+    }
+
+    .alert-success {
+        background-color: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+    }
+
+    .alert-danger {
+        background-color: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+    }
+
+    .alert .btn-close {
+        position: absolute;
+        right: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        font-size: 20px;
+        cursor: pointer;
+        color: inherit;
+        opacity: 0.5;
+    }
+
+    .alert .btn-close:hover {
+        opacity: 0.8;
+    }
+
+    /* Dark mode alerts */
+    body.dark-mode .alert-success {
+        background-color: #1b3a1f;
+        color: #6ec77d;
+        border-color: #2d5434;
+    }
+
+    body.dark-mode .alert-danger {
+        background-color: #3a1b1f;
+        color: #e57373;
+        border-color: #542d34;
+    }
+
+    /* Responsive */
+    @@media (max-width: 768px) {
+        .page-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 16px;
+        }
+
+        .table-container {
+            overflow-x: auto;
+        }
+
+        .pages-table {
+            min-width: 600px;
+        }
+    }
+</style>
+
+<div class="page-header">
+    <h1 class="page-title" data-i18n="pages.title">Páginas</h1>
+    <a href="@Url.Action("Create")" class="btn-create">
+        <i class="fas fa-plus"></i>
+        <span data-i18n="pages.create">Crear página</span>
+    </a>
+</div>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success" role="alert">
+        <i class="fas fa-check-circle"></i>
+        @TempData["SuccessMessage"]
+        <button type="button" class="btn-close" onclick="this.parentElement.style.display='none'">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger" role="alert">
+        <i class="fas fa-exclamation-circle"></i>
+        @TempData["ErrorMessage"]
+        <button type="button" class="btn-close" onclick="this.parentElement.style.display='none'">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+}
+
+<div class="filters-section">
+    <div class="filters-header">
+        <button class="filter-tab active" data-i18n="pages.filter.all">Todo</button>
+        <button class="filter-tab">
+            <i class="fas fa-plus"></i>
+        </button>
+    </div>
+    
+    <div class="search-bar">
+        <i class="fas fa-search" style="color: #6c757d;"></i>
+        <form method="get" style="flex: 1;">
+            <input type="text" 
+                   name="searchTerm" 
+                   class="search-input" 
+                   placeholder="Buscar páginas..." 
+                   data-i18n-placeholder="pages.search"
+                   value="@ViewData["SearchTerm"]" />
+        </form>
+        <button class="btn-action">
+            <i class="fas fa-filter"></i>
+        </button>
+        <button class="btn-action">
+            <i class="fas fa-sort"></i>
+        </button>
+    </div>
+</div>
+
+<div class="table-container">
+    <table class="pages-table">
+        <thead>
+            <tr>
+                <th style="width: 40px;">
+                    <input type="checkbox" />
+                </th>
+                <th data-i18n="pages.table.title">Título</th>
+                <th data-i18n="pages.table.visibility">Visibilidad</th>
+                <th data-i18n="pages.table.content">Contenido</th>
+                <th data-i18n="pages.table.updated">Actualización</th>
+                <th style="width: 120px;"></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var page in Model)
+            {
+                <tr>
+                    <td>
+                        <input type="checkbox" />
+                    </td>
+                    <td>
+                        <a href="@Url.Action("Edit", new { id = page.Id })" class="page-title-link">
+                            @(page.Title)
+                        </a>
+                    </td>
+                    <td>
+                        @if (page.IsVisible)
+                        {
+                            <span class="visibility-badge visible" data-i18n="pages.form.visible">Visible</span>
+                        }
+                        else
+                        {
+                            <span class="visibility-badge hidden" data-i18n="pages.form.hidden">Oculto</span>
+                        }
+                    </td>
+                    <td>
+                        <div class="content-preview">
+                            @Html.Raw(System.Text.RegularExpressions.Regex.Replace(page.Content ?? "", "<.*?>", ""))
+                        </div>
+                    </td>
+                    <td>
+                        <div class="date-info">
+                            @(page.UpdatedAt.ToString("dd MMM yyyy 'a las' h:mm tt"))
+                        </div>
+                    </td>
+                    <td>
+                        <div class="action-buttons">
+                            <a href="@Url.Action("Edit", new { id = page.Id })" class="btn-action" data-i18n="pages.actions.edit">
+                                Editar
+                            </a>
+                            <a href="@Url.Action("Delete", new { id = page.Id })" class="btn-action delete" data-i18n="pages.actions.delete">
+                                Eliminar
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<a href="#" class="info-link" data-i18n="pages.info.link">Más información sobre páginas</a>
+
+@section Scripts {
+    <script>
+        // Traducciones locales
+        const pagesTranslations = {
+            es: {
+                'pages.title': 'Páginas',
+                'pages.create': 'Crear página',
+                'pages.search': 'Buscar páginas...',
+                'pages.filter.all': 'Todo',
+                'pages.table.title': 'Título',
+                'pages.table.visibility': 'Visibilidad',
+                'pages.table.content': 'Contenido',
+                'pages.table.updated': 'Actualización',
+                'pages.actions.edit': 'Editar',
+                'pages.actions.delete': 'Eliminar',
+                'pages.form.visible': 'Visible',
+                'pages.form.hidden': 'Oculto',
+                'pages.info.link': 'Más información sobre páginas'
+            },
+            en: {
+                'pages.title': 'Pages',
+                'pages.create': 'Create page',
+                'pages.search': 'Search pages...',
+                'pages.filter.all': 'All',
+                'pages.table.title': 'Title',
+                'pages.table.visibility': 'Visibility',
+                'pages.table.content': 'Content',
+                'pages.table.updated': 'Updated',
+                'pages.actions.edit': 'Edit',
+                'pages.actions.delete': 'Delete',
+                'pages.form.visible': 'Visible',
+                'pages.form.hidden': 'Hidden',
+                'pages.info.link': 'Learn more about pages'
+            }
+        };
+
+        // Fusionar con el objeto global ANTES del DOMContentLoaded
+        if (typeof translations !== 'undefined') {
+            if (!translations.es) translations.es = {};
+            if (!translations.en) translations.en = {};
+            
+            Object.assign(translations.es, pagesTranslations.es);
+            Object.assign(translations.en, pagesTranslations.en);
+        }
+
+        // Aplicar traducciones después del DOM ready
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof translatePage === 'function') {
+                const currentLang = localStorage.getItem('preferredLanguage') || 'es';
+                translatePage(currentLang);
+            }
+        });
+    </script>
+}

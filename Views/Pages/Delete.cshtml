@@ -1,0 +1,174 @@
+@model Hotel.Models.Page
+
+@{
+    ViewData["Title"] = "Eliminar página";
+    Layout = "~/Views/Shared/_MaterializeExactLayout.cshtml";
+}
+
+<style>
+    .delete-container {
+        max-width: 600px;
+        margin: 50px auto;
+    }
+
+    .delete-card {
+        background: white;
+        border-radius: 8px;
+        padding: 40px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        text-align: center;
+    }
+
+    .delete-icon {
+        font-size: 48px;
+        color: #dc3545;
+        margin-bottom: 20px;
+    }
+
+    .delete-title {
+        font-size: 1.5rem;
+        margin-bottom: 10px;
+        color: #333;
+    }
+
+    .delete-message {
+        color: #6c757d;
+        margin-bottom: 30px;
+        line-height: 1.6;
+    }
+
+    .page-info {
+        background: #f8f9fa;
+        border-radius: 4px;
+        padding: 20px;
+        margin-bottom: 30px;
+        text-align: left;
+    }
+
+    .page-info h3 {
+        margin: 0 0 10px 0;
+        color: #495057;
+        font-size: 1.1rem;
+    }
+
+    .page-info p {
+        margin: 5px 0;
+        color: #6c757d;
+    }
+
+    .delete-actions {
+        display: flex;
+        gap: 12px;
+        justify-content: center;
+    }
+
+    .btn {
+        padding: 10px 24px;
+        border: none;
+        border-radius: 4px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+    .btn-danger {
+        background-color: #dc3545;
+        color: white;
+    }
+
+    .btn-danger:hover {
+        background-color: #c82333;
+    }
+
+    .btn-secondary {
+        background: #e9ecef;
+        color: #495057;
+    }
+
+    .btn-secondary:hover {
+        background: #dee2e6;
+    }
+
+    /* Dark mode */
+    body.dark-mode .delete-card {
+        background: #2c3e50;
+    }
+
+    body.dark-mode .delete-title {
+        color: #fff;
+    }
+
+    body.dark-mode .page-info {
+        background: #34495e;
+    }
+
+    body.dark-mode .page-info h3 {
+        color: #fff;
+    }
+</style>
+
+<div class="delete-container">
+    <div class="delete-card">
+        <i class="fas fa-exclamation-triangle delete-icon"></i>
+        <h2 class="delete-title" data-i18n="pages.delete.title">¿Eliminar página?</h2>
+        <p class="delete-message" data-i18n="pages.delete.message">
+            Esta acción no se puede deshacer. La página será eliminada permanentemente.
+        </p>
+
+        <div class="page-info">
+            <h3>@Model.Title</h3>
+            <p><strong data-i18n="pages.form.handle">URL:</strong> @Model.Handle</p>
+            <p><strong data-i18n="pages.table.updated">Última actualización:</strong> @Model.UpdatedAt.ToString("dd/MM/yyyy HH:mm")</p>
+        </div>
+
+        <form asp-action="Delete" method="post">
+            <div class="delete-actions">
+                <a href="@Url.Action("Index")" class="btn btn-secondary" data-i18n="pages.form.cancel">Cancelar</a>
+                <button type="submit" class="btn btn-danger" data-i18n="pages.actions.delete">Eliminar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Traducciones locales
+        const pagesTranslations = {
+            es: {
+                'pages.delete.title': '¿Eliminar página?',
+                'pages.delete.message': 'Esta acción no se puede deshacer. La página será eliminada permanentemente.',
+                'pages.form.handle': 'URL',
+                'pages.table.updated': 'Última actualización',
+                'pages.form.cancel': 'Cancelar',
+                'pages.actions.delete': 'Eliminar'
+            },
+            en: {
+                'pages.delete.title': 'Delete page?',
+                'pages.delete.message': 'This action cannot be undone. The page will be permanently deleted.',
+                'pages.form.handle': 'URL',
+                'pages.table.updated': 'Last updated',
+                'pages.form.cancel': 'Cancel',
+                'pages.actions.delete': 'Delete'
+            }
+        };
+
+        // Fusionar con el objeto global ANTES del DOMContentLoaded
+        if (typeof translations !== 'undefined') {
+            if (!translations.es) translations.es = {};
+            if (!translations.en) translations.en = {};
+            
+            Object.assign(translations.es, pagesTranslations.es);
+            Object.assign(translations.en, pagesTranslations.en);
+        }
+
+        // Aplicar traducciones después del DOM ready
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof translatePage === 'function') {
+                const currentLang = localStorage.getItem('preferredLanguage') || 'es';
+                translatePage(currentLang);
+            }
+        });
+    </script>
+}
