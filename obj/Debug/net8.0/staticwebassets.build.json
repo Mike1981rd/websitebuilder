@@ -1,6 +1,6 @@
 {
   "Version": 1,
-  "Hash": "UQVNuyHABOJClX2pp91YKcho8Xl+WofjedmIUw41hhk=",
+  "Hash": "3SmN/M45dI4b2gPJURtn0/8k9V0/3MBZ7cPESLjBNT4=",
   "Source": "Hotel",
   "BasePath": "_content/Hotel",
   "Mode": "Default",
@@ -619,8 +619,8 @@
       "RelatedAsset": "",
       "AssetTraitName": "",
       "AssetTraitValue": "",
-      "Fingerprint": "r7t0ep6syx",
-      "Integrity": "GToveX/dwuvyXfNpfYOTn2SGymlrrJ9JYWJUW2axBTU=",
+      "Fingerprint": "ufyqunn29m",
+      "Integrity": "2rqQ1fFKRgR36CV++U3lKFAhE7xpm9hsnMIKDZkcrRs=",
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
       "OriginalItemSpec": "wwwroot\\js\\website-render-functions.js"
@@ -5160,7 +5160,7 @@
         },
         {
           "Name": "Content-Length",
-          "Value": "110642"
+          "Value": "111846"
         },
         {
           "Name": "Content-Type",
@@ -5168,11 +5168,11 @@
         },
         {
           "Name": "ETag",
-          "Value": "\"GToveX/dwuvyXfNpfYOTn2SGymlrrJ9JYWJUW2axBTU=\""
+          "Value": "\"2rqQ1fFKRgR36CV++U3lKFAhE7xpm9hsnMIKDZkcrRs=\""
         },
         {
           "Name": "Last-Modified",
-          "Value": "Wed, 02 Jul 2025 16:18:22 GMT"
+          "Value": "Thu, 03 Jul 2025 17:23:07 GMT"
         },
         {
           "Name": "Cache-Control",
@@ -5182,12 +5182,12 @@
       "EndpointProperties": [
         {
           "Name": "integrity",
-          "Value": "sha256-GToveX/dwuvyXfNpfYOTn2SGymlrrJ9JYWJUW2axBTU="
+          "Value": "sha256-2rqQ1fFKRgR36CV++U3lKFAhE7xpm9hsnMIKDZkcrRs="
         }
       ]
     },
     {
-      "Route": "js/website-render-functions.r7t0ep6syx.js",
+      "Route": "js/website-render-functions.ufyqunn29m.js",
       "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\js\\website-render-functions.js",
       "Selectors": [],
       "ResponseHeaders": [
@@ -5197,7 +5197,7 @@
         },
         {
           "Name": "Content-Length",
-          "Value": "110642"
+          "Value": "111846"
         },
         {
           "Name": "Content-Type",
@@ -5205,11 +5205,11 @@
         },
         {
           "Name": "ETag",
-          "Value": "\"GToveX/dwuvyXfNpfYOTn2SGymlrrJ9JYWJUW2axBTU=\""
+          "Value": "\"2rqQ1fFKRgR36CV++U3lKFAhE7xpm9hsnMIKDZkcrRs=\""
         },
         {
           "Name": "Last-Modified",
-          "Value": "Wed, 02 Jul 2025 16:18:22 GMT"
+          "Value": "Thu, 03 Jul 2025 17:23:07 GMT"
         },
         {
           "Name": "Cache-Control",
@@ -5219,7 +5219,7 @@
       "EndpointProperties": [
         {
           "Name": "fingerprint",
-          "Value": "r7t0ep6syx"
+          "Value": "ufyqunn29m"
         },
         {
           "Name": "label",
@@ -5227,7 +5227,7 @@
         },
         {
           "Name": "integrity",
-          "Value": "sha256-GToveX/dwuvyXfNpfYOTn2SGymlrrJ9JYWJUW2axBTU="
+          "Value": "sha256-2rqQ1fFKRgR36CV++U3lKFAhE7xpm9hsnMIKDZkcrRs="
         }
       ]
     },

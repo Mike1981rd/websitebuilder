@@ -22,6 +22,8 @@ namespace Hotel.Data
         public DbSet<RolePermission> RolePermissions { get; set; }
         public DbSet<User> Users { get; set; }
         public DbSet<WebSite> WebSites { get; set; }
+        public DbSet<Collection> Collections { get; set; }
+        public DbSet<CollectionProduct> CollectionProducts { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -122,6 +124,32 @@ namespace Hotel.Data
                 .Property(w => w.PagesJson)
                 .HasColumnType("jsonb");
 
+            // Configuración de Collection
+            modelBuilder.Entity<Collection>()
+                .HasIndex(c => c.Handle)
+                .IsUnique();
+
+            modelBuilder.Entity<Collection>()
+                .Property(c => c.SalesChannels)
+                .HasColumnType("jsonb");
+
+            // Configuración de CollectionProduct (relación muchos a muchos)
+            modelBuilder.Entity<CollectionProduct>()
+                .HasKey(cp => new { cp.CollectionId, cp.ProductId });
+
+            modelBuilder.Entity<CollectionProduct>()
+                .HasOne(cp => cp.Collection)
+                .WithMany(c => c.CollectionProducts)
+                .HasForeignKey(cp => cp.CollectionId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // La relación con Product se agregará cuando creemos el modelo Product
+            // modelBuilder.Entity<CollectionProduct>()
+            //     .HasOne(cp => cp.Product)
+            //     .WithMany(p => p.CollectionProducts)
+            //     .HasForeignKey(cp => cp.ProductId)
+            //     .OnDelete(DeleteBehavior.Cascade);
+
             modelBuilder.Entity<WebSite>()
                 .Property(w => w.NavigationJson)
                 .HasColumnType("jsonb");
@@ -166,6 +194,16 @@ namespace Hotel.Data
             permissions.Add(new Permission { Id = permissionId++, Module = "SitioWeb", Action = "Read", Description = "Ver configuración del sitio web", DisplayOrder = 5 });
             permissions.Add(new Permission { Id = permissionId++, Module = "SitioWeb", Action = "Write", Description = "Editar configuración del sitio web", DisplayOrder = 5 });
             permissions.Add(new Permission { Id = permissionId++, Module = "SitioWeb", Action = "Create", Description = "Crear contenido del sitio web", DisplayOrder = 5 });
+            
+            // Colecciones
+            permissions.Add(new Permission { Id = permissionId++, Module = "Colecciones", Action = "Read", Description = "Ver colecciones", DisplayOrder = 6 });
+            permissions.Add(new Permission { Id = permissionId++, Module = "Colecciones", Action = "Write", Description = "Editar colecciones", DisplayOrder = 6 });
+            permissions.Add(new Permission { Id = permissionId++, Module = "Colecciones", Action = "Create", Description = "Crear colecciones", DisplayOrder = 6 });
+            
+            // Productos
+            permissions.Add(new Permission { Id = permissionId++, Module = "Productos", Action = "Read", Description = "Ver productos", DisplayOrder = 7 });
+            permissions.Add(new Permission { Id = permissionId++, Module = "Productos", Action = "Write", Description = "Editar productos", DisplayOrder = 7 });
+            permissions.Add(new Permission { Id = permissionId++, Module = "Productos", Action = "Create", Description = "Crear productos", DisplayOrder = 7 });
 
             modelBuilder.Entity<Permission>().HasData(permissions);
 

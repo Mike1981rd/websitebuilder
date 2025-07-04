@@ -490,3 +490,98 @@ if (currentSidebarView === 'tuVista') {
 6. ✓ Manejar visibilidad y orden si tiene elementos múltiples
 7. ✓ No recargar vista innecesariamente después de guardar
 8. ✓ Attachar event listeners con namespaces para evitar duplicados
+
+## Sistema de Permisos - Implementación
+
+### Estructura del Sistema
+El proyecto usa un sistema de permisos basado en tres entidades:
+- **Permission**: Define permisos individuales con Module, Action y Description
+- **Role**: Define roles que pueden ser asignados a usuarios
+- **RolePermission**: Relación muchos-a-muchos entre roles y permisos
+
+### Convención de Permisos
+Los permisos siguen este patrón:
+- **Module**: Nombre del módulo (ej: "Usuarios", "Colecciones", "Productos")
+- **Action**: Tipo de acción - "Read", "Write", o "Create"
+- **Description**: Descripción legible en español
+- **DisplayOrder**: Para agrupar permisos relacionados en la UI
+
+### Cómo Agregar Permisos para Nuevos Módulos
+
+#### 1. Actualizar HotelDbContext
+Agregar los permisos en el seed data del `OnModelCreating` después de los módulos existentes:
+
+```csharp
+// En Data/HotelDbContext.cs, después del módulo SitioWeb
+// Colecciones
+permissions.Add(new Permission { Id = permissionId++, Module = "Colecciones", Action = "Read", Description = "Ver colecciones", DisplayOrder = 6 });
+permissions.Add(new Permission { Id = permissionId++, Module = "Colecciones", Action = "Write", Description = "Editar colecciones", DisplayOrder = 6 });
+permissions.Add(new Permission { Id = permissionId++, Module = "Colecciones", Action = "Create", Description = "Crear colecciones", DisplayOrder = 6 });
+```
+
+#### 2. Crear Migración Manual
+Si la base de datos ya existe, crear una migración manual para insertar los permisos:
+
+```csharp
+public partial class InsertNewModulePermissions : Migration
+{
+    protected override void Up(MigrationBuilder migrationBuilder)
+    {
+        migrationBuilder.Sql(@"
+            INSERT INTO ""Permissions"" (""Module"", ""Action"", ""Description"", ""DisplayOrder"")
+            VALUES 
+            ('NombreModulo', 'Read', 'Ver nombremodulo', 6),
+            ('NombreModulo', 'Write', 'Editar nombremodulo', 6),
+            ('NombreModulo', 'Create', 'Crear nombremodulo', 6);
+        ");
+    }
+
+    protected override void Down(MigrationBuilder migrationBuilder)
+    {
+        migrationBuilder.Sql(@"
+            DELETE FROM ""Permissions"" WHERE ""Module"" = 'NombreModulo';
+        ");
+    }
+}
+```
+
+#### 3. En los Controllers
+Actualmente el sistema solo usa `[Authorize]` para autenticación básica:
+
+```csharp
+[Authorize]
+public class CollectionsController : Controller
+{
+    // Implementación del controller
+}
+```
+
+**Nota**: La verificación granular de permisos NO está implementada aún. Todos los usuarios autenticados tienen acceso a los módulos.
+
+#### 4. Asignar Permisos a Roles
+Una vez creados los permisos:
+1. Ir a `/Roles` en la aplicación
+2. Editar el rol deseado
+3. Marcar los checkboxes de los nuevos permisos
+4. Guardar
+
+### Estado Actual del Sistema
+- ✅ Estructura de permisos bien definida
+- ✅ UI para gestión de roles y permisos
+- ✅ Permisos se almacenan correctamente en la BD
+- ❌ NO hay verificación granular de permisos en controllers
+- ❌ NO hay middleware de autorización basado en permisos
+
+### Flujo de Trabajo para Nuevos Módulos
+1. Agregar permisos al seed data en HotelDbContext
+2. Crear migración manual si la BD ya existe
+3. Ejecutar migración: `Add-Migration NombreMigracion` → `Update-Database`
+4. Agregar `[Authorize]` al controller
+5. Asignar permisos a roles desde la UI
+
+### Ejemplo Completo - Módulo Collections
+1. Se agregaron 3 permisos: Read, Write, Create
+2. Se creó migración `InsertCollectionsAndProductsPermissions`
+3. Los permisos aparecen en la tabla Permissions
+4. Se pueden asignar a roles desde `/Roles`
+5. El CollectionsController usará `[Authorize]` para autenticación básica

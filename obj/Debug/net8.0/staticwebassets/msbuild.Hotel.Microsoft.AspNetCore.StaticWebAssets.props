@@ -498,8 +498,8 @@
       <RelatedAsset></RelatedAsset>
       <AssetTraitName></AssetTraitName>
       <AssetTraitValue></AssetTraitValue>
-      <Fingerprint>r7t0ep6syx</Fingerprint>
-      <Integrity>GToveX/dwuvyXfNpfYOTn2SGymlrrJ9JYWJUW2axBTU=</Integrity>
+      <Fingerprint>ufyqunn29m</Fingerprint>
+      <Integrity>2rqQ1fFKRgR36CV++U3lKFAhE7xpm9hsnMIKDZkcrRs=</Integrity>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
       <OriginalItemSpec>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\js\website-render-functions.js'))</OriginalItemSpec>

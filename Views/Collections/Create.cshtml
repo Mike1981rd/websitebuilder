@@ -1,0 +1,987 @@
+@model Hotel.Models.Collection
+@{
+    ViewData["Title"] = "Crear colección";
+    Layout = "_MaterializeExactLayout";
+    var salesChannels = ViewBag.SalesChannels as string[];
+}
+
+<style>
+    .form-container {
+        display: grid;
+        grid-template-columns: 1fr 350px;
+        gap: 24px;
+        align-items: start;
+    }
+
+    @@media (max-width: 968px) {
+        .form-container {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .main-form {
+        background: var(--card-bg);
+        border-radius: 8px;
+        padding: 24px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .sidebar-form {
+        position: sticky;
+        top: 20px;
+    }
+
+    .sidebar-section {
+        background: var(--card-bg);
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 16px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .section-title {
+        font-weight: 600;
+        margin-bottom: 16px;
+        font-size: 0.95rem;
+        color: #333;
+    }
+
+    body.dark-mode .section-title {
+        color: #e0e0e0;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-control, .form-select {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 14px;
+        transition: all 0.2s;
+        background-color: #fff;
+        color: #333;
+    }
+
+    body.dark-mode .form-control,
+    body.dark-mode .form-select {
+        background-color: #2b2c40;
+        border-color: #3a3b4a;
+        color: #e0e0e0;
+    }
+
+    .form-control:focus,
+    .form-select:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.1);
+    }
+
+    label {
+        display: block;
+        margin-bottom: 6px;
+        font-weight: 500;
+        font-size: 0.9rem;
+        color: #333;
+    }
+
+    body.dark-mode label {
+        color: #b0b3c1;
+    }
+
+    .required-asterisk {
+        color: #f44336;
+    }
+
+    .help-text {
+        font-size: 0.85rem;
+        color: #666;
+        margin-top: 4px;
+    }
+
+    body.dark-mode .help-text {
+        color: #999;
+    }
+
+    /* Rich text editor container */
+    .editor-container {
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        overflow: hidden;
+        background-color: #fff;
+    }
+
+    body.dark-mode .editor-container {
+        border-color: #3a3b4a;
+        background-color: #2b2c40;
+    }
+
+    .editor-toolbar {
+        background-color: #f5f5f5;
+        border-bottom: 1px solid #ddd;
+        padding: 8px;
+        display: flex;
+        gap: 4px;
+        flex-wrap: wrap;
+    }
+
+    body.dark-mode .editor-toolbar {
+        background-color: #1e1f2e;
+        border-bottom-color: #3a3b4a;
+    }
+
+    .editor-btn {
+        padding: 6px 10px;
+        background: none;
+        border: 1px solid transparent;
+        border-radius: 3px;
+        cursor: pointer;
+        font-size: 14px;
+        color: #333;
+        transition: all 0.2s;
+    }
+
+    body.dark-mode .editor-btn {
+        color: #b0b3c1;
+    }
+
+    .editor-btn:hover {
+        background-color: #e0e0e0;
+    }
+
+    body.dark-mode .editor-btn:hover {
+        background-color: #3a3b4a;
+    }
+
+    .editor-btn.active {
+        background-color: #d0d0d0;
+        border-color: #bbb;
+    }
+
+    body.dark-mode .editor-btn.active {
+        background-color: #3a3b4a;
+        border-color: #4a4b5a;
+    }
+
+    .editor-content {
+        min-height: 200px;
+        padding: 16px;
+        font-size: 14px;
+        line-height: 1.6;
+    }
+
+    .editor-content:focus {
+        outline: none;
+    }
+
+    /* Image upload area */
+    .image-upload-area {
+        border: 2px dashed #ddd;
+        border-radius: 4px;
+        padding: 40px 20px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.2s;
+        background-color: #fafafa;
+    }
+
+    body.dark-mode .image-upload-area {
+        border-color: #3a3b4a;
+        background-color: #1e1f2e;
+    }
+
+    .image-upload-area:hover {
+        border-color: var(--primary);
+        background-color: #f0f0f0;
+    }
+
+    body.dark-mode .image-upload-area:hover {
+        background-color: #252635;
+    }
+
+    .image-upload-area i {
+        font-size: 48px;
+        color: #999;
+        margin-bottom: 12px;
+    }
+
+    .upload-text {
+        color: #666;
+        font-size: 0.9rem;
+    }
+
+    body.dark-mode .upload-text {
+        color: #999;
+    }
+
+    .upload-hint {
+        color: #999;
+        font-size: 0.8rem;
+        margin-top: 8px;
+    }
+
+    /* Sales channels */
+    .channel-list {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .channel-item {
+        display: flex;
+        align-items: center;
+        padding: 8px;
+        border-radius: 4px;
+        transition: all 0.2s;
+    }
+
+    .channel-item:hover {
+        background-color: #f5f5f5;
+    }
+
+    body.dark-mode .channel-item:hover {
+        background-color: #2b2c40;
+    }
+
+    .channel-checkbox {
+        margin-right: 12px;
+    }
+
+    .channel-label {
+        flex: 1;
+        cursor: pointer;
+        font-size: 0.9rem;
+    }
+
+    /* Toggle switch */
+    .toggle-switch {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .switch {
+        position: relative;
+        display: inline-block;
+        width: 48px;
+        height: 24px;
+    }
+
+    .switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+
+    .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #ccc;
+        transition: .3s;
+        border-radius: 24px;
+    }
+
+    .slider:before {
+        position: absolute;
+        content: "";
+        height: 18px;
+        width: 18px;
+        left: 3px;
+        bottom: 3px;
+        background-color: white;
+        transition: .3s;
+        border-radius: 50%;
+    }
+
+    input:checked + .slider {
+        background-color: var(--primary);
+    }
+
+    input:checked + .slider:before {
+        transform: translateX(24px);
+    }
+
+    /* SEO section */
+    .seo-preview {
+        padding: 16px;
+        background-color: #f5f5f5;
+        border-radius: 4px;
+        margin-top: 12px;
+        font-size: 0.85rem;
+    }
+
+    body.dark-mode .seo-preview {
+        background-color: #1e1f2e;
+    }
+
+    .seo-title {
+        color: #1a0dab;
+        font-size: 1.1rem;
+        margin-bottom: 4px;
+    }
+
+    body.dark-mode .seo-title {
+        color: #4dabf7;
+    }
+
+    .seo-url {
+        color: #006621;
+        font-size: 0.85rem;
+        margin-bottom: 4px;
+    }
+
+    body.dark-mode .seo-url {
+        color: #4caf50;
+    }
+
+    .seo-description {
+        color: #545454;
+        line-height: 1.4;
+    }
+
+    body.dark-mode .seo-description {
+        color: #999;
+    }
+
+    .char-counter {
+        font-size: 0.8rem;
+        color: #666;
+        text-align: right;
+        margin-top: 4px;
+    }
+
+    .char-counter.warning {
+        color: #ff9800;
+    }
+
+    .char-counter.error {
+        color: #f44336;
+    }
+
+    /* Buttons */
+    .form-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 12px;
+        margin-top: 24px;
+        padding-top: 24px;
+        border-top: 1px solid #e0e0e0;
+    }
+
+    body.dark-mode .form-actions {
+        border-top-color: #3a3b4a;
+    }
+
+    .btn {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 4px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .btn-primary {
+        background-color: #000;
+        color: #fff;
+    }
+
+    .btn-primary:hover {
+        background-color: #333;
+        color: #fff;
+    }
+
+    .btn-secondary {
+        background-color: #e0e0e0;
+        color: #333;
+    }
+
+    body.dark-mode .btn-secondary {
+        background-color: #3a3b4a;
+        color: #e0e0e0;
+    }
+
+    .btn-secondary:hover {
+        background-color: #d0d0d0;
+    }
+
+    body.dark-mode .btn-secondary:hover {
+        background-color: #4a4b5a;
+    }
+
+    .collapsible-section {
+        border: 1px solid #e0e0e0;
+        border-radius: 4px;
+        margin-bottom: 16px;
+        overflow: hidden;
+    }
+
+    body.dark-mode .collapsible-section {
+        border-color: #3a3b4a;
+    }
+
+    .collapsible-header {
+        padding: 16px;
+        background-color: #fafafa;
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        transition: all 0.2s;
+    }
+
+    body.dark-mode .collapsible-header {
+        background-color: #2b2c40;
+    }
+
+    .collapsible-header:hover {
+        background-color: #f0f0f0;
+    }
+
+    body.dark-mode .collapsible-header:hover {
+        background-color: #323345;
+    }
+
+    .collapsible-content {
+        padding: 16px;
+        display: none;
+    }
+
+    .collapsible-section.expanded .collapsible-content {
+        display: block;
+    }
+
+    .collapsible-section.expanded .expand-icon {
+        transform: rotate(180deg);
+    }
+
+    .expand-icon {
+        transition: transform 0.2s;
+    }
+</style>
+
+<div class="page-header">
+    <h4 data-i18n="create_collection">Crear colección</h4>
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/Account/ExactIndex" data-i18n="home">Inicio</a></li>
+            <li class="breadcrumb-item"><a href="@Url.Action("Index", "Collections")" data-i18n="collections">Colecciones</a></li>
+            <li class="breadcrumb-item active" data-i18n="create">Crear</li>
+        </ol>
+    </nav>
+</div>
+
+<form asp-action="Create" method="post" id="createForm">
+    <div class="form-container">
+        <!-- Main form section -->
+        <div class="main-form">
+            <div class="form-group">
+                <label asp-for="Title">
+                    <span data-i18n="title">Título</span>
+                    <span class="required-asterisk">*</span>
+                </label>
+                <input asp-for="Title" class="form-control" placeholder="ej., Colección de verano, Menos de 100 $, Nuestros favoritos" data-i18n-placeholder="title_placeholder" />
+                <span asp-validation-for="Title" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="Description" data-i18n="description">Descripción</label>
+                <div class="editor-container">
+                    <div class="editor-toolbar">
+                        <select class="editor-btn" id="formatBlock">
+                            <option value="p" data-i18n="paragraph">Párrafo</option>
+                            <option value="h1">H1</option>
+                            <option value="h2">H2</option>
+                            <option value="h3">H3</option>
+                        </select>
+                        <button type="button" class="editor-btn" data-command="bold" title="Negrita">
+                            <i class="material-icons">format_bold</i>
+                        </button>
+                        <button type="button" class="editor-btn" data-command="italic" title="Cursiva">
+                            <i class="material-icons">format_italic</i>
+                        </button>
+                        <button type="button" class="editor-btn" data-command="underline" title="Subrayado">
+                            <i class="material-icons">format_underlined</i>
+                        </button>
+                        <button type="button" class="editor-btn" data-command="strikethrough" title="Tachado">
+                            <i class="material-icons">format_strikethrough</i>
+                        </button>
+                        <span style="width: 1px; height: 20px; background: #ddd; margin: 0 4px;"></span>
+                        <button type="button" class="editor-btn" data-command="justifyLeft" title="Alinear izquierda">
+                            <i class="material-icons">format_align_left</i>
+                        </button>
+                        <button type="button" class="editor-btn" data-command="justifyCenter" title="Centrar">
+                            <i class="material-icons">format_align_center</i>
+                        </button>
+                        <button type="button" class="editor-btn" data-command="justifyRight" title="Alinear derecha">
+                            <i class="material-icons">format_align_right</i>
+                        </button>
+                        <span style="width: 1px; height: 20px; background: #ddd; margin: 0 4px;"></span>
+                        <button type="button" class="editor-btn" data-command="insertUnorderedList" title="Lista con viñetas">
+                            <i class="material-icons">format_list_bulleted</i>
+                        </button>
+                        <button type="button" class="editor-btn" data-command="insertOrderedList" title="Lista numerada">
+                            <i class="material-icons">format_list_numbered</i>
+                        </button>
+                        <button type="button" class="editor-btn" data-command="createLink" title="Insertar enlace">
+                            <i class="material-icons">link</i>
+                        </button>
+                    </div>
+                    <div class="editor-content" contenteditable="true" id="descriptionEditor"></div>
+                </div>
+                <textarea asp-for="Description" style="display: none;"></textarea>
+                <span asp-validation-for="Description" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="Handle">
+                    <span data-i18n="handle">Handle</span>
+                    <span class="required-asterisk">*</span>
+                </label>
+                <input asp-for="Handle" class="form-control" placeholder="coleccion-de-verano" />
+                <div class="help-text" data-i18n="handle_help">
+                    El handle es la parte de la URL que identifica la colección. Se genera automáticamente desde el título.
+                </div>
+                <span asp-validation-for="Handle" class="text-danger"></span>
+                <div id="handleValidation" class="text-info" style="display: none; margin-top: 4px;">
+                    <small><i class="material-icons" style="font-size: 16px; vertical-align: middle;">info</i> <span id="handleMessage"></span></small>
+                </div>
+            </div>
+
+            <!-- SEO Section -->
+            <div class="collapsible-section">
+                <div class="collapsible-header">
+                    <span data-i18n="search_engine_listing">Publicación en motores de búsqueda</span>
+                    <i class="material-icons expand-icon">expand_more</i>
+                </div>
+                <div class="collapsible-content">
+                    <div class="form-group">
+                        <label asp-for="SeoTitle" data-i18n="seo_title">Título SEO</label>
+                        <input asp-for="SeoTitle" class="form-control" maxlength="60" />
+                        <div class="char-counter">
+                            <span id="seoTitleCount">0</span>/60
+                        </div>
+                        <span asp-validation-for="SeoTitle" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label asp-for="SeoDescription" data-i18n="seo_description">Descripción SEO</label>
+                        <textarea asp-for="SeoDescription" class="form-control" rows="3" maxlength="160"></textarea>
+                        <div class="char-counter">
+                            <span id="seoDescCount">0</span>/160
+                        </div>
+                        <span asp-validation-for="SeoDescription" class="text-danger"></span>
+                    </div>
+
+                    <div class="seo-preview">
+                        <div class="seo-title" id="seoPreviewTitle">Título de la colección</div>
+                        <div class="seo-url">www.tienda.com/collections/<span id="seoPreviewHandle">handle</span></div>
+                        <div class="seo-description" id="seoPreviewDesc">
+                            La descripción aparecerá aquí cuando agregues contenido...
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <a href="@Url.Action("Index", "Collections")" class="btn btn-secondary" data-i18n="cancel">Cancelar</a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="material-icons">save</i>
+                    <span data-i18n="save">Guardar</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="sidebar-form">
+            <!-- Status section -->
+            <div class="sidebar-section">
+                <h5 class="section-title" data-i18n="status">Estado</h5>
+                <div class="toggle-switch">
+                    <label class="switch">
+                        <input type="checkbox" asp-for="IsActive" checked>
+                        <span class="slider"></span>
+                    </label>
+                    <label for="IsActive" style="margin-bottom: 0; cursor: pointer;" data-i18n="active">Activa</label>
+                </div>
+                <div class="help-text" style="margin-top: 8px;" data-i18n="active_help">
+                    Las colecciones activas son visibles en tu tienda
+                </div>
+            </div>
+
+            <!-- Sales channels section -->
+            <div class="sidebar-section">
+                <h5 class="section-title" data-i18n="sales_channels">Canales de venta</h5>
+                <div class="channel-list">
+                    @if (salesChannels != null)
+                    {
+                        @foreach (var channel in salesChannels)
+                        {
+                            <div class="channel-item">
+                                <input type="checkbox" 
+                                       id="channel_@channel" 
+                                       name="selectedChannels" 
+                                       value="@channel" 
+                                       class="channel-checkbox"
+                                       @(channel == "tienda-online" ? "checked" : "") />
+                                <label for="channel_@channel" class="channel-label">
+                                    @switch(channel)
+                                    {
+                                        case "tienda-online":
+                                            <span data-i18n="channel_online_store">Tienda online</span>
+                                            break;
+                                        case "punto-de-venta":
+                                            <span data-i18n="channel_pos">Punto de venta</span>
+                                            break;
+                                        case "facebook":
+                                            <span>Facebook</span>
+                                            break;
+                                        case "instagram":
+                                            <span>Instagram</span>
+                                            break;
+                                        case "tiktok":
+                                            <span>TikTok</span>
+                                            break;
+                                        case "whatsapp-business":
+                                            <span>WhatsApp Business</span>
+                                            break;
+                                        default:
+                                            <span>@channel</span>
+                                            break;
+                                    }
+                                </label>
+                            </div>
+                        }
+                    }
+                </div>
+                <div class="help-text" style="margin-top: 12px;" data-i18n="channels_help">
+                    La colección estará disponible en los canales seleccionados
+                </div>
+            </div>
+
+            <!-- Image section -->
+            <div class="sidebar-section">
+                <h5 class="section-title" data-i18n="image">Imagen</h5>
+                <div class="image-upload-area" id="imageUploadArea">
+                    <input type="file" id="imageInput" accept="image/*" style="display: none;" />
+                    <input type="hidden" asp-for="ImageUrl" />
+                    <i class="material-icons">add_photo_alternate</i>
+                    <div class="upload-text" data-i18n="add_image">Agregar imagen</div>
+                    <div class="upload-hint" data-i18n="drag_drop_hint">o arrastra una imagen para subirla</div>
+                </div>
+                <div id="imagePreview" style="display: none; margin-top: 12px;">
+                    <img id="previewImg" style="width: 100%; border-radius: 4px;" />
+                    <button type="button" class="btn btn-secondary" style="width: 100%; margin-top: 8px;" onclick="removeImage()">
+                        <i class="material-icons">delete</i>
+                        <span data-i18n="remove_image">Eliminar imagen</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+@section Scripts {
+    <script>
+        // Initialize rich text editor
+        const descriptionEditor = document.getElementById('descriptionEditor');
+        const descriptionTextarea = document.querySelector('textarea[name="Description"]');
+
+        // Editor toolbar buttons
+        document.querySelectorAll('.editor-btn[data-command]').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                const command = this.dataset.command;
+                
+                if (command === 'createLink') {
+                    const url = prompt('Ingrese la URL del enlace:');
+                    if (url) {
+                        document.execCommand(command, false, url);
+                    }
+                } else {
+                    document.execCommand(command, false, null);
+                }
+                
+                descriptionEditor.focus();
+                updateDescription();
+            });
+        });
+
+        // Format block dropdown
+        document.getElementById('formatBlock').addEventListener('change', function(e) {
+            document.execCommand('formatBlock', false, e.target.value);
+            descriptionEditor.focus();
+            updateDescription();
+        });
+
+        // Update textarea when content changes
+        descriptionEditor.addEventListener('input', updateDescription);
+        descriptionEditor.addEventListener('blur', updateDescription);
+
+        function updateDescription() {
+            descriptionTextarea.value = descriptionEditor.innerHTML;
+        }
+
+        // Handle generation
+        let handleTimeout;
+        const titleInput = document.querySelector('input[name="Title"]');
+        const handleInput = document.querySelector('input[name="Handle"]');
+        
+        titleInput.addEventListener('input', function() {
+            if (!handleInput.value || handleInput.dataset.autoGenerated === 'true') {
+                clearTimeout(handleTimeout);
+                handleTimeout = setTimeout(() => {
+                    generateHandle();
+                }, 500);
+            }
+        });
+
+        function generateHandle() {
+            const title = titleInput.value;
+            if (!title) return;
+
+            fetch(`@Url.Action("GenerateHandleFromTitle", "Collections")?title=${encodeURIComponent(title)}`)
+                .then(response => response.json())
+                .then(data => {
+                    handleInput.value = data.handle;
+                    handleInput.dataset.autoGenerated = 'true';
+                    validateHandle();
+                });
+        }
+
+        // Handle validation
+        let validateTimeout;
+        handleInput.addEventListener('input', function() {
+            this.dataset.autoGenerated = 'false';
+            clearTimeout(validateTimeout);
+            validateTimeout = setTimeout(() => {
+                validateHandle();
+            }, 500);
+        });
+
+        function validateHandle() {
+            const handle = handleInput.value;
+            if (!handle) return;
+
+            const validationDiv = document.getElementById('handleValidation');
+            const messageSpan = document.getElementById('handleMessage');
+
+            fetch(`@Url.Action("ValidateHandle", "Collections")?handle=${encodeURIComponent(handle)}`)
+                .then(response => response.json())
+                .then(data => {
+                    validationDiv.style.display = 'block';
+                    messageSpan.textContent = data.message;
+                    
+                    if (data.isValid) {
+                        validationDiv.classList.remove('text-danger');
+                        validationDiv.classList.add('text-success');
+                    } else {
+                        validationDiv.classList.remove('text-success');
+                        validationDiv.classList.add('text-danger');
+                    }
+                    
+                    updateSeoPreview();
+                });
+        }
+
+        // SEO preview
+        const seoTitleInput = document.querySelector('input[name="SeoTitle"]');
+        const seoDescInput = document.querySelector('textarea[name="SeoDescription"]');
+
+        titleInput.addEventListener('input', updateSeoPreview);
+        handleInput.addEventListener('input', updateSeoPreview);
+        seoTitleInput.addEventListener('input', function() {
+            updateCharCount('seoTitleCount', this.value.length, 60);
+            updateSeoPreview();
+        });
+        seoDescInput.addEventListener('input', function() {
+            updateCharCount('seoDescCount', this.value.length, 160);
+            updateSeoPreview();
+        });
+
+        function updateCharCount(counterId, length, max) {
+            const counter = document.getElementById(counterId);
+            counter.textContent = length;
+            
+            const parent = counter.parentElement;
+            parent.classList.remove('warning', 'error');
+            
+            if (length > max) {
+                parent.classList.add('error');
+            } else if (length > max * 0.9) {
+                parent.classList.add('warning');
+            }
+        }
+
+        function updateSeoPreview() {
+            const title = seoTitleInput.value || titleInput.value || 'Título de la colección';
+            const handle = handleInput.value || 'handle';
+            const desc = seoDescInput.value || descriptionEditor.textContent.substring(0, 160) || 'La descripción aparecerá aquí cuando agregues contenido...';
+
+            document.getElementById('seoPreviewTitle').textContent = title;
+            document.getElementById('seoPreviewHandle').textContent = handle;
+            document.getElementById('seoPreviewDesc').textContent = desc;
+        }
+
+        // Collapsible sections
+        document.querySelectorAll('.collapsible-header').forEach(header => {
+            header.addEventListener('click', function() {
+                const section = this.parentElement;
+                section.classList.toggle('expanded');
+            });
+        });
+
+        // Image upload
+        const imageUploadArea = document.getElementById('imageUploadArea');
+        const imageInput = document.getElementById('imageInput');
+        const imageUrlInput = document.querySelector('input[name="ImageUrl"]');
+        const imagePreview = document.getElementById('imagePreview');
+        const previewImg = document.getElementById('previewImg');
+
+        imageUploadArea.addEventListener('click', () => imageInput.click());
+
+        imageInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                handleImageFile(file);
+            }
+        });
+
+        // Drag and drop
+        imageUploadArea.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            this.style.borderColor = 'var(--primary)';
+            this.style.backgroundColor = '#f0f0f0';
+        });
+
+        imageUploadArea.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            this.style.borderColor = '#ddd';
+            this.style.backgroundColor = '#fafafa';
+        });
+
+        imageUploadArea.addEventListener('drop', function(e) {
+            e.preventDefault();
+            this.style.borderColor = '#ddd';
+            this.style.backgroundColor = '#fafafa';
+            
+            const file = e.dataTransfer.files[0];
+            if (file && file.type.startsWith('image/')) {
+                handleImageFile(file);
+            }
+        });
+
+        function handleImageFile(file) {
+            // For now, we'll use a data URL. In production, you'd upload to server
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                previewImg.src = e.target.result;
+                imageUrlInput.value = e.target.result; // In production, this would be the uploaded URL
+                imageUploadArea.style.display = 'none';
+                imagePreview.style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function removeImage() {
+            imageUrlInput.value = '';
+            imageInput.value = '';
+            imageUploadArea.style.display = 'block';
+            imagePreview.style.display = 'none';
+        }
+
+        // Form submission
+        document.getElementById('createForm').addEventListener('submit', function(e) {
+            // Update description textarea before submit
+            updateDescription();
+            
+            // Validate at least one sales channel
+            const checkedChannels = document.querySelectorAll('input[name="selectedChannels"]:checked');
+            if (checkedChannels.length === 0) {
+                e.preventDefault();
+                alert('Selecciona al menos un canal de venta');
+                return false;
+            }
+        });
+
+        // Translations
+        const createCollectionTranslations = {
+            es: {
+                create_collection: "Crear colección",
+                collections: "Colecciones",
+                create: "Crear",
+                title: "Título",
+                title_placeholder: "ej., Colección de verano, Menos de 100 $, Nuestros favoritos",
+                description: "Descripción",
+                paragraph: "Párrafo",
+                handle: "Handle",
+                handle_help: "El handle es la parte de la URL que identifica la colección. Se genera automáticamente desde el título.",
+                search_engine_listing: "Publicación en motores de búsqueda",
+                seo_title: "Título SEO",
+                seo_description: "Descripción SEO",
+                status: "Estado",
+                active: "Activa",
+                active_help: "Las colecciones activas son visibles en tu tienda",
+                sales_channels: "Canales de venta",
+                channel_online_store: "Tienda online",
+                channel_pos: "Punto de venta",
+                channels_help: "La colección estará disponible en los canales seleccionados",
+                image: "Imagen",
+                add_image: "Agregar imagen",
+                drag_drop_hint: "o arrastra una imagen para subirla",
+                remove_image: "Eliminar imagen",
+                save: "Guardar",
+                cancel: "Cancelar"
+            },
+            en: {
+                create_collection: "Create collection",
+                collections: "Collections",
+                create: "Create",
+                title: "Title",
+                title_placeholder: "e.g., Summer collection, Under $100, Our favorites",
+                description: "Description",
+                paragraph: "Paragraph",
+                handle: "Handle",
+                handle_help: "The handle is the part of the URL that identifies the collection. It's automatically generated from the title.",
+                search_engine_listing: "Search engine listing",
+                seo_title: "SEO Title",
+                seo_description: "SEO Description",
+                status: "Status",
+                active: "Active",
+                active_help: "Active collections are visible in your store",
+                sales_channels: "Sales channels",
+                channel_online_store: "Online store",
+                channel_pos: "Point of sale",
+                channels_help: "The collection will be available in selected channels",
+                image: "Image",
+                add_image: "Add image",
+                drag_drop_hint: "or drag an image to upload",
+                remove_image: "Remove image",
+                save: "Save",
+                cancel: "Cancel"
+            }
+        };
+
+        // Add translations to global object
+        if (window.addTranslations) {
+            window.addTranslations(createCollectionTranslations);
+        }
+
+        // Initialize on load
+        document.addEventListener('DOMContentLoaded', function() {
+            updateSeoPreview();
+            updateCharCount('seoTitleCount', seoTitleInput.value.length, 60);
+            updateCharCount('seoDescCount', seoDescInput.value.length, 160);
+        });
+    </script>
+}

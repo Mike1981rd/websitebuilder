@@ -1,0 +1,875 @@
+@{
+    ViewData["Title"] = "Collections";
+    Layout = "_MaterializeExactLayout";
+}
+
+@{
+    var collections = ViewData["Collections"] as dynamic;
+}
+
+<style>
+    /* Page container */
+    .collections-page {
+        padding: 0;
+        background-color: transparent;
+    }
+
+    /* Header section */
+    .page-header {
+        margin-bottom: 24px;
+    }
+
+    .page-header h1 {
+        font-size: 28px;
+        font-weight: 600;
+        color: #1a1a1a;
+        margin: 0 0 8px 0;
+    }
+
+    body.dark-mode .page-header h1 {
+        color: #ffffff;
+    }
+
+    .breadcrumb {
+        background: none;
+        padding: 0;
+        margin: 0;
+        font-size: 14px;
+    }
+
+    .breadcrumb-item + .breadcrumb-item::before {
+        content: "/";
+        padding: 0 8px;
+        color: #6c757d;
+    }
+
+    .breadcrumb-item a {
+        color: #6c757d;
+        text-decoration: none;
+    }
+
+    .breadcrumb-item a:hover {
+        color: #1a1a1a;
+    }
+
+    body.dark-mode .breadcrumb-item a:hover {
+        color: #ffffff;
+    }
+
+    .breadcrumb-item.active {
+        color: #1a1a1a;
+    }
+
+    body.dark-mode .breadcrumb-item.active {
+        color: #ffffff;
+    }
+
+    /* Main card container */
+    .collections-card {
+        background: #ffffff;
+        border-radius: 8px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        border: 1px solid #e5e7eb;
+        overflow: hidden;
+    }
+
+    body.dark-mode .collections-card {
+        background: #2d2d3d;
+        border-color: #3a3b4a;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Top toolbar */
+    .collections-toolbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 16px 20px;
+        border-bottom: 1px solid #e5e7eb;
+        background-color: #fafbfc;
+    }
+
+    body.dark-mode .collections-toolbar {
+        background-color: #262637;
+        border-bottom-color: #3a3b4a;
+    }
+
+    /* Search box */
+    .search-wrapper {
+        position: relative;
+        max-width: 320px;
+        flex: 1;
+    }
+
+    .search-input {
+        width: 100%;
+        padding: 8px 16px 8px 36px;
+        border: 1px solid #e5e7eb;
+        border-radius: 6px;
+        font-size: 14px;
+        background-color: #ffffff;
+        transition: all 0.2s;
+    }
+
+    body.dark-mode .search-input {
+        background-color: #1a1a2e;
+        border-color: #3a3b4a;
+        color: #ffffff;
+    }
+
+    .search-input:focus {
+        outline: none;
+        border-color: #000000;
+        box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.05);
+    }
+
+    body.dark-mode .search-input:focus {
+        border-color: #4a4b5a;
+        box-shadow: 0 0 0 3px rgba(74, 75, 90, 0.2);
+    }
+
+    .search-icon {
+        position: absolute;
+        left: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 16px;
+        color: #6c757d;
+    }
+
+    /* Create button */
+    .btn-create {
+        background-color: #000000;
+        color: #ffffff;
+        padding: 8px 16px;
+        border-radius: 6px;
+        font-size: 14px;
+        font-weight: 500;
+        border: none;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        text-decoration: none;
+    }
+
+    .btn-create:hover {
+        background-color: #1a1a1a;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        color: #ffffff;
+        text-decoration: none;
+    }
+
+
+    /* Table styles */
+    .collections-table {
+        width: 100%;
+        background: #ffffff;
+    }
+
+    body.dark-mode .collections-table {
+        background: #2d2d3d;
+    }
+
+    .collections-table table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 0;
+    }
+
+    .collections-table th {
+        padding: 12px 20px;
+        text-align: left;
+        font-weight: 500;
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: #6c757d;
+        background-color: #fafbfc;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    body.dark-mode .collections-table th {
+        background-color: #262637;
+        color: #9ca3af;
+        border-bottom-color: #3a3b4a;
+    }
+
+    .collections-table td {
+        padding: 16px 20px;
+        border-bottom: 1px solid #e5e7eb;
+        vertical-align: middle;
+    }
+
+    body.dark-mode .collections-table td {
+        border-bottom-color: #3a3b4a;
+    }
+
+    .collections-table tbody tr:hover {
+        background-color: #f9fafb;
+    }
+
+    body.dark-mode .collections-table tbody tr:hover {
+        background-color: #323345;
+    }
+
+    /* Checkbox styling */
+    .checkbox-cell {
+        width: 40px;
+        padding-left: 20px !important;
+        padding-right: 0 !important;
+    }
+
+    input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+        border: 2px solid #d1d5db;
+        border-radius: 4px;
+        background-color: #ffffff;
+        cursor: pointer;
+        position: relative;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        appearance: none;
+        transition: all 0.2s;
+    }
+
+    body.dark-mode input[type="checkbox"] {
+        border-color: #4a4b5a;
+        background-color: #1a1a2e;
+    }
+
+    input[type="checkbox"]:checked {
+        background-color: #000000;
+        border-color: #000000;
+    }
+
+    input[type="checkbox"]:checked::after {
+        content: '✓';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        color: #ffffff;
+        font-size: 12px;
+        font-weight: bold;
+    }
+
+    /* Image column */
+    .image-cell {
+        width: 60px;
+        padding-right: 12px !important;
+    }
+
+    .collection-image, .no-image {
+        width: 40px;
+        height: 40px;
+        border-radius: 6px;
+        object-fit: cover;
+    }
+
+    .no-image {
+        background-color: #f3f4f6;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #9ca3af;
+    }
+
+    body.dark-mode .no-image {
+        background-color: #1a1a2e;
+        color: #6b7280;
+    }
+
+    .no-image i {
+        font-size: 20px;
+    }
+
+    /* Title column */
+    .collection-title-wrapper {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+
+    .collection-title {
+        font-size: 14px;
+        font-weight: 500;
+        color: #1a1a1a;
+        text-decoration: none;
+        transition: color 0.2s;
+    }
+
+    body.dark-mode .collection-title {
+        color: #ffffff;
+    }
+
+    .collection-title:hover {
+        color: #000000;
+        text-decoration: underline;
+    }
+
+    body.dark-mode .collection-title:hover {
+        color: #e0e0e0;
+    }
+
+    /* Product count */
+    .product-count {
+        font-size: 14px;
+        color: #1a1a1a;
+    }
+
+    body.dark-mode .product-count {
+        color: #e0e0e0;
+    }
+
+    /* Status column */
+    .status-cell {
+        width: 120px;
+    }
+
+    /* Conditions column */
+    .conditions-cell {
+        color: #6c757d;
+        font-size: 14px;
+    }
+
+    body.dark-mode .conditions-cell {
+        color: #9ca3af;
+    }
+
+    /* Actions */
+    .actions-cell {
+        width: 60px;
+        text-align: right;
+        padding-right: 20px !important;
+    }
+
+    .actions-menu {
+        background: none;
+        border: none;
+        padding: 4px 8px;
+        cursor: pointer;
+        color: #6c757d;
+        font-size: 18px;
+        border-radius: 4px;
+        transition: all 0.2s;
+    }
+
+    .actions-menu:hover {
+        background-color: #f3f4f6;
+        color: #1a1a1a;
+    }
+
+    body.dark-mode .actions-menu:hover {
+        background-color: #3a3b4a;
+        color: #ffffff;
+    }
+
+    /* Bulk actions bar */
+    .bulk-actions {
+        display: none;
+        padding: 12px 20px;
+        background-color: #f3f4f6;
+        border-bottom: 1px solid #e5e7eb;
+        align-items: center;
+        gap: 16px;
+    }
+
+    body.dark-mode .bulk-actions {
+        background-color: #1a1a2e;
+        border-bottom-color: #3a3b4a;
+    }
+
+    .bulk-actions.show {
+        display: flex;
+    }
+
+    .bulk-actions-text {
+        font-size: 14px;
+        color: #1a1a1a;
+    }
+
+    body.dark-mode .bulk-actions-text {
+        color: #ffffff;
+    }
+
+    .bulk-actions-dropdown {
+        padding: 6px 12px;
+        border: 1px solid #d1d5db;
+        border-radius: 6px;
+        background-color: #ffffff;
+        font-size: 14px;
+        cursor: pointer;
+    }
+
+    body.dark-mode .bulk-actions-dropdown {
+        background-color: #2d2d3d;
+        border-color: #3a3b4a;
+        color: #ffffff;
+    }
+
+    /* Empty state */
+    .empty-state {
+        text-align: center;
+        padding: 80px 20px;
+    }
+
+    .empty-state-icon {
+        width: 120px;
+        height: 120px;
+        margin: 0 auto 24px;
+        background-color: #f3f4f6;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    body.dark-mode .empty-state-icon {
+        background-color: #1a1a2e;
+    }
+
+    .empty-state-icon i {
+        font-size: 48px;
+        color: #9ca3af;
+    }
+
+    .empty-state h2 {
+        font-size: 20px;
+        font-weight: 600;
+        color: #1a1a1a;
+        margin: 0 0 8px 0;
+    }
+
+    body.dark-mode .empty-state h2 {
+        color: #ffffff;
+    }
+
+    .empty-state p {
+        font-size: 14px;
+        color: #6c757d;
+        margin: 0 0 24px 0;
+    }
+
+    body.dark-mode .empty-state p {
+        color: #9ca3af;
+    }
+
+    /* More info link */
+    .more-info-link {
+        text-align: center;
+        padding: 20px;
+        font-size: 14px;
+    }
+
+    .more-info-link a {
+        color: #0066cc;
+        text-decoration: none;
+    }
+
+    .more-info-link a:hover {
+        text-decoration: underline;
+    }
+
+    /* Responsive */
+    @@media (max-width: 768px) {
+        .collections-toolbar {
+            flex-direction: column;
+            gap: 12px;
+            align-items: stretch;
+        }
+
+        .search-wrapper {
+            max-width: 100%;
+        }
+
+        .btn-create {
+            width: 100%;
+            justify-content: center;
+        }
+
+        .collections-table {
+            overflow-x: auto;
+        }
+
+        .collections-table table {
+            min-width: 600px;
+        }
+    }
+</style>
+
+<div class="collections-page">
+    <div class="page-header">
+        <h1 data-i18n="collections">Colecciones</h1>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/Account/ExactIndex" data-i18n="breadcrumb.home">Inicio</a></li>
+                <li class="breadcrumb-item active" data-i18n="collections">Colecciones</li>
+            </ol>
+        </nav>
+    </div>
+
+    <div class="collections-card">
+        @if (collections != null && collections.Count > 0)
+        {
+            <!-- Toolbar -->
+            <div class="collections-toolbar">
+                <div class="search-wrapper">
+                    <i class="material-icons search-icon">search</i>
+                    <input type="text" class="search-input" placeholder="Buscar colecciones..." id="searchInput" data-i18n-placeholder="search_collections">
+                </div>
+                <a href="@Url.Action("Create", "Collections")" class="btn-create">
+                    <span style="font-size: 20px; line-height: 1;">+</span>
+                    <span data-i18n="create_collection">Crear colección</span>
+                </a>
+            </div>
+
+            <!-- Bulk actions -->
+            <div class="bulk-actions" id="bulkActions">
+                <span class="bulk-actions-text">
+                    <span id="selectedCount">0</span> <span data-i18n="selected">seleccionados</span>
+                </span>
+                <select class="bulk-actions-dropdown" id="bulkAction">
+                    <option value="" data-i18n="more_actions">Más acciones</option>
+                    <option value="delete" data-i18n="delete_selected">Eliminar seleccionados</option>
+                    <option value="activate" data-i18n="activate_selected">Activar seleccionados</option>
+                    <option value="deactivate" data-i18n="deactivate_selected">Desactivar seleccionados</option>
+                </select>
+            </div>
+
+            <!-- Table -->
+            <div class="collections-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th class="checkbox-cell">
+                                <input type="checkbox" id="selectAllHeader">
+                            </th>
+                            <th class="image-cell"></th>
+                            <th data-i18n="title">Título</th>
+                            <th data-i18n="products">Productos</th>
+                            <th data-i18n="conditions">Condiciones de los productos</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var collection in collections)
+                        {
+                            <tr>
+                                <td class="checkbox-cell">
+                                    <input type="checkbox" class="collection-checkbox" data-id="@collection.Id">
+                                </td>
+                                <td class="image-cell">
+                                    @if (!string.IsNullOrEmpty(collection.ImageUrl))
+                                    {
+                                        <img src="@collection.ImageUrl" alt="@collection.Title" class="collection-image">
+                                    }
+                                    else
+                                    {
+                                        <div class="no-image">
+                                            <i class="material-icons">image</i>
+                                        </div>
+                                    }
+                                </td>
+                                <td>
+                                    <a href="@Url.Action("Edit", "Collections", new { id = collection.Id })" class="collection-title">
+                                        @collection.Title
+                                    </a>
+                                </td>
+                                <td>
+                                    <span class="product-count">@collection.ProductCount</span>
+                                </td>
+                                <td class="conditions-cell">
+                                    @if (collection.IsActive)
+                                    {
+                                        <span data-i18n="all_conditions">Todas las condiciones</span>
+                                    }
+                                    else
+                                    {
+                                        <span data-i18n="inactive_collection">Colección inactiva</span>
+                                    }
+                                </td>
+                                <td class="actions-cell">
+                                    <button class="actions-menu" onclick="showActionsMenu(@collection.Id, event)">
+                                        <i class="material-icons">more_vert</i>
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- More info link -->
+            <div class="more-info-link">
+                <span data-i18n="more_info_about">Más información sobre</span> 
+                <a href="#" data-i18n="collections_link">colecciones</a>
+            </div>
+        }
+        else
+        {
+            <!-- Empty state -->
+            <div class="empty-state">
+                <div class="empty-state-icon">
+                    <i class="material-icons">category</i>
+                </div>
+                <h2 data-i18n="no_collections">No hay colecciones aún</h2>
+                <p data-i18n="no_collections_desc">Las colecciones te ayudan a organizar tus productos</p>
+                <a href="@Url.Action("Create", "Collections")" class="btn-create">
+                    <span style="font-size: 20px; line-height: 1;">+</span>
+                    <span data-i18n="create_first_collection">Crear primera colección</span>
+                </a>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- Actions dropdown menu -->
+<div id="actionsDropdown" style="position: absolute; display: none; background: white; box-shadow: 0 2px 10px rgba(0,0,0,0.1); border-radius: 4px; min-width: 150px; z-index: 1000;">
+    <a href="#" onclick="editCollection(currentCollectionId)" style="display: block; padding: 8px 16px; color: #333; text-decoration: none; font-size: 14px;">
+        <i class="material-icons" style="font-size: 18px; vertical-align: middle; margin-right: 8px;">edit</i>
+        <span data-i18n="edit">Editar</span>
+    </a>
+    <a href="#" onclick="deleteCollection(currentCollectionId, currentCollectionTitle)" style="display: block; padding: 8px 16px; color: #333; text-decoration: none; font-size: 14px;">
+        <i class="material-icons" style="font-size: 18px; vertical-align: middle; margin-right: 8px;">delete</i>
+        <span data-i18n="delete">Eliminar</span>
+    </a>
+</div>
+
+@section Scripts {
+    <script>
+        let currentCollectionId = null;
+        let currentCollectionTitle = null;
+
+        // Search functionality
+        const searchInput = document.getElementById('searchInput');
+        if (searchInput) {
+            searchInput.addEventListener('input', function(e) {
+                const searchTerm = e.target.value.toLowerCase();
+                const rows = document.querySelectorAll('tbody tr');
+                
+                rows.forEach(row => {
+                    const title = row.querySelector('.collection-title')?.textContent.toLowerCase() || '';
+                    
+                    if (title.includes(searchTerm)) {
+                        row.style.display = '';
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
+            });
+        }
+
+        // Checkbox functionality
+        const selectAllHeader = document.getElementById('selectAllHeader');
+        const checkboxes = document.querySelectorAll('.collection-checkbox');
+        const bulkActions = document.getElementById('bulkActions');
+        const selectedCount = document.getElementById('selectedCount');
+
+        if (selectAllHeader) {
+            selectAllHeader.addEventListener('change', function(e) {
+                checkboxes.forEach(cb => cb.checked = e.target.checked);
+                updateBulkActions();
+            });
+        }
+
+        checkboxes.forEach(cb => {
+            cb.addEventListener('change', updateBulkActions);
+        });
+
+        function updateBulkActions() {
+            const checkedCount = document.querySelectorAll('.collection-checkbox:checked').length;
+            if (selectedCount) {
+                selectedCount.textContent = checkedCount;
+            }
+            
+            if (bulkActions) {
+                if (checkedCount > 0) {
+                    bulkActions.classList.add('show');
+                } else {
+                    bulkActions.classList.remove('show');
+                }
+            }
+            
+            // Update select all checkbox state
+            if (selectAllHeader) {
+                if (checkedCount === checkboxes.length && checkboxes.length > 0) {
+                    selectAllHeader.checked = true;
+                    selectAllHeader.indeterminate = false;
+                } else if (checkedCount > 0) {
+                    selectAllHeader.checked = false;
+                    selectAllHeader.indeterminate = true;
+                } else {
+                    selectAllHeader.checked = false;
+                    selectAllHeader.indeterminate = false;
+                }
+            }
+        }
+
+        // Bulk actions
+        document.getElementById('bulkAction')?.addEventListener('change', function(e) {
+            const action = e.target.value;
+            if (!action) return;
+
+            const selectedIds = Array.from(document.querySelectorAll('.collection-checkbox:checked'))
+                .map(cb => cb.dataset.id);
+
+            if (selectedIds.length === 0) {
+                alert('Selecciona al menos una colección');
+                return;
+            }
+
+            if (action === 'delete') {
+                if (!confirm(`¿Estás seguro de eliminar ${selectedIds.length} colección(es)?`)) {
+                    e.target.value = '';
+                    return;
+                }
+            }
+
+            // Here you would implement the bulk actions with AJAX
+            console.log(`Action ${action} for IDs:`, selectedIds);
+            
+            // Reset
+            e.target.value = '';
+        });
+
+        // Actions menu
+        function showActionsMenu(id, event) {
+            event.stopPropagation();
+            const dropdown = document.getElementById('actionsDropdown');
+            const rect = event.target.getBoundingClientRect();
+            
+            // Find the collection title from the same row
+            const row = event.target.closest('tr');
+            const title = row.querySelector('.collection-title')?.textContent || '';
+            
+            currentCollectionId = id;
+            currentCollectionTitle = title;
+            
+            dropdown.style.left = (rect.left - 150) + 'px';
+            dropdown.style.top = (rect.bottom + 5) + 'px';
+            dropdown.style.display = 'block';
+            
+            // Add dark mode styles to dropdown if needed
+            if (document.body.classList.contains('dark-mode')) {
+                dropdown.style.backgroundColor = '#2d2d3d';
+                dropdown.style.borderColor = '#3a3b4a';
+                dropdown.querySelectorAll('a').forEach(link => {
+                    link.style.color = '#ffffff';
+                });
+            }
+        }
+
+        // Hide dropdown when clicking outside
+        document.addEventListener('click', function() {
+            document.getElementById('actionsDropdown').style.display = 'none';
+        });
+
+        // Action functions
+        function editCollection(id) {
+            window.location.href = '@Url.Action("Edit", "Collections")/' + id;
+        }
+
+        function deleteCollection(id, title) {
+            if (!confirm(`¿Estás seguro de eliminar la colección "${title}"?`)) {
+                return;
+            }
+
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '@Url.Action("Delete", "Collections")/' + id;
+            
+            // Add anti-forgery token
+            const token = document.querySelector('input[name="__RequestVerificationToken"]');
+            if (!token) {
+                // Create token input if it doesn't exist
+                const tokenInput = document.createElement('input');
+                tokenInput.type = 'hidden';
+                tokenInput.name = '__RequestVerificationToken';
+                tokenInput.value = '@Html.AntiForgeryToken()'.match(/value="([^"]+)"/)[1];
+                form.appendChild(tokenInput);
+            } else {
+                form.appendChild(token.cloneNode());
+            }
+            
+            document.body.appendChild(form);
+            form.submit();
+        }
+
+        // Translations
+        const collectionTranslations = {
+            es: {
+                collections: "Colecciones",
+                create_collection: "Crear colección",
+                search_collections: "Buscar colecciones...",
+                title: "Título",
+                products: "Productos",
+                conditions: "Condiciones de los productos",
+                all_conditions: "Todas las condiciones",
+                inactive_collection: "Colección inactiva",
+                selected: "seleccionados",
+                more_actions: "Más acciones",
+                delete_selected: "Eliminar seleccionados",
+                activate_selected: "Activar seleccionados",
+                deactivate_selected: "Desactivar seleccionados",
+                no_collections: "No hay colecciones aún",
+                no_collections_desc: "Las colecciones te ayudan a organizar tus productos",
+                create_first_collection: "Crear primera colección",
+                more_info_about: "Más información sobre",
+                collections_link: "colecciones",
+                edit: "Editar",
+                delete: "Eliminar"
+            },
+            en: {
+                collections: "Collections",
+                create_collection: "Create collection",
+                search_collections: "Search collections...",
+                title: "Title",
+                products: "Products",
+                conditions: "Product conditions",
+                all_conditions: "All conditions",
+                inactive_collection: "Inactive collection",
+                selected: "selected",
+                more_actions: "More actions",
+                delete_selected: "Delete selected",
+                activate_selected: "Activate selected",
+                deactivate_selected: "Deactivate selected",
+                no_collections: "No collections yet",
+                no_collections_desc: "Collections help you organize your products",
+                create_first_collection: "Create first collection",
+                more_info_about: "More about",
+                collections_link: "collections",
+                edit: "Edit",
+                delete: "Delete"
+            }
+        };
+
+        // Since this is not in Website Builder, we need to add translations to the main translations object
+        // The layout's translatePage function will handle applying them
+        
+        // Add translations to the global translations object that the layout uses
+        if (typeof translations !== 'undefined') {
+            // Merge our translations into the global object
+            if (!translations.es) translations.es = {};
+            if (!translations.en) translations.en = {};
+            
+            Object.assign(translations.es, collectionTranslations.es);
+            Object.assign(translations.en, collectionTranslations.en);
+        }
+        
+        // Wait for DOM to be ready and apply translations
+        document.addEventListener('DOMContentLoaded', function() {
+            // The layout will have already applied translations on page load
+            // But we need to reapply them since we just added our translations
+            if (typeof translatePage === 'function') {
+                // Use the current language from the layout (it uses 'preferredLanguage' not 'selectedLanguage')
+                const currentLang = localStorage.getItem('preferredLanguage') || 'es';
+                translatePage(currentLang);
+            }
+        });
+    </script>
+    @Html.AntiForgeryToken()
+}

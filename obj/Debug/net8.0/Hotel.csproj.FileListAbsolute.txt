@@ -659,10 +659,10 @@ C:\Users\hp\Documents\Visual Studio 2022\Projects\Hotel23\obj\Debug\net8.0\stati
 C:\Users\hp\Documents\Visual Studio 2022\Projects\Hotel23\obj\Debug\net8.0\staticwebassets\msbuild.buildMultiTargeting.Hotel.props
 C:\Users\hp\Documents\Visual Studio 2022\Projects\Hotel23\obj\Debug\net8.0\staticwebassets\msbuild.buildTransitive.Hotel.props
 C:\Users\hp\Documents\Visual Studio 2022\Projects\Hotel23\obj\Debug\net8.0\staticwebassets.pack.json
-C:\Users\hp\Documents\Visual Studio 2022\Projects\Hotel23\obj\Debug\net8.0\staticwebassets.upToDateCheck.txt
 C:\Users\hp\Documents\Visual Studio 2022\Projects\Hotel23\obj\Debug\net8.0\Hotel.csproj.Up2Date
 C:\Users\hp\Documents\Visual Studio 2022\Projects\Hotel23\obj\Debug\net8.0\Hotel.dll
 C:\Users\hp\Documents\Visual Studio 2022\Projects\Hotel23\obj\Debug\net8.0\refint\Hotel.dll
 C:\Users\hp\Documents\Visual Studio 2022\Projects\Hotel23\obj\Debug\net8.0\Hotel.pdb
 C:\Users\hp\Documents\Visual Studio 2022\Projects\Hotel23\obj\Debug\net8.0\Hotel.genruntimeconfig.cache
 C:\Users\hp\Documents\Visual Studio 2022\Projects\Hotel23\obj\Debug\net8.0\ref\Hotel.dll
+C:\Users\hp\Documents\Visual Studio 2022\Projects\Hotel23\obj\Debug\net8.0\staticwebassets.upToDateCheck.txt
