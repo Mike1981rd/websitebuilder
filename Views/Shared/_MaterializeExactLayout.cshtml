@@ -84,6 +84,14 @@
                     </li>
 
                     <li class="menu-item">
+                        <a href="@Url.Action("Index", "Policies")" class="menu-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Policies" ? "active" : "")">
+                            <i class="menu-icon fas fa-file-contract"></i>
+                            <span class="menu-text" data-i18n="menu.policies">Políticas</span>
+                            <span class="menu-tooltip" data-i18n="menu.policies">Políticas</span>
+                        </a>
+                    </li>
+
+                    <li class="menu-item">
                         <a href="@Url.Action("Index", "WebsiteBuilder")" class="menu-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "WebsiteBuilder" ? "active" : "")">
                             <i class="menu-icon fas fa-globe"></i>
                             <span class="menu-text" data-i18n="menu.sitioWeb">Sitio Web</span>
@@ -625,6 +633,7 @@
                 'menu.collections': 'Colecciones',
                 'menu.products': 'Productos',
                 'menu.pages': 'Páginas',
+                'menu.policies': 'Políticas',
                 'menu.sitioWeb': 'Sitio Web',
                 // Search
                 'search.placeholder': 'Buscar (CTRL + K)',
@@ -792,6 +801,7 @@
                 'menu.collections': 'Collections',
                 'menu.products': 'Products',
                 'menu.pages': 'Pages',
+                'menu.policies': 'Policies',
                 'menu.sitioWeb': 'Website',
                 // Search
                 'search.placeholder': 'Search (CTRL + K)',

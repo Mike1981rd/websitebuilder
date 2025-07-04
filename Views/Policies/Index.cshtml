@@ -1,0 +1,203 @@
+@model Hotel.Models.Policy
+@{
+    ViewData["Title"] = "Políticas";
+    Layout = "_MaterializeExactLayout";
+}
+
+<!-- Breadcrumbs -->
+<nav class="breadcrumb-nav">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item">
+            <a href="@Url.Action("ExactIndex", "Admin")"><i class="fas fa-home"></i> <span data-i18n="breadcrumb.home">Inicio</span></a>
+        </li>
+        <li class="breadcrumb-item active" data-i18n="policies">Políticas</li>
+    </ol>
+</nav>
+
+<div class="main-content">
+    <div class="card">
+        <div class="card-content">
+            <!-- Políticas escritas -->
+            <div class="policies-written-section">
+                <h5 class="policies-written-title" data-i18n="policies.writtenPolicies">Políticas escritas</h5>
+                <p class="grey-text" data-i18n="policies.writtenPoliciesDesc">
+                    Las políticas están enlazadas en el pie de página del proceso de pago y puedes agregarlas a tu 
+                    <a href="#" class="blue-text" data-i18n="policies.onlineStoreMenu">menú de la tienda online</a>
+                </p>
+
+                <!-- Lista de políticas -->
+                <div class="policies-list">
+                    <!-- Política de devoluciones y reembolsos -->
+                    <a href="@Url.Action("Edit", "Policies", new { type = "refund" })" class="policy-item">
+                        <i class="fas fa-file-alt policy-icon"></i>
+                        <span class="policy-name" data-i18n="policies.refund">Política de devoluciones y reembolsos</span>
+                        <i class="fas fa-chevron-right policy-arrow"></i>
+                    </a>
+
+                    <!-- Política de privacidad -->
+                    <a href="@Url.Action("Edit", "Policies", new { type = "privacy" })" class="policy-item">
+                        <i class="fas fa-lock policy-icon"></i>
+                        <span class="policy-name" data-i18n="policies.privacy">Política de privacidad</span>
+                        <i class="fas fa-chevron-right policy-arrow"></i>
+                    </a>
+
+                    <!-- Términos del servicio -->
+                    <a href="@Url.Action("Edit", "Policies", new { type = "terms" })" class="policy-item">
+                        <i class="fas fa-file-contract policy-icon"></i>
+                        <span class="policy-name" data-i18n="policies.terms">Términos del servicio</span>
+                        <i class="fas fa-chevron-right policy-arrow"></i>
+                    </a>
+
+                    <!-- Política de envío -->
+                    <a href="@Url.Action("Edit", "Policies", new { type = "shipping" })" class="policy-item">
+                        <i class="fas fa-shipping-fast policy-icon"></i>
+                        <span class="policy-name" data-i18n="policies.shipping">Política de envío</span>
+                        <i class="fas fa-chevron-right policy-arrow"></i>
+                    </a>
+
+                    <!-- Información de contacto -->
+                    <a href="@Url.Action("Edit", "Policies", new { type = "contact" })" class="policy-item">
+                        <i class="fas fa-address-card policy-icon"></i>
+                        <span class="policy-name" data-i18n="policies.contact">Información de contacto</span>
+                        <span class="required-badge" data-i18n="policies.required">Obligatoria</span>
+                        <i class="fas fa-chevron-right policy-arrow"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Estilos específicos para Políticas */
+    .breadcrumb-nav {
+        margin-bottom: 24px;
+    }
+    
+    .policies-written-section {
+        padding: 0;
+    }
+
+    .policies-written-title {
+        font-size: 16px;
+        font-weight: 500;
+        margin-bottom: 10px;
+    }
+
+    .policies-list {
+        margin-top: 20px;
+    }
+
+    .policy-item {
+        display: flex;
+        align-items: center;
+        padding: 16px;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        margin-bottom: 12px;
+        text-decoration: none;
+        color: inherit;
+        transition: all 0.2s ease;
+        background-color: #fff;
+    }
+
+    .policy-item:hover {
+        border-color: var(--primary);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        transform: translateY(-1px);
+    }
+
+    .policy-icon {
+        font-size: 20px;
+        color: #666;
+        margin-right: 16px;
+        width: 24px;
+        text-align: center;
+    }
+
+    .policy-name {
+        flex: 1;
+        font-size: 14px;
+        font-weight: 500;
+    }
+
+    .required-badge {
+        background-color: #ff9800;
+        color: white;
+        padding: 4px 12px;
+        border-radius: 4px;
+        font-size: 11px;
+        font-weight: 500;
+        margin-right: 12px;
+        text-transform: uppercase;
+    }
+
+    .policy-arrow {
+        color: #999;
+        font-size: 14px;
+    }
+
+    /* Dark mode support */
+    body.dark-mode .policy-item {
+        background-color: #424242;
+        border-color: #555;
+    }
+
+    body.dark-mode .policy-item:hover {
+        border-color: var(--primary);
+    }
+
+    body.dark-mode .policy-icon,
+    body.dark-mode .policy-arrow {
+        color: #aaa;
+    }
+</style>
+
+@section Scripts {
+    <script>
+        // Traducciones para Políticas
+        const policyTranslations = {
+            es: {
+                'policies': 'Políticas',
+                'policies.writtenPolicies': 'Políticas escritas',
+                'policies.writtenPoliciesDesc': 'Las políticas están enlazadas en el pie de página del proceso de pago y puedes agregarlas a tu ',
+                'policies.onlineStoreMenu': 'menú de la tienda online',
+                'policies.refund': 'Política de devoluciones y reembolsos',
+                'policies.privacy': 'Política de privacidad',
+                'policies.terms': 'Términos del servicio',
+                'policies.shipping': 'Política de envío',
+                'policies.contact': 'Información de contacto',
+                'policies.required': 'Obligatoria'
+            },
+            en: {
+                'policies': 'Policies',
+                'policies.writtenPolicies': 'Written policies',
+                'policies.writtenPoliciesDesc': 'Policies are linked in the checkout footer and you can add them to your ',
+                'policies.onlineStoreMenu': 'online store menu',
+                'policies.refund': 'Refund and return policy',
+                'policies.privacy': 'Privacy policy',
+                'policies.terms': 'Terms of service',
+                'policies.shipping': 'Shipping policy',
+                'policies.contact': 'Contact information',
+                'policies.required': 'Required'
+            }
+        };
+
+        // Fusionar con el objeto global de traducciones
+        if (typeof translations !== 'undefined') {
+            if (!translations.es) translations.es = {};
+            if (!translations.en) translations.en = {};
+            
+            Object.assign(translations.es, policyTranslations.es);
+            Object.assign(translations.en, policyTranslations.en);
+        }
+
+        // Aplicar traducciones cuando el DOM esté listo
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof translatePage === 'function') {
+                const currentLang = localStorage.getItem('preferredLanguage') || 'es';
+                translatePage(currentLang);
+            }
+        });
+    </script>
+}

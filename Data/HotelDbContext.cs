@@ -29,6 +29,7 @@ namespace Hotel.Data
         public DbSet<ProductVideo> ProductVideos { get; set; }
         public DbSet<ProductVariant> ProductVariants { get; set; }
         public DbSet<Page> Pages { get; set; }
+        public DbSet<Policy> Policies { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -252,6 +253,37 @@ namespace Hotel.Data
                 .HasForeignKey(p => p.CompanyId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            // Configuración de Policy
+            modelBuilder.Entity<Policy>()
+                .HasIndex(p => p.CompanyId)
+                .IsUnique();
+
+            modelBuilder.Entity<Policy>()
+                .Property(p => p.RefundPolicyContent)
+                .HasColumnType("text");
+
+            modelBuilder.Entity<Policy>()
+                .Property(p => p.PrivacyPolicyContent)
+                .HasColumnType("text");
+
+            modelBuilder.Entity<Policy>()
+                .Property(p => p.TermsOfServiceContent)
+                .HasColumnType("text");
+
+            modelBuilder.Entity<Policy>()
+                .Property(p => p.ShippingPolicyContent)
+                .HasColumnType("text");
+
+            modelBuilder.Entity<Policy>()
+                .Property(p => p.ContactInformationContent)
+                .HasColumnType("text");
+
+            modelBuilder.Entity<Policy>()
+                .HasOne(p => p.Company)
+                .WithMany()
+                .HasForeignKey(p => p.CompanyId)
+                .OnDelete(DeleteBehavior.Restrict);
+
             // Datos semilla para RoomTypes
             modelBuilder.Entity<RoomType>().HasData(
                 new RoomType { Id = 1, Name = "Individual", Description = "Habitación individual estándar", BasePrice = 50.00m, MaxOccupancy = 1 },
@@ -303,6 +335,11 @@ namespace Hotel.Data
             permissions.Add(new Permission { Id = permissionId++, Module = "Páginas", Action = "Read", Description = "Ver páginas", DisplayOrder = 8 });
             permissions.Add(new Permission { Id = permissionId++, Module = "Páginas", Action = "Write", Description = "Editar páginas", DisplayOrder = 8 });
             permissions.Add(new Permission { Id = permissionId++, Module = "Páginas", Action = "Create", Description = "Crear páginas", DisplayOrder = 8 });
+            
+            // Políticas
+            permissions.Add(new Permission { Id = permissionId++, Module = "Políticas", Action = "Read", Description = "Ver políticas", DisplayOrder = 9 });
+            permissions.Add(new Permission { Id = permissionId++, Module = "Políticas", Action = "Write", Description = "Editar políticas", DisplayOrder = 9 });
+            permissions.Add(new Permission { Id = permissionId++, Module = "Políticas", Action = "Create", Description = "Crear políticas", DisplayOrder = 9 });
 
             modelBuilder.Entity<Permission>().HasData(permissions);
 

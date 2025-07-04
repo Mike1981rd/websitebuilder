@@ -1,0 +1,565 @@
+@model Hotel.Models.Policy
+@{
+    ViewData["Title"] = ViewBag.PolicyTitle;
+    Layout = "_MaterializeExactLayout";
+    
+    var policyType = ViewBag.PolicyType as string;
+    var content = policyType switch
+    {
+        "refund" => Model.RefundPolicyContent,
+        "privacy" => Model.PrivacyPolicyContent,
+        "terms" => Model.TermsOfServiceContent,
+        "shipping" => Model.ShippingPolicyContent,
+        "contact" => Model.ContactInformationContent,
+        _ => ""
+    };
+}
+
+<!-- Breadcrumbs -->
+<nav class="breadcrumb-nav">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item">
+            <a href="@Url.Action("ExactIndex", "Admin")"><i class="fas fa-home"></i> <span data-i18n="breadcrumb.home">Inicio</span></a>
+        </li>
+        <li class="breadcrumb-item">
+            <a href="@Url.Action("Index", "Policies")" data-i18n="policies">Políticas</a>
+        </li>
+        <li class="breadcrumb-item active">@ViewBag.PolicyTitle</li>
+    </ol>
+</nav>
+
+<div class="main-content">
+    <form asp-action="Edit" asp-route-type="@policyType" method="post" id="policyForm">
+        @Html.AntiForgeryToken()
+        
+        <div class="card">
+            <div class="card-content">
+                <div class="section-header">
+                    <h4 class="header-title">@ViewBag.PolicyTitle</h4>
+                </div>
+
+                <div class="divider"></div>
+
+                <!-- Aviso legal -->
+                <div class="legal-notice">
+                    <i class="fas fa-info-circle"></i>
+                    <span data-i18n="policies.legalNotice">
+                        Las plantillas no son asesoramiento legal. Al usar las plantillas de políticas, aceptas que has leído y estás de acuerdo con el
+                    </span>
+                    <a href="#" class="blue-text" data-i18n="policies.disclaimer">descargo de responsabilidad</a>
+                </div>
+
+                <!-- Editor de texto enriquecido -->
+                <div class="editor-container">
+                    <div class="editor-toolbar">
+                        <!-- Selector de formato -->
+                        <div class="toolbar-group">
+                            <select class="format-select" id="formatBlock">
+                                <option value="p" data-i18n="editor.paragraph">Párrafo</option>
+                                <option value="h1" data-i18n="editor.heading1">Título 1</option>
+                                <option value="h2" data-i18n="editor.heading2">Título 2</option>
+                                <option value="h3" data-i18n="editor.heading3">Título 3</option>
+                                <option value="h4" data-i18n="editor.heading4">Título 4</option>
+                            </select>
+                        </div>
+                        
+                        <div class="toolbar-separator"></div>
+                        
+                        <!-- Formato de texto -->
+                        <div class="toolbar-group">
+                            <button type="button" class="editor-btn" data-command="bold" title="Negrita (Ctrl+B)">
+                                <i class="fas fa-bold"></i>
+                            </button>
+                            <button type="button" class="editor-btn" data-command="italic" title="Cursiva (Ctrl+I)">
+                                <i class="fas fa-italic"></i>
+                            </button>
+                            <button type="button" class="editor-btn" data-command="underline" title="Subrayado (Ctrl+U)">
+                                <i class="fas fa-underline"></i>
+                            </button>
+                            <button type="button" class="editor-btn" data-command="strikethrough" title="Tachado">
+                                <i class="fas fa-strikethrough"></i>
+                            </button>
+                        </div>
+                        
+                        <div class="toolbar-separator"></div>
+                        
+                        <!-- Listas -->
+                        <div class="toolbar-group">
+                            <button type="button" class="editor-btn" data-command="insertUnorderedList" title="Lista con viñetas">
+                                <i class="fas fa-list-ul"></i>
+                            </button>
+                            <button type="button" class="editor-btn" data-command="insertOrderedList" title="Lista numerada">
+                                <i class="fas fa-list-ol"></i>
+                            </button>
+                            <button type="button" class="editor-btn" data-command="outdent" title="Disminuir sangría">
+                                <i class="fas fa-outdent"></i>
+                            </button>
+                            <button type="button" class="editor-btn" data-command="indent" title="Aumentar sangría">
+                                <i class="fas fa-indent"></i>
+                            </button>
+                        </div>
+                        
+                        <div class="toolbar-separator"></div>
+                        
+                        <!-- Alineación -->
+                        <div class="toolbar-group">
+                            <button type="button" class="editor-btn" data-command="justifyLeft" title="Alinear a la izquierda">
+                                <i class="fas fa-align-left"></i>
+                            </button>
+                            <button type="button" class="editor-btn" data-command="justifyCenter" title="Centrar">
+                                <i class="fas fa-align-center"></i>
+                            </button>
+                            <button type="button" class="editor-btn" data-command="justifyRight" title="Alinear a la derecha">
+                                <i class="fas fa-align-right"></i>
+                            </button>
+                            <button type="button" class="editor-btn" data-command="justifyFull" title="Justificar">
+                                <i class="fas fa-align-justify"></i>
+                            </button>
+                        </div>
+                        
+                        <div class="toolbar-separator"></div>
+                        
+                        <!-- Enlaces e imágenes -->
+                        <div class="toolbar-group">
+                            <button type="button" class="editor-btn" data-command="createLink" title="Insertar enlace (Ctrl+K)">
+                                <i class="fas fa-link"></i>
+                            </button>
+                            <button type="button" class="editor-btn" data-command="unlink" title="Quitar enlace">
+                                <i class="fas fa-unlink"></i>
+                            </button>
+                            <button type="button" class="editor-btn" data-command="insertImage" title="Insertar imagen">
+                                <i class="fas fa-image"></i>
+                            </button>
+                        </div>
+                        
+                        <div class="toolbar-separator"></div>
+                        
+                        <!-- Utilidades -->
+                        <div class="toolbar-group">
+                            <button type="button" class="editor-btn" data-command="removeFormat" title="Limpiar formato">
+                                <i class="fas fa-eraser"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="editor-content" 
+                         contenteditable="true" 
+                         id="policyEditor" 
+                         data-placeholder="Escribe el contenido de tu política aquí...">@Html.Raw(content)</div>
+                </div>
+
+                <!-- Campo oculto para el contenido -->
+                <input type="hidden" name="content" id="policyContent" value="@content" />
+
+                <!-- Botones de acción -->
+                <div class="form-actions">
+                    <a href="@Url.Action("Index", "Policies")" class="btn btn-secondary" data-i18n="common.cancel">
+                        Cancelar
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        <span data-i18n="common.save">Guardar</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<style>
+    /* Estilos para el editor de políticas */
+    .breadcrumb-nav {
+        margin-bottom: 24px;
+    }
+    
+    .section-header {
+        margin-bottom: 20px;
+    }
+
+    .legal-notice {
+        background-color: #e3f2fd;
+        padding: 12px 16px;
+        border-radius: 4px;
+        margin: 20px 0;
+        font-size: 14px;
+        color: #1565c0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .legal-notice i {
+        font-size: 16px;
+    }
+
+    /* Editor de texto enriquecido */
+    .editor-container {
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        overflow: hidden;
+        background-color: #fff;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        transition: all 0.2s;
+        margin: 20px 0;
+    }
+
+    .editor-container:focus-within {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(233, 30, 99, 0.1);
+    }
+
+    .editor-toolbar {
+        background-color: #f8f9fa;
+        border-bottom: 1px solid #e5e7eb;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        min-height: 48px;
+        flex-wrap: wrap;
+    }
+
+    .toolbar-group {
+        display: flex;
+        align-items: center;
+        padding: 8px 4px;
+        gap: 2px;
+    }
+
+    .toolbar-separator {
+        width: 1px;
+        height: 24px;
+        background-color: #dee2e6;
+        margin: 0 4px;
+    }
+
+    .format-select {
+        height: 34px;
+        padding: 0 8px;
+        border: 1px solid #ced4da;
+        border-radius: 6px;
+        background-color: white;
+        font-size: 14px;
+        cursor: pointer;
+        min-width: 120px;
+    }
+
+    .editor-btn {
+        padding: 0;
+        width: 34px;
+        height: 34px;
+        background: none;
+        border: 1px solid transparent;
+        border-radius: 6px;
+        cursor: pointer;
+        color: #495057;
+        transition: all 0.2s;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .editor-btn:hover {
+        background-color: #e9ecef;
+        color: #212529;
+    }
+
+    .editor-btn.active {
+        background-color: var(--primary);
+        color: #fff;
+    }
+
+    .editor-btn i {
+        font-size: 14px;
+    }
+
+    .editor-content {
+        min-height: 400px;
+        padding: 20px;
+        font-size: 16px;
+        line-height: 1.8;
+        color: #212529;
+        position: relative;
+    }
+
+    .editor-content:focus {
+        outline: none;
+    }
+
+    .editor-content:empty:before {
+        content: attr(data-placeholder);
+        color: #adb5bd;
+        pointer-events: none;
+        position: absolute;
+    }
+
+    .editor-content h1 { font-size: 2em; margin: 0.67em 0; }
+    .editor-content h2 { font-size: 1.5em; margin: 0.75em 0; }
+    .editor-content h3 { font-size: 1.17em; margin: 0.83em 0; }
+    .editor-content h4 { font-size: 1em; margin: 1.12em 0; }
+    .editor-content p { margin: 1em 0; }
+    .editor-content ul, .editor-content ol { margin: 1em 0; padding-left: 40px; }
+    .editor-content a { color: var(--primary); text-decoration: underline; }
+
+    /* Botones de acción */
+    .form-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 12px;
+        margin-top: 24px;
+        padding-top: 20px;
+        border-top: 1px solid #e0e0e0;
+    }
+
+    .btn {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 4px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+        text-decoration: none;
+        display: inline-block;
+        font-size: 14px;
+    }
+
+    .btn-primary {
+        background-color: var(--primary);
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background-color: var(--primary);
+        opacity: 0.9;
+    }
+
+    .btn-secondary {
+        background: #e9ecef;
+        color: #495057;
+    }
+
+    .btn-secondary:hover {
+        background: #dee2e6;
+        color: #495057;
+    }
+
+    /* Dark mode */
+    body.dark-mode .editor-container {
+        background-color: #424242;
+        border-color: #555;
+    }
+
+    body.dark-mode .editor-toolbar {
+        background-color: #333;
+        border-color: #555;
+    }
+
+    body.dark-mode .editor-btn {
+        color: #aaa;
+    }
+
+    body.dark-mode .editor-btn:hover {
+        background-color: #555;
+        color: #fff;
+    }
+
+    body.dark-mode .editor-content {
+        background-color: #424242;
+        color: #e0e0e0;
+    }
+
+    body.dark-mode .format-select {
+        background-color: #424242;
+        border-color: #555;
+        color: #e0e0e0;
+    }
+
+    body.dark-mode .legal-notice {
+        background-color: #1e3a5f;
+        color: #64b5f6;
+    }
+
+    body.dark-mode .btn-secondary {
+        background: #34495e;
+        color: #e0e0e0;
+    }
+
+    body.dark-mode .btn-secondary:hover {
+        background: #4a5f7a;
+        color: #e0e0e0;
+    }
+
+    body.dark-mode .form-actions {
+        border-top-color: #555;
+    }
+</style>
+
+@section Scripts {
+    <script>
+        // Traducciones adicionales para el editor
+        const policyEditTranslations = {
+            es: {
+                'policies.legalNotice': 'Las plantillas no son asesoramiento legal. Al usar las plantillas de políticas, aceptas que has leído y estás de acuerdo con el',
+                'policies.disclaimer': 'descargo de responsabilidad',
+                'editor.paragraph': 'Párrafo',
+                'editor.heading1': 'Título 1',
+                'editor.heading2': 'Título 2',
+                'editor.heading3': 'Título 3',
+                'editor.heading4': 'Título 4'
+            },
+            en: {
+                'policies.legalNotice': 'Templates are not legal advice. By using policy templates, you accept that you have read and agree to the',
+                'policies.disclaimer': 'disclaimer',
+                'editor.paragraph': 'Paragraph',
+                'editor.heading1': 'Heading 1',
+                'editor.heading2': 'Heading 2',
+                'editor.heading3': 'Heading 3',
+                'editor.heading4': 'Heading 4'
+            }
+        };
+
+        // Fusionar con el objeto global de traducciones
+        if (typeof translations !== 'undefined') {
+            if (!translations.es) translations.es = {};
+            if (!translations.en) translations.en = {};
+            
+            Object.assign(translations.es, policyEditTranslations.es);
+            Object.assign(translations.en, policyEditTranslations.en);
+        }
+
+        // Aplicar traducciones cuando el DOM esté listo
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof translatePage === 'function') {
+                const currentLang = localStorage.getItem('preferredLanguage') || 'es';
+                translatePage(currentLang);
+            }
+            
+            // Inicializar el editor
+            initializeEditor();
+        });
+
+        // Funcionalidad del editor
+        const policyEditor = document.getElementById('policyEditor');
+        const policyContent = document.getElementById('policyContent');
+        const formatSelect = document.getElementById('formatBlock');
+
+        function initializeEditor() {
+            // Actualizar el campo oculto con el contenido inicial
+            updatePolicyContent();
+            
+            // Event listeners para botones del editor
+            document.querySelectorAll('.editor-btn[data-command]').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const command = this.dataset.command;
+                    
+                    if (command === 'createLink') {
+                        const url = prompt('Ingrese la URL del enlace:');
+                        if (url) {
+                            document.execCommand(command, false, url);
+                        }
+                    } else if (command === 'insertImage') {
+                        const url = prompt('Ingrese la URL de la imagen:');
+                        if (url) {
+                            document.execCommand('insertHTML', false, `<img src="${url}" style="max-width: 100%;">`);
+                        }
+                    } else {
+                        document.execCommand(command, false, null);
+                    }
+                    
+                    policyEditor.focus();
+                    updatePolicyContent();
+                    updateActiveStates();
+                });
+            });
+
+            // Event listener para el selector de formato
+            formatSelect.addEventListener('change', function() {
+                document.execCommand('formatBlock', false, this.value);
+                policyEditor.focus();
+                updatePolicyContent();
+            });
+
+            // Actualizar estados activos
+            document.addEventListener('selectionchange', function() {
+                if (document.activeElement === policyEditor) {
+                    updateActiveStates();
+                }
+            });
+
+            // Actualizar contenido en cada cambio
+            policyEditor.addEventListener('input', updatePolicyContent);
+            policyEditor.addEventListener('blur', updatePolicyContent);
+
+            // Atajos de teclado
+            policyEditor.addEventListener('keydown', function(e) {
+                if (e.ctrlKey || e.metaKey) {
+                    switch(e.key.toLowerCase()) {
+                        case 'b':
+                            e.preventDefault();
+                            document.execCommand('bold', false, null);
+                            updateActiveStates();
+                            break;
+                        case 'i':
+                            e.preventDefault();
+                            document.execCommand('italic', false, null);
+                            updateActiveStates();
+                            break;
+                        case 'u':
+                            e.preventDefault();
+                            document.execCommand('underline', false, null);
+                            updateActiveStates();
+                            break;
+                        case 'k':
+                            e.preventDefault();
+                            const url = prompt('Ingrese la URL del enlace:');
+                            if (url) {
+                                document.execCommand('createLink', false, url);
+                            }
+                            break;
+                    }
+                    updatePolicyContent();
+                }
+            });
+
+            // Manejar pegado de texto
+            policyEditor.addEventListener('paste', function(e) {
+                e.preventDefault();
+                const text = (e.clipboardData || window.clipboardData).getData('text/plain');
+                document.execCommand('insertText', false, text);
+                updatePolicyContent();
+            });
+        }
+
+        function updateActiveStates() {
+            document.querySelectorAll('.editor-btn[data-command]').forEach(btn => {
+                const command = btn.dataset.command;
+                const isActive = document.queryCommandState(command);
+                if (isActive) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+
+            // Actualizar el selector de formato
+            const block = document.queryCommandValue('formatBlock');
+            if (block) {
+                formatSelect.value = block.toLowerCase();
+            }
+        }
+
+        function updatePolicyContent() {
+            policyContent.value = policyEditor.innerHTML;
+        }
+
+        // Validar antes de enviar
+        document.getElementById('policyForm').addEventListener('submit', function(e) {
+            updatePolicyContent();
+            if (!policyContent.value || policyContent.value.trim() === '') {
+                e.preventDefault();
+                alert('El contenido de la política no puede estar vacío');
+                policyEditor.focus();
+            }
+        });
+
+    </script>
+}
