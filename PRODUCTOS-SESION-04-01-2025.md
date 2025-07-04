@@ -38,10 +38,10 @@ Continuar implementación del módulo de Productos según el plan establecido.
   - Controller acepta parámetro `imageOrder`
   - Lógica para actualizar posiciones en base de datos
 
-## ❌ Problema Pendiente
+## ✅ Problema Resuelto
 
-### Drag & Drop No Reordena Correctamente
-- **Síntoma**: Las imágenes se mueven visualmente pero el array no se actualiza
+### Drag & Drop - SOLUCIONADO
+- **Problema Original**: Las imágenes se movían visualmente pero el array no se actualizaba
 - **Intentos de Solución**:
   1. Cambiar `productImages` a variable global (`window.productImages`)
   2. Actualizar todas las referencias al array
@@ -49,32 +49,20 @@ Continuar implementación del módulo de Productos según el plan establecido.
   4. Agregar console.logs para debugging
   5. Hacer `removeImage` función global
 
-- **Estado Actual**: 
-  - Los event listeners se ejecutan
-  - Los elementos se mueven en el DOM
-  - Pero el array subyacente no se reordena correctamente
+- **Estado Actual**: ✅ RESUELTO
+  - El drag & drop funciona correctamente
+  - Las imágenes se reordenan tanto visualmente como en el array
+  - El orden se mantiene al guardar
 
 ## 📋 Próxima Sesión - To Do
 
-### 1. Resolver Drag & Drop (Prioridad Alta)
-```javascript
-// Opciones a investigar:
-// 1. Verificar si initializeImageDragDrop se llama correctamente después de render
-// 2. Revisar si hay race conditions con el re-renderizado
-// 3. Debuggear con breakpoints el flujo completo
-// 4. Considerar alternativas:
-//    - SortableJS (https://sortablejs.github.io/Sortable/)
-//    - jQuery UI Sortable
-//    - Implementación más simple sin re-render completo
-```
-
-### 2. Continuar con Fase 6: Sistema de Variantes
+### 1. Continuar con Fase 6: Sistema de Variantes
 - Crear UI para agregar opciones de variantes
 - Generar combinaciones automáticamente
 - Vista individual de variante
 - Gestión de inventario por variante
 
-### 3. Fase 7: Videos
+### 2. Fase 7: Videos
 - UI para agregar YouTube/Vimeo URLs
 - Subida de MP4
 - Preview de videos
@@ -119,4 +107,4 @@ updateImageOrderInput()      // Actualiza input hidden con orden
 ---
 
 **Tiempo invertido**: ~3 horas
-**Progreso general del módulo**: 70% completado
+**Progreso general del módulo**: 75% completado (drag & drop resuelto)

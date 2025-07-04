@@ -254,14 +254,34 @@ namespace Hotel.Controllers
                 return NotFound();
             }
 
-            var collection = await _context.Collections.FindAsync(id);
+            var collection = await _context.Collections
+                .Include(c => c.CollectionProducts)
+                    .ThenInclude(cp => cp.Product)
+                        .ThenInclude(p => p.Images)
+                .FirstOrDefaultAsync(c => c.Id == id);
+                
             if (collection == null)
             {
                 return NotFound();
             }
 
+            // Obtener productos ordenados por Position
+            var productsInCollection = collection.CollectionProducts
+                .OrderBy(cp => cp.Position)
+                .Select(cp => new
+                {
+                    cp.Product.Id,
+                    cp.Product.Title,
+                    cp.Product.Handle,
+                    cp.Product.Status,
+                    ImageUrl = cp.Product.Images.FirstOrDefault()?.ImageUrl ?? "",
+                    DisplayOrder = cp.Position
+                })
+                .ToList();
+
             ViewBag.SalesChannels = GetAvailableSalesChannels();
             ViewBag.SelectedChannels = JsonSerializer.Deserialize<string[]>(collection.SalesChannels ?? "[]");
+            ViewBag.ProductsInCollection = productsInCollection;
             
             return View(collection);
         }
@@ -490,6 +510,79 @@ namespace Hotel.Controllers
                     success = false, 
                     message = "Error al procesar la imagen." 
                 });
+            }
+        }
+
+        // AJAX: Actualizar orden de productos en la colección
+        [HttpPost]
+        public async Task<IActionResult> UpdateProductOrder(int collectionId, string productIds)
+        {
+            try
+            {
+                _logger.LogInformation($"Actualizando orden de productos para colección {collectionId}");
+                
+                // Parse the comma-separated string to array
+                var productIdArray = productIds.Split(',').Select(int.Parse).ToArray();
+                
+                var collection = await _context.Collections
+                    .Include(c => c.CollectionProducts)
+                    .FirstOrDefaultAsync(c => c.Id == collectionId);
+                    
+                if (collection == null)
+                {
+                    return Json(new { success = false, message = "Colección no encontrada" });
+                }
+
+                // Actualizar el Position de cada producto
+                for (int i = 0; i < productIdArray.Length; i++)
+                {
+                    var productCollection = collection.CollectionProducts
+                        .FirstOrDefault(cp => cp.ProductId == productIdArray[i]);
+                        
+                    if (productCollection != null)
+                    {
+                        productCollection.Position = i;
+                    }
+                }
+
+                await _context.SaveChangesAsync();
+                
+                _logger.LogInformation($"Orden actualizado exitosamente para {productIdArray.Length} productos");
+                return Json(new { success = true, message = "Orden actualizado exitosamente" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al actualizar el orden de productos");
+                return Json(new { success = false, message = "Error al actualizar el orden" });
+            }
+        }
+
+        // AJAX: Remover producto de la colección
+        [HttpPost]
+        public async Task<IActionResult> RemoveProductFromCollection(int collectionId, int productId)
+        {
+            try
+            {
+                _logger.LogInformation($"Removiendo producto {productId} de colección {collectionId}");
+                
+                var productCollection = await _context.CollectionProducts
+                    .FirstOrDefaultAsync(pc => pc.CollectionId == collectionId && pc.ProductId == productId);
+                    
+                if (productCollection == null)
+                {
+                    return Json(new { success = false, message = "Producto no encontrado en la colección" });
+                }
+
+                _context.CollectionProducts.Remove(productCollection);
+                await _context.SaveChangesAsync();
+                
+                _logger.LogInformation($"Producto {productId} removido exitosamente de colección {collectionId}");
+                return Json(new { success = true, message = "Producto removido exitosamente" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al remover producto de la colección");
+                return Json(new { success = false, message = "Error al remover el producto" });
             }
         }
 

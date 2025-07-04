@@ -888,38 +888,38 @@ namespace Hotel.Migrations
                         new
                         {
                             Id = 1,
-                            CreatedAt = new DateTime(2025, 7, 4, 4, 46, 22, 472, DateTimeKind.Utc).AddTicks(9106),
+                            CreatedAt = new DateTime(2025, 7, 4, 15, 55, 50, 735, DateTimeKind.Utc).AddTicks(4064),
                             Description = "Acceso completo al sistema",
                             IsActive = true,
                             Name = "Administrator",
-                            UpdatedAt = new DateTime(2025, 7, 4, 4, 46, 22, 472, DateTimeKind.Utc).AddTicks(9107)
+                            UpdatedAt = new DateTime(2025, 7, 4, 15, 55, 50, 735, DateTimeKind.Utc).AddTicks(4065)
                         },
                         new
                         {
                             Id = 2,
-                            CreatedAt = new DateTime(2025, 7, 4, 4, 46, 22, 472, DateTimeKind.Utc).AddTicks(9112),
+                            CreatedAt = new DateTime(2025, 7, 4, 15, 55, 50, 735, DateTimeKind.Utc).AddTicks(4071),
                             Description = "Acceso de gestión",
                             IsActive = true,
                             Name = "Manager",
-                            UpdatedAt = new DateTime(2025, 7, 4, 4, 46, 22, 472, DateTimeKind.Utc).AddTicks(9112)
+                            UpdatedAt = new DateTime(2025, 7, 4, 15, 55, 50, 735, DateTimeKind.Utc).AddTicks(4072)
                         },
                         new
                         {
                             Id = 3,
-                            CreatedAt = new DateTime(2025, 7, 4, 4, 46, 22, 472, DateTimeKind.Utc).AddTicks(9115),
+                            CreatedAt = new DateTime(2025, 7, 4, 15, 55, 50, 735, DateTimeKind.Utc).AddTicks(4073),
                             Description = "Acceso de soporte",
                             IsActive = true,
                             Name = "Support",
-                            UpdatedAt = new DateTime(2025, 7, 4, 4, 46, 22, 472, DateTimeKind.Utc).AddTicks(9115)
+                            UpdatedAt = new DateTime(2025, 7, 4, 15, 55, 50, 735, DateTimeKind.Utc).AddTicks(4074)
                         },
                         new
                         {
                             Id = 4,
-                            CreatedAt = new DateTime(2025, 7, 4, 4, 46, 22, 472, DateTimeKind.Utc).AddTicks(9117),
+                            CreatedAt = new DateTime(2025, 7, 4, 15, 55, 50, 735, DateTimeKind.Utc).AddTicks(4075),
                             Description = "Acceso básico de usuario",
                             IsActive = true,
                             Name = "Users",
-                            UpdatedAt = new DateTime(2025, 7, 4, 4, 46, 22, 472, DateTimeKind.Utc).AddTicks(9117)
+                            UpdatedAt = new DateTime(2025, 7, 4, 15, 55, 50, 735, DateTimeKind.Utc).AddTicks(4075)
                         });
                 });
 
@@ -1024,7 +1024,7 @@ namespace Hotel.Migrations
                         {
                             Id = 1,
                             BasePrice = 50.00m,
-                            CreatedAt = new DateTime(2025, 7, 4, 4, 46, 22, 472, DateTimeKind.Utc).AddTicks(8372),
+                            CreatedAt = new DateTime(2025, 7, 4, 15, 55, 50, 735, DateTimeKind.Utc).AddTicks(3645),
                             Description = "Habitación individual estándar",
                             MaxOccupancy = 1,
                             Name = "Individual"
@@ -1033,7 +1033,7 @@ namespace Hotel.Migrations
                         {
                             Id = 2,
                             BasePrice = 80.00m,
-                            CreatedAt = new DateTime(2025, 7, 4, 4, 46, 22, 472, DateTimeKind.Utc).AddTicks(8383),
+                            CreatedAt = new DateTime(2025, 7, 4, 15, 55, 50, 735, DateTimeKind.Utc).AddTicks(3655),
                             Description = "Habitación doble estándar",
                             MaxOccupancy = 2,
                             Name = "Doble"
@@ -1042,7 +1042,7 @@ namespace Hotel.Migrations
                         {
                             Id = 3,
                             BasePrice = 150.00m,
-                            CreatedAt = new DateTime(2025, 7, 4, 4, 46, 22, 472, DateTimeKind.Utc).AddTicks(8386),
+                            CreatedAt = new DateTime(2025, 7, 4, 15, 55, 50, 735, DateTimeKind.Utc).AddTicks(3658),
                             Description = "Suite de lujo",
                             MaxOccupancy = 4,
                             Name = "Suite"
@@ -1051,7 +1051,7 @@ namespace Hotel.Migrations
                         {
                             Id = 4,
                             BasePrice = 300.00m,
-                            CreatedAt = new DateTime(2025, 7, 4, 4, 46, 22, 472, DateTimeKind.Utc).AddTicks(8388),
+                            CreatedAt = new DateTime(2025, 7, 4, 15, 55, 50, 735, DateTimeKind.Utc).AddTicks(3659),
                             Description = "Suite presidencial de lujo",
                             MaxOccupancy = 6,
                             Name = "Suite Presidencial"

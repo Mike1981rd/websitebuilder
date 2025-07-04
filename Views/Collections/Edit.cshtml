@@ -597,6 +597,222 @@
     body.dark-mode .timestamp-info strong {
         color: #b0b3c1;
     }
+
+    /* Products Card Styles */
+    .products-card {
+        background: var(--card-bg);
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        overflow: hidden;
+    }
+
+    .products-card-header {
+        padding: 20px 24px;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    body.dark-mode .products-card-header {
+        border-bottom-color: #3a3b4a;
+    }
+
+    .products-card-body {
+        padding: 24px;
+    }
+
+    .products-toolbar {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 20px;
+        align-items: center;
+    }
+
+
+
+    .btn-explore {
+        padding: 10px 20px;
+        background-color: #f3f4f6;
+        color: #374151;
+        border: 1px solid #e5e7eb;
+        border-radius: 6px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    body.dark-mode .btn-explore {
+        background-color: #3a3b4a;
+        color: #d1d5db;
+        border-color: #4a4b5a;
+    }
+
+    .btn-explore:hover {
+        background-color: #e5e7eb;
+    }
+
+    body.dark-mode .btn-explore:hover {
+        background-color: #4a4b5a;
+    }
+
+    .sort-select {
+        min-width: 180px;
+    }
+
+    /* Products List */
+    .products-list {
+        border: 1px solid #e5e7eb;
+        border-radius: 6px;
+        overflow: hidden;
+    }
+
+    body.dark-mode .products-list {
+        border-color: #3a3b4a;
+    }
+
+    .product-item {
+        display: flex;
+        align-items: center;
+        padding: 12px 16px;
+        background-color: #ffffff;
+        border-bottom: 1px solid #e5e7eb;
+        transition: all 0.2s;
+        cursor: move;
+    }
+
+    body.dark-mode .product-item {
+        background-color: #2b2c40;
+        border-bottom-color: #3a3b4a;
+    }
+
+    .product-item:last-child {
+        border-bottom: none;
+    }
+
+    .product-item:hover {
+        background-color: #f9fafb;
+    }
+
+    body.dark-mode .product-item:hover {
+        background-color: #33344a;
+    }
+
+    .product-item.dragging {
+        opacity: 0.5;
+    }
+
+    .product-item.drag-over {
+        background-color: #eef2ff;
+        border-color: var(--primary);
+    }
+
+    body.dark-mode .product-item.drag-over {
+        background-color: #3a3b5a;
+    }
+
+    .drag-handle {
+        display: flex;
+        align-items: center;
+        margin-right: 12px;
+        color: #9ca3af;
+        cursor: move;
+    }
+
+    .order-number {
+        font-size: 14px;
+        font-weight: 500;
+        min-width: 20px;
+        text-align: center;
+    }
+
+    .product-icon {
+        margin-right: 12px;
+        color: #6b7280;
+        font-size: 18px;
+    }
+
+    body.dark-mode .product-icon {
+        color: #9ca3af;
+    }
+
+    .product-info {
+        flex: 1;
+    }
+
+    .product-title {
+        font-size: 14px;
+        font-weight: 500;
+        color: #111827;
+    }
+
+    body.dark-mode .product-title {
+        color: #f3f4f6;
+    }
+
+    .product-status {
+        margin-right: 16px;
+    }
+
+    .status-badge {
+        padding: 4px 12px;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: 500;
+    }
+
+    .status-active {
+        background-color: #d1fae5;
+        color: #065f46;
+    }
+
+    body.dark-mode .status-active {
+        background-color: #064e3b;
+        color: #6ee7b7;
+    }
+
+    .status-draft {
+        background-color: #fee2e2;
+        color: #991b1b;
+    }
+
+    body.dark-mode .status-draft {
+        background-color: #7f1d1d;
+        color: #fca5a5;
+    }
+
+    .btn-remove {
+        width: 32px;
+        height: 32px;
+        border: none;
+        background: none;
+        color: #9ca3af;
+        border-radius: 6px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s;
+    }
+
+    .btn-remove:hover {
+        background-color: #fee2e2;
+        color: #dc2626;
+    }
+
+    body.dark-mode .btn-remove:hover {
+        background-color: #7f1d1d;
+        color: #ef4444;
+    }
+
+    .no-products {
+        padding: 40px;
+        text-align: center;
+        color: #6b7280;
+        font-size: 14px;
+    }
+
+    body.dark-mode .no-products {
+        color: #9ca3af;
+    }
 </style>
 
 <div class="page-header">
@@ -878,6 +1094,78 @@
         </div>
     </div>
 </form>
+
+<!-- Products in Collection Card -->
+<div class="products-card" style="margin-top: 24px;">
+    <div class="products-card-header">
+        <h5 class="section-title" data-i18n="products">Productos</h5>
+    </div>
+    <div class="products-card-body">
+        <!-- Search and Sort Bar -->
+        <div class="products-toolbar">
+            <input type="text" 
+                   id="productSearch" 
+                   class="form-control" 
+                   placeholder="Buscar productos" 
+                   data-i18n-placeholder="search_products"
+                   style="flex: 1;">
+            <button type="button" class="btn btn-secondary btn-explore" data-i18n="explore">
+                Explorar
+            </button>
+            <select id="productSort" class="form-select sort-select">
+                <option value="manual" data-i18n="sort_manual">Orden: Manual</option>
+                <option value="bestselling" data-i18n="sort_bestselling">Ordenar: Más vendidos</option>
+                <option value="az" data-i18n="sort_az">Ordenar: A-Z</option>
+                <option value="za" data-i18n="sort_za">Ordenar: Z-A</option>
+                <option value="newest" data-i18n="sort_newest">Ordenar: Más reciente</option>
+                <option value="oldest" data-i18n="sort_oldest">Ordenar: Más antiguo</option>
+            </select>
+        </div>
+        
+        <!-- Products List -->
+        <div id="productsList" class="products-list">
+            @{
+                var productsInCollection = ViewBag.ProductsInCollection as dynamic;
+                if (productsInCollection != null && productsInCollection.Count > 0)
+                {
+                    foreach (var product in productsInCollection)
+                    {
+                        <div class="product-item" data-product-id="@product.Id" data-product-title="@product.Title">
+                            <div class="drag-handle">
+                                <span class="order-number">@(product.DisplayOrder + 1)</span>
+                            </div>
+                            <div class="product-icon">
+                                <i class="fas fa-box"></i>
+                            </div>
+                            <div class="product-info">
+                                <span class="product-title">@product.Title</span>
+                            </div>
+                            <div class="product-status">
+                                @if (product.Status == "active")
+                                {
+                                    <span class="status-badge status-active" data-i18n="status_active">Activo</span>
+                                }
+                                else
+                                {
+                                    <span class="status-badge status-draft" data-i18n="status_draft">Borrador</span>
+                                }
+                            </div>
+                            <button type="button" class="btn-remove" onclick="removeProductFromCollection(@product.Id)" title="Quitar producto">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="no-products" data-i18n="no_products">
+                        No hay productos en esta colección
+                    </div>
+                }
+            }
+        </div>
+    </div>
+</div>
 
 @section Scripts {
     <script>
@@ -1243,7 +1531,22 @@
                 
                 // Image upload
                 image_too_large: "La imagen es demasiado grande. El tamaño máximo es 25MB.",
-                image_upload_pending: "Nota: La funcionalidad de carga de imágenes estará disponible próximamente."
+                image_upload_pending: "Nota: La funcionalidad de carga de imágenes estará disponible próximamente.",
+                
+                // Products card
+                products: "Productos",
+                search_products: "Buscar productos",
+                explore: "Explorar",
+                sort_manual: "Orden: Manual",
+                sort_bestselling: "Ordenar: Más vendidos",
+                sort_az: "Ordenar: A-Z",
+                sort_za: "Ordenar: Z-A",
+                sort_newest: "Ordenar: Más reciente",
+                sort_oldest: "Ordenar: Más antiguo",
+                status_active: "Activo",
+                status_draft: "Borrador",
+                no_products: "No hay productos en esta colección",
+                remove_product_confirm: "¿Estás seguro de quitar este producto de la colección?"
             },
             en: {
                 edit_collection: "Edit collection",
@@ -1295,7 +1598,22 @@
                 
                 // Image upload
                 image_too_large: "The image is too large. Maximum size is 25MB.",
-                image_upload_pending: "Note: Image upload functionality will be available soon."
+                image_upload_pending: "Note: Image upload functionality will be available soon.",
+                
+                // Products card
+                products: "Products",
+                search_products: "Search products",
+                explore: "Explore",
+                sort_manual: "Sort: Manual",
+                sort_bestselling: "Sort: Best selling",
+                sort_az: "Sort: A-Z",
+                sort_za: "Sort: Z-A",
+                sort_newest: "Sort: Newest",
+                sort_oldest: "Sort: Oldest",
+                status_active: "Active",
+                status_draft: "Draft",
+                no_products: "No products in this collection",
+                remove_product_confirm: "Are you sure you want to remove this product from the collection?"
             }
         };
 
@@ -1308,6 +1626,214 @@
             Object.assign(translations.en, editCollectionTranslations.en);
         }
 
+        // Products Card Functions
+        const collectionId = @Model.Id;
+        let productOrder = [];
+        
+        // Initialize product order
+        function initializeProductOrder() {
+            productOrder = [];
+            document.querySelectorAll('.product-item').forEach(item => {
+                productOrder.push(parseInt(item.dataset.productId));
+            });
+        }
+        
+        // Product search functionality
+        const productSearch = document.getElementById('productSearch');
+        productSearch.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            document.querySelectorAll('.product-item').forEach(item => {
+                const title = item.dataset.productTitle.toLowerCase();
+                if (title.includes(searchTerm)) {
+                    item.style.display = 'flex';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        });
+        
+        // Product sort functionality
+        const productSort = document.getElementById('productSort');
+        productSort.addEventListener('change', function() {
+            const sortValue = this.value;
+            const productsList = document.getElementById('productsList');
+            const items = Array.from(productsList.querySelectorAll('.product-item'));
+            
+            items.sort((a, b) => {
+                switch (sortValue) {
+                    case 'az':
+                        return a.dataset.productTitle.localeCompare(b.dataset.productTitle);
+                    case 'za':
+                        return b.dataset.productTitle.localeCompare(a.dataset.productTitle);
+                    case 'manual':
+                    default:
+                        return productOrder.indexOf(parseInt(a.dataset.productId)) - 
+                               productOrder.indexOf(parseInt(b.dataset.productId));
+                }
+            });
+            
+            // Re-append sorted items
+            items.forEach(item => productsList.appendChild(item));
+            
+            // Update order numbers
+            updateOrderNumbers();
+        });
+        
+        // Update order numbers
+        function updateOrderNumbers() {
+            document.querySelectorAll('.product-item').forEach((item, index) => {
+                const orderNumber = item.querySelector('.order-number');
+                if (orderNumber) {
+                    orderNumber.textContent = index + 1;
+                }
+            });
+        }
+        
+        // Remove product from collection
+        function removeProductFromCollection(productId) {
+            const currentLang = localStorage.getItem('preferredLanguage') || 'es';
+            const confirmMessage = translations[currentLang]['remove_product_confirm'] || '¿Estás seguro de quitar este producto de la colección?';
+            
+            if (!confirm(confirmMessage)) {
+                return;
+            }
+            
+            fetch('@Url.Action("RemoveProductFromCollection", "Collections")', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                },
+                body: `collectionId=${collectionId}&productId=${productId}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Remove the product item from DOM
+                    const productItem = document.querySelector(`.product-item[data-product-id="${productId}"]`);
+                    if (productItem) {
+                        productItem.remove();
+                    }
+                    
+                    // Update order numbers
+                    updateOrderNumbers();
+                    
+                    // Update product order array
+                    productOrder = productOrder.filter(id => id !== productId);
+                    
+                    // Check if no products left
+                    if (document.querySelectorAll('.product-item').length === 0) {
+                        document.getElementById('productsList').innerHTML = 
+                            `<div class="no-products" data-i18n="no_products">No hay productos en esta colección</div>`;
+                    }
+                } else {
+                    alert(data.message || 'Error al remover el producto');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error al remover el producto');
+            });
+        }
+        
+        // Drag and Drop for products
+        function initializeProductDragDrop() {
+            let draggedElement = null;
+            let draggedIndex = null;
+            
+            document.querySelectorAll('.product-item').forEach((item, index) => {
+                item.draggable = true;
+                
+                item.addEventListener('dragstart', function(e) {
+                    draggedElement = this;
+                    draggedIndex = index;
+                    this.classList.add('dragging');
+                    e.dataTransfer.effectAllowed = 'move';
+                });
+                
+                item.addEventListener('dragend', function(e) {
+                    this.classList.remove('dragging');
+                    document.querySelectorAll('.product-item').forEach(item => {
+                        item.classList.remove('drag-over');
+                    });
+                });
+                
+                item.addEventListener('dragover', function(e) {
+                    if (e.preventDefault) {
+                        e.preventDefault();
+                    }
+                    e.dataTransfer.dropEffect = 'move';
+                    
+                    if (draggedElement !== this) {
+                        this.classList.add('drag-over');
+                    }
+                    
+                    return false;
+                });
+                
+                item.addEventListener('dragleave', function(e) {
+                    this.classList.remove('drag-over');
+                });
+                
+                item.addEventListener('drop', function(e) {
+                    if (e.stopPropagation) {
+                        e.stopPropagation();
+                    }
+                    e.preventDefault();
+                    
+                    this.classList.remove('drag-over');
+                    
+                    if (draggedElement !== this) {
+                        const dropIndex = Array.from(this.parentNode.children).indexOf(this);
+                        
+                        // Reorder DOM
+                        if (draggedIndex < dropIndex) {
+                            this.parentNode.insertBefore(draggedElement, this.nextSibling);
+                        } else {
+                            this.parentNode.insertBefore(draggedElement, this);
+                        }
+                        
+                        // Update order numbers
+                        updateOrderNumbers();
+                        
+                        // Update product order and save
+                        updateProductOrder();
+                    }
+                    
+                    return false;
+                });
+            });
+        }
+        
+        // Update product order in database
+        function updateProductOrder() {
+            const newOrder = [];
+            document.querySelectorAll('.product-item').forEach(item => {
+                newOrder.push(parseInt(item.dataset.productId));
+            });
+            
+            fetch('@Url.Action("UpdateProductOrder", "Collections")', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                },
+                body: `collectionId=${collectionId}&productIds=${newOrder.join(',')}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    productOrder = newOrder;
+                    console.log('Product order updated successfully');
+                } else {
+                    console.error('Error updating product order:', data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        }
+        
         // Initialize on load
         document.addEventListener('DOMContentLoaded', function() {
             // Apply translations
@@ -1321,6 +1847,10 @@
             updateCharCount('seoTitleCount', seoTitleInput.value.length, 60);
             updateCharCount('seoDescCount', seoDescInput.value.length, 160);
             validateHandle();
+            
+            // Initialize products functionality
+            initializeProductOrder();
+            initializeProductDragDrop();
             
             // Handle alert close buttons
             document.querySelectorAll('.alert .btn-close').forEach(btn => {
