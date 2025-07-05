@@ -802,6 +802,35 @@
                                 `;
                             }
                         }
+                    } else if (sectionId === 'featured-product') {
+                        console.log('[PREVIEW] Processing featured product section');
+                        const featuredProductConfig = currentSectionsConfig.featuredProduct;
+                        console.log('[PREVIEW] featured product config:', featuredProductConfig);
+                        console.log('[PREVIEW] Module available?', window.WebsiteBuilderModules?.FeaturedProduct?.render ? 'Yes' : 'No');
+                        
+                        if (featuredProductConfig && !featuredProductConfig.isHidden) {
+                            // Use the module's render function if available
+                            if (window.WebsiteBuilderModules && window.WebsiteBuilderModules.FeaturedProduct && window.WebsiteBuilderModules.FeaturedProduct.render) {
+                                console.log('[PREVIEW] Rendering featured product with module');
+                                const renderedHtml = window.WebsiteBuilderModules.FeaturedProduct.render(featuredProductConfig);
+                                console.log('[PREVIEW] Rendered HTML length:', renderedHtml.length);
+                                finalHtml += renderedHtml;
+                            } else {
+                                console.log('[PREVIEW] Module not available, using fallback');
+                                // Fallback if module is not loaded
+                                finalHtml += `
+                                    <div class="section-wrapper featured-product-section" style="padding: 40px 0; background: #f5f5f5;">
+                                        <div class="container" style="max-width: 1200px; margin: 0 auto; padding: 0 20px;">
+                                            <div style="text-align: center; color: #666;">
+                                                <i class="material-icons" style="font-size: 48px; margin-bottom: 16px;">shopping_bag</i>
+                                                <h3>Featured Product</h3>
+                                                <p>Module is loading...</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                `;
+                            }
+                        }
                     } else if (sectionId && sectionId.startsWith('contact-form-')) {
                         console.log('[PREVIEW] Processing contact form section:', sectionId);
                         const contactFormConfig = currentSectionsConfig.contactForms && currentSectionsConfig.contactForms[sectionId];

@@ -655,5 +655,67 @@ namespace Hotel.Controllers
         }
 
         #endregion
+
+        #region API Methods for Website Builder
+
+        // GET: api/builder/products
+        [HttpGet]
+        [Route("api/builder/products")]
+        public async Task<IActionResult> GetProductsForBuilder()
+        {
+            try
+            {
+                var products = await _context.Products
+                    .Where(p => p.Status == "active") // Solo productos activos
+                    .Select(p => new
+                    {
+                        p.Id,
+                        name = p.Title, // Usar Title y mapearlo a name para el frontend
+                        p.Description,
+                        p.Price,
+                        p.CompareAtPrice,
+                        p.ProductType,
+                        p.Vendor,
+                        images = _context.ProductImages
+                            .Where(img => img.ProductId == p.Id)
+                            .OrderBy(img => img.Position)
+                            .Select(img => new
+                            {
+                                img.Id,
+                                url = img.ImageUrl, // Usar ImageUrl y mapearlo a url para el frontend
+                                img.AltText,
+                                img.Position
+                            })
+                            .ToList(),
+                        variants = _context.ProductVariants
+                            .Where(v => v.ProductId == p.Id)
+                            .OrderBy(v => v.Position)
+                            .Select(v => new
+                            {
+                                v.Id,
+                                v.Title,
+                                v.Price,
+                                v.CompareAtPrice,
+                                v.SKU,
+                                v.Option1,
+                                v.Option2,
+                                v.Option3,
+                                v.Quantity
+                            })
+                            .ToList()
+                    })
+                    .OrderBy(p => p.name)
+                    .ToListAsync();
+
+                return Json(products);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al obtener productos para Website Builder");
+                return Json(new List<object>());
+            }
+        }
+
+        #endregion
     }
 }

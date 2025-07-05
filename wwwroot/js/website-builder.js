@@ -2430,6 +2430,11 @@ function renderPreview() {
                 $('.topbar-nav-icon').removeClass('active');
                 $('.topbar-nav-icon[data-view="sections"]').addClass('active');
                 window.switchSidebarView('richTextSettings');
+            } else if (sectionId === 'featured-product') {
+                // Logic for featured product section
+                $('.topbar-nav-icon').removeClass('active');
+                $('.topbar-nav-icon[data-view="sections"]').addClass('active');
+                window.switchSidebarView('featuredProductSettings');
             } else if (sectionId && sectionId.startsWith('contact-form-')) {
                 // Logic for contact form section
                 $('.topbar-nav-icon').removeClass('active');
@@ -4704,6 +4709,51 @@ $(document).ready(async function() {
             'gallery.columnsDesktop': 'Columnas en escritorio',
             'gallery.columnsMobile': 'Columnas en móvil',
             'gallery.spacing': 'Espaciado',
+            // Featured Product translations
+            'featuredProduct.settings.title': 'Producto destacado',
+            'featuredProduct.colorScheme': 'Esquema de color',
+            'featuredProduct.width': 'Ancho',
+            'featuredProduct.product.title': 'Producto',
+            'featuredProduct.product.label': 'Producto',
+            'featuredProduct.productModal.title': 'Seleccionar producto',
+            'featuredProduct.media.title': 'Media',
+            'featuredProduct.media.learnAbout': 'Aprende sobre tipos de media',
+            'featuredProduct.media.desktopLayout': 'Diseño de escritorio',
+            'featuredProduct.media.desktopSpace': 'Espacio entre medios en escritorio',
+            'featuredProduct.media.thumbnailSize': 'Tamaño de miniatura en escritorio',
+            'featuredProduct.media.mobileLayout': 'Diseño móvil',
+            'featuredProduct.media.imageRatio': 'Relación de imagen',
+            'featuredProduct.media.showOnlySelectedVariant': 'Mostrar solo medios de la variante seleccionada',
+            'featuredProduct.media.filterNote': 'Configura la opción para filtrar medios del producto en Configuración del tema > Avanzado',
+            'featuredProduct.media.enableImageZoom': 'Habilitar zoom de imagen',
+            'featuredProduct.media.enableVideoLooping': 'Habilitar bucle de video',
+            'featuredProduct.media.enableVideoAutoplay': 'Habilitar reproducción automática de video',
+            'featuredProduct.media.scaleVideo': 'Escalar video',
+            'featuredProduct.paddings.title': 'Rellenos',
+            'featuredProduct.paddings.addSidePaddings': 'Agregar rellenos laterales',
+            'featuredProduct.paddings.topPadding': 'Relleno superior',
+            'featuredProduct.paddings.bottomPadding': 'Relleno inferior',
+            // Featured Product select options
+            'featuredProduct.options.adapt': 'Adaptar a la imagen',
+            'featuredProduct.options.portrait': 'Retrato',
+            'featuredProduct.options.square': 'Cuadrado',
+            'featuredProduct.options.circle': 'Círculo',
+            'featuredProduct.options.small': 'Pequeño',
+            'featuredProduct.options.medium': 'Mediano',
+            'featuredProduct.options.large': 'Grande',
+            'featuredProduct.options.thumbnailsLeft': 'Miniaturas a la izquierda',
+            'featuredProduct.options.thumbnailsBottom': 'Miniaturas abajo',
+            'featuredProduct.options.carousel': 'Carrusel',
+            'featuredProduct.options.stacked': 'Apilado',
+            'featuredProduct.options.page': 'Página',
+            'featuredProduct.options.large': 'Grande',
+            'featuredProduct.options.default': 'Por defecto',
+            'featuredProduct.options.scheme1': 'Esquema 1',
+            'featuredProduct.options.scheme2': 'Esquema 2',
+            'featuredProduct.options.scheme3': 'Esquema 3',
+            'featuredProduct.options.scheme4': 'Esquema 4',
+            'featuredProduct.options.scheme5': 'Esquema 5',
+            'common.learnAboutColorSchemes': 'Aprende sobre esquemas de color',
             'sections.hotspots': 'Puntos de acceso',
             'sections.imageSlider': 'Deslizador de imágenes',
             'sections.imagesWithText': 'Imágenes con texto',
@@ -5220,6 +5270,60 @@ $(document).ready(async function() {
             // Section names
             'sections.featuredCollection': 'Featured collection',
             'sections.featuredProduct': 'Featured product',
+            // Featured Product Settings translations
+            'featuredProduct.settings.title': 'Featured product',
+            'featuredProduct.settings.selectProduct': 'Select product',
+            'featuredProduct.settings.searchProducts': 'Search products...',
+            'featuredProduct.settings.noProductSelected': 'No product selected',
+            'featuredProduct.settings.removeProduct': 'Remove product',
+            'featuredProduct.settings.mainSectionSettings': 'Main section settings',
+            'featuredProduct.settings.showAtAddToCart': 'Show \"Add to cart\" button',
+            'featuredProduct.settings.enableVideo': 'Enable video',
+            'featuredProduct.settings.imageSectionSettings': 'Images',
+            'featuredProduct.settings.desktopImageWidth': 'Desktop image width',
+            'featuredProduct.settings.desktopMediaWidth': 'Desktop media width',
+            'featuredProduct.settings.mobileMediaAppearance': 'Mobile media appearance',
+            'featuredProduct.settings.desktopLayout': 'Desktop layout',
+            'featuredProduct.settings.thumbnailsLeft': 'Thumbnails left',
+            'featuredProduct.settings.thumbnailsBottom': 'Thumbnails bottom',
+            'featuredProduct.settings.carousel': 'Carousel',
+            'featuredProduct.settings.stacked': 'Stacked',
+            'featuredProduct.settings.mobileLayout': 'Mobile layout',
+            'featuredProduct.settings.desktopThumbnailSize': 'Desktop thumbnail size',
+            'featuredProduct.settings.desktopSpaceBetween': 'Desktop space between media',
+            'featuredProduct.settings.enableThumbnailSlider': 'Enable thumbnail slider on mobile',
+            'featuredProduct.settings.hideVariantMedia': 'Hide variant media',
+            'featuredProduct.settings.enableImageZoomDesktop': 'Enable image zoom on desktop',
+            'featuredProduct.settings.enableImageZoomMobile': 'Enable image zoom on mobile',
+            'featuredProduct.settings.loopVideo': 'Enable video looping',
+            'featuredProduct.settings.imageRatio': 'Image ratio',
+            'featuredProduct.settings.adapt': 'Adapt to image',
+            'featuredProduct.settings.portrait': 'Portrait',
+            'featuredProduct.settings.square': 'Square',
+            'featuredProduct.settings.circle': 'Circle',
+            'featuredProduct.settings.small': 'Small',
+            'featuredProduct.settings.medium': 'Medium',
+            'featuredProduct.settings.large': 'Large',
+            // Featured Product select options
+            'featuredProduct.options.adapt': 'Adapt to image',
+            'featuredProduct.options.portrait': 'Portrait',
+            'featuredProduct.options.square': 'Square',
+            'featuredProduct.options.circle': 'Circle',
+            'featuredProduct.options.small': 'Small',
+            'featuredProduct.options.medium': 'Medium',
+            'featuredProduct.options.large': 'Large',
+            'featuredProduct.options.thumbnailsLeft': 'Thumbnails left',
+            'featuredProduct.options.thumbnailsBottom': 'Thumbnails bottom',
+            'featuredProduct.options.carousel': 'Carousel',
+            'featuredProduct.options.stacked': 'Stacked',
+            'featuredProduct.options.page': 'Page',
+            'featuredProduct.options.large': 'Large',
+            'featuredProduct.options.default': 'Default',
+            'featuredProduct.options.scheme1': 'Scheme 1',
+            'featuredProduct.options.scheme2': 'Scheme 2',
+            'featuredProduct.options.scheme3': 'Scheme 3',
+            'featuredProduct.options.scheme4': 'Scheme 4',
+            'featuredProduct.options.scheme5': 'Scheme 5',
             'sections.collectionList': 'Collection list',
             'sections.richText': 'Rich text',
             'sections.imageBanner': 'Image banner',
@@ -6261,7 +6365,7 @@ $(document).ready(async function() {
                 const needsDragHandle = true; // All template sections should be draggable
                 
                 // Sections that have child elements (need add button instead of settings)
-                const hasChildren = ['slideshow', 'multicolumn', 'imageWithText', 'testimonials', 'accordion', 'gallery', 'featured-product'].includes(sectionId);
+                const hasChildren = ['slideshow', 'multicolumn', 'imageWithText', 'testimonials', 'accordion', 'gallery'].includes(sectionId);
                 
                 // Sections that also have collapse functionality when they have children
                 const canCollapse = hasChildren && hasChildElements(sectionId);
@@ -12646,6 +12750,11 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
             else if (blockType === 'richText') {
                 console.log('[DEBUG] RichText section clicked, opening settings');
                 switchSidebarView('richTextSettings');
+            }
+            // Handle featured product click
+            else if (blockType === 'featured-product') {
+                console.log('[DEBUG] Featured Product section clicked, opening settings');
+                switchSidebarView('featuredProductSettings');
             }
             // Handle gallery image click
             else if (blockType === 'gallery-image') {

@@ -141,6 +141,10 @@
       "PackagePath": "staticwebassets\\TestImages\\testimonialstructure.png"
     },
     {
+      "Id": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\TestImages\\thumbnails.png",
+      "PackagePath": "staticwebassets\\TestImages\\thumbnails.png"
+    },
+    {
       "Id": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\css\\admin-panel.css",
       "PackagePath": "staticwebassets\\css\\admin-panel.css"
     },

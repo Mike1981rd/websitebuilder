@@ -116,6 +116,7 @@ wwwroot\TestImages\richtextsetup5.png
 wwwroot\TestImages\richtextsetup6.png
 wwwroot\TestImages\slideshowpreview.png
 wwwroot\TestImages\testimonialstructure.png
+wwwroot\TestImages\thumbnails.png
 wwwroot\TestImages\VariasFilas.png
 wwwroot\uploads\logos\234c2c73-3b15-4708-a501-fc6eac175b28_25.png
 wwwroot\uploads\logos\39239043-4a03-42d1-8138-e5a6272e63c5_25.png

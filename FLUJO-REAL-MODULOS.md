@@ -1066,12 +1066,138 @@ renderSettings: function(config) {
 - **Margin bottom**: 12px (no 16px)
 - **Color**: #5c5e60 (gris sutil, no negro)
 
+**EJEMPLO COMPLETO**:
+```javascript
+// En renderSettings() del módulo
+<div class="settings-group">
+    <h4 style="font-size: 13px; font-weight: 500; margin-bottom: 12px; color: #5c5e60;" 
+        data-i18n="featuredProduct.media.title">Media</h4>
+    <!-- Contenido de la sección -->
+</div>
+```
+
+### ❌ ERROR #3: CLICK EN SECCIÓN NO ABRE VISTA DE CONFIGURACIÓN
+**PROBLEMA RECURRENTE**: Al hacer click en una sección del panel lateral, no se abre la vista de configuración porque el `data-block-type` no coincide con el caso en el manejador de clicks.
+
+**SÍNTOMA COMÚN**:
+```javascript
+// En renderTemplateSections() - línea ~6230
+<div class="sidebar-subsection" data-block-type="featured-product">
+
+// En attachBlockListEventListeners() - línea ~12651
+else if (blockType === 'featuredProduct') { // ❌ NO COINCIDE
+```
+
+**SOLUCIÓN CORRECTA**:
+```javascript
+// ✅ ASEGURAR QUE COINCIDAN EXACTAMENTE
+// Si en el HTML se renderiza:
+data-block-type="featured-product"
+
+// En el manejador de clicks debe ser:
+else if (blockType === 'featured-product') {
+    console.log('[DEBUG] Featured Product section clicked, opening settings');
+    switchSidebarView('featuredProductSettings');
+}
+```
+
+**REGLA CRÍTICA**: El valor de `data-block-type` en el HTML DEBE coincidir EXACTAMENTE con el valor que se verifica en `attachBlockListEventListeners()`.
+
+**UBICACIÓN DEL MANEJADOR DE CLICKS**: 
+- Archivo: `website-builder.js`
+- Función: `attachBlockListEventListeners()`
+- Línea aproximada: ~12520-12670
+- Buscar: `$(document).on('click', '.sidebar-subsection'`
+
+### ❌ ERROR #3.1: CLICK EN PESTAÑA AZUL DEL PREVIEW NO ABRE CONFIGURACIÓN
+**PROBLEMA ADICIONAL**: Al hacer click en la pestaña azul que aparece al hacer hover sobre una sección en el preview central, no se abre la vista de configuración.
+
+**CAUSA**: Falta agregar el handler específico para la sección en la función `renderPreview()`.
+
+**UBICACIÓN DEL HANDLER DEL PREVIEW**:
+- Archivo: `website-builder.js`
+- Función: `renderPreview()` - Event listeners section
+- Línea aproximada: ~2360-2450
+- Buscar: `const sectionId = this.dataset.sectionId;`
+
+**SOLUCIÓN REQUERIDA**:
+```javascript
+// En renderPreview(), después de otros handlers de secciones (~línea 2433)
+} else if (sectionId === 'richText') {
+    // Logic for richText section
+    $('.topbar-nav-icon').removeClass('active');
+    $('.topbar-nav-icon[data-view="sections"]').addClass('active');
+    window.switchSidebarView('richTextSettings');
+} else if (sectionId === 'featured-product') {  // ✅ AGREGAR ESTE HANDLER
+    // Logic for featured product section
+    $('.topbar-nav-icon').removeClass('active');
+    $('.topbar-nav-icon[data-view="sections"]').addClass('active');
+    window.switchSidebarView('featuredProductSettings');
+}
+```
+
+**IMPORTANTE**: El handler del preview usa `data-section-id` (no `data-block-type`), por lo que el módulo debe renderizar:
+```html
+<div class="section-wrapper featured-product-section" data-section-id="featured-product">
+```
+
+**NOTA**: Algunos módulos antiguos también incluyen `data-block-type` por compatibilidad, pero no es necesario para el handler del preview.
+
+### ❌ ERROR #4: TOGGLES MAL IMPLEMENTADOS CAUSAN DESAPARICIÓN DEL PANEL
+**PROBLEMA RECURRENTE**: Al implementar toggles (switches) incorrectamente, el panel lateral desaparece al hacer click en ellos.
+
+**SÍNTOMA COMÚN**:
+```javascript
+// ❌ INCORRECTO - Estructura simple que causa problemas
+<div class="form-group">
+    <label>
+        <input type="checkbox" id="featuredProduct-enableZoom" ${config.enableZoom ? 'checked' : ''}>
+        <span>Enable image zoom</span>
+    </label>
+</div>
+```
+
+**SOLUCIÓN CORRECTA**:
+```javascript
+// ✅ CORRECTO - Estructura completa con estilos Shopify
+<div class="form-group">
+    <label class="toggle-field">
+        <span data-i18n="featuredProduct.media.enableImageZoom">Enable image zoom</span>
+        <input type="checkbox" class="shopify-toggle" id="featuredProduct-enableImageZoom" ${configData.enableImageZoom ? 'checked' : ''}>
+        <label for="featuredProduct-enableImageZoom" class="toggle-slider"></label>
+    </label>
+</div>
+```
+
+**ELEMENTOS CRÍTICOS DEL TOGGLE**:
+1. **Contenedor**: `<label class="toggle-field">` (no solo `<label>`)
+2. **Texto primero**: El `<span>` con el texto DEBE ir ANTES del input
+3. **Clase del input**: `class="shopify-toggle"` (obligatorio)
+4. **Slider visual**: `<label for="[id]" class="toggle-slider"></label>` (obligatorio)
+5. **ID único**: Cada toggle debe tener un ID único con prefijo del módulo
+
+**PATRÓN DE EVENT LISTENER**:
+```javascript
+$('#featuredProduct-enableImageZoom').off('change.featuredProduct').on('change.featuredProduct', function() {
+    const isChecked = $(this).is(':checked');
+    if (!currentSectionsConfig.featuredProduct) {
+        currentSectionsConfig.featuredProduct = {};
+    }
+    currentSectionsConfig.featuredProduct.enableImageZoom = isChecked;
+    hasPendingPageStructureChanges = true;
+    updateSaveButtonState();
+    renderPreview();
+});
+```
+
 ### 📋 CHECKLIST OBLIGATORIO PARA VISTAS DE CONFIGURACIÓN
 - [ ] NO incluir sección de "agregar items" en la vista de configuración
 - [ ] Títulos de secciones con font-size: 13px, font-weight: 500
 - [ ] Color de títulos: #5c5e60
 - [ ] Margin inferior de títulos: 12px
 - [ ] La gestión de items se hace desde el panel lateral con el ícono (+)
+- [ ] Verificar que `data-block-type` coincida con el caso en el manejador de clicks
+- [ ] Toggles usan estructura completa con `class="shopify-toggle"` y `toggle-slider`
 
 ## ETAPA 5: VISTAS DE CONFIGURACIÓN
 
