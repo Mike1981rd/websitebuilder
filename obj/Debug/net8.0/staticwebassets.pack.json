@@ -97,6 +97,10 @@
       "PackagePath": "staticwebassets\\TestImages\\newsletterstructure.png"
     },
     {
+      "Id": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\TestImages\\productmodalhover.png",
+      "PackagePath": "staticwebassets\\TestImages\\productmodalhover.png"
+    },
+    {
       "Id": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\TestImages\\richtexteditorstructure.png",
       "PackagePath": "staticwebassets\\TestImages\\richtexteditorstructure.png"
     },
@@ -203,6 +207,10 @@
     {
       "Id": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\js\\website-builder\\modules\\contact-form.js",
       "PackagePath": "staticwebassets\\js\\website-builder\\modules\\contact-form.js"
+    },
+    {
+      "Id": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\js\\website-builder\\modules\\featured-product.js",
+      "PackagePath": "staticwebassets\\js\\website-builder\\modules\\featured-product.js"
     },
     {
       "Id": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\js\\website-builder\\modules\\footer.js",

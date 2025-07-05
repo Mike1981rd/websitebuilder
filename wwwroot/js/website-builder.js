@@ -1993,6 +1993,39 @@ function renderGallery(config) {
     `;
 }
 
+function renderFeaturedProduct(config) {
+    console.log('[FEATURED-PRODUCT FALLBACK] Rendering with config:', config);
+    
+    if (!config || config.isHidden) {
+        return '';
+    }
+    
+    const schemeColors = getColorSchemeValues(config.colorScheme || 'scheme1');
+    
+    return `
+        <div class="section-wrapper featured-product-section" 
+             data-section-id="featured-product" 
+             style="padding: 40px 0; background: ${schemeColors.background};">
+            <div class="section-header-tag">
+                <span class="material-symbols-outlined" style="font-size: 16px;">shopping_bag</span>
+                ${translations[currentLanguage]?.['sections.featuredProduct'] || 'Featured Product'}
+            </div>
+            <div class="container" style="max-width: 1200px; margin: 0 auto; padding: 0 20px;">
+                <div style="display: flex; gap: 40px; align-items: flex-start;">
+                    <div style="flex: 1; background: #d4a574; aspect-ratio: 1; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                        <i class="material-icons" style="font-size: 64px; color: #fff;">image</i>
+                    </div>
+                    <div style="flex: 1;">
+                        <h2 style="color: ${schemeColors.text}; margin-bottom: 10px;">Product Name</h2>
+                        <p style="font-size: 24px; color: ${schemeColors.text}; margin-bottom: 20px;">$0.00</p>
+                        <p style="color: ${schemeColors.text};">Esta sección mostrará el producto destacado.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
 function renderRichText(config) {
     if (!config || config.isHidden) return '';
     
@@ -2215,6 +2248,16 @@ function renderPreview() {
                             finalHtml += iframeWindow.renderFooter(config);
                         }
                     }
+                } else if (sectionId === 'featured-product') {
+                    const config = currentSectionsConfig.featuredProduct;
+                    if (config && !config.isHidden) {
+                        const moduleRender = iframeWindow.WebsiteBuilderModules?.FeaturedProduct?.render;
+                        if (moduleRender) {
+                            finalHtml += moduleRender(config);
+                        } else if (iframeWindow.renderFeaturedProduct) {
+                            finalHtml += iframeWindow.renderFeaturedProduct(config);
+                        }
+                    }
                 }
             });
         }
@@ -2234,7 +2277,8 @@ function renderPreview() {
             'newsletter': window.WebsiteBuilderModules?.Newsletter?.render || renderNewsletter,
             'gallery': window.WebsiteBuilderModules?.Gallery?.render || renderGallery,
             'richText': window.WebsiteBuilderModules?.RichText?.render || renderRichText,
-            'footer': window.WebsiteBuilderModules?.Footer?.render || renderFooter
+            'footer': window.WebsiteBuilderModules?.Footer?.render || renderFooter,
+            'featured-product': window.WebsiteBuilderModules?.FeaturedProduct?.render || renderFeaturedProduct
         };
         
         // Renderizar secciones según el orden definido
@@ -2247,6 +2291,8 @@ function renderPreview() {
                     configKey = 'announcementBar';
                 } else if (sectionId === 'images-with-text') {
                     configKey = 'imageWithText';
+                } else if (sectionId === 'featured-product') {
+                    configKey = 'featuredProduct';
                 }
                 
                 // Handle contact forms separately
@@ -5846,6 +5892,18 @@ $(document).ready(async function() {
             } else {
                 console.error('[DEBUG] No HTML returned from accordion renderSettings');
             }
+        } else if (viewName === 'featuredProductSettings') {
+            // Featured Product settings - usar módulo
+            console.log('[DEBUG] Rendering featured product settings');
+            const html = executeModuleFunction('FeaturedProduct', 'renderSettings', window.currentSectionsConfig?.featuredProduct);
+            
+            if (html) {
+                dynamicContentArea.innerHTML = html;
+                executeModuleFunction('FeaturedProduct', 'attachEventListeners');
+                setTimeout(applyTranslations, 0);
+            } else {
+                console.error('[DEBUG] No HTML returned from featured product renderSettings');
+            }
         } else if (viewName === 'richTextSettings') {
             // Rich Text settings - usar módulo
             console.log('[DEBUG] Rendering rich text settings');
@@ -6161,6 +6219,41 @@ $(document).ready(async function() {
                         </div>
                     `;
                 }
+            } else if (sectionId === 'featured-product' && currentSectionsConfig.featuredProduct) {
+                const section = currentSectionsConfig.featuredProduct;
+                
+                // Featured product always has children
+                const hasChildren = true;
+                const canCollapse = hasChildElements(sectionId);
+                
+                html += `
+                    <div class="sidebar-subsection${canCollapse ? ' collapsible-parent' : ''}" data-block-type="${sectionId}" data-element-id="${sectionId}" data-section-id="${sectionId}">
+                        <i class="material-icons drag-handle">drag_handle</i>
+                        <span class="subsection-text" data-i18n="sections.featuredProduct">${getSectionTranslation(sectionId)}</span>
+                        <div class="subsection-actions">
+                            <button class="action-icon visibility-toggle ${section.isHidden ? 'is-hidden' : ''}" data-section="${sectionId}" title="Toggle visibility">
+                                <i class="material-icons icon-visible">visibility</i>
+                                <i class="material-icons icon-hidden">visibility_off</i>
+                            </button>
+                            <button class="action-icon add-icon" data-section="${sectionId}" title="Add">
+                                <i class="material-icons">add</i>
+                            </button>
+                            <button class="action-icon delete-icon" data-section="${sectionId}" title="Delete">
+                                <i class="material-icons">delete</i>
+                            </button>
+                            ${canCollapse ? `
+                                <button class="action-icon collapse-toggle" title="Collapse/Expand">
+                                    <i class="material-icons collapse-indicator">expand_more</i>
+                                </button>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+                
+                // Render child elements
+                if (hasChildren) {
+                    html += renderChildElements(sectionId);
+                }
             } else if (currentSectionsConfig[sectionId]) {
                 const section = currentSectionsConfig[sectionId];
                 
@@ -6168,7 +6261,7 @@ $(document).ready(async function() {
                 const needsDragHandle = true; // All template sections should be draggable
                 
                 // Sections that have child elements (need add button instead of settings)
-                const hasChildren = ['slideshow', 'multicolumn', 'imageWithText', 'testimonials', 'accordion', 'gallery'].includes(sectionId);
+                const hasChildren = ['slideshow', 'multicolumn', 'imageWithText', 'testimonials', 'accordion', 'gallery', 'featured-product'].includes(sectionId);
                 
                 // Sections that also have collapse functionality when they have children
                 const canCollapse = hasChildren && hasChildElements(sectionId);
@@ -6224,6 +6317,8 @@ $(document).ready(async function() {
                 return currentSectionsConfig.accordion?.itemOrder?.length > 0;
             case 'gallery':
                 return currentSectionsConfig.gallery?.imageOrder?.length > 0;
+            case 'featured-product':
+                return currentSectionsConfig.featuredProduct?.blockOrder?.length > 0;
             default:
                 return false;
         }
@@ -6386,6 +6481,46 @@ $(document).ready(async function() {
                                         </button>
                                         <button class="action-icon delete-image" data-image-id="${imageId}" title="Delete">
                                             <i class="material-icons">delete</i>
+                                        </button>
+                                    </div>
+                                </div>
+                            `;
+                        }
+                    });
+                    html += '</div>';
+                }
+                break;
+                
+            case 'featured-product':
+                if (currentSectionsConfig.featuredProduct?.blockOrder?.length > 0) {
+                    html += '<div id="featured-product-blocks-wrapper" style="position: relative;">';
+                    currentSectionsConfig.featuredProduct.blockOrder.forEach((blockId) => {
+                        const block = currentSectionsConfig.featuredProduct.blocks[blockId];
+                        if (block) {
+                            // Get display name based on block type
+                            let displayName = '';
+                            switch(block.type) {
+                                case 'vendor': displayName = 'Vendor'; break;
+                                case 'title': displayName = 'Title'; break;
+                                case 'price': displayName = 'Price'; break;
+                                case 'sku': displayName = 'SKU'; break;
+                                case 'variant-picker': displayName = 'Variant picker'; break;
+                                case 'inventory-status': displayName = 'Inventory status'; break;
+                                case 'quantity-selector': displayName = 'Quantity selector'; break;
+                                case 'buy-buttons': displayName = 'Buy buttons'; break;
+                                case 'description': displayName = 'Description'; break;
+                                case 'share': displayName = 'Share'; break;
+                                default: displayName = block.type;
+                            }
+                            
+                            html += `
+                                <div class="sidebar-subsection featured-product-block-item" data-block-type="featured-product-block" data-element-id="${blockId}" style="padding-left: 30px;">
+                                    <i class="material-icons drag-handle">drag_handle</i>
+                                    <span class="subsection-text" style="margin-left: 30px;">${displayName}</span>
+                                    <div class="subsection-actions">
+                                        <button class="action-icon visibility-toggle ${block.isHidden ? 'is-hidden' : ''}" data-element-id="${blockId}" data-block-type="featured-product-block" title="Toggle visibility">
+                                            <i class="material-icons icon-visible">visibility</i>
+                                            <i class="material-icons icon-hidden">visibility_off</i>
                                         </button>
                                     </div>
                                 </div>
@@ -10498,7 +10633,7 @@ $(document).ready(async function() {
         // Show all sections regardless of group (like Shopify does)
         const sections = [
             { id: 'featured-collection', icon: 'view_module', name: 'featuredCollection' },
-            { id: 'featured-product', icon: 'shopping_bag', name: 'featuredProduct' },
+            { id: 'featured-product', icon: 'shopping_bag', name: 'featuredProduct', preview: 'featured-product' },
             { id: 'collection-list', icon: 'list', name: 'collectionList' },
             { id: 'rich-text', icon: 'text_fields', name: 'richText' },
             { id: 'image-banner', icon: 'image', name: 'imageBanner' },
@@ -12253,6 +12388,8 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                 isHidden = currentSectionsConfig.gallery?.isHidden || false;
             } else if (section === 'richText') {
                 isHidden = currentSectionsConfig.richText?.isHidden || false;
+            } else if (section === 'featured-product') {
+                isHidden = currentSectionsConfig.featuredProduct?.isHidden || false;
             } else if (section === 'contact-form' && elementId) {
                 // Handle contact forms
                 isHidden = currentSectionsConfig.contactForms?.[elementId]?.isHidden || false;
@@ -12285,6 +12422,15 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                 const blockId = $button.attr('data-block-id') || $button.data('block-id');
                 if (blockId) {
                     isHidden = currentSectionsConfig.imageWithText?.blocks?.[blockId]?.isHidden || false;
+                }
+            } else if (blockType === 'featured-product-block' && elementId) {
+                // Handle featured product blocks
+                isHidden = currentSectionsConfig.featuredProduct?.blocks?.[elementId]?.isHidden || false;
+            } else if ($subsection.hasClass('featured-product-block-item')) {
+                // Additional check for featured product blocks using class
+                const blockId = $button.attr('data-block-id') || $button.data('block-id');
+                if (blockId) {
+                    isHidden = currentSectionsConfig.featuredProduct?.blocks?.[blockId]?.isHidden || false;
                 }
             }
             
@@ -12672,6 +12818,19 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                     if (index > -1) {
                         currentSectionsConfig.sectionOrder.splice(index, 1);
                     }
+                } else if (section === 'featured-product' && currentSectionsConfig.featuredProduct) {
+                    console.log('[DEBUG] Deleting featured product section');
+                    
+                    // CRÍTICO: Eliminar hijos primero
+                    $('#featured-product-blocks-wrapper').remove();
+                    $('.featured-product-block-item').remove();
+                    
+                    delete currentSectionsConfig.featuredProduct;
+                    
+                    let index = currentSectionsConfig.sectionOrder.indexOf('featured-product');
+                    if (index > -1) {
+                        currentSectionsConfig.sectionOrder.splice(index, 1);
+                    }
                 } else if (section === 'contact-form') {
                     // Contact forms have unique IDs, need to get the element ID
                     const elementId = $button.data('element-id');
@@ -12694,7 +12853,7 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                     $(this).remove();
                     
                     // For template sections, update the template sections container
-                    if (section === 'imageWithText' || section === 'multicolumn' || section === 'slideshow' || section === 'testimonials' || section === 'accordion' || section === 'imageBanner' || section === 'newsletter' || section === 'gallery' || section === 'richText' || section === 'contact-form') {
+                    if (section === 'imageWithText' || section === 'multicolumn' || section === 'slideshow' || section === 'testimonials' || section === 'accordion' || section === 'imageBanner' || section === 'newsletter' || section === 'gallery' || section === 'richText' || section === 'contact-form' || section === 'featured-product') {
                         const templateSectionsHtml = renderTemplateSections();
                         $('#template-sections-container').html(templateSectionsHtml + `
                             <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e3e3e3;">
@@ -12944,6 +13103,69 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                 initializeGalleryImagesSortable();
             }
         }, 100);
+        
+        // Initialize sortable for featured product blocks in block list view
+        function initializeFeaturedProductBlocksSortable() {
+            console.log('[FEATURED-PRODUCT] Initializing sortable for featured product blocks in block list');
+            
+            const $wrapper = $('#featured-product-blocks-wrapper');
+            if (!$wrapper.length) {
+                console.error('[FEATURED-PRODUCT] Blocks wrapper not found');
+                return;
+            }
+            
+            $wrapper.sortable({
+                items: '.featured-product-block-item',
+                handle: '.drag-handle',
+                placeholder: 'sortable-placeholder',
+                forcePlaceholderSize: true,
+                cursor: 'move',
+                tolerance: 'pointer',
+                axis: 'y',
+                containment: 'parent',
+                receive: function(e, ui) {
+                    // Prevent parent sections from being dropped here
+                    if (ui.item.hasClass('sidebar-subsection') && ui.item.attr('data-block-type') !== 'featured-product-block') {
+                        ui.sender.sortable('cancel');
+                        return false;
+                    }
+                },
+                start: function(e, ui) {
+                    console.log('[FEATURED-PRODUCT] Drag started for block:', ui.item.data('element-id'));
+                    
+                    ui.placeholder.height(ui.item.outerHeight());
+                    ui.placeholder.css({
+                        'visibility': 'visible',
+                        'background': '#f0f0f0',
+                        'border': '2px dashed #2962ff',
+                        'border-radius': '4px',
+                        'margin-bottom': '1px',
+                        'padding-left': '30px'
+                    });
+                },
+                stop: function(e, ui) {
+                    const newOrder = [];
+                    $wrapper.find('.featured-product-block-item').each(function() {
+                        const blockId = $(this).data('element-id');
+                        if (blockId) {
+                            newOrder.push(blockId);
+                        }
+                    });
+                    
+                    console.log('[FEATURED-PRODUCT] New order:', newOrder);
+                    
+                    if (currentSectionsConfig.featuredProduct) {
+                        currentSectionsConfig.featuredProduct.blockOrder = newOrder;
+                        
+                        hasPendingPageStructureChanges = true;
+                        updateSaveButtonState();
+                        renderPreview();
+                    }
+                }
+            });
+            
+            console.log('[FEATURED-PRODUCT] Sortable initialized for', $wrapper.find('.featured-product-block-item').length, 'blocks');
+        }
         
         // Initialize sortable for accordion items in block list view
         function initializeAccordionItemsSortable() {
@@ -14130,6 +14352,13 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                 if (window.forceVisibilitySync) {
                     window.forceVisibilitySync('richText', newHiddenState);
                 }
+            } else if (section === 'featured-product' || blockType === 'featured-product') {
+                currentSectionsConfig.featuredProduct.isHidden = newHiddenState;
+                console.log(`[DEBUG] Featured Product saved as: ${newHiddenState ? 'hidden' : 'visible'}`);
+                
+                if (window.forceVisibilitySync) {
+                    window.forceVisibilitySync('featured-product', newHiddenState);
+                }
             } else if (blockType === 'contact-form' && elementId) {
                 // Handle contact form visibility
                 if (currentSectionsConfig.contactForms && currentSectionsConfig.contactForms[elementId]) {
@@ -14184,6 +14413,28 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                     // Force sync the child visibility toggle state
                     if (window.forceChildVisibilitySync) {
                         window.forceChildVisibilitySync(imageId, newHiddenState);
+                    }
+                }
+            } else if (blockType === 'featured-product-block' && elementId) {
+                // Handle featured product block visibility
+                if (currentSectionsConfig.featuredProduct && currentSectionsConfig.featuredProduct.blocks && currentSectionsConfig.featuredProduct.blocks[elementId]) {
+                    currentSectionsConfig.featuredProduct.blocks[elementId].isHidden = newHiddenState;
+                    console.log(`[DEBUG] Featured Product block ${elementId} saved as: ${newHiddenState ? 'hidden' : 'visible'}`);
+                    
+                    // Force sync the child visibility toggle state
+                    if (window.forceChildVisibilitySync) {
+                        window.forceChildVisibilitySync(elementId, newHiddenState);
+                    }
+                }
+            } else if ($button.closest('.featured-product-block-item').length && elementId) {
+                // Alternative handler for featured product blocks using class
+                if (currentSectionsConfig.featuredProduct && currentSectionsConfig.featuredProduct.blocks && currentSectionsConfig.featuredProduct.blocks[elementId]) {
+                    currentSectionsConfig.featuredProduct.blocks[elementId].isHidden = newHiddenState;
+                    console.log(`[DEBUG] Featured Product block (by class) ${elementId} saved as: ${newHiddenState ? 'hidden' : 'visible'}`);
+                    
+                    // Force sync the child visibility toggle state
+                    if (window.forceChildVisibilitySync) {
+                        window.forceChildVisibilitySync(elementId, newHiddenState);
                     }
                 }
             } else if (section === 'footer' || blockType === 'footer') {
@@ -14279,6 +14530,15 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
             }, 100);
         }
         
+        // Initialize sortable for featured product blocks if they exist
+        if (currentSectionsConfig.featuredProduct && currentSectionsConfig.featuredProduct.blockOrder && currentSectionsConfig.featuredProduct.blockOrder.length > 0) {
+            console.log('[FEATURED-PRODUCT] Initializing sortable from attachBlockListEventListeners');
+            console.log('[FEATURED-PRODUCT] Current block order:', currentSectionsConfig.featuredProduct.blockOrder);
+            setTimeout(() => {
+                initializeFeaturedProductBlocksSortable();
+            }, 100);
+        }
+        
         // Initialize visibility toggle states
         setTimeout(() => {
             console.log('[DEBUG] Initializing visibility toggle states');
@@ -14309,12 +14569,16 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                     savedIsHidden = currentSectionsConfig.slideshow?.isHidden || false;
                 } else if (blockType === 'multicolumn-column' && elementId && currentSectionsConfig.multicolumn?.columns?.[elementId]) {
                     savedIsHidden = currentSectionsConfig.multicolumn.columns[elementId].isHidden || false;
+                } else if (blockType === 'featured-product-block' && elementId && currentSectionsConfig.featuredProduct?.blocks?.[elementId]) {
+                    savedIsHidden = currentSectionsConfig.featuredProduct.blocks[elementId].isHidden || false;
                 } else if (blockType === 'contact-form' && elementId && currentSectionsConfig.contactForms?.[elementId]) {
                     savedIsHidden = currentSectionsConfig.contactForms[elementId].isHidden || false;
                 } else if (section === 'gallery' || blockType === 'gallery') {
                     savedIsHidden = currentSectionsConfig.gallery?.isHidden || false;
                 } else if (section === 'richText' || blockType === 'richText') {
                     savedIsHidden = currentSectionsConfig.richText?.isHidden || false;
+                } else if (section === 'featured-product' || blockType === 'featured-product') {
+                    savedIsHidden = currentSectionsConfig.featuredProduct?.isHidden || false;
                 } else if (section === 'testimonials' || blockType === 'testimonials') {
                     savedIsHidden = currentSectionsConfig.testimonials?.isHidden || false;
                 } else if (section === 'accordion' || blockType === 'accordion') {
@@ -14926,7 +15190,8 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                                 'gallery-items-wrapper',
                                 'gallery-images-wrapper',
                                 'slideshow-slides-wrapper',
-                                'announcement-items-wrapper'
+                                'announcement-items-wrapper',
+                                'featured-product-blocks-wrapper'
                             ];
                             
                             // Check if any parent section ended up inside a child wrapper
@@ -14982,7 +15247,7 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                             $templateContainer.find('> .sidebar-subsection').each(function() {
                                 const $section = $(this);
                                 const sectionId = $section.data('section-id') || $section.data('block-type');
-                                const hasChildren = ['slideshow', 'multicolumn', 'imageWithText', 'testimonials', 'accordion', 'gallery'].includes(sectionId);
+                                const hasChildren = ['slideshow', 'multicolumn', 'imageWithText', 'testimonials', 'accordion', 'gallery', 'featured-product'].includes(sectionId);
                                 
                                 if (hasChildren) {
                                     const wrapperId = sectionId + '-' + (sectionId === 'slideshow' ? 'slides' : 
@@ -14990,7 +15255,8 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                                                                        sectionId === 'imageWithText' ? 'blocks' : 
                                                                        sectionId === 'testimonials' ? 'items' : 
                                                                        sectionId === 'accordion' ? 'items' : 
-                                                                       sectionId === 'gallery' ? 'images' : '') + '-wrapper';
+                                                                       sectionId === 'gallery' ? 'images' : 
+                                                                       sectionId === 'featured-product' ? 'blocks' : '') + '-wrapper';
                                     
                                     const $nextElement = $section.next();
                                     if ($nextElement.length && $nextElement.attr('id') === wrapperId) {
@@ -15420,6 +15686,49 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                             },
                             stop: function(e, ui) {
                                 updateAccordionOrder();
+                            }
+                        });
+                    }
+                    break;
+                    
+                case 'featured-product':
+                    const $featuredProductWrapper = $('#featured-product-blocks-wrapper');
+                    if ($featuredProductWrapper.length && $featuredProductWrapper.find('.featured-product-block-item').length > 0) {
+                        if ($featuredProductWrapper.hasClass('ui-sortable')) {
+                            $featuredProductWrapper.sortable('destroy');
+                        }
+                        $featuredProductWrapper.sortable({
+                            items: '.featured-product-block-item',
+                            handle: '.drag-handle',
+                            axis: 'y',
+                            tolerance: 'pointer',
+                            containment: 'parent',
+                            greedy: true, // Prevent event bubbling to parent sortables
+                            // Prevent parent sections from being dropped here
+                            receive: function(e, ui) {
+                                // Only accept featured product blocks, reject all parent sections
+                                if (!ui.item.hasClass('featured-product-block-item')) {
+                                    console.log('[DRAG&DROP] Rejecting non-featured-product block in featured product wrapper');
+                                    $(ui.sender).sortable('cancel');
+                                    return false;
+                                }
+                            },
+                            stop: function(e, ui) {
+                                // Update featured product blocks order
+                                const newOrder = [];
+                                $featuredProductWrapper.find('.featured-product-block-item').each(function() {
+                                    const blockId = $(this).data('element-id');
+                                    if (blockId) {
+                                        newOrder.push(blockId);
+                                    }
+                                });
+                                
+                                if (currentSectionsConfig.featuredProduct) {
+                                    currentSectionsConfig.featuredProduct.blockOrder = newOrder;
+                                    hasPendingPageStructureChanges = true;
+                                    updateSaveButtonState();
+                                    renderPreview();
+                                }
                             }
                         });
                     }
@@ -16098,6 +16407,7 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
             'accordion': '<div class="section-preview-image"><img src="/TestImages/AccordionMenuPreview.png" alt="Accordion/FAQ"></div>',
             'image-banner': '<div class="section-preview-image"><img src="/TestImages/imagebannereditor.png" alt="Image Banner"></div>',
             'rich-text': '<div class="section-preview-image"><img src="/TestImages/richtextpreviewmodal.png" alt="Rich Text"></div>',
+            'featured-product': '<div class="section-preview-image"><img src="/TestImages/productmodalhover.png" alt="Featured Product"></div>',
             // Add more previews as needed
         };
         
@@ -16925,6 +17235,62 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
             }
             
             return; // Exit early for contact form
+        }
+        
+        // Handle featured product section
+        if (group === 'template' && sectionId === 'featured-product') {
+            console.log('[DEBUG] Adding featured product section');
+            
+            if (!currentSectionsConfig.featuredProduct) {
+                // Initialize with predefined blocks
+                const blocks = {
+                    'vendor': { id: 'vendor', type: 'vendor', isHidden: false },
+                    'title': { id: 'title', type: 'title', isHidden: false },
+                    'price': { id: 'price', type: 'price', isHidden: false },
+                    'sku': { id: 'sku', type: 'sku', isHidden: false },
+                    'variant-picker': { id: 'variant-picker', type: 'variant-picker', isHidden: false },
+                    'inventory-status': { id: 'inventory-status', type: 'inventory-status', isHidden: false },
+                    'quantity-selector': { id: 'quantity-selector', type: 'quantity-selector', isHidden: false },
+                    'buy-buttons': { id: 'buy-buttons', type: 'buy-buttons', isHidden: false },
+                    'description': { id: 'description', type: 'description', isHidden: false },
+                    'share': { id: 'share', type: 'share', isHidden: false }
+                };
+                
+                currentSectionsConfig.featuredProduct = {
+                    id: 'featured-product',
+                    isHidden: false,
+                    colorScheme: 'scheme1',
+                    blocks: blocks,
+                    blockOrder: ['vendor', 'title', 'price', 'sku', 'variant-picker', 'inventory-status', 'quantity-selector', 'buy-buttons', 'description', 'share']
+                };
+            }
+            
+            if (!currentSectionsConfig.sectionOrder) {
+                currentSectionsConfig.sectionOrder = [];
+            }
+            
+            if (!currentSectionsConfig.sectionOrder.includes('featured-product')) {
+                currentSectionsConfig.sectionOrder.push('featured-product');
+            }
+            
+            // Update template sections
+            const templateSectionsHtml = renderTemplateSections();
+            const addSectionBtnHtml = `
+                <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e3e3e3;">
+                    <div class="add-section-button add-template-section" data-group="template">
+                        <i class="material-icons">add_circle</i>
+                        <span data-i18n="sections.addTemplateSection">Agregar sección de plantilla</span>
+                    </div>
+                </div>
+            `;
+            $('#template-sections-container').html(templateSectionsHtml + addSectionBtnHtml);
+            
+            setTimeout(applyTranslations, 0);
+            hasPendingPageStructureChanges = true;
+            updateSaveButtonState();
+            renderPreview();
+            
+            console.log('[DEBUG] Featured Product added successfully');
         }
         
         // Close modal for other sections (template sections)

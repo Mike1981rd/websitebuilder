@@ -15,6 +15,7 @@ wwwroot\js\website-builder.js
 wwwroot\js\website-builder.js.backup
 wwwroot\js\website-builder\modules\accordion.js
 wwwroot\js\website-builder\modules\contact-form.js
+wwwroot\js\website-builder\modules\featured-product.js
 wwwroot\js\website-builder\modules\footer.js
 wwwroot\js\website-builder\modules\gallery.js
 wwwroot\js\website-builder\modules\image-banner.js
@@ -104,6 +105,7 @@ wwwroot\TestImages\newsletter2.png
 wwwroot\TestImages\newsletter3.png
 wwwroot\TestImages\newsletter4.png
 wwwroot\TestImages\newsletterstructure.png
+wwwroot\TestImages\productmodalhover.png
 wwwroot\TestImages\richtexteditorstructure.png
 wwwroot\TestImages\richtextpreviewmodal.png
 wwwroot\TestImages\richtextsetup.png

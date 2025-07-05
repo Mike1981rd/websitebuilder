@@ -30,8 +30,20 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 0,
+          "SelectedChildIndex": 3,
           "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{34e76e81-ee4a-11d0-ae2e-00a0c90fffc3}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{d78612c7-9962-4b83-95d9-268046dad23a}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{0ad07096-bba9-4900-a651-0598d26f6d24}"
+            },
             {
               "$type": "Document",
               "DocumentIndex": 0,
@@ -40,22 +52,10 @@
               "RelativeDocumentMoniker": "Views\\WebsiteBuilder\\Index.cshtml",
               "ToolTip": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\Views\\WebsiteBuilder\\Index.cshtml",
               "RelativeToolTip": "Views\\WebsiteBuilder\\Index.cshtml",
-              "ViewState": "AgIAABECAAAAAAAAAAAgwBUCAAABAAAAAAAAAA==",
+              "ViewState": "AgIAABICAAAAAAAAAAAgwBYCAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
               "WhenOpened": "2025-06-11T16:18:03.647Z",
               "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 2,
-              "Title": "website-builder.js",
-              "DocumentMoniker": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\js\\website-builder.js",
-              "RelativeDocumentMoniker": "wwwroot\\js\\website-builder.js",
-              "ToolTip": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\js\\website-builder.js",
-              "RelativeToolTip": "wwwroot\\js\\website-builder.js",
-              "ViewState": "AgIAANkxAAAAAAAAAAAwwLw1AAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
-              "WhenOpened": "2025-06-11T16:11:08.663Z"
             },
             {
               "$type": "Document",
@@ -94,16 +94,16 @@
               "WhenOpened": "2025-06-11T16:15:50.255Z"
             },
             {
-              "$type": "Bookmark",
-              "Name": "ST:0:0:{34e76e81-ee4a-11d0-ae2e-00a0c90fffc3}"
-            },
-            {
-              "$type": "Bookmark",
-              "Name": "ST:0:0:{d78612c7-9962-4b83-95d9-268046dad23a}"
-            },
-            {
-              "$type": "Bookmark",
-              "Name": "ST:0:0:{0ad07096-bba9-4900-a651-0598d26f6d24}"
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "website-builder.js",
+              "DocumentMoniker": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\js\\website-builder.js",
+              "RelativeDocumentMoniker": "wwwroot\\js\\website-builder.js",
+              "ToolTip": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\js\\website-builder.js",
+              "RelativeToolTip": "wwwroot\\js\\website-builder.js",
+              "ViewState": "AgIAANkxAAAAAAAAAAAwwLw1AAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
+              "WhenOpened": "2025-06-11T16:11:08.663Z"
             }
           ]
         }

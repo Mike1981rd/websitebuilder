@@ -61,8 +61,25 @@ Al hacer click en el modal, el módulo debe aparecer en:
 
 #### Problema 2: No aparece en panel lateral
 **Síntoma**: Click en modal pero no se agrega al panel lateral
-**Causa**: Falta agregar el módulo en `renderTemplateSections()`
+**Causa**: Falta agregar el módulo en `renderTemplateSections()` o inconsistencia en nombres
 **Solución**: Agregar caso específico del módulo (~línea 5675)
+
+**⚠️ CASO ESPECIAL - Inconsistencia kebab-case vs camelCase**:
+Si tu módulo usa guiones en el HTML pero camelCase en JavaScript (ejemplo: `featured-product` vs `featuredProduct`), debes agregar un mapeo especial en `renderTemplateSections()`:
+
+```javascript
+// Special case for featured-product since it uses camelCase in config
+if (sectionId === 'featured-product' && currentSectionsConfig.featuredProduct) {
+    sectionConfig = currentSectionsConfig.featuredProduct;
+}
+```
+
+**Por qué ocurre**: 
+- En HTML/DOM: `data-section-id="featured-product"` (kebab-case)
+- En JavaScript: `currentSectionsConfig.featuredProduct` (camelCase)
+- La función busca `currentSectionsConfig['featured-product']` pero no existe
+
+**Recomendación**: Mantener consistencia usando el mismo formato en todos lados
 
 #### Problema 3: Error 404 - Preview image not found
 **Síntoma**: Consola muestra "Failed to load resource: 404"
@@ -78,6 +95,66 @@ cp "/ruta/origen/imagen.png" "/mnt/c/.../Hotel23/wwwroot/TestImages/"
 - La ruta en el código debe ser: `/TestImages/imagen.png` (sin wwwroot)
 
 ### 🔴 IMPLEMENTACIÓN CORRECTA
+
+### ⚠️ CRÍTICO: Problema del Contexto 'this' en Módulos
+
+**PROBLEMA COMÚN**: "Uncaught TypeError: this.methodName is not a function"
+
+**CAUSA**: Cuando las funciones del módulo se ejecutan desde el iframe del preview o desde diferentes contextos, el `this` no apunta al objeto del módulo.
+
+**❌ NUNCA HACER**:
+```javascript
+window.WebsiteBuilderModules.TuModulo = {
+    render: function(config) {
+        return `${this.renderHelper(data)}`;  // ❌ ERROR: this is undefined
+    },
+    renderHelper: function(data) {
+        return `<div>${data}</div>`;
+    }
+}
+```
+
+**✅ SIEMPRE HACER**:
+```javascript
+window.WebsiteBuilderModules.TuModulo = {
+    render: function(config) {
+        return `${window.WebsiteBuilderModules.TuModulo.renderHelper(data)}`;  // ✅ CORRECTO
+    },
+    renderHelper: function(data) {
+        return `<div>${data}</div>`;
+    }
+}
+```
+
+**APLICA PARA**:
+- Llamadas entre métodos del mismo módulo
+- Event handlers
+- Callbacks 
+- setTimeout/setInterval
+- Cualquier referencia a métodos o propiedades del módulo
+
+**EJEMPLO REAL** (featured-product.js):
+```javascript
+// ❌ MAL - Causó error en producción
+render: function(config) {
+    return `
+        <div class="product-info">
+            ${this.renderProductInfo(config, schemeColors)}  // ERROR!
+        </div>
+    `;
+}
+
+// ✅ BIEN - Solución correcta
+render: function(config) {
+    return `
+        <div class="product-info">
+            ${window.WebsiteBuilderModules.FeaturedProduct.renderProductInfo(config, schemeColors)}
+        </div>
+    `;
+}
+```
+
+**TIEMPO PERDIDO SI NO SE DOCUMENTA**: 15-30 minutos de debugging
 
 #### 2.1 Crear archivo base
 ```javascript
@@ -612,7 +689,12 @@ if (currentSidebarView === 'blockList') {
 
 ### 🔧 PARTE 3: RENDERIZADO CORRECTO EN blockList
 
-#### 3.1 Estructura HTML en renderBlockListView (línea ~5731)
+#### ⚠️ ERROR CRÍTICO MÁS COMÚN: OLVIDAR EL DRAG HANDLE
+**Problema**: Los elementos hijos no se pueden arrastrar aunque el sortable esté configurado correctamente.
+**Causa**: Falta el elemento `<i class="material-icons drag-handle">drag_handle</i>` en el HTML.
+**Síntoma**: Todo parece estar bien, pero los elementos no responden al intento de arrastre.
+
+#### 3.1 Estructura HTML OBLIGATORIA en renderTemplateSections (línea ~5731)
 ```javascript
 if (hasItems) {
     html += '<div id="accordion-items-wrapper" style="position: relative;">'; // ⚠️ ID crítico
@@ -625,7 +707,7 @@ if (hasItems) {
                      data-block-type="accordion-item" 
                      data-element-id="${itemId}" 
                      style="padding-left: 30px;">
-                    <i class="material-icons drag-handle">drag_handle</i>
+                    <i class="material-icons drag-handle">drag_handle</i>  <!-- ⚠️ CRÍTICO: SIN ESTO NO HAY DRAG -->
                     <span class="subsection-text" style="margin-left: 30px;">
                         ${translations[currentLanguage]?.['accordion.items.item'] || 'Pregunta'} ${itemNumber}
                     </span>
@@ -639,6 +721,13 @@ if (hasItems) {
     html += '</div>';
 }
 ```
+
+**⚠️ ELEMENTOS OBLIGATORIOS PARA DRAG & DROP**:
+1. **Wrapper con ID específico**: `<div id="[modulo]-[items]-wrapper">`
+2. **Clase del elemento hijo**: `.sidebar-subsection.[modulo]-item`
+3. **Data attributes correctos**: `data-block-type` y `data-element-id`
+4. **DRAG HANDLE**: `<i class="material-icons drag-handle">drag_handle</i>` (SIN ESTO NO FUNCIONA)
+5. **Padding y márgenes**: `style="padding-left: 30px;"` en el div, `style="margin-left: 30px;"` en el span
 
 ### 📝 CHECKLIST DE VERIFICACIÓN
 
@@ -678,19 +767,25 @@ window.WebsiteBuilderModules.Accordion.initializeDragAndDrop() // config
 
 ### ❌ ERRORES COMUNES Y SOLUCIONES
 
-1. **"TypeError: this.initializeDragAndDrop is not a function"**
+1. **"Los elementos hijos no se pueden arrastrar"** (EL MÁS COMÚN)
+   - Causa: Falta el elemento drag handle en el HTML
+   - Síntoma: Todo parece configurado pero nada se mueve
+   - Solución: Agregar `<i class="material-icons drag-handle">drag_handle</i>` ANTES del texto
+   - Verificar: Inspeccionar elemento en el navegador y buscar `.drag-handle`
+
+2. **"TypeError: this.initializeDragAndDrop is not a function"**
    - Causa: Contexto `this` perdido
    - Solución: Usar `window.WebsiteBuilderModules.Accordion.initializeDragAndDrop()`
 
-2. **"Container not found"**
+3. **"Container not found"**
    - Causa: IDs diferentes en cada vista
    - Solución: Verificar que usas el ID correcto para cada vista
 
-3. **"Drag funciona pero no guarda el orden"**
+4. **"Drag funciona pero no guarda el orden"**
    - Causa: Data attributes incorrectos
    - Solución: `data-item-id` en config, `data-element-id` en blockList
 
-4. **"Solo funciona en una vista"**
+5. **"Solo funciona en una vista"**
    - Causa: Solo implementaste una parte
    - Solución: Implementar las 3 partes obligatorias
 
