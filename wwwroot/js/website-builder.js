@@ -353,6 +353,16 @@ async function loadCurrentWebsite() {
             try {
                 const sectionsData = JSON.parse(website.sectionsConfigJson);
                 console.log('[DEBUG] Raw sectionsData from server:', JSON.stringify(sectionsData, null, 2));
+                
+                // Debug log specifically for featuredProduct
+                if (sectionsData.featuredProduct) {
+                    console.log('[DEBUG] FeaturedProduct data from server:', {
+                        hasSelectedProduct: !!sectionsData.featuredProduct.selectedProduct,
+                        selectedProductId: sectionsData.featuredProduct.selectedProduct?.id,
+                        selectedProductName: sectionsData.featuredProduct.selectedProduct?.name
+                    });
+                }
+                
                 if (sectionsData && typeof sectionsData === 'object') {
                         // Merge with defaults instead of replacing completely
                         const defaultConfig = {
@@ -426,6 +436,18 @@ async function loadCurrentWebsite() {
                                 },
                                 blockOrder: ['block-1', 'block-2', 'block-3', 'block-4', 'block-5']
                             },
+                            featuredProduct: {
+                                colorScheme: 'scheme1',
+                                width: 'container',
+                                isHidden: false,
+                                selectedProduct: null,
+                                mediaDesktopLayout: 'thumbnails-left',
+                                mediaDesktopSpace: 30,
+                                mediaThumbnailSize: 100,
+                                mediaMobileLayout: 'thumbnails',
+                                mediaImageRatio: 'adapt',
+                                showOnlySelectedVariantMedia: false
+                            },
                             announcements: {},
                             announcementOrder: [],
                             sectionOrder: ['announcement', 'header', 'footer']
@@ -433,6 +455,15 @@ async function loadCurrentWebsite() {
                         
                         // Deep merge saved config with defaults
                         currentSectionsConfig = $.extend(true, {}, defaultConfig, sectionsData);
+                        
+                        // Debug log to verify featuredProduct merge
+                        if (currentSectionsConfig.featuredProduct) {
+                            console.log('[DEBUG] FeaturedProduct config after merge:', {
+                                colorScheme: currentSectionsConfig.featuredProduct.colorScheme,
+                                selectedProduct: currentSectionsConfig.featuredProduct.selectedProduct,
+                                isHidden: currentSectionsConfig.featuredProduct.isHidden
+                            });
+                        }
                         
                         // CRITICAL: Preserve isHidden values from saved data
                         // The deep merge may have overwritten isHidden with defaults
@@ -443,7 +474,7 @@ async function loadCurrentWebsite() {
                             currentSectionsConfig.header.isHidden = sectionsData.header.isHidden;
                         }
                         // Also preserve isHidden for other sections
-                        ['slideshow', 'multicolumn', 'imageWithText', 'footer'].forEach(sectionType => {
+                        ['slideshow', 'multicolumn', 'imageWithText', 'footer', 'featuredProduct'].forEach(sectionType => {
                             if (sectionsData[sectionType] && sectionsData[sectionType].hasOwnProperty('isHidden')) {
                                 currentSectionsConfig[sectionType].isHidden = sectionsData[sectionType].isHidden;
                                 console.log(`[DEBUG] Preserved ${sectionType}.isHidden:`, sectionsData[sectionType].isHidden);
@@ -468,6 +499,12 @@ async function loadCurrentWebsite() {
                                         console.log(`[DEBUG] Preserved ${sectionType}.blocks[${blockId}].isHidden:`, sectionsData[sectionType].blocks[blockId].isHidden);
                                     }
                                 });
+                            }
+                            
+                            // Preserve selectedProduct for featuredProduct
+                            if (sectionType === 'featuredProduct' && sectionsData[sectionType] && sectionsData[sectionType].selectedProduct) {
+                                currentSectionsConfig[sectionType].selectedProduct = sectionsData[sectionType].selectedProduct;
+                                console.log(`[DEBUG] Preserved featuredProduct.selectedProduct:`, sectionsData[sectionType].selectedProduct);
                             }
                         });
                         

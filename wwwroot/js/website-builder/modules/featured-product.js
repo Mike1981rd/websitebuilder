@@ -113,6 +113,9 @@ window.WebsiteBuilderModules.FeaturedProduct = {
         const thumbnailSize = config.desktopThumbnailSize || 88;
         const spaceBetween = config.desktopSpaceBetween || 20;
         
+        console.log('[FeaturedProduct] Rendering images for product:', product);
+        console.log('[FeaturedProduct] Product images:', product?.images);
+        
         // Default images if no product selected
         if (!product || !product.images || product.images.length === 0) {
             return this.renderDefaultImages(desktopLayout, thumbnailSize, spaceBetween);
@@ -144,7 +147,10 @@ window.WebsiteBuilderModules.FeaturedProduct = {
                 return this.renderStackedImages(product.images, desktopLayout, config.imageRatio);
         }
         
+        // Images are already sorted by Position from the API, so [0] is the first image
         const mainImage = product.images[0];
+        console.log('[FeaturedProduct] Main image selected:', mainImage);
+        console.log('[FeaturedProduct] Image positions:', product.images.map(img => ({ url: img.url, position: img.position })));
         
         return `
             <div style="${containerStyle}">
@@ -916,10 +922,14 @@ window.WebsiteBuilderModules.FeaturedProduct = {
         }
         
         let html = '';
+        const selectedProductId = currentSectionsConfig.featuredProduct?.selectedProduct?.id;
+        
         products.forEach(product => {
             const imageUrl = product.images && product.images.length > 0 ? product.images[0].url : '';
+            const isSelected = selectedProductId === product.id;
+            
             html += `
-                <div class="product-item" data-product-id="${product.id}" style="display: flex; align-items: center; padding: 12px; border: 1px solid #e0e0e0; border-radius: 4px; margin-bottom: 10px; cursor: pointer; transition: all 0.2s;">
+                <div class="product-item" data-product-id="${product.id}" style="display: flex; align-items: center; padding: 12px; border: 1px solid ${isSelected ? 'var(--primary)' : '#e0e0e0'}; border-radius: 4px; margin-bottom: 10px; cursor: pointer; transition: all 0.2s; ${isSelected ? 'background-color: #f8f8f8;' : ''}">
                     <div style="width: 50px; height: 50px; background: #f5f5f5; border-radius: 4px; margin-right: 15px; display: flex; align-items: center; justify-content: center; overflow: hidden;">
                         ${imageUrl ? 
                             `<img src="${imageUrl}" alt="${product.name}" style="width: 100%; height: 100%; object-fit: cover;">` : 
@@ -928,8 +938,9 @@ window.WebsiteBuilderModules.FeaturedProduct = {
                     </div>
                     <div style="flex: 1;">
                         <div style="font-weight: 500;">${product.name}</div>
-                        ${product.price ? `<div style="font-size: 14px; color: #666;">$${product.price}</div>` : ''}
+                        ${product.price ? `<div style="font-size: 14px; color: #666;">$${product.price.toFixed(2)}</div>` : ''}
                     </div>
+                    ${isSelected ? '<i class="material-icons" style="color: var(--primary);">check_circle</i>' : ''}
                 </div>
             `;
         });
@@ -945,8 +956,17 @@ window.WebsiteBuilderModules.FeaturedProduct = {
         
         // Add hover effect
         $('.product-item').hover(
-            function() { $(this).css({'background-color': '#f8f8f8', 'box-shadow': '0 2px 4px rgba(0,0,0,0.1)'}); },
-            function() { $(this).css({'background-color': 'transparent', 'box-shadow': 'none'}); }
+            function() { 
+                if (!$(this).css('background-color') || $(this).css('background-color') === 'transparent') {
+                    $(this).css({'background-color': '#f8f8f8', 'box-shadow': '0 2px 4px rgba(0,0,0,0.1)'}); 
+                }
+            },
+            function() { 
+                const isSelected = currentSectionsConfig.featuredProduct?.selectedProduct?.id === $(this).data('product-id');
+                if (!isSelected) {
+                    $(this).css({'background-color': 'transparent', 'box-shadow': 'none'}); 
+                }
+            }
         );
     },
     
@@ -970,12 +990,18 @@ window.WebsiteBuilderModules.FeaturedProduct = {
         }
         
         currentSectionsConfig.featuredProduct.selectedProductId = product.id;
+        
+        // Ensure images are sorted by position before storing
+        const sortedImages = product.images ? [...product.images].sort((a, b) => a.position - b.position) : [];
+        
         currentSectionsConfig.featuredProduct.selectedProduct = {
             id: product.id,
             name: product.name,
             price: product.price,
+            compareAtPrice: product.compareAtPrice,
+            vendor: product.vendor,
             description: product.description,
-            images: product.images,
+            images: sortedImages,
             variants: product.variants
         };
         
@@ -989,6 +1015,47 @@ window.WebsiteBuilderModules.FeaturedProduct = {
         hasPendingPageStructureChanges = true;
         updateSaveButtonState();
         renderPreview();
+    },
+    
+    refreshProductData: function(productId) {
+        if (!productId) return;
+        
+        console.log('[FeaturedProduct] Refreshing product data for ID:', productId);
+        
+        // Fetch all products and find the specific one
+        $.ajax({
+            url: '/api/builder/products',
+            method: 'GET',
+            success: (products) => {
+                const product = products.find(p => p.id === productId);
+                
+                if (product && currentSectionsConfig.featuredProduct) {
+                    // Ensure images are sorted by position
+                    const sortedImages = product.images ? [...product.images].sort((a, b) => a.position - b.position) : [];
+                    
+                    console.log('[FeaturedProduct] Updated product images order:', sortedImages.map(img => img.position));
+                    
+                    currentSectionsConfig.featuredProduct.selectedProduct = {
+                        id: product.id,
+                        name: product.name,
+                        price: product.price,
+                        compareAtPrice: product.compareAtPrice,
+                        vendor: product.vendor,
+                        description: product.description,
+                        images: sortedImages,
+                        variants: product.variants
+                    };
+                    
+                    // Update preview
+                    if (window.renderPreview) {
+                        window.renderPreview();
+                    }
+                }
+            },
+            error: (xhr, status, error) => {
+                console.error('[FeaturedProduct] Error refreshing product data:', error);
+            }
+        });
     },
     
     groupVariantOptions: function(variants) {
@@ -1014,5 +1081,19 @@ window.WebsiteBuilderModules.FeaturedProduct = {
         });
         
         return result;
+    }
+};
+
+// Global function to refresh featured product when product images are reordered
+window.refreshFeaturedProductImages = function(productId) {
+    console.log('[FeaturedProduct] Global refresh called for product:', productId);
+    
+    // Check if featured product is using this product
+    if (window.currentSectionsConfig && 
+        window.currentSectionsConfig.featuredProduct && 
+        window.currentSectionsConfig.featuredProduct.selectedProductId === productId) {
+        
+        console.log('[FeaturedProduct] Refreshing featured product data...');
+        window.WebsiteBuilderModules.FeaturedProduct.refreshProductData(productId);
     }
 };
