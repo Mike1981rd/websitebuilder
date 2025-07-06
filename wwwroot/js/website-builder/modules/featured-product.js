@@ -45,6 +45,13 @@ window.WebsiteBuilderModules.FeaturedProduct = {
                 
                 #${uniqueId} .product-images {
                     box-sizing: border-box;
+                    display: flex;
+                    align-items: flex-start;
+                }
+                
+                #${uniqueId} .product-main-image {
+                    flex: 1;
+                    min-width: 0;
                 }
                 
                 #${uniqueId} .product-title {
@@ -78,7 +85,14 @@ window.WebsiteBuilderModules.FeaturedProduct = {
                     }
                     
                     #${uniqueId} .product-images {
+                        flex: 1 1 100% !important;
+                        max-width: 100% !important;
                         margin-bottom: 30px;
+                    }
+                    
+                    #${uniqueId} .product-info-section {
+                        flex: 1 1 100% !important;
+                        max-width: 100% !important;
                     }
                 }
             </style>
@@ -90,15 +104,15 @@ window.WebsiteBuilderModules.FeaturedProduct = {
                         (window.translations[window.currentLanguage]['sections.featuredProduct'] || 'Featured Product') : 
                         'Featured Product'}
                 </div>
-                <div class="container" style="max-width: 1200px; margin: 0 auto;">
+                <div class="container" style="${config.width === 'page' ? 'max-width: 100%' : config.width === 'large' ? 'max-width: 1200px' : config.width === 'medium' ? 'max-width: 900px' : 'max-width: 600px'}; margin: 0 auto;">
                     <div class="product-container" style="display: flex; gap: 40px; align-items: flex-start;">
                         <!-- Product Images Section -->
-                        <div class="product-images" style="flex: 1;">
+                        <div class="product-images" style="flex: 0 0 40%; max-width: 40%;">
                             ${window.WebsiteBuilderModules.FeaturedProduct.renderProductImages(config)}
                         </div>
                         
                         <!-- Product Info Section -->
-                        <div class="product-info-section" style="flex: 1;">
+                        <div class="product-info-section" style="flex: 0 0 60%; max-width: 60%;">
                             ${window.WebsiteBuilderModules.FeaturedProduct.renderProductInfo(config, schemeColors)}
                         </div>
                     </div>
@@ -139,7 +153,10 @@ window.WebsiteBuilderModules.FeaturedProduct = {
                 break;
             case 'thumbnails-bottom':
                 containerStyle = `display: flex; flex-direction: column-reverse; gap: ${spaceBetween}px;`;
-                thumbnailsStyle = `display: flex; gap: ${spaceBetween}px; justify-content: center;`;
+                // Check if we're in editor preview (iframe) or real preview
+                const isEditorPreview = typeof window !== 'undefined' && window.parent !== window;
+                const paddingLeft = isEditorPreview ? 'padding-left: 50%;' : '';
+                thumbnailsStyle = `display: flex; gap: ${spaceBetween}px; justify-content: center; ${paddingLeft}`;
                 mainImageStyle = '';
                 break;
             default:
@@ -152,23 +169,37 @@ window.WebsiteBuilderModules.FeaturedProduct = {
         console.log('[FeaturedProduct] Main image selected:', mainImage);
         console.log('[FeaturedProduct] Image positions:', product.images.map(img => ({ url: img.url, position: img.position })));
         
+        // For thumbnails-bottom layout, add navigation arrows if needed
+        const needsArrows = desktopLayout === 'thumbnails-bottom' && product.images.length > 4;
+        const uniqueId = 'featured-product-' + Date.now();
+        
         return `
             <div style="${containerStyle}">
                 <!-- Thumbnails -->
                 ${product.images.length > 1 ? `
-                    <div class="product-thumbnails" style="${thumbnailsStyle}">
-                        ${product.images.map((img, index) => `
-                            <div style="width: ${thumbnailSize}px; height: ${thumbnailSize}px; border-radius: 8px; overflow: hidden; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-                                <img src="${img.url}" alt="${img.altText || product.name}" style="width: 100%; height: 100%; object-fit: cover;">
-                            </div>
-                        `).join('')}
-                    </div>
+                    ${desktopLayout === 'thumbnails-bottom' ? `
+                        <div class="product-thumbnails" style="${thumbnailsStyle}">
+                            ${product.images.map((img, index) => `
+                                <div class="product-thumbnail ${index === 0 ? 'active' : ''}" data-image-index="${index}" style="width: ${thumbnailSize}px; height: ${thumbnailSize}px; min-width: ${thumbnailSize}px; flex-shrink: 0; border-radius: 8px; overflow: hidden; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.1); ${index === 0 ? 'border: 2px solid var(--primary);' : 'border: 2px solid transparent;'} transition: border-color 0.2s;">
+                                    <img src="${img.url}" alt="${img.altText || product.name}" style="width: 100%; height: 100%; object-fit: cover;">
+                                </div>
+                            `).join('')}
+                        </div>
+                    ` : `
+                        <div class="product-thumbnails" style="${thumbnailsStyle}">
+                            ${product.images.map((img, index) => `
+                                <div class="product-thumbnail ${index === 0 ? 'active' : ''}" data-image-index="${index}" style="width: ${thumbnailSize}px; height: ${thumbnailSize}px; flex-shrink: 0; border-radius: 8px; overflow: hidden; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.1); ${index === 0 ? 'border: 2px solid var(--primary);' : 'border: 2px solid transparent;'} transition: border-color 0.2s;">
+                                    <img src="${img.url}" alt="${img.altText || product.name}" style="width: 100%; height: 100%; object-fit: cover;">
+                                </div>
+                            `).join('')}
+                        </div>
+                    `}
                 ` : ''}
                 
                 <!-- Main Image -->
                 <div class="product-main-image" style="${mainImageStyle}">
                     <div style="border-radius: 8px; overflow: hidden; ${this.getImageRatioStyle(config.imageRatio)}">
-                        <img src="${mainImage.url}" alt="${mainImage.altText || product.name}" style="width: 100%; height: 100%; ${this.getImageFitStyle(config.imageRatio)}">
+                        <img class="main-product-image" data-product-images='${JSON.stringify(product.images)}' src="${mainImage.url}" alt="${mainImage.altText || product.name}" style="width: 100%; height: 100%; ${this.getImageFitStyle(config.imageRatio)}">
                     </div>
                 </div>
             </div>
@@ -387,8 +418,8 @@ window.WebsiteBuilderModules.FeaturedProduct = {
             selectedProductId: null,
             selectedProduct: null,
             desktopLayout: 'thumbnails-left',
-            desktopSpaceBetween: 20,
-            desktopThumbnailSize: 88,
+            desktopSpaceBetween: 12,
+            desktopThumbnailSize: 72,
             mobileLayout: 'thumbnails-right',
             imageRatio: 'portrait-3-4-fill',
             showOnlySelectedVariant: false,
@@ -472,11 +503,6 @@ window.WebsiteBuilderModules.FeaturedProduct = {
                                 <option value="thumbnails-left" ${configData.desktopLayout === 'thumbnails-left' ? 'selected' : ''} data-i18n="featuredProduct.options.thumbnailsLeft">${this.getTranslation('featuredProduct.options.thumbnailsLeft', 'Thumbnails left')}</option>
                                 <option value="thumbnails-right" ${configData.desktopLayout === 'thumbnails-right' ? 'selected' : ''}>Thumbnails right</option>
                                 <option value="thumbnails-bottom" ${configData.desktopLayout === 'thumbnails-bottom' ? 'selected' : ''} data-i18n="featuredProduct.options.thumbnailsBottom">${this.getTranslation('featuredProduct.options.thumbnailsBottom', 'Thumbnails bottom')}</option>
-                                <option value="1-column-stack" ${configData.desktopLayout === '1-column-stack' ? 'selected' : ''}>1 column stack</option>
-                                <option value="2-column-stack" ${configData.desktopLayout === '2-column-stack' ? 'selected' : ''}>2 column stack</option>
-                                <option value="1-2-1-column-stack" ${configData.desktopLayout === '1-2-1-column-stack' ? 'selected' : ''}>1-2-1 column stack</option>
-                                <option value="1-2-2-column-stack" ${configData.desktopLayout === '1-2-2-column-stack' ? 'selected' : ''}>1-2-2 column stack</option>
-                                <option value="2-1-2-column-stack" ${configData.desktopLayout === '2-1-2-column-stack' ? 'selected' : ''}>2-1-2 column stack</option>
                             </select>
                         </div>
                         

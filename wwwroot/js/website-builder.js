@@ -2366,6 +2366,41 @@ function renderPreview() {
         console.log('[PREVIEW] Slideshows initialized.');
     }
     
+    // Initialize Featured Product thumbnail clicks
+    const productThumbnails = previewDoc.querySelectorAll('.product-thumbnail');
+    productThumbnails.forEach(thumbnail => {
+        thumbnail.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const imageIndex = parseInt(this.dataset.imageIndex);
+            const mainImage = this.closest('.section-wrapper').querySelector('.main-product-image');
+            
+            if (mainImage) {
+                const productImages = JSON.parse(mainImage.dataset.productImages || '[]');
+                
+                if (productImages[imageIndex]) {
+                    // Update main image
+                    mainImage.src = productImages[imageIndex].url;
+                    mainImage.alt = productImages[imageIndex].altText || '';
+                    
+                    // Update active thumbnail
+                    const allThumbnails = this.closest('.product-thumbnails').querySelectorAll('.product-thumbnail');
+                    allThumbnails.forEach(thumb => {
+                        thumb.classList.remove('active');
+                        thumb.style.border = '2px solid transparent';
+                    });
+                    
+                    this.classList.add('active');
+                    this.style.border = '2px solid var(--primary)';
+                    
+                    console.log('[FEATURED PRODUCT] Changed main image to index:', imageIndex);
+                }
+            }
+        });
+    });
+    console.log('[PREVIEW] Featured product thumbnails initialized.');
+    
     // Attach click listeners to the newly rendered section wrappers
     const sectionWrappers = previewDoc.querySelectorAll('.section-wrapper');
     sectionWrappers.forEach(wrapper => {
