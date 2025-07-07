@@ -1,5 +1,15 @@
 window.WebsiteBuilderModules = window.WebsiteBuilderModules || {};
 window.WebsiteBuilderModules.FeaturedProduct = {
+    // Helper function to format currency
+    formatCurrency: function(amount) {
+        // Convert to number if it's a string
+        const num = parseFloat(amount) || 0;
+        // Format with thousands separator and 2 decimal places
+        return num.toLocaleString('en-US', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
+    },
     // Helper function to get translated text
     getTranslation: function(key, defaultText) {
         if (window.translations && window.translations[window.currentLanguage]) {
@@ -13,9 +23,21 @@ window.WebsiteBuilderModules.FeaturedProduct = {
         const uniqueId = 'featured-product-' + Date.now();
         const schemeColors = getColorSchemeValues(config.colorScheme || 'scheme1');
         
-        // Get typography settings
-        const headingTypography = currentGlobalThemeSettings?.typography?.heading || {};
-        const bodyTypography = currentGlobalThemeSettings?.typography?.body || {};
+        // Get typography settings - intentar obtener de diferentes fuentes
+        let globalThemeSettings = null;
+        if (typeof window !== 'undefined' && window.currentGlobalThemeSettings) {
+            globalThemeSettings = window.currentGlobalThemeSettings;
+            console.log('[FEATURED-PRODUCT render] Using window.currentGlobalThemeSettings');
+        } else if (typeof currentGlobalThemeSettings !== 'undefined') {
+            globalThemeSettings = currentGlobalThemeSettings;
+            console.log('[FEATURED-PRODUCT render] Using global currentGlobalThemeSettings');
+        }
+        
+        console.log('[FEATURED-PRODUCT render] globalThemeSettings:', globalThemeSettings);
+        console.log('[FEATURED-PRODUCT render] Typography settings:', globalThemeSettings?.typography);
+        
+        const headingTypography = globalThemeSettings?.typography?.heading || {};
+        const bodyTypography = globalThemeSettings?.typography?.body || {};
         
         const headingFont = window.getFontNameFromValueSafe ? 
             window.getFontNameFromValueSafe(headingTypography.font || 'helvetica') : 
@@ -63,10 +85,8 @@ window.WebsiteBuilderModules.FeaturedProduct = {
                 }
                 
                 #${uniqueId} .product-price {
-                    font-family: ${bodyFont};
-                    font-size: 24px;
-                    color: ${schemeColors.text};
-                    margin-bottom: 20px;
+                    /* Font styles are now inline to support dynamic sizing */
+                    display: inline-block;
                 }
                 
                 #${uniqueId} .product-info {
@@ -277,6 +297,30 @@ window.WebsiteBuilderModules.FeaturedProduct = {
     renderProductInfo: function(config, schemeColors) {
         const product = config.selectedProduct;
         
+        // Get typography settings - intentar obtener de diferentes fuentes
+        let globalThemeSettings = null;
+        if (typeof window !== 'undefined' && window.currentGlobalThemeSettings) {
+            globalThemeSettings = window.currentGlobalThemeSettings;
+            console.log('[FEATURED-PRODUCT renderProductInfo] Using window.currentGlobalThemeSettings');
+        } else if (typeof currentGlobalThemeSettings !== 'undefined') {
+            globalThemeSettings = currentGlobalThemeSettings;
+            console.log('[FEATURED-PRODUCT renderProductInfo] Using global currentGlobalThemeSettings');
+        }
+        
+        console.log('[FEATURED-PRODUCT renderProductInfo] globalThemeSettings:', globalThemeSettings);
+        console.log('[FEATURED-PRODUCT renderProductInfo] Typography settings:', globalThemeSettings?.typography);
+        
+        const headingTypography = globalThemeSettings?.typography?.heading || {};
+        const bodyTypography = globalThemeSettings?.typography?.body || {};
+        
+        const headingFont = window.getFontNameFromValueSafe ? 
+            window.getFontNameFromValueSafe(headingTypography.font || 'helvetica') : 
+            'Helvetica';
+        
+        const bodyFont = window.getFontNameFromValueSafe ? 
+            window.getFontNameFromValueSafe(bodyTypography.font || 'roboto') : 
+            'Roboto';
+        
         console.log('[FEATURED PRODUCT INFO] Config:', config);
         console.log('[FEATURED PRODUCT INFO] Selected product:', product);
         
@@ -290,6 +334,9 @@ window.WebsiteBuilderModules.FeaturedProduct = {
         
         let html = '';
         
+        // Check inventory status - por ahora hardcodeado, pero debería venir del producto
+        const isOutOfStock = true; // TODO: usar product?.inventory?.available === 0
+        
         // Render blocks in order
         config.blockOrder.forEach(blockId => {
             const block = config.blocks[blockId];
@@ -301,7 +348,7 @@ window.WebsiteBuilderModules.FeaturedProduct = {
             
             switch(block.type) {
                 case 'vendor':
-                    html += `<div class="product-vendor" style="font-size: 14px; color: ${schemeColors.text}; opacity: 0.7; margin-bottom: 5px;">${product?.vendor || 'Proveedor'}</div>`;
+                    html += `<div class="product-vendor" style="font-family: ${bodyFont}; font-size: 14px; color: ${schemeColors.text}; opacity: 0.7; margin-bottom: 5px;">${product?.vendor || 'Proveedor'}</div>`;
                     break;
                     
                 case 'title':
@@ -311,22 +358,49 @@ window.WebsiteBuilderModules.FeaturedProduct = {
                 case 'price':
                     const price = product?.price || 0;
                     const comparePrice = product?.compareAtPrice;
+                    const formattedPrice = window.WebsiteBuilderModules.FeaturedProduct.formatCurrency(price);
+                    const formattedComparePrice = comparePrice ? window.WebsiteBuilderModules.FeaturedProduct.formatCurrency(comparePrice) : '';
+                    
+                    // Get price configuration
+                    const priceConfig = block;
+                    const labelSize = priceConfig.labelSize || 'medium';
+                    
+                    // Map label sizes to font sizes
+                    const labelSizeMap = {
+                        'extra-small': '18px',
+                        'small': '20px',
+                        'medium': '24px',
+                        'large': '28px',
+                        'extra-large': '32px',
+                        'double-extra-large': '36px'
+                    };
+                    
+                    const fontSize = labelSizeMap[labelSize] || '24px';
+                    
+                    // Check if product is on sale
+                    const isOnSale = comparePrice && comparePrice > price;
+                    
                     html += `
                         <div style="margin-bottom: 20px;">
-                            ${comparePrice && comparePrice > price ? `
-                                <span style="text-decoration: line-through; color: ${schemeColors.text}; opacity: 0.6; margin-right: 10px;">$${comparePrice.toFixed(2)}</span>
+                            <span class="product-price" style="font-family: ${bodyFont}; font-size: ${fontSize}; font-weight: 600; color: ${priceConfig.highlightSalePrice && isOnSale ? '#dc3545' : schemeColors.text};">$${formattedPrice}</span>
+                            ${isOnSale ? `
+                                <span style="font-family: ${bodyFont}; font-size: ${fontSize}; text-decoration: line-through; color: ${schemeColors.text}; opacity: 0.6; margin-left: 10px;">$${formattedComparePrice}</span>
+                                ${priceConfig.showSaleBadge ? `
+                                    <span style="font-family: ${bodyFont}; font-size: 12px; background-color: #dc3545; color: white; padding: 2px 8px; border-radius: 4px; margin-left: 10px; font-weight: 500; text-transform: uppercase;">Sale</span>
+                                ` : ''}
                             ` : ''}
-                            <span class="product-price">$${price.toFixed(2)}</span>
                         </div>
-                        <div style="font-size: 14px; color: ${schemeColors.text}; opacity: 0.7; margin-bottom: 20px;">
-                            Los impuestos y gastos de envío se calculan en la pantalla de pago
-                        </div>
+                        ${priceConfig.showTaxes !== false ? `
+                            <div style="font-family: ${bodyFont}; font-size: 14px; color: ${schemeColors.text}; opacity: 0.7; margin-bottom: 20px;">
+                                Los impuestos y gastos de envío se calculan en la pantalla de pago
+                            </div>
+                        ` : ''}
                     `;
                     break;
                     
                 case 'sku':
                     const sku = product?.variants?.[0]?.sku || '21623612';
-                    html += `<div style="margin-bottom: 15px; font-size: 14px;">SKU: ${sku}</div>`;
+                    html += `<div style="font-family: ${bodyFont}; margin-bottom: 15px; font-size: 14px; color: ${schemeColors.text};">SKU: ${sku}</div>`;
                     break;
                     
                 case 'variant-picker':
@@ -338,8 +412,8 @@ window.WebsiteBuilderModules.FeaturedProduct = {
                             if (options[optionName].length > 0) {
                                 html += `
                                     <div style="margin-bottom: 20px;">
-                                        <label style="display: block; margin-bottom: 8px; font-weight: 500;">${optionName}</label>
-                                        <select style="width: 100%; padding: 10px; border: 1px solid ${schemeColors.border}; border-radius: 4px; background: white;">
+                                        <label style="font-family: ${bodyFont}; display: block; margin-bottom: 8px; font-weight: 500; font-size: 14px; color: ${schemeColors.text};">${optionName}</label>
+                                        <select style="font-family: ${bodyFont}; width: 100%; padding: 10px; border: 1px solid ${schemeColors.border}; border-radius: 4px; background: white; font-size: 14px; color: ${schemeColors.text};">
                                             ${options[optionName].map(value => `<option>${value}</option>`).join('')}
                                         </select>
                                     </div>
@@ -349,8 +423,8 @@ window.WebsiteBuilderModules.FeaturedProduct = {
                     } else {
                         html += `
                             <div style="margin-bottom: 20px;">
-                                <label style="display: block; margin-bottom: 8px; font-weight: 500;">Size</label>
-                                <select style="width: 100%; padding: 10px; border: 1px solid ${schemeColors.border}; border-radius: 4px; background: white;">
+                                <label style="font-family: ${bodyFont}; display: block; margin-bottom: 8px; font-weight: 500; font-size: 14px; color: ${schemeColors.text};">Size</label>
+                                <select style="font-family: ${bodyFont}; width: 100%; padding: 10px; border: 1px solid ${schemeColors.border}; border-radius: 4px; background: white; font-size: 14px; color: ${schemeColors.text};">
                                     <option>Small</option>
                                     <option>Medium</option>
                                     <option>Large</option>
@@ -361,37 +435,140 @@ window.WebsiteBuilderModules.FeaturedProduct = {
                     break;
                     
                 case 'inventory-status':
-                    html += `
-                        <div style="margin-bottom: 20px; padding: 10px; background: #f0f0f0; border-radius: 4px; display: inline-flex; align-items: center; gap: 8px;">
-                            <span style="width: 8px; height: 8px; background: #dc3545; border-radius: 50%;"></span>
-                            <span>Agotado</span>
-                        </div>
-                    `;
+                    if (isOutOfStock) {
+                        html += `
+                            <div style="margin-bottom: 30px; display: inline-flex; align-items: center; gap: 8px;">
+                                <span style="width: 8px; height: 8px; background: #999999; border-radius: 50%; display: inline-block;"></span>
+                                <span style="font-family: ${bodyFont}; font-size: 14px; color: ${schemeColors.text}; opacity: 0.7;">Agotado</span>
+                            </div>
+                        `;
+                    } else {
+                        html += `
+                            <div style="margin-bottom: 30px; display: inline-flex; align-items: center; gap: 8px;">
+                                <span style="width: 8px; height: 8px; background: #4caf50; border-radius: 50%; display: inline-block;"></span>
+                                <span style="font-family: ${bodyFont}; font-size: 14px; color: ${schemeColors.text};">En stock</span>
+                            </div>
+                        `;
+                    }
                     break;
                     
                 case 'quantity-selector':
                     html += `
-                        <div style="margin-bottom: 20px;">
-                            <label style="display: block; margin-bottom: 8px; font-weight: 500;">Quantity</label>
-                            <div style="display: flex; align-items: center; gap: 10px;">
-                                <button style="width: 40px; height: 40px; border: 1px solid ${schemeColors.border}; background: white; cursor: pointer;">-</button>
-                                <input type="number" value="1" min="1" style="width: 60px; text-align: center; border: 1px solid ${schemeColors.border}; padding: 8px;">
-                                <button style="width: 40px; height: 40px; border: 1px solid ${schemeColors.border}; background: white; cursor: pointer;">+</button>
+                        <div style="margin-bottom: 30px;">
+                            <label style="font-family: ${bodyFont}; display: block; margin-bottom: 12px; font-size: 14px; font-weight: 500; color: ${schemeColors.text};">Cantidad</label>
+                            <div class="quantity-selector" style="display: inline-flex; align-items: center; gap: 20px;">
+                                <button class="qty-decrease" style="width: 32px; height: 32px; border: none; background: transparent; cursor: pointer; font-size: 24px; color: ${schemeColors.text}; display: flex; align-items: center; justify-content: center; transition: all 0.2s; padding: 0;">
+                                    <span style="margin-top: -4px; font-weight: 300;">−</span>
+                                </button>
+                                <input type="number" class="qty-input" value="1" min="1" style="font-family: ${bodyFont}; width: 50px; height: 44px; text-align: center; border: none; background: transparent; padding: 0; font-size: 16px; font-weight: 500; color: ${schemeColors.text}; -moz-appearance: textfield;">
+                                <button class="qty-increase" style="width: 32px; height: 32px; border: none; background: transparent; cursor: pointer; font-size: 20px; color: ${schemeColors.text}; display: flex; align-items: center; justify-content: center; transition: all 0.2s; padding: 0;">
+                                    <span style="font-weight: 300;">+</span>
+                                </button>
                             </div>
+                            <style>
+                                .featured-product-section .quantity-selector input[type="number"]::-webkit-inner-spin-button,
+                                .featured-product-section .quantity-selector input[type="number"]::-webkit-outer-spin-button {
+                                    -webkit-appearance: none;
+                                    margin: 0;
+                                }
+                                .featured-product-section .quantity-selector button:hover {
+                                    opacity: 0.7;
+                                }
+                                .featured-product-section .quantity-selector button:active {
+                                    opacity: 0.5;
+                                }
+                                .featured-product-section .quantity-selector input:focus {
+                                    outline: none;
+                                    border-bottom: 1px solid ${schemeColors.text || '#000'};
+                                }
+                            </style>
                         </div>
                     `;
                     break;
                     
                 case 'buy-buttons':
+                    // Get buy buttons configuration
+                    const buyButtonsConfig = block;
+                    console.log('[BUY BUTTONS RENDER] Block config:', buyButtonsConfig);
+                    const addToCartStyle = buyButtonsConfig.addToCartStyle || 'solid';
+                    // Si showDynamicCheckout es undefined, el valor por defecto es true
+                    const showDynamicCheckout = buyButtonsConfig.showDynamicCheckout !== undefined ? buyButtonsConfig.showDynamicCheckout : true;
+                    const dynamicCheckoutStyle = buyButtonsConfig.dynamicCheckoutStyle || 'solid';
+                    console.log('[BUY BUTTONS RENDER] showDynamicCheckout:', showDynamicCheckout, 'raw value:', buyButtonsConfig.showDynamicCheckout);
+                    
+                    // Get button colors based on style
+                    let addToCartButton = {};
+                    if (addToCartStyle === 'outline') {
+                        addToCartButton = {
+                            background: 'transparent',
+                            text: schemeColors['solid-button'] || schemeColors.text || '#121212',
+                            border: schemeColors['solid-button'] || schemeColors.text || '#121212'
+                        };
+                    } else {
+                        addToCartButton = {
+                            background: schemeColors['solid-button'] || '#000',
+                            text: schemeColors['solid-button-text'] || '#fff',
+                            border: 'none'
+                        };
+                    }
+                    
+                    let dynamicCheckoutButton = {};
+                    if (dynamicCheckoutStyle === 'outline') {
+                        dynamicCheckoutButton = {
+                            background: 'transparent',
+                            text: schemeColors['solid-button'] || schemeColors.text || '#121212',
+                            border: schemeColors['solid-button'] || schemeColors.text || '#121212'
+                        };
+                    } else {
+                        dynamicCheckoutButton = {
+                            background: schemeColors['solid-button'] || '#000',
+                            text: schemeColors['solid-button-text'] || '#fff',
+                            border: 'none'
+                        };
+                    }
+                    
                     html += `
                         <div style="margin-bottom: 20px;">
-                            <button style="width: 100%; padding: 15px; background: var(--primary); color: white; border: none; border-radius: 4px; font-size: 16px; font-weight: 500; cursor: pointer; margin-bottom: 10px;">
-                                Add to cart
+                            <button class="add-to-cart-btn" style="font-family: ${bodyFont}; display: block; width: auto; min-width: 280px; padding: 18px 40px; background: ${addToCartButton.background}; color: ${addToCartButton.text}; border: ${addToCartButton.border !== 'none' ? `2px solid ${addToCartButton.border}` : 'none'}; border-radius: 4px; font-size: 16px; font-weight: 500; cursor: pointer; margin-bottom: 12px; transition: all 0.2s; position: relative; overflow: hidden;">
+                                <span style="position: relative; z-index: 1;">Agregar al carrito</span>
                             </button>
-                            <button style="width: 100%; padding: 15px; background: #333; color: white; border: none; border-radius: 4px; font-size: 16px; font-weight: 500; cursor: pointer;">
-                                Buy it now
-                            </button>
+                            ${showDynamicCheckout ? `
+                                <button class="buy-now-btn" style="font-family: ${bodyFont}; display: block; width: auto; min-width: 280px; padding: 18px 40px; background: ${dynamicCheckoutButton.background}; color: ${dynamicCheckoutButton.text}; border: ${dynamicCheckoutButton.border !== 'none' ? `2px solid ${dynamicCheckoutButton.border}` : 'none'}; border-radius: 4px; font-size: 16px; font-weight: 500; cursor: pointer; transition: all 0.2s; position: relative; overflow: hidden;">
+                                    <span style="position: relative; z-index: 1;">Comprar ahora</span>
+                                </button>
+                            ` : ''}
                         </div>
+                        <style>
+                            /* Hover styles for solid buttons */
+                            .featured-product-section .add-to-cart-btn${addToCartStyle === 'solid' ? '' : '.outline-style'}:hover,
+                            .featured-product-section .buy-now-btn${dynamicCheckoutStyle === 'solid' ? '' : '.outline-style'}:hover {
+                                ${addToCartStyle === 'solid' ? 'opacity: 0.9;' : ''}
+                                ${dynamicCheckoutStyle === 'solid' ? 'opacity: 0.9;' : ''}
+                                transform: translateY(-1px);
+                                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                            }
+                            
+                            /* Hover styles specifically for outline buttons */
+                            ${addToCartStyle === 'outline' ? `
+                                .featured-product-section .add-to-cart-btn:hover {
+                                    background-color: ${addToCartButton.border} !important;
+                                    color: ${schemeColors['solid-button-text'] || '#fff'} !important;
+                                }
+                            ` : ''}
+                            
+                            ${dynamicCheckoutStyle === 'outline' && showDynamicCheckout ? `
+                                .featured-product-section .buy-now-btn:hover {
+                                    background-color: ${dynamicCheckoutButton.border} !important;
+                                    color: ${schemeColors['solid-button-text'] || '#fff'} !important;
+                                }
+                            ` : ''}
+                            
+                            .featured-product-section .add-to-cart-btn:active,
+                            .featured-product-section .buy-now-btn:active {
+                                transform: translateY(0);
+                                box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+                            }
+                        </style>
                     `;
                     break;
                     
@@ -402,8 +579,8 @@ window.WebsiteBuilderModules.FeaturedProduct = {
                     // Get description from product, check multiple possible fields
                     let description = '';
                     if (product) {
-                        // Check both lowercase and uppercase as the API returns 'Description' with capital D
-                        description = product.Description || product.description || product.content || product.body || '';
+                        // The API returns description in camelCase due to JsonSerializerOptions
+                        description = product.description || product.content || product.body || '';
                         console.log('[DEBUG] Found description:', description);
                         console.log('[DEBUG] Product keys:', Object.keys(product));
                     } else {
@@ -417,8 +594,11 @@ window.WebsiteBuilderModules.FeaturedProduct = {
                     }
                     
                     const descConfig = block;
-                    const descType = descConfig.type || 'static';
+                    const descType = descConfig.displayType || 'static'; // Changed from .type to .displayType
                     const descHeading = descConfig.heading || 'Description';
+                    
+                    console.log('[DEBUG] Description config:', descConfig);
+                    console.log('[DEBUG] Description displayType:', descType);
                     
                     
                     // Check if we're in the editor iframe
@@ -429,6 +609,9 @@ window.WebsiteBuilderModules.FeaturedProduct = {
                     
                     if (descType === 'static') {
                         // Static type - just show the content
+                        const iconName = descConfig.icon && descConfig.icon !== 'none' ? descConfig.icon : null;
+                        const customIcon = descConfig.customIcon;
+                        
                         html += `
                             <div style="margin-top: 30px; padding-top: 30px; border-top: 1px solid ${schemeColors.border}; position: relative;">
                                 ${isEditorContext ? `
@@ -437,13 +620,18 @@ window.WebsiteBuilderModules.FeaturedProduct = {
                                         Configure
                                     </button>
                                 ` : ''}
-                                <h3 style="margin-bottom: 15px; font-size: 18px; font-weight: 500;">${descHeading}</h3>
-                                <p style="line-height: 1.6; color: ${schemeColors.text};">${description}</p>
+                                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
+                                    ${iconName ? `<i class="material-icons" style="font-size: 20px; color: ${schemeColors.text};">${iconName}</i>` : ''}
+                                    ${customIcon ? `<img src="${customIcon}" alt="${descHeading}" style="width: 20px; height: 20px; object-fit: contain;">` : ''}
+                                    <h3 style="font-family: ${headingFont}; margin: 0; font-size: 18px; font-weight: 500; color: ${schemeColors.text};">${descHeading}</h3>
+                                </div>
+                                <div style="font-family: ${bodyFont}; line-height: 1.6; color: ${schemeColors.text}; font-size: ${bodyTypography.fontSize || '16px'};">${description}</div>
                             </div>
                         `;
                     } else {
                         // Tab types (expanded or collapsed)
                         const isExpanded = descType === 'expanded-tab';
+                        console.log('[DEBUG] Is expanded tab?', isExpanded, 'descType:', descType);
                         const iconName = descConfig.icon && descConfig.icon !== 'none' ? descConfig.icon : null;
                         const customIcon = descConfig.customIcon;
                         
@@ -451,12 +639,13 @@ window.WebsiteBuilderModules.FeaturedProduct = {
                             <div style="margin-top: 30px; padding-top: 30px; border-top: 1px solid ${schemeColors.border}; position: relative;">
                                 ${isEditorContext ? `
                                     <button onclick="window.parent.switchSidebarView('descriptionSettings', window.parent.currentSectionsConfig?.featuredProduct?.blocks?.description)" 
-                                            style="position: absolute; right: 0; top: 30px; background: #2962ff; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; z-index: 10;">
+                                            style="position: absolute; right: 0; top: 0; background: #2962ff; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; z-index: 10;">
                                         Configure
                                     </button>
                                 ` : ''}
-                                <div class="description-tab" id="${descId}-tab" style="cursor: pointer; display: flex; align-items: center; justify-content: space-between; padding: 15px 0; border-bottom: 1px solid ${schemeColors.border};" 
-                                     data-expanded="${isExpanded ? 'true' : 'false'}">
+                                <div class="description-tab" id="${descId}-tab" style="cursor: pointer; display: flex; align-items: center; justify-content: space-between; padding: 15px 100px 15px 0; border-bottom: 1px solid ${schemeColors.border};" 
+                                     data-expanded="${isExpanded ? 'true' : 'false'}"
+                                     data-desc-id="${descId}">
                                     <div style="display: flex; align-items: center; gap: 10px;">
                                         ${iconName ? `<i class="material-icons" style="font-size: 20px; color: ${schemeColors.text};">${iconName}</i>` : ''}
                                         ${customIcon ? `<img src="${customIcon}" alt="${descHeading}" style="width: 20px; height: 20px; object-fit: contain;">` : ''}
@@ -465,9 +654,33 @@ window.WebsiteBuilderModules.FeaturedProduct = {
                                     <i class="material-icons expand-icon" id="${descId}-icon" style="font-size: 24px; color: ${schemeColors.text}; transition: transform 0.3s ease;">${isExpanded ? 'expand_less' : 'expand_more'}</i>
                                 </div>
                                 <div class="description-content" id="${descId}-content" style="display: ${isExpanded ? 'block' : 'none'}; padding: 20px 0; transition: all 0.3s ease;">
-                                    <p style="line-height: 1.6; color: ${schemeColors.text};">${description}</p>
+                                    <div style="font-family: ${bodyFont}; line-height: 1.6; color: ${schemeColors.text}; font-size: ${bodyTypography.fontSize || '16px'};">${description}</div>
                                 </div>
                             </div>
+                            <script>
+                                // Attach click event for description tab
+                                (function() {
+                                    const tab = document.getElementById('${descId}-tab');
+                                    if (tab && !tab.hasAttribute('data-click-attached')) {
+                                        tab.setAttribute('data-click-attached', 'true');
+                                        tab.addEventListener('click', function() {
+                                            const content = document.getElementById('${descId}-content');
+                                            const icon = document.getElementById('${descId}-icon');
+                                            const isExpanded = this.getAttribute('data-expanded') === 'true';
+                                            
+                                            if (isExpanded) {
+                                                content.style.display = 'none';
+                                                icon.textContent = 'expand_more';
+                                                this.setAttribute('data-expanded', 'false');
+                                            } else {
+                                                content.style.display = 'block';
+                                                icon.textContent = 'expand_less';
+                                                this.setAttribute('data-expanded', 'true');
+                                            }
+                                        });
+                                    }
+                                })();
+                            </script>
                         `;
                     }
                     break;
@@ -475,10 +688,10 @@ window.WebsiteBuilderModules.FeaturedProduct = {
                 case 'share':
                     html += `
                         <div style="margin-top: 20px;">
-                            <span style="font-weight: 500; margin-right: 10px;">Share:</span>
-                            <a href="#" style="color: ${schemeColors.link}; margin-right: 10px;">Facebook</a>
-                            <a href="#" style="color: ${schemeColors.link}; margin-right: 10px;">Twitter</a>
-                            <a href="#" style="color: ${schemeColors.link};">Pinterest</a>
+                            <span style="font-family: ${bodyFont}; font-weight: 500; margin-right: 10px; font-size: 14px; color: ${schemeColors.text};">Share:</span>
+                            <a href="#" style="font-family: ${bodyFont}; color: ${schemeColors.link}; margin-right: 10px; font-size: 14px;">Facebook</a>
+                            <a href="#" style="font-family: ${bodyFont}; color: ${schemeColors.link}; margin-right: 10px; font-size: 14px;">Twitter</a>
+                            <a href="#" style="font-family: ${bodyFont}; color: ${schemeColors.link}; font-size: 14px;">Pinterest</a>
                         </div>
                     `;
                     break;
@@ -1091,7 +1304,7 @@ window.WebsiteBuilderModules.FeaturedProduct = {
         if (!product) return;
         
         console.log('[DEBUG] selectProduct - Original product:', product);
-        console.log('[DEBUG] selectProduct - Description field:', product.Description);
+        console.log('[DEBUG] selectProduct - Description field:', product.description);
         
         // Update configuration
         if (!currentSectionsConfig.featuredProduct) {
@@ -1109,7 +1322,7 @@ window.WebsiteBuilderModules.FeaturedProduct = {
             price: product.price,
             compareAtPrice: product.compareAtPrice,
             vendor: product.vendor,
-            description: product.Description || product.description || '',
+            description: product.description || '',
             images: sortedImages,
             variants: product.variants
         };
@@ -1153,7 +1366,7 @@ window.WebsiteBuilderModules.FeaturedProduct = {
                         price: product.price,
                         compareAtPrice: product.compareAtPrice,
                         vendor: product.vendor,
-                        description: product.description,
+                        description: product.description || '',
                         images: sortedImages,
                         variants: product.variants
                     };
@@ -1231,17 +1444,17 @@ window.WebsiteBuilderModules.FeaturedProduct = {
                         <label style="font-size: 13px; font-weight: 500; margin-bottom: 8px; color: #5c5e60;" 
                                data-i18n="featuredProduct.description.type">Type</label>
                         <select class="shopify-select" id="description-type" style="width: 100%; padding: 8px 12px; border: 1px solid #e0e0e0; border-radius: 4px; background: white;">
-                            <option value="static" ${configData.type === 'static' || !configData.type ? 'selected' : ''} 
+                            <option value="static" ${configData.displayType === 'static' || !configData.displayType ? 'selected' : ''} 
                                     data-i18n="featuredProduct.description.typeStatic">Static</option>
-                            <option value="expanded-tab" ${configData.type === 'expanded-tab' ? 'selected' : ''} 
+                            <option value="expanded-tab" ${configData.displayType === 'expanded-tab' ? 'selected' : ''} 
                                     data-i18n="featuredProduct.description.typeExpanded">Expanded tab</option>
-                            <option value="collapsed-tab" ${configData.type === 'collapsed-tab' ? 'selected' : ''} 
+                            <option value="collapsed-tab" ${configData.displayType === 'collapsed-tab' ? 'selected' : ''} 
                                     data-i18n="featuredProduct.description.typeCollapsed">Collapsed tab</option>
                         </select>
                     </div>
                     
-                    <!-- Campo Icon (solo mostrar si el type no es static) -->
-                    <div class="icon-section" style="${configData.type === 'static' || !configData.type ? 'display: none;' : ''}">
+                    <!-- Campo Icon -->
+                    <div class="icon-section">
                         <div class="form-group" style="margin-top: 20px;">
                             <label style="font-size: 13px; font-weight: 500; margin-bottom: 8px; color: #5c5e60;" 
                                    data-i18n="featuredProduct.description.icon">Icon</label>
@@ -1436,17 +1649,11 @@ window.WebsiteBuilderModules.FeaturedProduct = {
             const selectedType = $(this).val();
             console.log('[DESCRIPTION] Type changed to:', selectedType);
             
-            updateDescriptionConfig('type', selectedType);
+            updateDescriptionConfig('displayType', selectedType);
             
-            // Mostrar/ocultar sección de iconos según el tipo
-            if (selectedType === 'static') {
-                $('.icon-section').fadeOut(200);
-                // Clear icon when switching to static
-                updateDescriptionConfig('icon', null);
-                updateDescriptionConfig('customIcon', null);
-            } else {
-                $('.icon-section').fadeIn(200);
-                // Set default icon if none exists
+            // No ocultar la sección de iconos, siempre visible
+            // Solo establecer un ícono por defecto si no es static y no hay ícono
+            if (selectedType !== 'static') {
                 const currentIcon = window.currentSectionsConfig.featuredProduct?.blocks?.description?.icon;
                 if (!currentIcon) {
                     updateDescriptionConfig('icon', 'info');
@@ -1601,8 +1808,8 @@ window.WebsiteBuilderModules.FeaturedProduct = {
                         <label style="font-size: 13px; font-weight: 500; margin-bottom: 12px; color: #5c5e60; display: block;" 
                                data-i18n="featuredProduct.buyButtons.addToCartStyle">"Add to cart" button style</label>
                         <div style="display: flex; gap: 12px;">
-                            <label class="radio-option-card" style="flex: 1; padding: 12px; border: 2px solid ${config.addToCartStyle !== 'outline' ? '#2962ff' : '#e0e0e0'}; border-radius: 8px; cursor: pointer; text-align: center;">
-                                <input type="radio" name="add-to-cart-style" value="solid" ${config.addToCartStyle !== 'outline' ? 'checked' : ''} style="display: none;">
+                            <label class="radio-option-card" style="flex: 1; padding: 12px; border: 2px solid ${(config.addToCartStyle === 'solid' || !config.addToCartStyle) ? '#2962ff' : '#e0e0e0'}; border-radius: 8px; cursor: pointer; text-align: center;">
+                                <input type="radio" name="add-to-cart-style" value="solid" ${(config.addToCartStyle === 'solid' || !config.addToCartStyle) ? 'checked' : ''} style="display: none;">
                                 <span data-i18n="featuredProduct.buyButtons.solid">Solid</span>
                             </label>
                             <label class="radio-option-card" style="flex: 1; padding: 12px; border: 2px solid ${config.addToCartStyle === 'outline' ? '#2962ff' : '#e0e0e0'}; border-radius: 8px; cursor: pointer; text-align: center;">
@@ -1617,8 +1824,8 @@ window.WebsiteBuilderModules.FeaturedProduct = {
                         <label style="font-size: 13px; font-weight: 500; margin-bottom: 12px; color: #5c5e60; display: block;" 
                                data-i18n="featuredProduct.buyButtons.dynamicCheckoutStyle">Dynamic checkout button style</label>
                         <div style="display: flex; gap: 12px;">
-                            <label class="radio-option-card" style="flex: 1; padding: 12px; border: 2px solid ${config.dynamicCheckoutStyle !== 'outline' ? '#2962ff' : '#e0e0e0'}; border-radius: 8px; cursor: pointer; text-align: center;">
-                                <input type="radio" name="dynamic-checkout-style" value="solid" ${config.dynamicCheckoutStyle !== 'outline' ? 'checked' : ''} style="display: none;">
+                            <label class="radio-option-card" style="flex: 1; padding: 12px; border: 2px solid ${(config.dynamicCheckoutStyle === 'solid' || !config.dynamicCheckoutStyle) ? '#2962ff' : '#e0e0e0'}; border-radius: 8px; cursor: pointer; text-align: center;">
+                                <input type="radio" name="dynamic-checkout-style" value="solid" ${(config.dynamicCheckoutStyle === 'solid' || !config.dynamicCheckoutStyle) ? 'checked' : ''} style="display: none;">
                                 <span data-i18n="featuredProduct.buyButtons.solid">Solid</span>
                             </label>
                             <label class="radio-option-card" style="flex: 1; padding: 12px; border: 2px solid ${config.dynamicCheckoutStyle === 'outline' ? '#2962ff' : '#e0e0e0'}; border-radius: 8px; cursor: pointer; text-align: center;">
@@ -1644,20 +1851,23 @@ window.WebsiteBuilderModules.FeaturedProduct = {
         
         // Helper function para actualizar configuración de buy buttons
         const updateBuyButtonsConfig = (key, value) => {
+            console.log('[BUY BUTTONS] updateBuyButtonsConfig called with:', key, value);
+            
             if (!window.currentSectionsConfig.featuredProduct) {
                 window.currentSectionsConfig.featuredProduct = {};
             }
             if (!window.currentSectionsConfig.featuredProduct.blocks) {
                 window.currentSectionsConfig.featuredProduct.blocks = {};
             }
-            if (!window.currentSectionsConfig.featuredProduct.blocks.buyButtons) {
-                window.currentSectionsConfig.featuredProduct.blocks.buyButtons = {
+            if (!window.currentSectionsConfig.featuredProduct.blocks['buy-buttons']) {
+                window.currentSectionsConfig.featuredProduct.blocks['buy-buttons'] = {
                     type: 'buy-buttons',
                     isHidden: false
                 };
             }
             
-            window.currentSectionsConfig.featuredProduct.blocks.buyButtons[key] = value;
+            window.currentSectionsConfig.featuredProduct.blocks['buy-buttons'][key] = value;
+            console.log('[BUY BUTTONS] Updated config:', window.currentSectionsConfig.featuredProduct.blocks['buy-buttons']);
             
             // IMPORTANTE: Usar la función setter correcta
             window.setHasPendingPageStructureChanges(true);
@@ -1667,7 +1877,9 @@ window.WebsiteBuilderModules.FeaturedProduct = {
         
         // Toggle: Show dynamic checkout
         $('#buy-buttons-show-dynamic').off('change.buybuttons').on('change.buybuttons', function() {
-            updateBuyButtonsConfig('showDynamicCheckout', $(this).is(':checked'));
+            const isChecked = $(this).is(':checked');
+            console.log('[BUY BUTTONS] Show dynamic checkout changed to:', isChecked);
+            updateBuyButtonsConfig('showDynamicCheckout', isChecked);
         });
         
         // Toggle: Enable pickup availability

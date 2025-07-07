@@ -7,6 +7,7 @@
 4. [Thumbnails Comprimidos en Layout Bottom](#problema-4-thumbnails-comprimidos-en-layout-bottom)
 5. [Panel Lateral Tapando Thumbnails](#problema-5-panel-lateral-tapando-thumbnails)
 6. [Funcionalidad Click en Thumbnails](#problema-6-implementar-click-en-thumbnails)
+7. [Configuración de Bloques No Se Actualiza](#problema-7-configuración-de-bloques-no-se-actualiza-en-el-editor)
 
 ---
 
@@ -266,6 +267,74 @@ console.log('[FEATURED PRODUCT] Changed main image to index:', imageIndex);
 
 ---
 
+---
+
+## 🔧 PROBLEMA #7: Configuración de Bloques No Se Actualiza en el Editor
+
+**Fecha**: Enero 2025
+
+### Descripción
+Los cambios en la configuración de bloques hijos del Featured Product (buy-buttons, price, variant-picker, etc.) no se reflejaban en el editor preview, aunque los toggles y controles parecían funcionar correctamente.
+
+### Síntomas
+- Cambiar toggles como "Show dynamic checkout button" no actualizaba el preview
+- Los valores parecían guardarse (se mostraban en console.log) pero no se aplicaban al renderizar
+- Al recargar la página, las configuraciones volvían a los valores por defecto
+- El console.log mostraba que `buyButtonsConfig` estaba vacío o undefined al renderizar
+
+### Investigación
+Al rastrear el flujo de datos:
+1. **Guardado**: `updateBuyButtonsConfig()` guardaba en `blocks.buyButtons` (camelCase)
+2. **Lectura**: `renderProductInfo()` buscaba en `blocks['buy-buttons']` (kebab-case)
+3. Resultado: Se estaban creando dos objetos diferentes en la configuración
+
+### Causa Raíz
+**Inconsistencia en el naming convention**: El sistema usa kebab-case para los IDs de bloques (`'buy-buttons'`, `'variant-picker'`), pero el código estaba guardando con camelCase (`buyButtons`, `variantPicker`).
+
+### Solución Implementada
+
+**Archivo**: `/wwwroot/js/website-builder/modules/featured-product.js`
+
+**Cambio principal** (líneas 1762-1770):
+```javascript
+// ANTES - Inconsistente:
+if (!window.currentSectionsConfig.featuredProduct.blocks.buyButtons) {
+    window.currentSectionsConfig.featuredProduct.blocks.buyButtons = {...};
+}
+window.currentSectionsConfig.featuredProduct.blocks.buyButtons[key] = value;
+
+// DESPUÉS - Consistente con kebab-case:
+if (!window.currentSectionsConfig.featuredProduct.blocks['buy-buttons']) {
+    window.currentSectionsConfig.featuredProduct.blocks['buy-buttons'] = {...};
+}
+window.currentSectionsConfig.featuredProduct.blocks['buy-buttons'][key] = value;
+```
+
+**Cambio secundario** (línea 413) - Mejoró la claridad pero no era el problema principal:
+```javascript
+// ANTES:
+const showDynamicCheckout = buyButtonsConfig.showDynamicCheckout !== false;
+
+// DESPUÉS:
+const showDynamicCheckout = buyButtonsConfig.showDynamicCheckout !== undefined ? 
+    buyButtonsConfig.showDynamicCheckout : true;
+```
+
+### Verificación
+Para verificar que otros bloques no tengan el mismo problema:
+```javascript
+// Los IDs en blockOrder deben coincidir con las keys usadas al guardar:
+blockOrder: ['vendor', 'title', 'price', 'sku', 'variant-picker', 'inventory-status', 'quantity-selector', 'buy-buttons', 'description', 'share']
+```
+
+### Impacto
+Este fix afecta a todos los bloques del Featured Product. Es importante mantener consistencia:
+- Usar **kebab-case** para IDs de bloques: `'buy-buttons'`, `'variant-picker'`
+- Acceder siempre con bracket notation: `blocks['buy-buttons']`
+- NO mezclar con camelCase: ~~`blocks.buyButtons`~~
+
+---
+
 ## 🎯 Lecciones Aprendidas
 
 1. **Verificar datos antes que código**: El problema del orden era de datos, no de implementación
@@ -273,6 +342,8 @@ console.log('[FEATURED PRODUCT] Changed main image to index:', imageIndex);
 3. **Flexbox puede ser traicionero**: `flex-shrink: 0` es crucial para mantener tamaños
 4. **Simplicidad gana**: Eliminar opciones confusas mejora UX
 5. **Sincronizar siempre**: Funcionalidades deben funcionar en editor Y preview real
+6. **Naming consistency es crítico**: Mantener la misma convención (kebab-case vs camelCase) en todo el flujo de datos
+7. **Los síntomas pueden ser engañosos**: "No se actualiza el preview" puede ser un problema de naming, no de renderizado
 
 ---
 

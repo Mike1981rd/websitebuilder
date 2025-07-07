@@ -259,6 +259,24 @@
         };
     </script>
     
+    <!-- Setup critical functions before loading modules -->
+    <script>
+        // Ensure critical functions are available before modules load
+        window.WebsiteBuilderModules = window.WebsiteBuilderModules || {};
+        
+        // Copy getColorSchemeValues from parent if not available
+        if (!window.getColorSchemeValues && window.parent && window.parent.getColorSchemeValues) {
+            window.getColorSchemeValues = window.parent.getColorSchemeValues;
+            console.log('[PREVIEW TEMPLATE] Copied getColorSchemeValues from parent');
+        }
+        
+        // Copy currentGlobalThemeSettings from parent if not available
+        if (!window.currentGlobalThemeSettings && window.parent && window.parent.currentGlobalThemeSettings) {
+            window.currentGlobalThemeSettings = window.parent.currentGlobalThemeSettings;
+            console.log('[PREVIEW TEMPLATE] Copied currentGlobalThemeSettings from parent');
+        }
+    </script>
+    
     <!-- Funciones de renderizado compartidas -->
     <script src="~/js/website-render-functions.js?v=@DateTime.Now.Ticks"></script>
     
@@ -276,16 +294,10 @@
     <script src="~/js/website-builder/modules/featured-product.js?v=@DateTime.Now.Ticks"></script>
     
     <script>
-        // Ensure modules are initialized
-        window.WebsiteBuilderModules = window.WebsiteBuilderModules || {};
-        
-        // Ensure getColorSchemeValues is available
-        if (!window.getColorSchemeValues && window.parent.getColorSchemeValues) {
-            window.getColorSchemeValues = window.parent.getColorSchemeValues;
-        }
-        
-        // Log module availability
-        console.log('[PREVIEW TEMPLATE] Footer module available:', !!window.WebsiteBuilderModules.Footer);
+        // Log module availability after all modules are loaded
+        console.log('[PREVIEW TEMPLATE] Modules loaded:', Object.keys(window.WebsiteBuilderModules || {}));
+        console.log('[PREVIEW TEMPLATE] Featured Product module available:', !!window.WebsiteBuilderModules.FeaturedProduct);
+        console.log('[PREVIEW TEMPLATE] getColorSchemeValues available:', typeof window.getColorSchemeValues);
     </script>
 </body>
 </html>

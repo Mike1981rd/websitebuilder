@@ -94,6 +94,7 @@ wwwroot\TestImages\contactformpreviewmodal.png
 wwwroot\TestImages\Contenttab1.png
 wwwroot\TestImages\Contenttab2.png
 wwwroot\TestImages\Contenttab3.png
+wwwroot\TestImages\estilos.png
 wwwroot\TestImages\footer.png
 wwwroot\TestImages\footer-estructura.png
 wwwroot\TestImages\galleryeditorstructure.png

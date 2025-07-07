@@ -446,7 +446,34 @@ async function loadCurrentWebsite() {
                                 mediaThumbnailSize: 100,
                                 mediaMobileLayout: 'thumbnails',
                                 mediaImageRatio: 'adapt',
-                                showOnlySelectedVariantMedia: false
+                                showOnlySelectedVariantMedia: false,
+                                blocks: {
+                                    vendor: { type: 'vendor', isHidden: false },
+                                    title: { type: 'title', isHidden: false },
+                                    price: { type: 'price', isHidden: false },
+                                    sku: { type: 'sku', isHidden: false },
+                                    'variant-picker': { type: 'variant-picker', isHidden: false },
+                                    'inventory-status': { type: 'inventory-status', isHidden: false },
+                                    'quantity-selector': { type: 'quantity-selector', isHidden: false },
+                                    'buy-buttons': { 
+                                        type: 'buy-buttons', 
+                                        isHidden: false,
+                                        addToCartStyle: 'solid',
+                                        showDynamicCheckout: true,
+                                        dynamicCheckoutStyle: 'solid',
+                                        enablePickupAvailability: false,
+                                        showRecipientForm: false
+                                    },
+                                    description: { 
+                                        type: 'description', 
+                                        isHidden: false,
+                                        showIcon: true,
+                                        enableTruncate: true,
+                                        truncateLines: 4
+                                    },
+                                    share: { type: 'share', isHidden: false }
+                                },
+                                blockOrder: ['vendor', 'title', 'price', 'sku', 'variant-picker', 'inventory-status', 'quantity-selector', 'buy-buttons', 'description', 'share']
                             },
                             announcements: {},
                             announcementOrder: [],
@@ -505,6 +532,22 @@ async function loadCurrentWebsite() {
                             if (sectionType === 'featuredProduct' && sectionsData[sectionType] && sectionsData[sectionType].selectedProduct) {
                                 currentSectionsConfig[sectionType].selectedProduct = sectionsData[sectionType].selectedProduct;
                                 console.log(`[DEBUG] Preserved featuredProduct.selectedProduct:`, sectionsData[sectionType].selectedProduct);
+                            }
+                            
+                            // Preserve featuredProduct blocks configuration
+                            if (sectionType === 'featuredProduct' && sectionsData[sectionType] && sectionsData[sectionType].blocks) {
+                                Object.keys(sectionsData[sectionType].blocks).forEach(blockId => {
+                                    if (sectionsData[sectionType].blocks[blockId] && 
+                                        currentSectionsConfig[sectionType] && 
+                                        currentSectionsConfig[sectionType].blocks && 
+                                        currentSectionsConfig[sectionType].blocks[blockId]) {
+                                        // Preserve all block properties from saved data
+                                        Object.assign(currentSectionsConfig[sectionType].blocks[blockId], 
+                                                     sectionsData[sectionType].blocks[blockId]);
+                                        console.log(`[DEBUG] Preserved featuredProduct.blocks[${blockId}]:`, 
+                                                   sectionsData[sectionType].blocks[blockId]);
+                                    }
+                                });
                             }
                         });
                         
@@ -2400,6 +2443,50 @@ function renderPreview() {
         });
     });
     console.log('[PREVIEW] Featured product thumbnails initialized.');
+    
+    // Initialize quantity selector for Featured Product
+    const qtyDecreaseBtns = previewDoc.querySelectorAll('.qty-decrease');
+    const qtyIncreaseBtns = previewDoc.querySelectorAll('.qty-increase');
+    
+    qtyDecreaseBtns.forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const input = this.parentElement.querySelector('.qty-input');
+            if (input) {
+                const currentValue = parseInt(input.value) || 1;
+                if (currentValue > 1) {
+                    input.value = currentValue - 1;
+                    console.log('[FEATURED PRODUCT] Decreased quantity to:', currentValue - 1);
+                }
+            }
+        });
+    });
+    
+    qtyIncreaseBtns.forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const input = this.parentElement.querySelector('.qty-input');
+            if (input) {
+                const currentValue = parseInt(input.value) || 1;
+                input.value = currentValue + 1;
+                console.log('[FEATURED PRODUCT] Increased quantity to:', currentValue + 1);
+            }
+        });
+    });
+    
+    // Also handle direct input changes
+    const qtyInputs = previewDoc.querySelectorAll('.qty-input');
+    qtyInputs.forEach(input => {
+        input.addEventListener('change', function(e) {
+            const value = parseInt(this.value);
+            if (isNaN(value) || value < 1) {
+                this.value = 1;
+            }
+            console.log('[FEATURED PRODUCT] Quantity changed to:', this.value);
+        });
+    });
+    
+    console.log('[PREVIEW] Quantity selector initialized.');
     
     // Initialize description tab listeners for Featured Product
     const descriptionTabs = previewDoc.querySelectorAll('.description-tab');
@@ -17613,7 +17700,16 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                     'variant-picker': { id: 'variant-picker', type: 'variant-picker', isHidden: false },
                     'inventory-status': { id: 'inventory-status', type: 'inventory-status', isHidden: false },
                     'quantity-selector': { id: 'quantity-selector', type: 'quantity-selector', isHidden: false },
-                    'buy-buttons': { id: 'buy-buttons', type: 'buy-buttons', isHidden: false },
+                    'buy-buttons': { 
+                        id: 'buy-buttons', 
+                        type: 'buy-buttons', 
+                        isHidden: false,
+                        addToCartStyle: 'solid',
+                        showDynamicCheckout: true,
+                        dynamicCheckoutStyle: 'solid',
+                        enablePickupAvailability: false,
+                        showRecipientForm: false
+                    },
                     'description': { 
                         id: 'description', 
                         type: 'description', 
@@ -24112,6 +24208,14 @@ document.head.appendChild(style);
                                 window.forceVisibilitySync('imageBanner', isHidden);
                             }, 200);
                         });
+                    } else if (currentSidebarView === 'buyButtonsSettings') {
+                        // Mantener la vista de buy buttons abierta después de guardar
+                        console.log('[DEBUG] Staying in buy buttons settings view after save');
+                        // Forzar re-renderizado del preview para asegurar que se vean los cambios
+                        setTimeout(() => {
+                            console.log('[DEBUG] Force re-rendering preview after buy buttons save');
+                            window.renderPreview();
+                        }, 100);
                     }
                     
                     setTimeout(() => {

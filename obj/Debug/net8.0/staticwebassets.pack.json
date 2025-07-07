@@ -53,6 +53,10 @@
       "PackagePath": "staticwebassets\\TestImages\\contactformpreviewmodal.png"
     },
     {
+      "Id": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\TestImages\\estilos.png",
+      "PackagePath": "staticwebassets\\TestImages\\estilos.png"
+    },
+    {
       "Id": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\TestImages\\footer-estructura.png",
       "PackagePath": "staticwebassets\\TestImages\\footer-estructura.png"
     },

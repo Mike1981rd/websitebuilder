@@ -930,6 +930,9 @@
             // Attach description tab event listeners for Featured Product
             attachDescriptionTabListeners();
             
+            // Attach quantity selector event listeners for Featured Product
+            attachQuantitySelectorListeners();
+            
             // Adjuntar event listeners después del renderizado
             attachPreviewEventListeners();
             
@@ -994,6 +997,52 @@
                 });
             });
             console.log('[PREVIEW] Featured product thumbnails initialized with', productThumbnails.length, 'thumbnails');
+        }
+        
+        // Function to attach quantity selector event listeners
+        function attachQuantitySelectorListeners() {
+            const qtyDecreaseBtns = document.querySelectorAll('.qty-decrease');
+            const qtyIncreaseBtns = document.querySelectorAll('.qty-increase');
+            
+            qtyDecreaseBtns.forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const input = this.parentElement.querySelector('.qty-input');
+                    if (input) {
+                        const currentValue = parseInt(input.value) || 1;
+                        if (currentValue > 1) {
+                            input.value = currentValue - 1;
+                            console.log('[FEATURED PRODUCT] Decreased quantity to:', currentValue - 1);
+                        }
+                    }
+                });
+            });
+            
+            qtyIncreaseBtns.forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const input = this.parentElement.querySelector('.qty-input');
+                    if (input) {
+                        const currentValue = parseInt(input.value) || 1;
+                        input.value = currentValue + 1;
+                        console.log('[FEATURED PRODUCT] Increased quantity to:', currentValue + 1);
+                    }
+                });
+            });
+            
+            // Also handle direct input changes
+            const qtyInputs = document.querySelectorAll('.qty-input');
+            qtyInputs.forEach(input => {
+                input.addEventListener('change', function(e) {
+                    const value = parseInt(this.value);
+                    if (isNaN(value) || value < 1) {
+                        this.value = 1;
+                    }
+                    console.log('[FEATURED PRODUCT] Quantity changed to:', this.value);
+                });
+            });
+            
+            console.log('[PREVIEW] Quantity selector initialized with', qtyDecreaseBtns.length, 'decrease buttons and', qtyIncreaseBtns.length, 'increase buttons');
         }
         
         // Función de navegación de anuncios

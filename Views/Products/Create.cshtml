@@ -1239,5 +1239,76 @@
                 translatePage(currentLang);
             }
         });
+        
+        // Format price inputs with thousand separators
+        function formatCurrency(value) {
+            // Remove any non-numeric characters except decimal point
+            const cleanValue = value.toString().replace(/[^\d.]/g, '');
+            const parts = cleanValue.split('.');
+            
+            // Format the integer part with thousand separators
+            parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+            
+            // Join back with decimal part (if exists)
+            return parts.join('.');
+        }
+        
+        function parseCurrency(value) {
+            // Remove thousand separators to get numeric value
+            return value.toString().replace(/,/g, '');
+        }
+        
+        // Handle price input formatting
+        const priceInput = document.getElementById('Price');
+        const compareAtPriceInput = document.getElementById('CompareAtPrice');
+        
+        function setupPriceFormatting(input) {
+            if (!input) return;
+            
+            // Create a display input for formatted value
+            const displayInput = document.createElement('input');
+            displayInput.type = 'text';
+            displayInput.className = input.className;
+            displayInput.style.cssText = input.style.cssText;
+            
+            // Hide the original number input
+            input.style.display = 'none';
+            
+            // Insert display input after the original
+            input.parentNode.insertBefore(displayInput, input.nextSibling);
+            
+            // Set initial formatted value
+            if (input.value) {
+                displayInput.value = formatCurrency(input.value);
+            }
+            
+            // Update formatted display on input
+            displayInput.addEventListener('input', function() {
+                const numericValue = parseCurrency(this.value);
+                input.value = numericValue;
+                
+                // Reformat the display value
+                const cursorPosition = this.selectionStart;
+                const oldLength = this.value.length;
+                this.value = formatCurrency(numericValue);
+                
+                // Adjust cursor position after formatting
+                const newLength = this.value.length;
+                const diff = newLength - oldLength;
+                this.setSelectionRange(cursorPosition + diff, cursorPosition + diff);
+            });
+            
+            // Handle form submission - ensure numeric value is submitted
+            const form = input.closest('form');
+            if (form) {
+                form.addEventListener('submit', function() {
+                    input.value = parseCurrency(displayInput.value);
+                });
+            }
+        }
+        
+        // Apply formatting to both price inputs
+        setupPriceFormatting(priceInput);
+        setupPriceFormatting(compareAtPriceInput);
     </script>
 }
