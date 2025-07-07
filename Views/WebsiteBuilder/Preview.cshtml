@@ -927,6 +927,9 @@
             // Attach accordion event listeners
             attachAccordionEventListeners();
             
+            // Attach description tab event listeners for Featured Product
+            attachDescriptionTabListeners();
+            
             // Adjuntar event listeners después del renderizado
             attachPreviewEventListeners();
             
@@ -1080,6 +1083,48 @@
                     window.navigateAnnouncement('next');
                 });
             }
+        }
+        
+        // Function to attach description tab event listeners
+        function attachDescriptionTabListeners() {
+            console.log('[DESCRIPTION TAB] Attaching description tab listeners');
+            
+            // Find all description tabs
+            const descriptionTabs = document.querySelectorAll('.description-tab');
+            
+            descriptionTabs.forEach(tab => {
+                // Remove any inline onclick to prevent conflicts
+                tab.onclick = null;
+                
+                tab.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    const isExpanded = this.dataset.expanded === 'true';
+                    const tabId = this.id;
+                    const contentId = tabId.replace('-tab', '-content');
+                    const iconId = tabId.replace('-tab', '-icon');
+                    
+                    const content = document.getElementById(contentId);
+                    const icon = document.getElementById(iconId);
+                    
+                    if (content && icon) {
+                        if (isExpanded) {
+                            // Collapse
+                            content.style.display = 'none';
+                            icon.textContent = 'expand_more';
+                            this.dataset.expanded = 'false';
+                        } else {
+                            // Expand
+                            content.style.display = 'block';
+                            icon.textContent = 'expand_less';
+                            this.dataset.expanded = 'true';
+                        }
+                    }
+                });
+            });
+            
+            console.log('[DESCRIPTION TAB] Attached listeners to', descriptionTabs.length, 'tabs');
         }
         
         // Función para adjuntar event listeners

@@ -2401,6 +2401,38 @@ function renderPreview() {
     });
     console.log('[PREVIEW] Featured product thumbnails initialized.');
     
+    // Initialize description tab listeners for Featured Product
+    const descriptionTabs = previewDoc.querySelectorAll('.description-tab');
+    descriptionTabs.forEach(tab => {
+        tab.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const isExpanded = this.dataset.expanded === 'true';
+            const tabId = this.id;
+            const contentId = tabId.replace('-tab', '-content');
+            const iconId = tabId.replace('-tab', '-icon');
+            
+            const content = previewDoc.getElementById(contentId);
+            const icon = previewDoc.getElementById(iconId);
+            
+            if (content && icon) {
+                if (isExpanded) {
+                    // Collapse
+                    content.style.display = 'none';
+                    icon.textContent = 'expand_more';
+                    this.dataset.expanded = 'false';
+                } else {
+                    // Expand
+                    content.style.display = 'block';
+                    icon.textContent = 'expand_less';
+                    this.dataset.expanded = 'true';
+                }
+            }
+        });
+    });
+    console.log('[PREVIEW] Description tabs initialized:', descriptionTabs.length);
+    
     // Attach click listeners to the newly rendered section wrappers
     const sectionWrappers = previewDoc.querySelectorAll('.section-wrapper');
     sectionWrappers.forEach(wrapper => {
@@ -2412,10 +2444,11 @@ function renderPreview() {
             const isFaqHeader = clickedElement.closest('.faq-header');
             const isFaqTab = clickedElement.closest('[data-accordion-tab="true"]');
             const isAccordionToggle = clickedElement.closest('[data-accordion-toggle="true"]');
+            const isDescriptionTab = clickedElement.closest('.description-tab');
             
-            if (isFaqHeader || isFaqTab || isAccordionToggle) {
-                console.log('[PREVIEW CLICK] Click on accordion element, letting accordion handle it');
-                return; // Let the accordion's own click handler manage this
+            if (isFaqHeader || isFaqTab || isAccordionToggle || isDescriptionTab) {
+                console.log('[PREVIEW CLICK] Click on accordion/description element, letting it handle it');
+                return; // Let the element's own click handler manage this
             }
             
             // Check if click is on other interactive elements (excluding section-header-tag)
@@ -4826,6 +4859,29 @@ $(document).ready(async function() {
             'featuredProduct.options.scheme4': 'Esquema 4',
             'featuredProduct.options.scheme5': 'Esquema 5',
             'common.learnAboutColorSchemes': 'Aprende sobre esquemas de color',
+            // Featured Product Description settings
+            'featuredProduct.description.title': 'Description',
+            'featuredProduct.description.heading': 'Heading',
+            'featuredProduct.description.headingPlaceholder': 'Description',
+            'featuredProduct.description.type': 'Type',
+            'featuredProduct.description.typeStatic': 'Static',
+            'featuredProduct.description.typeExpanded': 'Expanded tab',
+            'featuredProduct.description.typeCollapsed': 'Collapsed tab',
+            'featuredProduct.description.icon': 'Icon',
+            'featuredProduct.description.iconNone': 'None',
+            'featuredProduct.description.iconHelp': 'See what icon stands for each label',
+            'featuredProduct.description.customIcon': 'Custom icon',
+            'featuredProduct.description.selectIcon': 'Seleccionar',
+            'featuredProduct.description.exploreImages': 'Explorar imágenes gratuitas',
+            'common.change': 'Cambiar',
+            'common.remove': 'Eliminar',
+            'icon.categories.general': 'General',
+            'icon.categories.commerce': 'Comercio',
+            'icon.categories.shipping': 'Envío',
+            'icon.categories.payment': 'Pago',
+            'icon.categories.communication': 'Comunicación',
+            'icon.categories.devices': 'Dispositivos',
+            'icon.categories.ecology': 'Ecología',
             'sections.hotspots': 'Puntos de acceso',
             'sections.imageSlider': 'Deslizador de imágenes',
             'sections.imagesWithText': 'Imágenes con texto',
@@ -5396,6 +5452,29 @@ $(document).ready(async function() {
             'featuredProduct.options.scheme3': 'Scheme 3',
             'featuredProduct.options.scheme4': 'Scheme 4',
             'featuredProduct.options.scheme5': 'Scheme 5',
+            // Featured Product Description settings
+            'featuredProduct.description.title': 'Description',
+            'featuredProduct.description.heading': 'Heading',
+            'featuredProduct.description.headingPlaceholder': 'Description',
+            'featuredProduct.description.type': 'Type',
+            'featuredProduct.description.typeStatic': 'Static',
+            'featuredProduct.description.typeExpanded': 'Expanded tab',
+            'featuredProduct.description.typeCollapsed': 'Collapsed tab',
+            'featuredProduct.description.icon': 'Icon',
+            'featuredProduct.description.iconNone': 'None',
+            'featuredProduct.description.iconHelp': 'See what icon stands for each label',
+            'featuredProduct.description.customIcon': 'Custom icon',
+            'featuredProduct.description.selectIcon': 'Select',
+            'featuredProduct.description.exploreImages': 'Explore free images',
+            'common.change': 'Change',
+            'common.remove': 'Remove',
+            'icon.categories.general': 'General',
+            'icon.categories.commerce': 'Commerce',
+            'icon.categories.shipping': 'Shipping',
+            'icon.categories.payment': 'Payment',
+            'icon.categories.communication': 'Communication',
+            'icon.categories.devices': 'Devices',
+            'icon.categories.ecology': 'Ecology',
             'sections.collectionList': 'Collection list',
             'sections.richText': 'Rich text',
             'sections.imageBanner': 'Image banner',
@@ -6079,6 +6158,78 @@ $(document).ready(async function() {
                 setTimeout(applyTranslations, 0);
             } else {
                 console.error('[DEBUG] No HTML returned from featured product renderSettings');
+            }
+        } else if (viewName === 'descriptionSettings') {
+            // Description settings for featured product
+            console.log('[DEBUG] Rendering description settings', data);
+            const html = executeModuleFunction('FeaturedProduct', 'renderDescriptionSettings', data);
+            
+            if (html) {
+                dynamicContentArea.innerHTML = html;
+                executeModuleFunction('FeaturedProduct', 'attachDescriptionEventListeners');
+                setTimeout(applyTranslations, 0);
+            } else {
+                console.error('[DEBUG] No HTML returned from description renderSettings');
+            }
+        } else if (viewName === 'buyButtonsSettings') {
+            // Buy Buttons settings for featured product
+            console.log('[DEBUG] Rendering buy buttons settings', data);
+            const html = executeModuleFunction('FeaturedProduct', 'renderBuyButtonsSettings', data);
+            
+            if (html) {
+                dynamicContentArea.innerHTML = html;
+                executeModuleFunction('FeaturedProduct', 'attachBuyButtonsEventListeners');
+                setTimeout(applyTranslations, 0);
+            } else {
+                console.error('[DEBUG] No HTML returned from buy buttons renderSettings');
+            }
+        } else if (viewName === 'priceSettings') {
+            // Price settings for featured product
+            console.log('[DEBUG] Rendering price settings', data);
+            const html = executeModuleFunction('FeaturedProduct', 'renderPriceSettings', data);
+            
+            if (html) {
+                dynamicContentArea.innerHTML = html;
+                executeModuleFunction('FeaturedProduct', 'attachPriceEventListeners');
+                setTimeout(applyTranslations, 0);
+            } else {
+                console.error('[DEBUG] No HTML returned from price renderSettings');
+            }
+        } else if (viewName === 'inventoryStatusSettings') {
+            // Inventory Status settings for featured product
+            console.log('[DEBUG] Rendering inventory status settings', data);
+            const html = executeModuleFunction('FeaturedProduct', 'renderInventoryStatusSettings', data);
+            
+            if (html) {
+                dynamicContentArea.innerHTML = html;
+                executeModuleFunction('FeaturedProduct', 'attachInventoryStatusEventListeners');
+                setTimeout(applyTranslations, 0);
+            } else {
+                console.error('[DEBUG] No HTML returned from inventory status renderSettings');
+            }
+        } else if (viewName === 'titleSettings') {
+            // Title settings for featured product
+            console.log('[DEBUG] Rendering title settings', data);
+            const html = executeModuleFunction('FeaturedProduct', 'renderTitleSettings', data);
+            
+            if (html) {
+                dynamicContentArea.innerHTML = html;
+                executeModuleFunction('FeaturedProduct', 'attachTitleEventListeners');
+                setTimeout(applyTranslations, 0);
+            } else {
+                console.error('[DEBUG] No HTML returned from title renderSettings');
+            }
+        } else if (viewName === 'variantPickerSettings') {
+            // Variant Picker settings for featured product
+            console.log('[DEBUG] Rendering variant picker settings', data);
+            const html = executeModuleFunction('FeaturedProduct', 'renderVariantPickerSettings', data);
+            
+            if (html) {
+                dynamicContentArea.innerHTML = html;
+                executeModuleFunction('FeaturedProduct', 'attachVariantPickerEventListeners');
+                setTimeout(applyTranslations, 0);
+            } else {
+                console.error('[DEBUG] No HTML returned from variant picker renderSettings');
             }
         } else if (viewName === 'richTextSettings') {
             // Rich Text settings - usar módulo
@@ -12828,6 +12979,36 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                 console.log('[DEBUG] Featured Product section clicked, opening settings');
                 switchSidebarView('featuredProductSettings');
             }
+            // Handle featured product block click (child blocks like description)
+            else if (blockType === 'featured-product-block') {
+                const blockId = $(this).data('element-id');
+                const block = currentSectionsConfig.featuredProduct?.blocks?.[blockId];
+                console.log('[DEBUG] Featured Product block clicked:', blockId, block);
+                
+                if (blockId && block) {
+                    // Handle blocks with configuration views
+                    if (block.type === 'description') {
+                        console.log('[DEBUG] Opening description settings for block:', blockId);
+                        switchSidebarView('descriptionSettings', block);
+                    } else if (block.type === 'buy-buttons') {
+                        console.log('[DEBUG] Opening buy buttons settings for block:', blockId);
+                        switchSidebarView('buyButtonsSettings', block);
+                    } else if (block.type === 'price') {
+                        console.log('[DEBUG] Opening price settings for block:', blockId);
+                        switchSidebarView('priceSettings', block);
+                    } else if (block.type === 'inventory-status') {
+                        console.log('[DEBUG] Opening inventory status settings for block:', blockId);
+                        switchSidebarView('inventoryStatusSettings', block);
+                    } else if (block.type === 'title') {
+                        console.log('[DEBUG] Opening title settings for block:', blockId);
+                        switchSidebarView('titleSettings', block);
+                    } else if (block.type === 'variant-picker') {
+                        console.log('[DEBUG] Opening variant picker settings for block:', blockId);
+                        switchSidebarView('variantPickerSettings', block);
+                    }
+                    // Other blocks don't have configuration views
+                }
+            }
             // Handle gallery image click
             else if (blockType === 'gallery-image') {
                 const imageId = $(this).data('element-id');
@@ -17433,7 +17614,15 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                     'inventory-status': { id: 'inventory-status', type: 'inventory-status', isHidden: false },
                     'quantity-selector': { id: 'quantity-selector', type: 'quantity-selector', isHidden: false },
                     'buy-buttons': { id: 'buy-buttons', type: 'buy-buttons', isHidden: false },
-                    'description': { id: 'description', type: 'description', isHidden: false },
+                    'description': { 
+                        id: 'description', 
+                        type: 'description', 
+                        isHidden: false,
+                        heading: 'Description',
+                        descriptionType: 'static',
+                        icon: 'none',
+                        customIcon: null
+                    },
                     'share': { id: 'share', type: 'share', isHidden: false }
                 };
                 
