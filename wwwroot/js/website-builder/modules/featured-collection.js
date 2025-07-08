@@ -921,70 +921,83 @@ window.WebsiteBuilderModules.FeaturedCollection = {
         const selectedCount = this.selectedCollections.length;
         
         const html = `
-            <div class="sidebar-subsection" style="height: 100%; display: flex; flex-direction: column;">
-                <!-- Header -->
-                <div style="padding: 16px 20px; border-bottom: 1px solid #e0e0e0; display: flex; align-items: center; gap: 12px;">
-                    <button id="back-from-collection-selector" style="background: none; border: none; padding: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center;">
-                        <i class="material-icons" style="font-size: 24px; color: #6d7175;">arrow_back</i>
+            <div style="display: flex; flex-direction: column; height: 100%; position: relative; overflow: hidden;">
+                <!-- Header estándar -->
+                <div class="sidebar-view-header" style="position: relative; z-index: 10;">
+                    <button class="back-to-featured-collection-config">
+                        <i class="material-icons">arrow_back</i>
                     </button>
-                    <h4 style="margin: 0; font-size: 16px; font-weight: 500; color: #202223; flex: 1;">Seleccionar colecciones</h4>
-                    <button id="close-collection-selector" style="background: none; border: none; padding: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center;">
-                        <i class="material-icons" style="font-size: 24px; color: #6d7175;">close</i>
-                    </button>
+                    <h3 data-i18n="featuredCollection.selectCollections">Seleccionar colecciones</h3>
                 </div>
                 
-                <!-- Search -->
-                <div style="padding: 16px 20px; border-bottom: 1px solid #e0e0e0;">
-                    <div style="position: relative;">
-                        <i class="material-icons" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #6d7175; font-size: 20px;">search</i>
-                        <input type="text" id="collection-search-inline" placeholder="Buscar colecciones" 
-                               style="width: 100%; padding: 8px 12px 8px 40px; border: 1px solid #e0e0e0; border-radius: 4px; font-size: 14px;">
+                <!-- Contenido con scroll -->
+                <div style="padding: 20px; overflow-y: auto; overflow-x: hidden; flex: 1; height: calc(100% - 60px); box-sizing: border-box;">
+                    <!-- Search -->
+                    <div class="form-group">
+                        <div style="position: relative;">
+                            <i class="material-icons" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #6d7175; font-size: 20px;">search</i>
+                            <input type="text" id="collection-search-inline" 
+                                   placeholder="Buscar colecciones" 
+                                   data-i18n-placeholder="featuredCollection.searchCollections"
+                                   style="width: 100%; padding: 8px 12px 8px 40px; border: 1px solid #e0e0e0; border-radius: 4px; font-size: 14px;">
+                        </div>
+                        <div style="margin-top: 8px; font-size: 13px; color: #6d7175;">
+                            <span data-i18n="featuredCollection.selectUpTo50">Seleccionar hasta 50 colecciones</span>
+                        </div>
                     </div>
-                    <div style="margin-top: 8px; font-size: 13px; color: #6d7175;">
-                        Seleccionar hasta 50 colecciones
+                    
+                    <!-- Results -->
+                    <div class="form-group" style="margin-top: 20px;">
+                        <div id="collection-results-inline" style="background: #f7f7f7; border-radius: 4px; padding: 8px;">
+                            <!-- Los resultados se cargarán aquí -->
+                        </div>
                     </div>
-                </div>
-                
-                <!-- Results -->
-                <div style="flex: 1; overflow-y: auto; border-bottom: 1px solid #e0e0e0;">
-                    <div id="collection-results-inline" style="padding: 8px 0;">
-                        <!-- Los resultados se cargarán aquí -->
+                    
+                    <!-- Selected section -->
+                    <div class="form-group" style="margin-top: 20px; background: #f7f7f7; border-radius: 4px; padding: 16px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                            <span style="font-size: 14px; color: #202223; font-weight: 500;" data-i18n="featuredCollection.selected">Seleccionado</span>
+                            <span id="collection-counter-inline" style="font-size: 14px; color: #6d7175;">${selectedCount}/50</span>
+                        </div>
+                        <div id="selected-collections-inline" style="max-height: 200px; overflow-y: auto;">
+                            ${this.renderSelectedCollectionsInline()}
+                        </div>
                     </div>
-                </div>
-                
-                <!-- Selected section -->
-                <div style="border-bottom: 1px solid #e0e0e0; background: #f7f7f7;">
-                    <div style="padding: 12px 20px; display: flex; justify-content: space-between; align-items: center;">
-                        <span style="font-size: 14px; color: #202223; font-weight: 500;">Seleccionado</span>
-                        <span style="font-size: 14px; color: #6d7175;">${selectedCount}/50</span>
+                    
+                    <!-- Footer buttons -->
+                    <div class="form-group" style="margin-top: 20px; display: flex; gap: 12px; justify-content: flex-end;">
+                        <button class="cancel-collection-selection" style="padding: 8px 16px; background: white; border: 1px solid #c9cccf; border-radius: 4px; cursor: pointer; color: #202223; font-weight: 500; font-size: 14px;" data-i18n="common.cancel">Cancelar</button>
+                        <button class="save-collection-selection" style="padding: 8px 16px; background-color: var(--primary); color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 500; font-size: 14px;" data-i18n="common.select">Seleccionar</button>
                     </div>
-                    <div id="selected-collections-inline" style="max-height: 200px; overflow-y: auto; padding: 0 20px 12px;">
-                        ${this.renderSelectedCollectionsInline()}
-                    </div>
-                </div>
-                
-                <!-- Footer buttons -->
-                <div style="padding: 16px 20px; display: flex; gap: 12px; justify-content: flex-end;">
-                    <button id="cancel-collection-selection" style="padding: 8px 16px; background: white; border: 1px solid #c9cccf; border-radius: 4px; cursor: pointer; color: #202223; font-weight: 500; font-size: 14px;">Cancelar</button>
-                    <button id="save-collection-selection" style="padding: 8px 16px; background: #2962ff; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 500; font-size: 14px;">Seleccionar</button>
                 </div>
             </div>
         `;
         
         $('#sidebar-dynamic-content').html(html);
         
+        // Aplicar traducciones
+        setTimeout(applyTranslations, 0);
+        
         // Event listeners
-        $('#back-from-collection-selector, #close-collection-selector, #cancel-collection-selection').on('click', () => {
-            this.cancelCollectionSelection();
+        $('.back-to-featured-collection-config').off('click.collectionSelector').on('click.collectionSelector', () => {
+            const sectionId = window.currentFeaturedCollectionId || 'featured-collection-' + Date.now();
+            const sectionData = window.currentSectionsConfig.featuredCollections?.[sectionId] || { config: {} };
+            this.renderConfigView(sectionData);
         });
         
-        $('#save-collection-selection').on('click', () => {
+        $('.cancel-collection-selection').off('click.collectionSelector').on('click.collectionSelector', () => {
+            const sectionId = window.currentFeaturedCollectionId || 'featured-collection-' + Date.now();
+            const sectionData = window.currentSectionsConfig.featuredCollections?.[sectionId] || { config: {} };
+            this.renderConfigView(sectionData);
+        });
+        
+        $('.save-collection-selection').off('click.collectionSelector').on('click.collectionSelector', () => {
             this.saveSelectedCollection();
         });
         
         // Search con debounce
         let searchTimeout;
-        $('#collection-search-inline').on('input', function() {
+        $('#collection-search-inline').off('input.collectionSelector').on('input.collectionSelector', function() {
             clearTimeout(searchTimeout);
             const query = $(this).val();
             
@@ -1266,7 +1279,7 @@ window.WebsiteBuilderModules.FeaturedCollection = {
             <div style="display: flex; flex-direction: column; height: 100%; position: relative; overflow: hidden;">
                 <!-- Header estándar -->
                 <div class="sidebar-view-header" style="position: relative; z-index: 10;">
-                    <button class="back-to-config-btn">
+                    <button class="back-to-featured-collection-config">
                         <i class="material-icons">arrow_back</i>
                     </button>
                     <h3 data-i18n="featuredCollection.selectProducts">Seleccionar productos</h3>
@@ -1355,7 +1368,7 @@ window.WebsiteBuilderModules.FeaturedCollection = {
         console.log('[FEATURED COLLECTION] Attaching product selector event listeners');
         
         // Back button - volver a la vista de configuración
-        $('.back-to-config-btn').off('click.productSelector').on('click.productSelector', () => {
+        $('.back-to-featured-collection-config').off('click.productSelector').on('click.productSelector', () => {
             const sectionId = window.currentFeaturedCollectionId || 'featured-collection-' + Date.now();
             const sectionData = window.currentSectionsConfig.featuredCollections?.[sectionId] || { config: {} };
             this.renderConfigView(sectionData);
