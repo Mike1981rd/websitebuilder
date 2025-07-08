@@ -2,6 +2,145 @@
 console.log('[FEATURED COLLECTION MODULE] Loading featured collection module...');
 window.WebsiteBuilderModules = window.WebsiteBuilderModules || {};
 window.WebsiteBuilderModules.FeaturedCollection = {
+    // Data properties
+    selectedProducts: [],
+    selectedCollections: [],
+    
+    // Renderizar el módulo en el preview
+    render: function(config) {
+        console.log('[FEATURED COLLECTION] Rendering with config:', config);
+        
+        if (!config || config.isHidden) return '';
+        
+        const settings = config.config || {};
+        const schemeColors = window.getColorSchemeValues ? window.getColorSchemeValues(settings.colorScheme || 'scheme1') : {
+            background: '#ffffff',
+            text: '#000000',
+            border: '#e0e0e0'
+        };
+        
+        // Determinar si mostrar productos o colecciones
+        const hasProducts = settings.products && settings.products.length > 0;
+        const hasCollections = settings.collections && settings.collections.length > 0;
+        const collectionId = settings.collection; // Para compatibilidad con versiones anteriores
+        
+        // Si hay productos seleccionados, tienen prioridad
+        if (hasProducts) {
+            return this.renderProductsView(settings, schemeColors);
+        } else if (hasCollections || collectionId) {
+            return this.renderCollectionView(settings, schemeColors);
+        } else {
+            return this.renderEmptyState(settings, schemeColors);
+        }
+    },
+    
+    // Renderizar vista de productos específicos
+    renderProductsView: function(settings, schemeColors) {
+        const uniqueId = 'featured-collection-' + Date.now();
+        
+        return `
+            <div id="${uniqueId}" class="section-wrapper featured-collection-section" data-section-id="featured-collection" style="background-color: ${schemeColors.background}; padding-top: ${settings.topPadding || 96}px; padding-bottom: ${settings.bottomPadding || 48}px;">
+                <div class="section-header-tag">
+                    <span class="material-symbols-outlined" style="font-size: 16px;">inventory_2</span>
+                    ${window.translations && window.translations[window.currentLanguage] ? 
+                        (window.translations[window.currentLanguage]['sections.featuredCollection'] || 'Featured collection') : 
+                        'Featured collection'}
+                </div>
+                <div class="container" style="max-width: ${settings.width === 'full' ? '100%' : '1200px'}; margin: 0 auto; padding: 0 ${settings.addSidePaddings ? '20px' : '0'};">
+                    ${settings.heading ? `
+                        <h2 style="font-size: ${this.getHeadingSize(settings.headingSize)}; text-align: ${settings.headingAlignment || 'left'}; color: ${schemeColors.text}; margin-bottom: 30px;">
+                            ${settings.heading}
+                        </h2>
+                    ` : ''}
+                    
+                    <div class="${settings.desktopLayout || 'grid'}-layout" style="display: flex; flex-wrap: wrap; gap: ${settings.desktopSpaceBetweenCards || 16}px;">
+                        <!-- Productos específicos se renderizarán aquí -->
+                        <div style="text-align: center; padding: 40px; width: 100%;">
+                            <p style="color: ${schemeColors.text};">Selected products will be displayed here</p>
+                            <p style="color: ${schemeColors.text}; font-size: 12px; margin-top: 10px;">Product IDs: ${settings.products.join(', ')}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    },
+    
+    // Renderizar vista de colección
+    renderCollectionView: function(settings, schemeColors) {
+        const uniqueId = 'featured-collection-' + Date.now();
+        
+        return `
+            <div id="${uniqueId}" class="section-wrapper featured-collection-section" data-section-id="featured-collection" style="background-color: ${schemeColors.background}; padding-top: ${settings.topPadding || 96}px; padding-bottom: ${settings.bottomPadding || 48}px;">
+                <div class="section-header-tag">
+                    <span class="material-symbols-outlined" style="font-size: 16px;">inventory_2</span>
+                    ${window.translations && window.translations[window.currentLanguage] ? 
+                        (window.translations[window.currentLanguage]['sections.featuredCollection'] || 'Featured collection') : 
+                        'Featured collection'}
+                </div>
+                <div class="container" style="max-width: ${settings.width === 'full' ? '100%' : '1200px'}; margin: 0 auto; padding: 0 ${settings.addSidePaddings ? '20px' : '0'};">
+                    ${settings.heading ? `
+                        <h2 style="font-size: ${this.getHeadingSize(settings.headingSize)}; text-align: ${settings.headingAlignment || 'left'}; color: ${schemeColors.text}; margin-bottom: 30px;">
+                            ${settings.heading}
+                        </h2>
+                    ` : ''}
+                    
+                    <div class="${settings.desktopLayout || 'grid'}-layout" style="display: flex; flex-wrap: wrap; gap: ${settings.desktopSpaceBetweenCards || 16}px;">
+                        <!-- Productos de la colección se renderizarán aquí -->
+                        <div style="text-align: center; padding: 40px; width: 100%;">
+                            <p style="color: ${schemeColors.text};">
+                                ${settings.collections && settings.collections.length > 0 
+                                    ? `Collections: ${settings.collectionNames ? settings.collectionNames.join(', ') : settings.collections.length + ' selected'}`
+                                    : `Collection: ${settings.collectionName || 'Collection'}`}
+                            </p>
+                            <p style="color: ${schemeColors.text}; font-size: 12px; margin-top: 10px;">
+                                ${settings.collections && settings.collections.length > 1 
+                                    ? 'Products from these collections will be displayed'
+                                    : 'Products from this collection will be displayed'}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    },
+    
+    // Renderizar estado vacío
+    renderEmptyState: function(settings, schemeColors) {
+        const uniqueId = 'featured-collection-' + Date.now();
+        
+        return `
+            <div id="${uniqueId}" class="section-wrapper featured-collection-section" data-section-id="featured-collection" style="background-color: ${schemeColors.background}; padding-top: ${settings.topPadding || 96}px; padding-bottom: ${settings.bottomPadding || 48}px;">
+                <div class="section-header-tag">
+                    <span class="material-symbols-outlined" style="font-size: 16px;">inventory_2</span>
+                    ${window.translations && window.translations[window.currentLanguage] ? 
+                        (window.translations[window.currentLanguage]['sections.featuredCollection'] || 'Featured collection') : 
+                        'Featured collection'}
+                </div>
+                <div class="container" style="max-width: ${settings.width === 'full' ? '100%' : '1200px'}; margin: 0 auto; padding: 0 ${settings.addSidePaddings ? '20px' : '0'};">
+                    <div style="text-align: center; padding: 60px 20px; border: 2px dashed ${schemeColors.border}; border-radius: 8px;">
+                        <i class="material-icons" style="font-size: 48px; color: #999;">inventory_2</i>
+                        <h3 style="color: ${schemeColors.text}; margin: 20px 0 10px;">No collection or products selected</h3>
+                        <p style="color: #666;">Select a collection or specific products to display them here</p>
+                    </div>
+                </div>
+            </div>
+        `;
+    },
+    
+    // Helper para obtener tamaño de heading
+    getHeadingSize: function(size) {
+        const sizes = {
+            heading1: '48px',
+            heading2: '40px',
+            heading3: '36px',
+            heading4: '32px',
+            heading5: '28px',
+            heading6: '24px',
+            heading7: '20px',
+            heading8: '16px'
+        };
+        return sizes[size] || '28px';
+    },
     
     // Renderizar la vista de configuración
     renderSettings: function(config) {
@@ -185,7 +324,13 @@ window.WebsiteBuilderModules.FeaturedCollection = {
                                data-i18n="collection">Collection</label>
                         <div style="display: flex; align-items: center; padding: 12px; border: 1px solid #e0e0e0; border-radius: 4px; background: #f7f7f7;">
                             <i class="material-icons" style="margin-right: 8px; color: #666;">inventory_2</i>
-                            <span style="flex: 1; color: #202223;">${settings.collectionName || 'Restaurantes'}</span>
+                            <span style="flex: 1; color: #202223;">
+                                ${settings.collections && settings.collections.length > 0 
+                                    ? (settings.collections.length === 1 
+                                        ? (settings.collectionNames ? settings.collectionNames[0] : 'Collection selected')
+                                        : `${settings.collections.length} collections selected`)
+                                    : (settings.collectionName || 'None')}
+                            </span>
                             <button style="padding: 6px 12px; background: white; border: 1px solid #e0e0e0; border-radius: 4px; cursor: pointer; color: #202223;" 
                                     data-i18n="change">Cambiar</button>
                         </div>
@@ -197,7 +342,13 @@ window.WebsiteBuilderModules.FeaturedCollection = {
                                data-i18n="products">Products</label>
                         <div style="display: flex; align-items: center; padding: 12px; border: 1px solid #e0e0e0; border-radius: 4px; background: #f7f7f7;">
                             <i class="material-icons" style="margin-right: 8px; color: #666;">inventory_2</i>
-                            <span style="flex: 1; color: #202223;">${settings.productName || 'Ejecutiva'}</span>
+                            <span style="flex: 1; color: #202223;">
+                                ${settings.products && settings.products.length > 0 
+                                    ? (settings.products.length === 1 
+                                        ? (settings.productNames ? settings.productNames[0] : 'Product selected')
+                                        : `${settings.products.length} products selected`)
+                                    : 'None'}
+                            </span>
                             <button style="padding: 6px 12px; background: white; border: 1px solid #e0e0e0; border-radius: 4px; cursor: pointer; color: #202223;" 
                                     data-i18n="change">Cambiar</button>
                         </div>
@@ -673,10 +824,917 @@ window.WebsiteBuilderModules.FeaturedCollection = {
         });
         
         // Collection change button
-        $('.form-group button[data-i18n="change"]').off('click.featuredCollection').on('click.featuredCollection', function() {
+        $('.form-group button[data-i18n="change"]').eq(0).off('click.featuredCollection').on('click.featuredCollection', function() {
             console.log('[FEATURED COLLECTION] Collection change button clicked');
-            // TODO: Implement collection selector modal
+            window.WebsiteBuilderModules.FeaturedCollection.openCollectionSelector();
         });
+        
+        // Products change button
+        $('.form-group button[data-i18n="change"]').eq(1).off('click.featuredCollection').on('click.featuredCollection', function() {
+            console.log('[FEATURED COLLECTION] Products change button clicked');
+            window.WebsiteBuilderModules.FeaturedCollection.openProductsSelector();
+        });
+    },
+    
+    // Abrir selector de colección
+    openCollectionSelector: function() {
+        console.log('[FEATURED COLLECTION] Opening collection selector');
+        
+        // Cargar colecciones seleccionadas actualmente
+        const sectionId = window.currentFeaturedCollectionId || 'featured-collection-' + Date.now();
+        const currentConfig = window.currentSectionsConfig.featuredCollections?.[sectionId]?.config;
+        
+        // Inicializar colecciones seleccionadas
+        window.WebsiteBuilderModules.FeaturedCollection.selectedCollections = [];
+        
+        // Si hay colecciones guardadas, cargarlas
+        if (currentConfig) {
+            if (currentConfig.collections && currentConfig.collectionNames) {
+                // Formato nuevo con múltiples colecciones
+                currentConfig.collections.forEach((id, index) => {
+                    window.WebsiteBuilderModules.FeaturedCollection.selectedCollections.push({
+                        id: id,
+                        title: currentConfig.collectionNames[index] || 'Collection'
+                    });
+                });
+            } else if (currentConfig.collection && currentConfig.collectionName) {
+                // Formato antiguo con una sola colección
+                window.WebsiteBuilderModules.FeaturedCollection.selectedCollections.push({
+                    id: currentConfig.collection,
+                    title: currentConfig.collectionName
+                });
+            }
+        }
+        
+        // Renderizar la vista de selección en el mismo panel
+        this.renderCollectionSelectorView();
+    },
+    
+    // Renderizar vista de selección de colecciones
+    renderCollectionSelectorView: function() {
+        const selectedCount = this.selectedCollections.length;
+        
+        const html = `
+            <div class="sidebar-subsection" style="height: 100%; display: flex; flex-direction: column;">
+                <!-- Header -->
+                <div style="padding: 16px 20px; border-bottom: 1px solid #e0e0e0; display: flex; align-items: center; gap: 12px;">
+                    <button id="back-from-collection-selector" style="background: none; border: none; padding: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+                        <i class="material-icons" style="font-size: 24px; color: #6d7175;">arrow_back</i>
+                    </button>
+                    <h4 style="margin: 0; font-size: 16px; font-weight: 500; color: #202223; flex: 1;">Seleccionar colecciones</h4>
+                    <button id="close-collection-selector" style="background: none; border: none; padding: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+                        <i class="material-icons" style="font-size: 24px; color: #6d7175;">close</i>
+                    </button>
+                </div>
+                
+                <!-- Search -->
+                <div style="padding: 16px 20px; border-bottom: 1px solid #e0e0e0;">
+                    <div style="position: relative;">
+                        <i class="material-icons" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #6d7175; font-size: 20px;">search</i>
+                        <input type="text" id="collection-search-inline" placeholder="Buscar colecciones" 
+                               style="width: 100%; padding: 8px 12px 8px 40px; border: 1px solid #e0e0e0; border-radius: 4px; font-size: 14px;">
+                    </div>
+                    <div style="margin-top: 8px; font-size: 13px; color: #6d7175;">
+                        Seleccionar hasta 50 colecciones
+                    </div>
+                </div>
+                
+                <!-- Results -->
+                <div style="flex: 1; overflow-y: auto; border-bottom: 1px solid #e0e0e0;">
+                    <div id="collection-results-inline" style="padding: 8px 0;">
+                        <!-- Los resultados se cargarán aquí -->
+                    </div>
+                </div>
+                
+                <!-- Selected section -->
+                <div style="border-bottom: 1px solid #e0e0e0; background: #f7f7f7;">
+                    <div style="padding: 12px 20px; display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-size: 14px; color: #202223; font-weight: 500;">Seleccionado</span>
+                        <span style="font-size: 14px; color: #6d7175;">${selectedCount}/50</span>
+                    </div>
+                    <div id="selected-collections-inline" style="max-height: 200px; overflow-y: auto; padding: 0 20px 12px;">
+                        ${this.renderSelectedCollectionsInline()}
+                    </div>
+                </div>
+                
+                <!-- Footer buttons -->
+                <div style="padding: 16px 20px; display: flex; gap: 12px; justify-content: flex-end;">
+                    <button id="cancel-collection-selection" style="padding: 8px 16px; background: white; border: 1px solid #c9cccf; border-radius: 4px; cursor: pointer; color: #202223; font-weight: 500; font-size: 14px;">Cancelar</button>
+                    <button id="save-collection-selection" style="padding: 8px 16px; background: #2962ff; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 500; font-size: 14px;">Seleccionar</button>
+                </div>
+            </div>
+        `;
+        
+        $('#sidebar-dynamic-content').html(html);
+        
+        // Event listeners
+        $('#back-from-collection-selector, #close-collection-selector, #cancel-collection-selection').on('click', () => {
+            this.cancelCollectionSelection();
+        });
+        
+        $('#save-collection-selection').on('click', () => {
+            this.saveSelectedCollection();
+        });
+        
+        // Search con debounce
+        let searchTimeout;
+        $('#collection-search-inline').on('input', function() {
+            clearTimeout(searchTimeout);
+            const query = $(this).val();
+            
+            searchTimeout = setTimeout(() => {
+                window.WebsiteBuilderModules.FeaturedCollection.searchCollectionsInline(query);
+            }, 300);
+        }).focus();
+        
+        // Cargar colecciones iniciales
+        this.searchCollectionsInline('');
+    },
+    
+    // Renderizar colecciones seleccionadas inline
+    renderSelectedCollectionsInline: function() {
+        if (this.selectedCollections.length === 0) {
+            return '<div style="text-align: center; padding: 20px; color: #6d7175; font-size: 13px;">No hay colecciones seleccionadas</div>';
+        }
+        
+        return this.selectedCollections.map(collection => `
+            <div class="selected-collection-item" data-collection-id="${collection.id}" 
+                 style="display: flex; align-items: center; padding: 8px 12px; background: white; border: 1px solid #e0e0e0; border-radius: 4px; margin-bottom: 8px;">
+                ${collection.imageUrl ? `
+                    <img src="${collection.imageUrl}" style="width: 32px; height: 32px; object-fit: cover; border-radius: 4px; margin-right: 12px;">
+                ` : `
+                    <div style="width: 32px; height: 32px; background: #f0f0f0; border-radius: 4px; margin-right: 12px; display: flex; align-items: center; justify-content: center;">
+                        <i class="material-icons" style="font-size: 18px; color: #999;">image</i>
+                    </div>
+                `}
+                <span style="flex: 1; font-size: 14px; color: #202223;">${collection.title}</span>
+                <button class="remove-selected-collection" data-collection-id="${collection.id}" 
+                        style="background: none; border: none; padding: 4px; cursor: pointer; color: #6d7175;">
+                    <i class="material-icons" style="font-size: 20px;">close</i>
+                </button>
+            </div>
+        `).join('');
+    },
+    
+    // Cancelar selección de colecciones
+    cancelCollectionSelection: function() {
+        // Volver a la vista de configuración
+        const sectionId = window.currentFeaturedCollectionId || 'featured-collection-' + Date.now();
+        const sectionData = window.currentSectionsConfig.featuredCollections?.[sectionId] || { config: {} };
+        this.renderConfigView(sectionData);
+    },
+    
+    // Buscar colecciones inline
+    searchCollectionsInline: function(query) {
+        console.log('[FEATURED COLLECTION] Searching collections inline:', query);
+        
+        $('#collection-results-inline').html(`
+            <div style="text-align: center; padding: 40px;">
+                <div class="spinner-border" role="status">
+                    <span class="sr-only">Loading...</span>
+                </div>
+            </div>
+        `);
+        
+        $.ajax({
+            url: '/api/builder/collections/search',
+            type: 'GET',
+            data: { query: query },
+            success: function(response) {
+                if (response.success && response.collections) {
+                    let html = '';
+                    
+                    if (response.collections.length === 0) {
+                        html = `
+                            <div style="text-align: center; padding: 40px; color: #6d7175; font-size: 14px;">
+                                <i class="material-icons" style="font-size: 48px; color: #ddd; display: block; margin-bottom: 12px;">folder_open</i>
+                                No se encontraron colecciones
+                            </div>
+                        `;
+                    } else {
+                        response.collections.forEach(collection => {
+                            const isSelected = window.WebsiteBuilderModules.FeaturedCollection.selectedCollections.some(c => c.id === collection.id);
+                            html += `
+                                <div class="collection-item-inline" data-collection-id="${collection.id}" data-collection='${JSON.stringify(collection)}'
+                                     style="padding: 12px 20px; display: flex; align-items: center; cursor: pointer; transition: background 0.1s; ${isSelected ? 'background: #f0f0f0;' : ''}">
+                                    <input type="checkbox" ${isSelected ? 'checked' : ''} style="margin-right: 12px; cursor: pointer;">
+                                    ${collection.imageUrl ? `
+                                        <img src="${collection.imageUrl}" alt="${collection.title}" 
+                                             style="width: 40px; height: 40px; object-fit: cover; border-radius: 4px; margin-right: 12px;">
+                                    ` : `
+                                        <div style="width: 40px; height: 40px; background: #f0f0f0; border-radius: 4px; margin-right: 12px; display: flex; align-items: center; justify-content: center;">
+                                            <i class="material-icons" style="font-size: 20px; color: #999;">image</i>
+                                        </div>
+                                    `}
+                                    <div style="flex: 1;">
+                                        <div style="font-size: 14px; color: #202223;">${collection.title}</div>
+                                        <div style="font-size: 12px; color: #6d7175;">${collection.productCount} productos</div>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                    }
+                    
+                    $('#collection-results-inline').html(html);
+                    
+                    // Click handler para seleccionar colección
+                    $('.collection-item-inline').on('click', function(e) {
+                        const $checkbox = $(this).find('input[type="checkbox"]');
+                        const collection = JSON.parse($(this).attr('data-collection'));
+                        
+                        // Si clickearon el checkbox directamente, no hacer nada aquí
+                        if (e.target.type === 'checkbox') {
+                            window.WebsiteBuilderModules.FeaturedCollection.toggleCollectionSelectionInline(collection, $checkbox.is(':checked'));
+                            return;
+                        }
+                        
+                        // Toggle checkbox
+                        $checkbox.prop('checked', !$checkbox.prop('checked'));
+                        window.WebsiteBuilderModules.FeaturedCollection.toggleCollectionSelectionInline(collection, $checkbox.prop('checked'));
+                    });
+                    
+                    // Hover effect
+                    $('.collection-item-inline').hover(
+                        function() { 
+                            if (!$(this).find('input[type="checkbox"]').is(':checked')) {
+                                $(this).css('background-color', '#f7f7f7'); 
+                            }
+                        },
+                        function() { 
+                            if (!$(this).find('input[type="checkbox"]').is(':checked')) {
+                                $(this).css('background-color', 'transparent'); 
+                            }
+                        }
+                    );
+                }
+            },
+            error: function() {
+                $('#collection-results-inline').html(`
+                    <div style="text-align: center; padding: 40px; color: #dc3545;">
+                        <i class="material-icons" style="font-size: 48px;">error</i>
+                        <p>Error al cargar colecciones</p>
+                    </div>
+                `);
+            }
+        });
+    },
+    
+    // Toggle collection selection inline
+    toggleCollectionSelectionInline: function(collection, isSelected) {
+        console.log('[FEATURED COLLECTION] Toggling collection inline:', collection, isSelected);
+        
+        if (isSelected) {
+            // Agregar si no está
+            if (!this.selectedCollections.some(c => c.id === collection.id)) {
+                // Límite de 50 colecciones
+                if (this.selectedCollections.length >= 50) {
+                    alert('Puedes seleccionar hasta 50 colecciones');
+                    $(`.collection-item-inline[data-collection-id="${collection.id}"] input[type="checkbox"]`).prop('checked', false);
+                    return;
+                }
+                this.selectedCollections.push(collection);
+            }
+        } else {
+            // Remover
+            this.selectedCollections = this.selectedCollections.filter(c => c.id !== collection.id);
+        }
+        
+        // Actualizar UI
+        this.updateSelectedCollectionsInline();
+        
+        // Actualizar background del item
+        $(`.collection-item-inline[data-collection-id="${collection.id}"]`).css(
+            'background-color', isSelected ? '#f0f0f0' : 'transparent'
+        );
+    },
+    
+    // Actualizar display de colecciones seleccionadas inline
+    updateSelectedCollectionsInline: function() {
+        const $container = $('#selected-collections-inline');
+        const selectedCount = this.selectedCollections.length;
+        
+        // Actualizar contador
+        $('#collection-counter-inline').text(`${selectedCount}/50`);
+        
+        // Actualizar lista
+        $container.html(this.renderSelectedCollectionsInline());
+        
+        // Re-attach event handlers para remove
+        $('.remove-selected-collection').on('click', function(e) {
+            e.stopPropagation();
+            const collectionId = $(this).data('collection-id');
+            
+            // Remover de la lista
+            window.WebsiteBuilderModules.FeaturedCollection.selectedCollections = 
+                window.WebsiteBuilderModules.FeaturedCollection.selectedCollections.filter(c => c.id !== collectionId);
+            
+            // Desmarcar checkbox
+            $(`.collection-item-inline[data-collection-id="${collectionId}"] input[type="checkbox"]`).prop('checked', false);
+            $(`.collection-item-inline[data-collection-id="${collectionId}"]`).css('background-color', 'transparent');
+            
+            // Actualizar UI
+            window.WebsiteBuilderModules.FeaturedCollection.updateSelectedCollectionsInline();
+        });
+    },
+    
+    // Guardar colecciones seleccionadas
+    saveSelectedCollection: function() {
+        console.log('[FEATURED COLLECTION] Saving selected collections:', this.selectedCollections);
+        
+        const sectionId = window.currentFeaturedCollectionId || 'featured-collection-' + Date.now();
+        
+        // Actualizar configuración
+        if (!window.currentSectionsConfig.featuredCollections) {
+            window.currentSectionsConfig.featuredCollections = {};
+        }
+        if (!window.currentSectionsConfig.featuredCollections[sectionId]) {
+            window.currentSectionsConfig.featuredCollections[sectionId] = { config: {} };
+        }
+        
+        if (this.selectedCollections.length > 0) {
+            // Guardar IDs y nombres de colecciones
+            window.currentSectionsConfig.featuredCollections[sectionId].config.collections = 
+                this.selectedCollections.map(c => c.id);
+            window.currentSectionsConfig.featuredCollections[sectionId].config.collectionNames = 
+                this.selectedCollections.map(c => c.title);
+            
+            // Por compatibilidad, mantener el primer elemento como collection singular
+            window.currentSectionsConfig.featuredCollections[sectionId].config.collection = this.selectedCollections[0].id;
+            window.currentSectionsConfig.featuredCollections[sectionId].config.collectionName = this.selectedCollections[0].title;
+        } else {
+            // Limpiar selección
+            delete window.currentSectionsConfig.featuredCollections[sectionId].config.collections;
+            delete window.currentSectionsConfig.featuredCollections[sectionId].config.collectionNames;
+            delete window.currentSectionsConfig.featuredCollections[sectionId].config.collection;
+            delete window.currentSectionsConfig.featuredCollections[sectionId].config.collectionName;
+        }
+        
+        // Marcar como cambios pendientes
+        if (typeof window.setHasPendingPageStructureChanges === 'function') {
+            window.setHasPendingPageStructureChanges(true);
+        }
+        if (typeof window.updateSaveButtonState === 'function') {
+            window.updateSaveButtonState();
+        }
+        if (typeof window.renderPreview === 'function') {
+            window.renderPreview();
+        }
+        
+        // Volver a la vista de configuración
+        const sectionData = window.currentSectionsConfig.featuredCollections[sectionId] || { config: {} };
+        this.renderConfigView(sectionData);
+    },
+    
+    // Abrir selector de productos
+    openProductsSelector: function() {
+        console.log('[FEATURED COLLECTION] Opening products selector');
+        
+        // Cargar productos seleccionados actualmente
+        const sectionId = window.currentFeaturedCollectionId || 'featured-collection-' + Date.now();
+        const currentConfig = window.currentSectionsConfig.featuredCollections?.[sectionId]?.config;
+        
+        // Inicializar productos seleccionados
+        window.WebsiteBuilderModules.FeaturedCollection.selectedProducts = [];
+        
+        // Si hay productos guardados, cargarlos
+        if (currentConfig && currentConfig.products) {
+            // Por ahora solo guardamos los IDs con nombres placeholder
+            currentConfig.products.forEach((id, index) => {
+                window.WebsiteBuilderModules.FeaturedCollection.selectedProducts.push({
+                    id: id,
+                    title: currentConfig.productNames ? currentConfig.productNames[index] : `Product ${id}`,
+                    imageUrl: currentConfig.productImages ? currentConfig.productImages[index] : null
+                });
+            });
+        }
+        
+        // Renderizar la vista de selección en el mismo panel
+        this.renderProductSelectorView();
+    },
+    
+    // Renderizar vista de selección de productos
+    renderProductSelectorView: function() {
+        const selectedCount = this.selectedProducts.length;
+        
+        const html = `
+            <div style="display: flex; flex-direction: column; height: 100%; position: relative; overflow: hidden;">
+                <!-- Header estándar -->
+                <div class="sidebar-view-header" style="position: relative; z-index: 10;">
+                    <button class="back-to-config-btn">
+                        <i class="material-icons">arrow_back</i>
+                    </button>
+                    <h3 data-i18n="featuredCollection.selectProducts">Seleccionar productos</h3>
+                </div>
+                
+                <!-- Contenido con scroll -->
+                <div style="padding: 20px; overflow-y: auto; overflow-x: hidden; flex: 1; height: calc(100% - 60px); box-sizing: border-box;">
+                    <!-- Search -->
+                    <div class="form-group">
+                        <div style="position: relative;">
+                            <i class="material-icons" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #6d7175; font-size: 20px;">search</i>
+                            <input type="text" id="product-search-inline" 
+                                   placeholder="Buscar productos" 
+                                   data-i18n-placeholder="featuredCollection.searchProducts"
+                                   style="width: 100%; padding: 8px 12px 8px 40px; border: 1px solid #e0e0e0; border-radius: 4px; font-size: 14px;">
+                        </div>
+                        <div style="margin-top: 8px; font-size: 13px; color: #6d7175;">
+                            <span data-i18n="featuredCollection.selectUpTo50Products">Seleccionar hasta 50 productos</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Results -->
+                    <div class="form-group" style="margin-top: 20px;">
+                        <div id="product-results-inline" style="background: #f7f7f7; border-radius: 4px; padding: 8px;">
+                            <!-- Los resultados se cargarán aquí -->
+                        </div>
+                    </div>
+                    
+                    <!-- Selected section -->
+                    <div class="form-group" style="margin-top: 20px; background: #f7f7f7; border-radius: 4px; padding: 16px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                            <span style="font-size: 14px; color: #202223; font-weight: 500;" data-i18n="featuredCollection.selected">Seleccionado</span>
+                            <span id="product-counter-inline" style="font-size: 14px; color: #6d7175;">${selectedCount}/50</span>
+                        </div>
+                        <div id="selected-products-inline" style="max-height: 200px; overflow-y: auto;">
+                            ${this.renderSelectedProductsInline()}
+                        </div>
+                    </div>
+                    
+                    <!-- Footer buttons -->
+                    <div class="form-group" style="margin-top: 20px; display: flex; gap: 12px; justify-content: flex-end;">
+                        <button class="cancel-product-selection" style="padding: 8px 16px; background: white; border: 1px solid #c9cccf; border-radius: 4px; cursor: pointer; color: #202223; font-weight: 500; font-size: 14px;" data-i18n="common.cancel">Cancelar</button>
+                        <button class="save-product-selection" style="padding: 8px 16px; background-color: var(--primary); color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 500; font-size: 14px;" data-i18n="common.select">Seleccionar</button>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        $('#sidebar-dynamic-content').html(html);
+        
+        // Aplicar traducciones y adjuntar event listeners
+        setTimeout(applyTranslations, 0);
+        this.attachProductSelectorEventListeners();
+        
+        // Cargar productos iniciales
+        this.searchProductsInline('');
+    },
+    
+    // Renderizar productos seleccionados inline
+    renderSelectedProductsInline: function() {
+        if (this.selectedProducts.length === 0) {
+            return '<div style="text-align: center; padding: 20px; color: #6d7175; font-size: 13px;">No hay productos seleccionados</div>';
+        }
+        
+        return this.selectedProducts.map(product => `
+            <div class="selected-product-item" data-product-id="${product.id}" 
+                 style="display: flex; align-items: center; padding: 8px 12px; background: white; border: 1px solid #e0e0e0; border-radius: 4px; margin-bottom: 8px;">
+                ${product.imageUrl ? `
+                    <img src="${product.imageUrl}" style="width: 32px; height: 32px; object-fit: cover; border-radius: 4px; margin-right: 12px;">
+                ` : `
+                    <div style="width: 32px; height: 32px; background: #f0f0f0; border-radius: 4px; margin-right: 12px; display: flex; align-items: center; justify-content: center;">
+                        <i class="material-icons" style="font-size: 18px; color: #999;">image</i>
+                    </div>
+                `}
+                <span style="flex: 1; font-size: 14px; color: #202223;">${product.title}</span>
+                <button class="remove-selected-product" data-product-id="${product.id}" 
+                        style="background: none; border: none; padding: 4px; cursor: pointer; color: #6d7175;">
+                    <i class="material-icons" style="font-size: 20px;">close</i>
+                </button>
+            </div>
+        `).join('');
+    },
+    
+    // Adjuntar event listeners para el selector de productos
+    attachProductSelectorEventListeners: function() {
+        console.log('[FEATURED COLLECTION] Attaching product selector event listeners');
+        
+        // Back button - volver a la vista de configuración
+        $('.back-to-config-btn').off('click.productSelector').on('click.productSelector', () => {
+            const sectionId = window.currentFeaturedCollectionId || 'featured-collection-' + Date.now();
+            const sectionData = window.currentSectionsConfig.featuredCollections?.[sectionId] || { config: {} };
+            this.renderConfigView(sectionData);
+        });
+        
+        // Botón cancelar
+        $('.cancel-product-selection').off('click.productSelector').on('click.productSelector', () => {
+            const sectionId = window.currentFeaturedCollectionId || 'featured-collection-' + Date.now();
+            const sectionData = window.currentSectionsConfig.featuredCollections?.[sectionId] || { config: {} };
+            this.renderConfigView(sectionData);
+        });
+        
+        // Botón guardar
+        $('.save-product-selection').off('click.productSelector').on('click.productSelector', () => {
+            this.saveSelectedProducts();
+        });
+        
+        // Search con debounce
+        let searchTimeout;
+        $('#product-search-inline').off('input.productSelector').on('input.productSelector', function() {
+            clearTimeout(searchTimeout);
+            const query = $(this).val();
+            
+            searchTimeout = setTimeout(() => {
+                window.WebsiteBuilderModules.FeaturedCollection.searchProductsInline(query);
+            }, 300);
+        }).focus();
+    },
+    
+    selectedProducts: [],
+    selectedCollections: [],
+    
+    // Buscar productos
+    searchProducts: function(query) {
+        console.log('[FEATURED COLLECTION] Searching products:', query);
+        
+        $('#products-results').html(`
+            <div style="text-align: center; padding: 40px;">
+                <div class="spinner-border" role="status">
+                    <span class="sr-only">Loading...</span>
+                </div>
+            </div>
+        `);
+        
+        $.ajax({
+            url: '/api/builder/products/search',
+            type: 'GET',
+            data: { query: query },
+            success: function(response) {
+                if (response.success && response.products) {
+                    let html = '';
+                    
+                    if (response.products.length === 0) {
+                        html = `
+                            <div style="text-align: center; padding: 40px; color: #666;">
+                                <i class="material-icons" style="font-size: 48px; color: #ddd;">inventory_2</i>
+                                <p>No products found</p>
+                            </div>
+                        `;
+                    } else {
+                        response.products.forEach(product => {
+                            const isSelected = window.WebsiteBuilderModules.FeaturedCollection.selectedProducts.some(p => p.id === product.id);
+                            
+                            html += `
+                                <div class="product-item ${isSelected ? 'selected' : ''}" data-product-id="${product.id}" 
+                                     style="padding: 15px; border: 1px solid ${isSelected ? '#2962ff' : '#e0e0e0'}; margin-bottom: 10px; border-radius: 4px; cursor: pointer; transition: all 0.2s; background: ${isSelected ? '#f0f7ff' : 'white'};">
+                                    <div style="display: flex; align-items: center; gap: 15px;">
+                                        ${product.imageUrl ? `
+                                            <img src="${product.imageUrl}" alt="${product.title}" 
+                                                 style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px;">
+                                        ` : `
+                                            <div style="width: 50px; height: 50px; background: #f0f0f0; border-radius: 4px; display: flex; align-items: center; justify-content: center;">
+                                                <i class="material-icons" style="color: #999;">image</i>
+                                            </div>
+                                        `}
+                                        <div style="flex: 1;">
+                                            <div style="font-weight: 500; color: #202223;">${product.title}</div>
+                                            <div style="font-size: 12px; color: #666;">
+                                                ${product.productType || 'No type'} • ${product.vendor || 'No vendor'}
+                                            </div>
+                                            <div style="font-size: 14px; color: #202223; margin-top: 4px;">$${product.price.toFixed(2)}</div>
+                                        </div>
+                                        <i class="material-icons" style="color: ${isSelected ? '#2962ff' : '#999'};">
+                                            ${isSelected ? 'check_circle' : 'add_circle_outline'}
+                                        </i>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                    }
+                    
+                    $('#products-results').html(html);
+                    
+                    // Click handler para seleccionar/deseleccionar productos
+                    $('.product-item').on('click', function() {
+                        const productId = $(this).data('product-id');
+                        const product = response.products.find(p => p.id === productId);
+                        
+                        if (product) {
+                            window.WebsiteBuilderModules.FeaturedCollection.toggleProductSelection(product, $(this));
+                        }
+                    });
+                    
+                    // Hover effect
+                    $('.product-item:not(.selected)').hover(
+                        function() { $(this).css('background-color', '#f7f7f7'); },
+                        function() { $(this).css('background-color', 'white'); }
+                    );
+                }
+            },
+            error: function() {
+                $('#products-results').html(`
+                    <div style="text-align: center; padding: 40px; color: #dc3545;">
+                        <i class="material-icons" style="font-size: 48px;">error</i>
+                        <p>Error loading products</p>
+                    </div>
+                `);
+            }
+        });
+    },
+    
+    // Toggle selección de producto
+    toggleProductSelection: function(product, $element) {
+        const index = this.selectedProducts.findIndex(p => p.id === product.id);
+        
+        if (index > -1) {
+            // Deseleccionar
+            this.selectedProducts.splice(index, 1);
+            $element.removeClass('selected')
+                    .css({
+                        'border-color': '#e0e0e0',
+                        'background-color': 'white'
+                    })
+                    .find('.material-icons').last()
+                    .text('add_circle_outline')
+                    .css('color', '#999');
+        } else {
+            // Seleccionar
+            this.selectedProducts.push(product);
+            $element.addClass('selected')
+                    .css({
+                        'border-color': '#2962ff',
+                        'background-color': '#f0f7ff'
+                    })
+                    .find('.material-icons').last()
+                    .text('check_circle')
+                    .css('color', '#2962ff');
+        }
+        
+        // Actualizar lista de seleccionados
+        this.updateSelectedProductsList();
+    },
+    
+    // Actualizar lista de productos seleccionados
+    updateSelectedProductsList: function() {
+        if (this.selectedProducts.length > 0) {
+            $('#selected-products').show();
+            
+            let html = '';
+            this.selectedProducts.forEach(product => {
+                html += `
+                    <div class="selected-product-chip" data-product-id="${product.id}" 
+                         style="display: inline-flex; align-items: center; gap: 5px; padding: 5px 10px; background: #e0e0e0; border-radius: 20px;">
+                        <span style="font-size: 12px;">${product.title}</span>
+                        <i class="material-icons" style="font-size: 16px; cursor: pointer;">close</i>
+                    </div>
+                `;
+            });
+            
+            $('#selected-products-list').html(html);
+            
+            // Click handler para remover
+            $('.selected-product-chip .material-icons').on('click', function(e) {
+                e.stopPropagation();
+                const productId = $(this).parent().data('product-id');
+                const product = window.WebsiteBuilderModules.FeaturedCollection.selectedProducts.find(p => p.id === productId);
+                
+                if (product) {
+                    // Encontrar el elemento en la lista y hacer click
+                    $(`.product-item[data-product-id="${productId}"]`).click();
+                }
+            });
+        } else {
+            $('#selected-products').hide();
+        }
+    },
+    
+    // Guardar productos seleccionados
+    saveSelectedProducts: function() {
+        console.log('[FEATURED COLLECTION] Saving selected products:', this.selectedProducts);
+        
+        const sectionId = window.currentFeaturedCollectionId || 'featured-collection-' + Date.now();
+        
+        // Actualizar configuración
+        if (!window.currentSectionsConfig.featuredCollections) {
+            window.currentSectionsConfig.featuredCollections = {};
+        }
+        if (!window.currentSectionsConfig.featuredCollections[sectionId]) {
+            window.currentSectionsConfig.featuredCollections[sectionId] = { config: {} };
+        }
+        
+        window.currentSectionsConfig.featuredCollections[sectionId].config.products = this.selectedProducts.map(p => p.id);
+        
+        // Actualizar UI
+        if (this.selectedProducts.length > 0) {
+            const productNames = this.selectedProducts.map(p => p.title).join(', ');
+            $('.form-group').eq(9).find('span').eq(1).text(productNames.length > 50 ? productNames.substring(0, 50) + '...' : productNames);
+        } else {
+            $('.form-group').eq(9).find('span').eq(1).text('No products selected');
+        }
+        
+        // Cerrar modal
+        $('#products-selector-modal').fadeOut();
+        
+        // Marcar como cambios pendientes
+        if (typeof window.setHasPendingPageStructureChanges === 'function') {
+            window.setHasPendingPageStructureChanges(true);
+        }
+        if (typeof window.updateSaveButtonState === 'function') {
+            window.updateSaveButtonState();
+        }
+        if (typeof window.renderPreview === 'function') {
+            window.renderPreview();
+        }
+    },
+    
+    // Buscar productos inline
+    searchProductsInline: function(query) {
+        console.log('[FEATURED COLLECTION] Searching products inline:', query);
+        
+        $('#product-results-inline').html(`
+            <div style="text-align: center; padding: 40px;">
+                <div class="spinner-border" role="status">
+                    <span class="sr-only">Loading...</span>
+                </div>
+            </div>
+        `);
+        
+        $.ajax({
+            url: '/api/builder/products/search',
+            type: 'GET',
+            data: { query: query },
+            success: function(response) {
+                if (response.success && response.products) {
+                    let html = '';
+                    
+                    if (response.products.length === 0) {
+                        html = `
+                            <div style="text-align: center; padding: 40px; color: #6d7175; font-size: 14px;">
+                                <i class="material-icons" style="font-size: 48px; color: #ddd; display: block; margin-bottom: 12px;">inventory_2</i>
+                                No se encontraron productos
+                            </div>
+                        `;
+                    } else {
+                        response.products.forEach(product => {
+                            const isSelected = window.WebsiteBuilderModules.FeaturedCollection.selectedProducts.some(p => p.id === product.id);
+                            html += `
+                                <div class="product-item-inline" data-product-id="${product.id}" data-product='${JSON.stringify(product)}'
+                                     style="padding: 12px 20px; display: flex; align-items: center; cursor: pointer; transition: background 0.1s; ${isSelected ? 'background: #f0f0f0;' : ''}">
+                                    <input type="checkbox" ${isSelected ? 'checked' : ''} style="margin-right: 12px; cursor: pointer;">
+                                    ${product.imageUrl ? `
+                                        <img src="${product.imageUrl}" alt="${product.title}" 
+                                             style="width: 40px; height: 40px; object-fit: cover; border-radius: 4px; margin-right: 12px;">
+                                    ` : `
+                                        <div style="width: 40px; height: 40px; background: #f0f0f0; border-radius: 4px; margin-right: 12px; display: flex; align-items: center; justify-content: center;">
+                                            <i class="material-icons" style="font-size: 20px; color: #999;">image</i>
+                                        </div>
+                                    `}
+                                    <div style="flex: 1;">
+                                        <div style="font-size: 14px; color: #202223;">${product.title}</div>
+                                        <div style="font-size: 12px; color: #6d7175;">
+                                            ${product.vendor ? product.vendor + ' • ' : ''}
+                                            $${product.price ? product.price.toFixed(2) : '0.00'}
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                    }
+                    
+                    $('#product-results-inline').html(html);
+                    
+                    // Click handler para seleccionar producto
+                    $('.product-item-inline').on('click', function(e) {
+                        const $checkbox = $(this).find('input[type="checkbox"]');
+                        const product = JSON.parse($(this).attr('data-product'));
+                        
+                        // Si clickearon el checkbox directamente, no hacer nada aquí
+                        if (e.target.type === 'checkbox') {
+                            window.WebsiteBuilderModules.FeaturedCollection.toggleProductSelectionInline(product, $checkbox.is(':checked'));
+                            return;
+                        }
+                        
+                        // Toggle checkbox
+                        $checkbox.prop('checked', !$checkbox.prop('checked'));
+                        window.WebsiteBuilderModules.FeaturedCollection.toggleProductSelectionInline(product, $checkbox.prop('checked'));
+                    });
+                    
+                    // Hover effect
+                    $('.product-item-inline').hover(
+                        function() { 
+                            if (!$(this).find('input[type="checkbox"]').is(':checked')) {
+                                $(this).css('background-color', '#f7f7f7'); 
+                            }
+                        },
+                        function() { 
+                            if (!$(this).find('input[type="checkbox"]').is(':checked')) {
+                                $(this).css('background-color', 'transparent'); 
+                            }
+                        }
+                    );
+                }
+            },
+            error: function() {
+                $('#product-results-inline').html(`
+                    <div style="text-align: center; padding: 40px; color: #dc3545;">
+                        <i class="material-icons" style="font-size: 48px;">error</i>
+                        <p>Error al cargar productos</p>
+                    </div>
+                `);
+            }
+        });
+    },
+    
+    // Toggle product selection inline
+    toggleProductSelectionInline: function(product, isSelected) {
+        console.log('[FEATURED COLLECTION] Toggling product inline:', product, isSelected);
+        
+        if (isSelected) {
+            // Agregar si no está
+            if (!this.selectedProducts.some(p => p.id === product.id)) {
+                // Límite de 50 productos
+                if (this.selectedProducts.length >= 50) {
+                    alert('Puedes seleccionar hasta 50 productos');
+                    $(`.product-item-inline[data-product-id="${product.id}"] input[type="checkbox"]`).prop('checked', false);
+                    return;
+                }
+                this.selectedProducts.push(product);
+            }
+        } else {
+            // Remover
+            this.selectedProducts = this.selectedProducts.filter(p => p.id !== product.id);
+        }
+        
+        // Actualizar UI
+        this.updateSelectedProductsInline();
+        
+        // Actualizar background del item
+        $(`.product-item-inline[data-product-id="${product.id}"]`).css(
+            'background-color', isSelected ? '#f0f0f0' : 'transparent'
+        );
+    },
+    
+    // Actualizar display de productos seleccionados inline
+    updateSelectedProductsInline: function() {
+        const $container = $('#selected-products-inline');
+        const selectedCount = this.selectedProducts.length;
+        
+        // Actualizar contador
+        $('#product-counter-inline').text(`${selectedCount}/50`);
+        
+        // Actualizar lista
+        $container.html(this.renderSelectedProductsInline());
+        
+        // Re-attach event handlers para remove
+        $('.remove-selected-product').on('click', function(e) {
+            e.stopPropagation();
+            const productId = $(this).data('product-id');
+            
+            // Remover de la lista
+            window.WebsiteBuilderModules.FeaturedCollection.selectedProducts = 
+                window.WebsiteBuilderModules.FeaturedCollection.selectedProducts.filter(p => p.id !== productId);
+            
+            // Desmarcar checkbox
+            $(`.product-item-inline[data-product-id="${productId}"] input[type="checkbox"]`).prop('checked', false);
+            $(`.product-item-inline[data-product-id="${productId}"]`).css('background-color', 'transparent');
+            
+            // Actualizar UI
+            window.WebsiteBuilderModules.FeaturedCollection.updateSelectedProductsInline();
+        });
+    },
+    
+    // Guardar productos seleccionados
+    saveSelectedProducts: function() {
+        console.log('[FEATURED COLLECTION] Saving selected products:', this.selectedProducts);
+        
+        const sectionId = window.currentFeaturedCollectionId || 'featured-collection-' + Date.now();
+        
+        // Actualizar configuración
+        if (!window.currentSectionsConfig.featuredCollections) {
+            window.currentSectionsConfig.featuredCollections = {};
+        }
+        if (!window.currentSectionsConfig.featuredCollections[sectionId]) {
+            window.currentSectionsConfig.featuredCollections[sectionId] = { config: {} };
+        }
+        
+        if (this.selectedProducts.length > 0) {
+            // Guardar IDs, nombres e imágenes de productos
+            window.currentSectionsConfig.featuredCollections[sectionId].config.products = 
+                this.selectedProducts.map(p => p.id);
+            window.currentSectionsConfig.featuredCollections[sectionId].config.productNames = 
+                this.selectedProducts.map(p => p.title);
+            window.currentSectionsConfig.featuredCollections[sectionId].config.productImages = 
+                this.selectedProducts.map(p => p.imageUrl || null);
+        } else {
+            // Limpiar selección
+            delete window.currentSectionsConfig.featuredCollections[sectionId].config.products;
+            delete window.currentSectionsConfig.featuredCollections[sectionId].config.productNames;
+            delete window.currentSectionsConfig.featuredCollections[sectionId].config.productImages;
+        }
+        
+        // Marcar como cambios pendientes
+        if (typeof window.setHasPendingPageStructureChanges === 'function') {
+            window.setHasPendingPageStructureChanges(true);
+        }
+        if (typeof window.updateSaveButtonState === 'function') {
+            window.updateSaveButtonState();
+        }
+        if (typeof window.renderPreview === 'function') {
+            window.renderPreview();
+        }
+        
+        // Volver a la vista de configuración
+        const sectionData = window.currentSectionsConfig.featuredCollections[sectionId] || { config: {} };
+        this.renderConfigView(sectionData);
     }
 };
 
