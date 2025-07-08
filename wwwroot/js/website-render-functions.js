@@ -3,6 +3,91 @@
 // No declarar currentGlobalThemeSettings aquí, ya que se espera que esté disponible globalmente
 // desde website-builder.js o desde el contexto donde se use este archivo
 
+// Función para renderizar featured collection
+function renderFeaturedCollection(config) {
+    if (!config || config.isHidden) return '';
+    
+    const schemeColors = getColorSchemeValues(config.config?.colorScheme || 'scheme1');
+    
+    // Estructura básica con 4 productos dummy
+    const productsHtml = Array(4).fill().map((_, index) => `
+        <div class="featured-collection-product" style="text-align: center;">
+            <div class="product-image-container" style="
+                width: 100%;
+                aspect-ratio: 1;
+                background-color: #c8a961;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border-radius: 4px;
+                margin-bottom: 16px;
+                position: relative;
+                overflow: hidden;
+            ">
+                <svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M40 20C45.523 20 50 24.477 50 30V50C50 55.523 45.523 60 40 60C34.477 60 30 55.523 30 50V30C30 24.477 34.477 20 40 20Z" fill="#FDF4E3" opacity="0.5"/>
+                </svg>
+            </div>
+            <div class="product-info" style="text-align: left;">
+                <h3 class="product-title" style="
+                    font-size: 16px;
+                    font-weight: 400;
+                    margin: 0 0 4px 0;
+                    color: ${schemeColors.text};
+                ">Nombre de producto</h3>
+                <p class="product-vendor" style="
+                    font-size: 14px;
+                    color: ${schemeColors.text};
+                    opacity: 0.7;
+                    margin: 0 0 8px 0;
+                ">Proveedor</p>
+                <div class="product-rating" style="margin-bottom: 8px;">
+                    ${Array(5).fill().map(() => '<span style="color: #ddd; font-size: 16px;">★</span>').join('')}
+                </div>
+                <p class="product-price" style="
+                    font-size: 16px;
+                    font-weight: 500;
+                    margin: 0;
+                    color: ${schemeColors.text};
+                ">$0.00 USD</p>
+            </div>
+        </div>
+    `).join('');
+    
+    return `
+        <div class="section-wrapper featured-collection-section" data-section-id="featured-collection" style="
+            background-color: ${schemeColors.background};
+            padding: 48px 0;
+        ">
+            <div class="section-header-tag">
+                <i class="material-icons" style="font-size: 16px;">view_module</i>
+                <span>Featured collection</span>
+            </div>
+            <div class="container" style="
+                max-width: 1200px;
+                margin: 0 auto;
+                padding: 0 24px;
+            ">
+                <h2 style="
+                    text-align: center;
+                    font-size: 32px;
+                    font-weight: 400;
+                    margin: 0 0 32px 0;
+                    color: ${schemeColors.text};
+                ">${config.config?.title || 'Featured collection'}</h2>
+                <div class="featured-collection-grid" style="
+                    display: grid;
+                    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+                    gap: 32px;
+                    margin-bottom: 32px;
+                ">
+                    ${productsHtml}
+                </div>
+            </div>
+        </div>
+    `;
+}
+
 // Color schemes predefinidos
 const colorSchemes = {
     'scheme1': {

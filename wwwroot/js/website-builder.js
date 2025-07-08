@@ -364,6 +364,7 @@ async function loadCurrentWebsite() {
                 }
                 
                 if (sectionsData && typeof sectionsData === 'object') {
+                        
                         // Merge with defaults instead of replacing completely
                         const defaultConfig = {
                             announcementBar: {
@@ -551,6 +552,17 @@ async function loadCurrentWebsite() {
                             }
                         });
                         
+                        // CRITICAL: Preserve multi-instance sections (contactForms, featuredCollections)
+                        if (sectionsData.contactForms) {
+                            currentSectionsConfig.contactForms = sectionsData.contactForms;
+                            console.log('[DEBUG] Preserved contactForms:', Object.keys(sectionsData.contactForms));
+                        }
+                        
+                        if (sectionsData.featuredCollections) {
+                            currentSectionsConfig.featuredCollections = sectionsData.featuredCollections;
+                            console.log('[DEBUG] Preserved featuredCollections:', Object.keys(sectionsData.featuredCollections));
+                        }
+                        
                         // CRITICAL: Ensure footer is in sectionOrder if it exists in config
                         if (currentSectionsConfig.footer && !currentSectionsConfig.sectionOrder.includes('footer')) {
                             currentSectionsConfig.sectionOrder.push('footer');
@@ -721,6 +733,14 @@ async function loadCurrentWebsite() {
                         currentSectionsConfig = sectionsData;
                         window.currentSectionsConfig = currentSectionsConfig;
                         console.log('[DEBUG] Using sections from sectionsConfigJson');
+                        
+                        // Log multi-instance sections if they exist
+                        if (currentSectionsConfig.contactForms) {
+                            console.log('[DEBUG] Loaded contactForms:', Object.keys(currentSectionsConfig.contactForms));
+                        }
+                        if (currentSectionsConfig.featuredCollections) {
+                            console.log('[DEBUG] Loaded featuredCollections:', Object.keys(currentSectionsConfig.featuredCollections));
+                        }
                         
                         // Ensure footer is initialized with defaults if missing
                         if (!currentSectionsConfig.footer) {
@@ -2338,6 +2358,14 @@ function renderPreview() {
                             finalHtml += iframeWindow.renderFeaturedProduct(config);
                         }
                     }
+                } else if (sectionId.startsWith('featured-collection-')) {
+                    const config = currentSectionsConfig.featuredCollections?.[sectionId];
+                    if (config && !config.isHidden) {
+                        // Render featured collection with preview section wrapper
+                        finalHtml += `<div data-section-id="featured-collection" data-element-id="${sectionId}" class="preview-section">
+                            ${iframeWindow.renderFeaturedCollection ? iframeWindow.renderFeaturedCollection(config, sectionId) : ''}
+                        </div>`;
+                    }
                 }
             });
         }
@@ -2388,6 +2416,13 @@ function renderPreview() {
                     if (config && !config.isHidden && window.WebsiteBuilderModules?.ImageWithText?.render) {
                         finalHtml += `<div data-section-id="image-with-text" data-element-id="${sectionId}" class="preview-section">
                             ${window.WebsiteBuilderModules.ImageWithText.render(config)}
+                        </div>`;
+                    }
+                } else if (sectionId.startsWith('featured-collection-')) {
+                    const config = currentSectionsConfig.featuredCollections?.[sectionId];
+                    if (config && !config.isHidden) {
+                        finalHtml += `<div data-section-id="featured-collection" data-element-id="${sectionId}" class="preview-section">
+                            ${window.renderFeaturedCollection ? window.renderFeaturedCollection(config, sectionId) : ''}
                         </div>`;
                     }
                 } else {
@@ -2645,6 +2680,12 @@ function renderPreview() {
                 $('.topbar-nav-icon').removeClass('active');
                 $('.topbar-nav-icon[data-view="sections"]').addClass('active');
                 window.switchSidebarView('footerSettings');
+            } else if (sectionId && (sectionId === 'featured-collection' || sectionId.startsWith('featured-collection-'))) {
+                // Logic for featured collection section
+                $('.topbar-nav-icon').removeClass('active');
+                $('.topbar-nav-icon[data-view="sections"]').addClass('active');
+                window.currentFeaturedCollectionId = sectionId;
+                window.switchSidebarView('featuredCollectionSettings');
             }
             // Aquí añadiremos más 'else if' para otras secciones en el futuro.
         });
@@ -2704,6 +2745,119 @@ function renderPreview() {
 
 // Make renderPreview globally accessible for modules
 window.renderPreview = renderPreview;
+
+// Function to render featured collection (basic version for fallback)
+function renderFeaturedCollection(config, sectionId) {
+    if (!config || config.isHidden) return '';
+    
+    // For multi-instance support
+    if (sectionId && window.currentSectionsConfig?.featuredCollections?.[sectionId]) {
+        config = window.currentSectionsConfig.featuredCollections[sectionId];
+    }
+    
+    const schemeColors = getColorSchemeValues(config.config?.colorScheme || 'scheme1');
+    const settings = config.config || {};
+    
+    // Get typography settings
+    const headingTypography = currentGlobalThemeSettings?.typography?.heading || {};
+    const headingFontValue = headingTypography.font || 'helvetica';
+    const headingFontFamily = window.getFontNameFromValueSafe(headingFontValue);
+    
+    // Calculate heading size
+    const headingSizeMap = {
+        'heading1': 72, 'heading2': 56, 'heading3': 48, 'heading4': 36,
+        'heading5': 28, 'heading6': 24, 'heading7': 20, 'heading8': 16
+    };
+    const headingSize = headingSizeMap[settings.headingSize || 'heading5'] || 28;
+    
+    // Number of products to show
+    const cardsToShow = Math.min(settings.cardsToShow || 4, 16);
+    
+    // Estructura básica con productos dummy
+    const productsHtml = Array(cardsToShow).fill().map((_, index) => `
+        <div class="featured-collection-product" style="text-align: center;">
+            <div class="product-image-container" style="
+                width: 100%;
+                aspect-ratio: 1;
+                background-color: #c8a961;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border-radius: 4px;
+                margin-bottom: 16px;
+                position: relative;
+                overflow: hidden;
+            ">
+                <svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M40 20C45.523 20 50 24.477 50 30V50C50 55.523 45.523 60 40 60C34.477 60 30 55.523 30 50V30C30 24.477 34.477 20 40 20Z" fill="#FDF4E3" opacity="0.5"/>
+                </svg>
+            </div>
+            <div class="product-info" style="text-align: left;">
+                <h3 class="product-title" style="
+                    font-size: 16px;
+                    font-weight: 400;
+                    margin: 0 0 4px 0;
+                    color: ${schemeColors.text};
+                ">Nombre de producto</h3>
+                <p class="product-vendor" style="
+                    font-size: 14px;
+                    color: ${schemeColors.text};
+                    opacity: 0.7;
+                    margin: 0 0 8px 0;
+                ">Proveedor</p>
+                <div class="product-rating" style="margin-bottom: 8px;">
+                    ${Array(5).fill().map(() => '<span style="color: #ddd; font-size: 16px;">★</span>').join('')}
+                </div>
+                <p class="product-price" style="
+                    font-size: 16px;
+                    font-weight: 500;
+                    margin: 0;
+                    color: ${schemeColors.text};
+                ">$0.00 USD</p>
+            </div>
+        </div>
+    `).join('');
+    
+    return `
+        <div class="section-wrapper featured-collection-section" data-section-id="${sectionId || 'featured-collection'}" style="
+            background-color: ${schemeColors.background};
+            padding: 48px 0;
+        ">
+            <div class="section-header-tag">
+                <i class="material-icons" style="font-size: 16px;">view_module</i>
+                <span>Featured collection</span>
+            </div>
+            <div class="container" style="
+                max-width: ${settings.width === 'full' ? '100%' : '1200px'};
+                margin: 0 auto;
+                padding: 0 ${settings.addSidePaddings !== false ? '24px' : '0'};
+                padding-top: ${settings.topPadding || 48}px;
+                padding-bottom: ${settings.bottomPadding || 48}px;
+            ">
+                ${settings.heading ? `<h2 style="
+                    text-align: ${settings.headingAlignment || 'left'};
+                    font-size: ${headingSize}px;
+                    font-weight: 400;
+                    margin: 0 0 32px 0;
+                    color: ${schemeColors.text};
+                    font-family: ${headingFontFamily};
+                ">${settings.heading}</h2>` : ''}
+                <div class="featured-collection-grid" style="
+                    display: ${settings.desktopLayout === 'carousel' || settings.desktopLayout === 'slider' ? 'flex' : 'grid'};
+                    ${settings.desktopLayout === 'grid' ? `grid-template-columns: repeat(${settings.desktopCardsPerRow || 4}, 1fr);` : ''}
+                    gap: ${settings.desktopSpaceBetweenCards || 16}px;
+                    margin-bottom: 32px;
+                    ${settings.desktopLayout === 'carousel' || settings.desktopLayout === 'slider' ? 'overflow-x: auto; scroll-snap-type: x mandatory;' : ''}
+                ">
+                    ${productsHtml}
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+// Make renderFeaturedCollection globally accessible
+window.renderFeaturedCollection = renderFeaturedCollection;
 
 // Function to handle accordion FAQ toggles
 function attachAccordionToggleListeners(previewDoc) {
@@ -6467,6 +6621,21 @@ $(document).ready(async function() {
             } else {
                 console.error('[DEBUG] No HTML returned from footer renderSettings');
             }
+        } else if (viewName === 'featuredCollectionSettings') {
+            // Featured Collection settings - usar módulo
+            console.log('[DEBUG] Rendering featured collection settings');
+            const sectionId = window.currentFeaturedCollectionId;
+            const config = window.currentSectionsConfig?.featuredCollections?.[sectionId];
+            
+            const html = executeModuleFunction('FeaturedCollection', 'renderSettings', config);
+            
+            if (html) {
+                dynamicContentArea.innerHTML = html;
+                executeModuleFunction('FeaturedCollection', 'attachEventListeners');
+                setTimeout(applyTranslations, 0);
+            } else {
+                console.error('[DEBUG] No HTML returned from featured collection renderSettings');
+            }
         } else if (viewName === 'footerLogoWithTextSettings') {
             // Footer logo with text block settings
             console.log('[DEBUG] Rendering footer logo with text settings', data);
@@ -6626,6 +6795,34 @@ $(document).ready(async function() {
                                 <button class="action-icon delete-icon" 
                                         data-element-id="${sectionId}"
                                         data-section="image-with-text" 
+                                        title="Delete">
+                                    <i class="material-icons">delete</i>
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                }
+            } else if (sectionId.startsWith('featured-collection-')) {
+                const featuredCollection = currentSectionsConfig.featuredCollections?.[sectionId];
+                if (featuredCollection) {
+                    html += `
+                        <div class="sidebar-subsection" 
+                             data-element-id="${sectionId}" 
+                             data-block-type="featured-collection"
+                             data-section-id="${sectionId}">
+                            <i class="material-icons drag-handle">drag_handle</i>
+                            <span class="subsection-text">Featured collection</span>
+                            <div class="subsection-actions">
+                                <button class="action-icon visibility-toggle ${featuredCollection.isHidden ? 'is-hidden' : ''}" 
+                                        data-element-id="${sectionId}"
+                                        data-section="featured-collection"
+                                        title="Toggle visibility">
+                                    <i class="material-icons icon-visible">visibility</i>
+                                    <i class="material-icons icon-hidden">visibility_off</i>
+                                </button>
+                                <button class="action-icon delete-icon" 
+                                        data-element-id="${sectionId}"
+                                        data-section="featured-collection" 
                                         title="Delete">
                                     <i class="material-icons">delete</i>
                                 </button>
@@ -12810,6 +13007,12 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
             } else if (blockType === 'contact-form' && elementId) {
                 // Alternative check for contact forms
                 isHidden = currentSectionsConfig.contactForms?.[elementId]?.isHidden || false;
+            } else if (section === 'featured-collection' && elementId) {
+                // Handle featured collections
+                isHidden = currentSectionsConfig.featuredCollections?.[elementId]?.isHidden || false;
+            } else if (blockType === 'featured-collection' && elementId) {
+                // Alternative check for featured collections
+                isHidden = currentSectionsConfig.featuredCollections?.[elementId]?.isHidden || false;
             } else if (blockType === 'testimonial-item' && elementId) {
                 // Handle testimonial items
                 isHidden = currentSectionsConfig.testimonials?.testimonials?.[elementId]?.isHidden || false;
@@ -13066,6 +13269,13 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                 console.log('[DEBUG] Featured Product section clicked, opening settings');
                 switchSidebarView('featuredProductSettings');
             }
+            // Handle featured collection click
+            else if (blockType === 'featured-collection') {
+                const sectionId = $(this).data('element-id');
+                console.log('[DEBUG] Featured Collection section clicked, opening settings for:', sectionId);
+                window.currentFeaturedCollectionId = sectionId;
+                switchSidebarView('featuredCollectionSettings');
+            }
             // Handle featured product block click (child blocks like description)
             else if (blockType === 'featured-product-block') {
                 const blockId = $(this).data('element-id');
@@ -13295,6 +13505,21 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                             currentSectionsConfig.sectionOrder.splice(index, 1);
                         }
                     }
+                } else if (section === 'featured-collection') {
+                    // Featured collections have unique IDs, need to get the element ID
+                    const elementId = $button.data('element-id');
+                    console.log('[DEBUG] Deleting featured collection:', elementId);
+                    
+                    if (elementId && currentSectionsConfig.featuredCollections) {
+                        // Delete the featured collection data
+                        delete currentSectionsConfig.featuredCollections[elementId];
+                        
+                        // Remove from section order
+                        const index = currentSectionsConfig.sectionOrder.indexOf(elementId);
+                        if (index > -1) {
+                            currentSectionsConfig.sectionOrder.splice(index, 1);
+                        }
+                    }
                 }
                 
                 // Remove from DOM and update UI
@@ -13302,7 +13527,7 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                     $(this).remove();
                     
                     // For template sections, update the template sections container
-                    if (section === 'imageWithText' || section === 'multicolumn' || section === 'slideshow' || section === 'testimonials' || section === 'accordion' || section === 'imageBanner' || section === 'newsletter' || section === 'gallery' || section === 'richText' || section === 'contact-form' || section === 'featured-product') {
+                    if (section === 'imageWithText' || section === 'multicolumn' || section === 'slideshow' || section === 'testimonials' || section === 'accordion' || section === 'imageBanner' || section === 'newsletter' || section === 'gallery' || section === 'richText' || section === 'contact-form' || section === 'featured-product' || section === 'featured-collection') {
                         const templateSectionsHtml = renderTemplateSections();
                         $('#template-sections-container').html(templateSectionsHtml + `
                             <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e3e3e3;">
@@ -14817,6 +15042,17 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                     // Force sync the visibility toggle state
                     if (window.forceVisibilitySync) {
                         window.forceVisibilitySync('contactForm', newHiddenState);
+                    }
+                }
+            } else if ((blockType === 'featured-collection' || section === 'featured-collection') && elementId) {
+                // Handle featured collection visibility
+                if (currentSectionsConfig.featuredCollections && currentSectionsConfig.featuredCollections[elementId]) {
+                    currentSectionsConfig.featuredCollections[elementId].isHidden = newHiddenState;
+                    console.log(`[DEBUG] Featured Collection ${elementId} saved as: ${newHiddenState ? 'hidden' : 'visible'}`);
+                    
+                    // Force sync the visibility toggle state
+                    if (window.forceVisibilitySync) {
+                        window.forceVisibilitySync('featuredCollection', newHiddenState);
                     }
                 }
             } else if (blockType === 'testimonial-item' && elementId) {
@@ -16931,6 +17167,8 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
         }
     }, 5000);
     
+    
+    
     // Set up global event handlers for add section modal (outside of modal creation)
     // This ensures they work even for dynamically created content
     $(document).on('mouseenter', '.add-section-modal .section-item', function() {
@@ -17684,6 +17922,79 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
             }
             
             return; // Exit early for contact form
+        }
+        
+        // Handle featured collection section (multi-instance)
+        if (group === 'template' && sectionId === 'featured-collection') {
+            console.log('[DEBUG] Adding featured collection section');
+            
+            // Generate unique ID for this instance
+            const instanceId = 'featured-collection-' + Date.now();
+            
+            // Initialize featuredCollections container if it doesn't exist
+            if (!currentSectionsConfig.featuredCollections) {
+                currentSectionsConfig.featuredCollections = {};
+            }
+            
+            // Create new featured collection instance
+            currentSectionsConfig.featuredCollections[instanceId] = {
+                id: instanceId,
+                isHidden: false,
+                config: {
+                    title: 'Featured collection',
+                    collectionId: null,
+                    productsToShow: 4,
+                    colorScheme: 'scheme1'
+                }
+            };
+            
+            // Add to section order - insert before footer if it exists
+            if (!currentSectionsConfig.sectionOrder) {
+                currentSectionsConfig.sectionOrder = [];
+            }
+            
+            // Find footer position
+            const footerIndex = currentSectionsConfig.sectionOrder.indexOf('footer');
+            if (footerIndex > -1) {
+                // Insert before footer
+                currentSectionsConfig.sectionOrder.splice(footerIndex, 0, instanceId);
+            } else {
+                // No footer, add at the end
+                currentSectionsConfig.sectionOrder.push(instanceId);
+            }
+            
+            // Update template sections
+            const templateSectionsHtml = renderTemplateSections();
+            $('#template-sections-container').html(templateSectionsHtml + `
+                <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e3e3e3;">
+                    <div class="add-section-button add-template-section" data-group="template">
+                        <i class="material-icons">add_circle</i>
+                        <span data-i18n="sections.addTemplateSection">Agregar sección de plantilla</span>
+                    </div>
+                </div>
+            `);
+            
+            // Apply translations
+            setTimeout(applyTranslations, 0);
+            
+            // Set pending changes flag
+            hasPendingPageStructureChanges = true;
+            updateSaveButtonState();
+            
+            // Reinitialize drag and drop
+            setTimeout(() => {
+                initializeDragAndDropSimple();
+            }, 100);
+            
+            // Render preview
+            renderPreview();
+            
+            // Close modal
+            $('.add-section-overlay').fadeOut(200, function() {
+                $(this).remove();
+            });
+            
+            console.log('[DEBUG] Featured collection added successfully with ID:', instanceId);
         }
         
         // Handle featured product section

@@ -217,6 +217,10 @@
       "PackagePath": "staticwebassets\\js\\website-builder\\modules\\contact-form.js"
     },
     {
+      "Id": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\js\\website-builder\\modules\\featured-collection.js",
+      "PackagePath": "staticwebassets\\js\\website-builder\\modules\\featured-collection.js"
+    },
+    {
       "Id": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\js\\website-builder\\modules\\featured-product.js",
       "PackagePath": "staticwebassets\\js\\website-builder\\modules\\featured-product.js"
     },
