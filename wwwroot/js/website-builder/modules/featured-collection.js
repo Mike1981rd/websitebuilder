@@ -967,10 +967,9 @@ window.WebsiteBuilderModules.FeaturedCollection = {
                     </div>
                     
                     <!-- Footer buttons -->
-                    <div class="form-group" style="margin-top: 20px; display: flex; gap: 12px; justify-content: flex-end;">
-                        <button class="cancel-collection-selection" style="padding: 8px 16px; background: white; border: 1px solid #c9cccf; border-radius: 4px; cursor: pointer; color: #202223; font-weight: 500; font-size: 14px;" data-i18n="common.cancel">Cancelar</button>
-                        <button class="save-collection-selection" style="padding: 8px 16px; background-color: var(--primary); color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 500; font-size: 14px;" data-i18n="common.select">Seleccionar</button>
-                        <button class="save-all-changes" style="padding: 8px 16px; background-color: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 500; font-size: 14px;" data-i18n="common.save">Guardar</button>
+                    <div class="form-group" style="margin-top: 20px; display: flex; gap: 12px;">
+                        <button class="cancel-collection-selection" style="flex: 1; padding: 10px 16px; background: white; border: 1px solid #e0e0e0; border-radius: 6px; cursor: pointer; color: #202223; font-weight: 500; font-size: 14px;" data-i18n="common.cancel">Cancel</button>
+                        <button class="save-collection-selection" style="flex: 1; padding: 10px 16px; background-color: #28a745; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; font-size: 14px;" data-i18n="common.save">Save</button>
                     </div>
                 </div>
             </div>
@@ -1004,16 +1003,6 @@ window.WebsiteBuilderModules.FeaturedCollection = {
             this.saveSelectedCollection();
         });
         
-        // Botón guardar - guarda los cambios en la base de datos
-        $('.save-all-changes').off('click.collectionSelector').on('click.collectionSelector', () => {
-            // Primero guardar la selección
-            this.saveSelectedCollection();
-            // Luego llamar al botón de guardar principal
-            if ($('#save-builder-btn-topbar').length > 0) {
-                $('#save-builder-btn-topbar').click();
-            }
-        });
-        
         // Search con debounce
         let searchTimeout;
         $('#collection-search-inline').off('input.collectionSelector').on('input.collectionSelector', function() {
@@ -1027,6 +1016,9 @@ window.WebsiteBuilderModules.FeaturedCollection = {
         
         // Cargar colecciones iniciales
         this.searchCollectionsInline('');
+        
+        // Adjuntar event handlers para remover items seleccionados
+        this.attachRemoveHandlers();
     },
     
     // Renderizar colecciones seleccionadas inline
@@ -1054,6 +1046,46 @@ window.WebsiteBuilderModules.FeaturedCollection = {
         `).join('');
     },
     
+    // Adjuntar event handlers para remover items
+    attachRemoveHandlers: function() {
+        // Handlers para colecciones
+        $('.remove-selected-collection').off('click.removeCollection').on('click.removeCollection', function(e) {
+            e.stopPropagation();
+            e.preventDefault();
+            const collectionId = $(this).data('collection-id');
+            console.log('[FEATURED COLLECTION] Removing collection:', collectionId);
+            
+            // Remover de la lista
+            window.WebsiteBuilderModules.FeaturedCollection.selectedCollections = 
+                window.WebsiteBuilderModules.FeaturedCollection.selectedCollections.filter(c => c.id !== collectionId);
+            
+            // Desmarcar checkbox
+            $(`.collection-item-inline[data-collection-id="${collectionId}"] input[type="checkbox"]`).prop('checked', false);
+            $(`.collection-item-inline[data-collection-id="${collectionId}"]`).css('background-color', 'transparent');
+            
+            // Actualizar UI
+            window.WebsiteBuilderModules.FeaturedCollection.updateSelectedCollectionsInline();
+        });
+        
+        // Handlers para productos
+        $('.remove-selected-product').off('click.removeProduct').on('click.removeProduct', function(e) {
+            e.stopPropagation();
+            e.preventDefault();
+            const productId = $(this).data('product-id');
+            console.log('[FEATURED COLLECTION] Removing product:', productId);
+            
+            // Remover de la lista
+            window.WebsiteBuilderModules.FeaturedCollection.selectedProducts = 
+                window.WebsiteBuilderModules.FeaturedCollection.selectedProducts.filter(p => p.id !== productId);
+            
+            // Desmarcar checkbox
+            $(`.product-item-inline[data-product-id="${productId}"] input[type="checkbox"]`).prop('checked', false);
+            $(`.product-item-inline[data-product-id="${productId}"]`).css('background-color', 'transparent');
+            
+            // Actualizar UI
+            window.WebsiteBuilderModules.FeaturedCollection.updateSelectedProductsInline();
+        });
+    },
     
     // Buscar colecciones inline
     searchCollectionsInline: function(query) {
@@ -1191,21 +1223,7 @@ window.WebsiteBuilderModules.FeaturedCollection = {
         $container.html(this.renderSelectedCollectionsInline());
         
         // Re-attach event handlers para remove
-        $('.remove-selected-collection').on('click', function(e) {
-            e.stopPropagation();
-            const collectionId = $(this).data('collection-id');
-            
-            // Remover de la lista
-            window.WebsiteBuilderModules.FeaturedCollection.selectedCollections = 
-                window.WebsiteBuilderModules.FeaturedCollection.selectedCollections.filter(c => c.id !== collectionId);
-            
-            // Desmarcar checkbox
-            $(`.collection-item-inline[data-collection-id="${collectionId}"] input[type="checkbox"]`).prop('checked', false);
-            $(`.collection-item-inline[data-collection-id="${collectionId}"]`).css('background-color', 'transparent');
-            
-            // Actualizar UI
-            window.WebsiteBuilderModules.FeaturedCollection.updateSelectedCollectionsInline();
-        });
+        this.attachRemoveHandlers();
     },
     
     // Guardar colecciones seleccionadas
@@ -1334,10 +1352,9 @@ window.WebsiteBuilderModules.FeaturedCollection = {
                     </div>
                     
                     <!-- Footer buttons -->
-                    <div class="form-group" style="margin-top: 20px; display: flex; gap: 12px; justify-content: flex-end;">
-                        <button class="cancel-product-selection" style="padding: 8px 16px; background: white; border: 1px solid #c9cccf; border-radius: 4px; cursor: pointer; color: #202223; font-weight: 500; font-size: 14px;" data-i18n="common.cancel">Cancelar</button>
-                        <button class="save-product-selection" style="padding: 8px 16px; background-color: var(--primary); color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 500; font-size: 14px;" data-i18n="common.select">Seleccionar</button>
-                        <button class="save-all-changes" style="padding: 8px 16px; background-color: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 500; font-size: 14px;" data-i18n="common.save">Guardar</button>
+                    <div class="form-group" style="margin-top: 20px; display: flex; gap: 12px;">
+                        <button class="cancel-product-selection" style="flex: 1; padding: 10px 16px; background: white; border: 1px solid #e0e0e0; border-radius: 6px; cursor: pointer; color: #202223; font-weight: 500; font-size: 14px;" data-i18n="common.cancel">Cancel</button>
+                        <button class="save-product-selection" style="flex: 1; padding: 10px 16px; background-color: #28a745; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; font-size: 14px;" data-i18n="common.save">Save</button>
                     </div>
                 </div>
             </div>
@@ -1351,6 +1368,9 @@ window.WebsiteBuilderModules.FeaturedCollection = {
         
         // Cargar productos iniciales
         this.searchProductsInline('');
+        
+        // Adjuntar event handlers para remover items seleccionados
+        this.attachRemoveHandlers();
     },
     
     // Renderizar productos seleccionados inline
@@ -1405,16 +1425,6 @@ window.WebsiteBuilderModules.FeaturedCollection = {
         // Botón guardar
         $('.save-product-selection').off('click.productSelector').on('click.productSelector', () => {
             this.saveSelectedProducts();
-        });
-        
-        // Botón guardar - guarda los cambios en la base de datos
-        $('.save-all-changes').off('click.productSelector').on('click.productSelector', () => {
-            // Primero guardar la selección
-            this.saveSelectedProducts();
-            // Luego llamar al botón de guardar principal
-            if ($('#save-builder-btn-topbar').length > 0) {
-                $('#save-builder-btn-topbar').click();
-            }
         });
         
         // Search con debounce
@@ -1765,21 +1775,7 @@ window.WebsiteBuilderModules.FeaturedCollection = {
         $container.html(this.renderSelectedProductsInline());
         
         // Re-attach event handlers para remove
-        $('.remove-selected-product').on('click', function(e) {
-            e.stopPropagation();
-            const productId = $(this).data('product-id');
-            
-            // Remover de la lista
-            window.WebsiteBuilderModules.FeaturedCollection.selectedProducts = 
-                window.WebsiteBuilderModules.FeaturedCollection.selectedProducts.filter(p => p.id !== productId);
-            
-            // Desmarcar checkbox
-            $(`.product-item-inline[data-product-id="${productId}"] input[type="checkbox"]`).prop('checked', false);
-            $(`.product-item-inline[data-product-id="${productId}"]`).css('background-color', 'transparent');
-            
-            // Actualizar UI
-            window.WebsiteBuilderModules.FeaturedCollection.updateSelectedProductsInline();
-        });
+        this.attachRemoveHandlers();
     },
     
     // Guardar productos seleccionados
