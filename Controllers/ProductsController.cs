@@ -658,6 +658,53 @@ namespace Hotel.Controllers
 
         #region API Methods for Website Builder
 
+        // GET: api/builder/products/search
+        [HttpGet]
+        [Route("api/builder/products/search")]
+        public async Task<IActionResult> SearchProductsForBuilder(string query = "")
+        {
+            try
+            {
+                var productsQuery = _context.Products
+                    .Where(p => p.Status == "active"); // Solo productos activos
+
+                // Si hay query, filtrar
+                if (!string.IsNullOrWhiteSpace(query))
+                {
+                    productsQuery = productsQuery.Where(p => 
+                        p.Title.ToLower().Contains(query.ToLower()) || 
+                        p.ProductType.ToLower().Contains(query.ToLower()) ||
+                        p.Vendor.ToLower().Contains(query.ToLower()) ||
+                        p.SKU.ToLower().Contains(query.ToLower())
+                    );
+                }
+
+                var products = await productsQuery
+                    .Take(20) // Limitar a 20 resultados
+                    .Select(p => new
+                    {
+                        p.Id,
+                        p.Title,
+                        p.ProductType,
+                        p.Vendor,
+                        p.Price,
+                        ImageUrl = _context.ProductImages
+                            .Where(img => img.ProductId == p.Id)
+                            .OrderBy(img => img.Position)
+                            .Select(img => img.ImageUrl)
+                            .FirstOrDefault()
+                    })
+                    .ToListAsync();
+
+                return Json(new { success = true, products });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al buscar productos para builder");
+                return Json(new { success = false, message = "Error al buscar productos" });
+            }
+        }
+
         // GET: api/builder/products
         [HttpGet]
         [Route("api/builder/products")]

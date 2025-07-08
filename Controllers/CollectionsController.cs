@@ -586,6 +586,50 @@ namespace Hotel.Controllers
             }
         }
 
+        #region API Methods for Website Builder
+
+        // GET: api/builder/collections/search
+        [HttpGet]
+        [Route("api/builder/collections/search")]
+        public async Task<IActionResult> SearchCollectionsForBuilder(string query = "")
+        {
+            try
+            {
+                var collectionsQuery = _context.Collections
+                    .Where(c => c.IsActive); // Solo colecciones activas
+
+                // Si hay query, filtrar
+                if (!string.IsNullOrWhiteSpace(query))
+                {
+                    collectionsQuery = collectionsQuery.Where(c => 
+                        c.Title.ToLower().Contains(query.ToLower()) || 
+                        c.Handle.ToLower().Contains(query.ToLower())
+                    );
+                }
+
+                var collections = await collectionsQuery
+                    .Take(20) // Limitar a 20 resultados
+                    .Select(c => new
+                    {
+                        c.Id,
+                        c.Title,
+                        c.Handle,
+                        c.ImageUrl,
+                        ProductCount = c.CollectionProducts.Count()
+                    })
+                    .ToListAsync();
+
+                return Json(new { success = true, collections });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al buscar colecciones para builder");
+                return Json(new { success = false, message = "Error al buscar colecciones" });
+            }
+        }
+
+        #endregion
+
         // Métodos auxiliares
         private bool CollectionExists(int id)
         {

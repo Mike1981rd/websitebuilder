@@ -322,16 +322,38 @@ window.WebsiteBuilderModules.FeaturedCollection = {
                     <div class="form-group" style="margin-top: 20px;">
                         <label style="font-size: 13px; font-weight: 500; margin-bottom: 8px; color: #5c5e60; display: block;" 
                                data-i18n="collection">Collection</label>
-                        <div style="display: flex; align-items: center; padding: 12px; border: 1px solid #e0e0e0; border-radius: 4px; background: #f7f7f7;">
-                            <i class="material-icons" style="margin-right: 8px; color: #666;">inventory_2</i>
-                            <span style="flex: 1; color: #202223;">
-                                ${settings.collections && settings.collections.length > 0 
-                                    ? (settings.collections.length === 1 
-                                        ? (settings.collectionNames ? settings.collectionNames[0] : 'Collection selected')
-                                        : `${settings.collections.length} collections selected`)
-                                    : (settings.collectionName || 'None')}
-                            </span>
-                            <button style="padding: 6px 12px; background: white; border: 1px solid #e0e0e0; border-radius: 4px; cursor: pointer; color: #202223;" 
+                        <div style="border: 1px solid #e0e0e0; border-radius: 8px; background: white; padding: 16px;">
+                            ${settings.collections && settings.collections.length > 0 ? `
+                                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+                                    ${settings.collections.slice(0, 3).map((id, index) => {
+                                        const name = settings.collectionNames ? settings.collectionNames[index] : 'Collection';
+                                        return `
+                                            <div style="display: flex; align-items: center; gap: 8px; padding: 4px 8px; background: #f7f7f7; border-radius: 4px;">
+                                                <div style="width: 32px; height: 32px; background: #e0e0e0; border-radius: 4px; display: flex; align-items: center; justify-content: center;">
+                                                    <i class="material-icons" style="font-size: 18px; color: #666;">folder_open</i>
+                                                </div>
+                                                <span style="font-size: 14px; color: #202223;">${name}</span>
+                                            </div>
+                                        `;
+                                    }).join('')}
+                                    ${settings.collections.length > 3 ? `
+                                        <span style="font-size: 13px; color: #666;">+${settings.collections.length - 3} more</span>
+                                    ` : ''}
+                                </div>
+                            ` : (settings.collectionName ? `
+                                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+                                    <div style="width: 40px; height: 40px; background: #e0e0e0; border-radius: 4px; display: flex; align-items: center; justify-content: center;">
+                                        <i class="material-icons" style="font-size: 20px; color: #666;">folder_open</i>
+                                    </div>
+                                    <span style="font-size: 14px; color: #202223;">${settings.collectionName}</span>
+                                </div>
+                            ` : `
+                                <div style="text-align: center; padding: 20px; color: #666;">
+                                    <i class="material-icons" style="font-size: 48px; color: #e0e0e0; display: block; margin-bottom: 8px;">folder_open</i>
+                                    <span style="font-size: 14px;">No collection selected</span>
+                                </div>
+                            `)}
+                            <button style="width: 100%; padding: 8px 16px; background: white; border: 1px solid #e0e0e0; border-radius: 4px; cursor: pointer; color: #202223; font-weight: 500;" 
                                     data-i18n="change">Cambiar</button>
                         </div>
                     </div>
@@ -340,19 +362,44 @@ window.WebsiteBuilderModules.FeaturedCollection = {
                     <div class="form-group" style="margin-top: 20px;">
                         <label style="font-size: 13px; font-weight: 500; margin-bottom: 8px; color: #5c5e60; display: block;" 
                                data-i18n="products">Products</label>
-                        <div style="display: flex; align-items: center; padding: 12px; border: 1px solid #e0e0e0; border-radius: 4px; background: #f7f7f7;">
-                            <i class="material-icons" style="margin-right: 8px; color: #666;">inventory_2</i>
-                            <span style="flex: 1; color: #202223;">
-                                ${settings.products && settings.products.length > 0 
-                                    ? (settings.products.length === 1 
-                                        ? (settings.productNames ? settings.productNames[0] : 'Product selected')
-                                        : `${settings.products.length} products selected`)
-                                    : 'None'}
-                            </span>
-                            <button style="padding: 6px 12px; background: white; border: 1px solid #e0e0e0; border-radius: 4px; cursor: pointer; color: #202223;" 
+                        <div style="border: 1px solid #e0e0e0; border-radius: 8px; background: white; padding: 16px;">
+                            ${settings.products && settings.products.length > 0 ? `
+                                <div style="display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 12px;">
+                                    ${settings.products.slice(0, 3).map((id, index) => {
+                                        const name = settings.productNames ? settings.productNames[index] : 'Product';
+                                        const imageUrl = settings.productImages ? settings.productImages[index] : null;
+                                        return `
+                                            <div style="display: flex; align-items: center; gap: 8px; padding: 4px 8px; background: #f7f7f7; border-radius: 4px;">
+                                                ${imageUrl ? `
+                                                    <img src="${imageUrl}" style="width: 32px; height: 32px; object-fit: cover; border-radius: 4px;">
+                                                ` : `
+                                                    <div style="width: 32px; height: 32px; background: #e0e0e0; border-radius: 4px; display: flex; align-items: center; justify-content: center;">
+                                                        <i class="material-icons" style="font-size: 18px; color: #666;">image</i>
+                                                    </div>
+                                                `}
+                                                <span style="font-size: 14px; color: #202223;">${name}</span>
+                                            </div>
+                                        `;
+                                    }).join('')}
+                                    ${settings.products.length > 3 ? `
+                                        <div style="display: flex; align-items: center; padding: 4px 8px; background: #f7f7f7; border-radius: 4px;">
+                                            <span style="font-size: 13px; color: #666;">+${settings.products.length - 3} más</span>
+                                        </div>
+                                    ` : ''}
+                                </div>
+                                ${settings.products.length > 3 ? `
+                                    <a href="#" class="show-all-products" style="font-size: 13px; color: #2962ff; text-decoration: none;" data-i18n="showAll">Mostrar más</a>
+                                ` : ''}
+                            ` : `
+                                <div style="text-align: center; padding: 20px; color: #666;">
+                                    <i class="material-icons" style="font-size: 48px; color: #e0e0e0; display: block; margin-bottom: 8px;">inventory_2</i>
+                                    <span style="font-size: 14px;">No products selected</span>
+                                </div>
+                            `}
+                            <button style="width: 100%; padding: 8px 16px; background: white; border: 1px solid #e0e0e0; border-radius: 4px; cursor: pointer; color: #202223; font-weight: 500; margin-top: ${settings.products && settings.products.length > 0 ? '12px' : '0'};" 
                                     data-i18n="change">Cambiar</button>
                         </div>
-                        <div style="font-size: 12px; color: #666; margin-top: 5px;">
+                        <div style="font-size: 12px; color: #666; margin-top: 8px;">
                             <span data-i18n="productsHavePriority">Products have priority over a collection</span>
                         </div>
                     </div>
