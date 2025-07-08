@@ -970,6 +970,7 @@ window.WebsiteBuilderModules.FeaturedCollection = {
                     <div class="form-group" style="margin-top: 20px; display: flex; gap: 12px; justify-content: flex-end;">
                         <button class="cancel-collection-selection" style="padding: 8px 16px; background: white; border: 1px solid #c9cccf; border-radius: 4px; cursor: pointer; color: #202223; font-weight: 500; font-size: 14px;" data-i18n="common.cancel">Cancelar</button>
                         <button class="save-collection-selection" style="padding: 8px 16px; background-color: var(--primary); color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 500; font-size: 14px;" data-i18n="common.select">Seleccionar</button>
+                        <button class="save-all-changes" style="padding: 8px 16px; background-color: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 500; font-size: 14px;" data-i18n="common.save">Guardar</button>
                     </div>
                 </div>
             </div>
@@ -1001,6 +1002,16 @@ window.WebsiteBuilderModules.FeaturedCollection = {
         
         $('.save-collection-selection').off('click.collectionSelector').on('click.collectionSelector', () => {
             this.saveSelectedCollection();
+        });
+        
+        // Botón guardar - guarda los cambios en la base de datos
+        $('.save-all-changes').off('click.collectionSelector').on('click.collectionSelector', () => {
+            // Primero guardar la selección
+            this.saveSelectedCollection();
+            // Luego llamar al botón de guardar principal
+            if ($('#save-builder-btn-topbar').length > 0) {
+                $('#save-builder-btn-topbar').click();
+            }
         });
         
         // Search con debounce
@@ -1326,6 +1337,7 @@ window.WebsiteBuilderModules.FeaturedCollection = {
                     <div class="form-group" style="margin-top: 20px; display: flex; gap: 12px; justify-content: flex-end;">
                         <button class="cancel-product-selection" style="padding: 8px 16px; background: white; border: 1px solid #c9cccf; border-radius: 4px; cursor: pointer; color: #202223; font-weight: 500; font-size: 14px;" data-i18n="common.cancel">Cancelar</button>
                         <button class="save-product-selection" style="padding: 8px 16px; background-color: var(--primary); color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 500; font-size: 14px;" data-i18n="common.select">Seleccionar</button>
+                        <button class="save-all-changes" style="padding: 8px 16px; background-color: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 500; font-size: 14px;" data-i18n="common.save">Guardar</button>
                     </div>
                 </div>
             </div>
@@ -1393,6 +1405,16 @@ window.WebsiteBuilderModules.FeaturedCollection = {
         // Botón guardar
         $('.save-product-selection').off('click.productSelector').on('click.productSelector', () => {
             this.saveSelectedProducts();
+        });
+        
+        // Botón guardar - guarda los cambios en la base de datos
+        $('.save-all-changes').off('click.productSelector').on('click.productSelector', () => {
+            // Primero guardar la selección
+            this.saveSelectedProducts();
+            // Luego llamar al botón de guardar principal
+            if ($('#save-builder-btn-topbar').length > 0) {
+                $('#save-builder-btn-topbar').click();
+            }
         });
         
         // Search con debounce
