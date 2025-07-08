@@ -924,7 +924,7 @@ window.WebsiteBuilderModules.FeaturedCollection = {
             <div style="display: flex; flex-direction: column; height: 100%; position: relative; overflow: hidden;">
                 <!-- Header estándar -->
                 <div class="sidebar-view-header" style="position: relative; z-index: 10;">
-                    <button class="back-to-featured-collection-config">
+                    <button class="back-to-sections-btn">
                         <i class="material-icons">arrow_back</i>
                     </button>
                     <h3 data-i18n="featuredCollection.selectCollections">Seleccionar colecciones</h3>
@@ -978,8 +978,8 @@ window.WebsiteBuilderModules.FeaturedCollection = {
         // Aplicar traducciones
         setTimeout(applyTranslations, 0);
         
-        // Event listeners
-        $('.back-to-featured-collection-config').off('click.collectionSelector').on('click.collectionSelector', () => {
+        // Event listeners - Back button regresa a configuración de featured collection (caso especial)
+        $('.back-to-sections-btn').off('click.collectionSelector').on('click.collectionSelector', () => {
             const sectionId = window.currentFeaturedCollectionId || 'featured-collection-' + Date.now();
             const sectionData = window.currentSectionsConfig.featuredCollections?.[sectionId] || { config: {} };
             this.renderConfigView(sectionData);
@@ -1279,7 +1279,7 @@ window.WebsiteBuilderModules.FeaturedCollection = {
             <div style="display: flex; flex-direction: column; height: 100%; position: relative; overflow: hidden;">
                 <!-- Header estándar -->
                 <div class="sidebar-view-header" style="position: relative; z-index: 10;">
-                    <button class="back-to-featured-collection-config">
+                    <button class="back-to-sections-btn">
                         <i class="material-icons">arrow_back</i>
                     </button>
                     <h3 data-i18n="featuredCollection.selectProducts">Seleccionar productos</h3>
@@ -1367,8 +1367,8 @@ window.WebsiteBuilderModules.FeaturedCollection = {
     attachProductSelectorEventListeners: function() {
         console.log('[FEATURED COLLECTION] Attaching product selector event listeners');
         
-        // Back button - volver a la vista de configuración
-        $('.back-to-featured-collection-config').off('click.productSelector').on('click.productSelector', () => {
+        // Back button - volver a la vista de configuración de featured collection (caso especial)
+        $('.back-to-sections-btn').off('click.productSelector').on('click.productSelector', () => {
             const sectionId = window.currentFeaturedCollectionId || 'featured-collection-' + Date.now();
             const sectionData = window.currentSectionsConfig.featuredCollections?.[sectionId] || { config: {} };
             this.renderConfigView(sectionData);
