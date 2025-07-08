@@ -982,13 +982,19 @@ window.WebsiteBuilderModules.FeaturedCollection = {
         $('.back-to-sections-btn').off('click.collectionSelector').on('click.collectionSelector', () => {
             const sectionId = window.currentFeaturedCollectionId || 'featured-collection-' + Date.now();
             const sectionData = window.currentSectionsConfig.featuredCollections?.[sectionId] || { config: {} };
-            this.renderConfigView(sectionData);
+            // Renderizar la vista de configuración
+            const html = window.WebsiteBuilderModules.FeaturedCollection.renderSettings(sectionData);
+            $('#sidebar-dynamic-content').html(html);
+            window.WebsiteBuilderModules.FeaturedCollection.attachEventListeners();
         });
         
         $('.cancel-collection-selection').off('click.collectionSelector').on('click.collectionSelector', () => {
             const sectionId = window.currentFeaturedCollectionId || 'featured-collection-' + Date.now();
             const sectionData = window.currentSectionsConfig.featuredCollections?.[sectionId] || { config: {} };
-            this.renderConfigView(sectionData);
+            // Renderizar la vista de configuración
+            const html = window.WebsiteBuilderModules.FeaturedCollection.renderSettings(sectionData);
+            $('#sidebar-dynamic-content').html(html);
+            window.WebsiteBuilderModules.FeaturedCollection.attachEventListeners();
         });
         
         $('.save-collection-selection').off('click.collectionSelector').on('click.collectionSelector', () => {
@@ -1035,13 +1041,6 @@ window.WebsiteBuilderModules.FeaturedCollection = {
         `).join('');
     },
     
-    // Cancelar selección de colecciones
-    cancelCollectionSelection: function() {
-        // Volver a la vista de configuración
-        const sectionId = window.currentFeaturedCollectionId || 'featured-collection-' + Date.now();
-        const sectionData = window.currentSectionsConfig.featuredCollections?.[sectionId] || { config: {} };
-        this.renderConfigView(sectionData);
-    },
     
     // Buscar colecciones inline
     searchCollectionsInline: function(query) {
@@ -1371,14 +1370,20 @@ window.WebsiteBuilderModules.FeaturedCollection = {
         $('.back-to-sections-btn').off('click.productSelector').on('click.productSelector', () => {
             const sectionId = window.currentFeaturedCollectionId || 'featured-collection-' + Date.now();
             const sectionData = window.currentSectionsConfig.featuredCollections?.[sectionId] || { config: {} };
-            this.renderConfigView(sectionData);
+            // Renderizar la vista de configuración
+            const html = window.WebsiteBuilderModules.FeaturedCollection.renderSettings(sectionData);
+            $('#sidebar-dynamic-content').html(html);
+            window.WebsiteBuilderModules.FeaturedCollection.attachEventListeners();
         });
         
         // Botón cancelar
         $('.cancel-product-selection').off('click.productSelector').on('click.productSelector', () => {
             const sectionId = window.currentFeaturedCollectionId || 'featured-collection-' + Date.now();
             const sectionData = window.currentSectionsConfig.featuredCollections?.[sectionId] || { config: {} };
-            this.renderConfigView(sectionData);
+            // Renderizar la vista de configuración
+            const html = window.WebsiteBuilderModules.FeaturedCollection.renderSettings(sectionData);
+            $('#sidebar-dynamic-content').html(html);
+            window.WebsiteBuilderModules.FeaturedCollection.attachEventListeners();
         });
         
         // Botón guardar
