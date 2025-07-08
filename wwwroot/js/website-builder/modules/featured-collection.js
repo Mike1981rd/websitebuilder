@@ -324,20 +324,22 @@ window.WebsiteBuilderModules.FeaturedCollection = {
                                data-i18n="collection">Collection</label>
                         <div style="border: 1px solid #e0e0e0; border-radius: 8px; background: white; padding: 16px;">
                             ${settings.collections && settings.collections.length > 0 ? `
-                                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
-                                    ${settings.collections.slice(0, 3).map((id, index) => {
+                                <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; max-height: 200px; overflow-y: auto;">
+                                    ${settings.collections.slice(0, 5).map((id, index) => {
                                         const name = settings.collectionNames ? settings.collectionNames[index] : 'Collection';
                                         return `
-                                            <div style="display: flex; align-items: center; gap: 8px; padding: 4px 8px; background: #f7f7f7; border-radius: 4px;">
-                                                <div style="width: 32px; height: 32px; background: #e0e0e0; border-radius: 4px; display: flex; align-items: center; justify-content: center;">
-                                                    <i class="material-icons" style="font-size: 18px; color: #666;">folder_open</i>
+                                            <div style="display: flex; align-items: center; gap: 12px; padding: 8px 12px; background: #f7f7f7; border-radius: 6px;">
+                                                <div style="width: 40px; height: 40px; background: #e0e0e0; border-radius: 4px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                                    <i class="material-icons" style="font-size: 20px; color: #666;">folder_open</i>
                                                 </div>
-                                                <span style="font-size: 14px; color: #202223;">${name}</span>
+                                                <span style="font-size: 14px; color: #202223; font-weight: 500;">${name}</span>
                                             </div>
                                         `;
                                     }).join('')}
-                                    ${settings.collections.length > 3 ? `
-                                        <span style="font-size: 13px; color: #666;">+${settings.collections.length - 3} more</span>
+                                    ${settings.collections.length > 5 ? `
+                                        <div style="text-align: center; padding: 8px; color: #666; font-size: 13px; background: #f0f0f0; border-radius: 4px;">
+                                            <span>+${settings.collections.length - 5} más colecciones</span>
+                                        </div>
                                     ` : ''}
                                 </div>
                             ` : (settings.collectionName ? `
@@ -364,32 +366,29 @@ window.WebsiteBuilderModules.FeaturedCollection = {
                                data-i18n="products">Products</label>
                         <div style="border: 1px solid #e0e0e0; border-radius: 8px; background: white; padding: 16px;">
                             ${settings.products && settings.products.length > 0 ? `
-                                <div style="display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 12px;">
-                                    ${settings.products.slice(0, 3).map((id, index) => {
+                                <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; max-height: 200px; overflow-y: auto;">
+                                    ${settings.products.slice(0, 5).map((id, index) => {
                                         const name = settings.productNames ? settings.productNames[index] : 'Product';
                                         const imageUrl = settings.productImages ? settings.productImages[index] : null;
                                         return `
-                                            <div style="display: flex; align-items: center; gap: 8px; padding: 4px 8px; background: #f7f7f7; border-radius: 4px;">
+                                            <div style="display: flex; align-items: center; gap: 12px; padding: 8px 12px; background: #f7f7f7; border-radius: 6px;">
                                                 ${imageUrl ? `
-                                                    <img src="${imageUrl}" style="width: 32px; height: 32px; object-fit: cover; border-radius: 4px;">
+                                                    <img src="${imageUrl}" style="width: 40px; height: 40px; object-fit: cover; border-radius: 4px; flex-shrink: 0;">
                                                 ` : `
-                                                    <div style="width: 32px; height: 32px; background: #e0e0e0; border-radius: 4px; display: flex; align-items: center; justify-content: center;">
-                                                        <i class="material-icons" style="font-size: 18px; color: #666;">image</i>
+                                                    <div style="width: 40px; height: 40px; background: #e0e0e0; border-radius: 4px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                                        <i class="material-icons" style="font-size: 20px; color: #666;">image</i>
                                                     </div>
                                                 `}
-                                                <span style="font-size: 14px; color: #202223;">${name}</span>
+                                                <span style="font-size: 14px; color: #202223; font-weight: 500;">${name}</span>
                                             </div>
                                         `;
                                     }).join('')}
-                                    ${settings.products.length > 3 ? `
-                                        <div style="display: flex; align-items: center; padding: 4px 8px; background: #f7f7f7; border-radius: 4px;">
-                                            <span style="font-size: 13px; color: #666;">+${settings.products.length - 3} más</span>
+                                    ${settings.products.length > 5 ? `
+                                        <div style="text-align: center; padding: 8px; color: #666; font-size: 13px; background: #f0f0f0; border-radius: 4px;">
+                                            <span>+${settings.products.length - 5} más productos</span>
                                         </div>
                                     ` : ''}
                                 </div>
-                                ${settings.products.length > 3 ? `
-                                    <a href="#" class="show-all-products" style="font-size: 13px; color: #2962ff; text-decoration: none;" data-i18n="showAll">Mostrar más</a>
-                                ` : ''}
                             ` : `
                                 <div style="text-align: center; padding: 20px; color: #666;">
                                     <i class="material-icons" style="font-size: 48px; color: #e0e0e0; display: block; margin-bottom: 8px;">inventory_2</i>
