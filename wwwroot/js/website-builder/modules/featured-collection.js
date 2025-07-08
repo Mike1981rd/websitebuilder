@@ -717,8 +717,10 @@ window.WebsiteBuilderModules.FeaturedCollection = {
             window.switchSidebarView('blockList');
         });
         
-        // Get section ID
+        // Get section ID - Siempre usar el ID actual si existe
         const sectionId = window.currentFeaturedCollectionId || 'featured-collection-' + Date.now();
+        // Asegurar que el ID global esté actualizado
+        window.currentFeaturedCollectionId = sectionId;
         
         // Helper function para actualizar configuración
         const updateConfig = (key, value) => {
@@ -1240,7 +1242,9 @@ window.WebsiteBuilderModules.FeaturedCollection = {
         
         // Volver a la vista de configuración
         const sectionData = window.currentSectionsConfig.featuredCollections[sectionId] || { config: {} };
-        this.renderConfigView(sectionData);
+        const html = window.WebsiteBuilderModules.FeaturedCollection.renderSettings(sectionData);
+        $('#sidebar-dynamic-content').html(html);
+        window.WebsiteBuilderModules.FeaturedCollection.attachEventListeners();
     },
     
     // Abrir selector de productos
@@ -1798,7 +1802,9 @@ window.WebsiteBuilderModules.FeaturedCollection = {
         
         // Volver a la vista de configuración
         const sectionData = window.currentSectionsConfig.featuredCollections[sectionId] || { config: {} };
-        this.renderConfigView(sectionData);
+        const html = window.WebsiteBuilderModules.FeaturedCollection.renderSettings(sectionData);
+        $('#sidebar-dynamic-content').html(html);
+        window.WebsiteBuilderModules.FeaturedCollection.attachEventListeners();
     }
 };
 
