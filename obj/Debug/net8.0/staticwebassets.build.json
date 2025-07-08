@@ -1,6 +1,6 @@
 {
   "Version": 1,
-  "Hash": "Jc8vNIRxpXGty/bhBEthK0mLu5dW9fD6booNT5rpDoE=",
+  "Hash": "fvm9wsoI8BCuFwhLbJx/OoPFAr1oiEk5vpMkz3FLlUc=",
   "Source": "Hotel",
   "BasePath": "_content/Hotel",
   "Mode": "Default",
@@ -430,8 +430,8 @@
       "RelatedAsset": "",
       "AssetTraitName": "",
       "AssetTraitValue": "",
-      "Fingerprint": "k83iip3iiq",
-      "Integrity": "5Oa7hxUDENlmnHrJ6Ds7SgHK2C+/gMPV5QCa6DunQKs=",
+      "Fingerprint": "4l89m1nsw8",
+      "Integrity": "uH2+XeJODOpEfF9Y+LaNaDsPReSVltZZ194GVPdQ/J4=",
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
       "OriginalItemSpec": "wwwroot\\js\\website-builder\\modules\\featured-product.js"
@@ -4496,6 +4496,51 @@
       ]
     },
     {
+      "Route": "js/website-builder/modules/featured-product.4l89m1nsw8.js",
+      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\js\\website-builder\\modules\\featured-product.js",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "179950"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "text/javascript"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"uH2+XeJODOpEfF9Y+LaNaDsPReSVltZZ194GVPdQ/J4=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Mon, 07 Jul 2025 19:50:45 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=31536000, immutable"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "fingerprint",
+          "Value": "4l89m1nsw8"
+        },
+        {
+          "Name": "label",
+          "Value": "js/website-builder/modules/featured-product.js"
+        },
+        {
+          "Name": "integrity",
+          "Value": "sha256-uH2+XeJODOpEfF9Y+LaNaDsPReSVltZZ194GVPdQ/J4="
+        }
+      ]
+    },
+    {
       "Route": "js/website-builder/modules/featured-product.js",
       "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\js\\website-builder\\modules\\featured-product.js",
       "Selectors": [],
@@ -4506,7 +4551,7 @@
         },
         {
           "Name": "Content-Length",
-          "Value": "175360"
+          "Value": "179950"
         },
         {
           "Name": "Content-Type",
@@ -4514,11 +4559,11 @@
         },
         {
           "Name": "ETag",
-          "Value": "\"5Oa7hxUDENlmnHrJ6Ds7SgHK2C+/gMPV5QCa6DunQKs=\""
+          "Value": "\"uH2+XeJODOpEfF9Y+LaNaDsPReSVltZZ194GVPdQ/J4=\""
         },
         {
           "Name": "Last-Modified",
-          "Value": "Mon, 07 Jul 2025 19:11:01 GMT"
+          "Value": "Mon, 07 Jul 2025 19:50:45 GMT"
         },
         {
           "Name": "Cache-Control",
@@ -4528,52 +4573,7 @@
       "EndpointProperties": [
         {
           "Name": "integrity",
-          "Value": "sha256-5Oa7hxUDENlmnHrJ6Ds7SgHK2C+/gMPV5QCa6DunQKs="
-        }
-      ]
-    },
-    {
-      "Route": "js/website-builder/modules/featured-product.k83iip3iiq.js",
-      "AssetFile": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\js\\website-builder\\modules\\featured-product.js",
-      "Selectors": [],
-      "ResponseHeaders": [
-        {
-          "Name": "Accept-Ranges",
-          "Value": "bytes"
-        },
-        {
-          "Name": "Content-Length",
-          "Value": "175360"
-        },
-        {
-          "Name": "Content-Type",
-          "Value": "text/javascript"
-        },
-        {
-          "Name": "ETag",
-          "Value": "\"5Oa7hxUDENlmnHrJ6Ds7SgHK2C+/gMPV5QCa6DunQKs=\""
-        },
-        {
-          "Name": "Last-Modified",
-          "Value": "Mon, 07 Jul 2025 19:11:01 GMT"
-        },
-        {
-          "Name": "Cache-Control",
-          "Value": "max-age=31536000, immutable"
-        }
-      ],
-      "EndpointProperties": [
-        {
-          "Name": "fingerprint",
-          "Value": "k83iip3iiq"
-        },
-        {
-          "Name": "label",
-          "Value": "js/website-builder/modules/featured-product.js"
-        },
-        {
-          "Name": "integrity",
-          "Value": "sha256-5Oa7hxUDENlmnHrJ6Ds7SgHK2C+/gMPV5QCa6DunQKs="
+          "Value": "sha256-uH2+XeJODOpEfF9Y+LaNaDsPReSVltZZ194GVPdQ/J4="
         }
       ]
     },
