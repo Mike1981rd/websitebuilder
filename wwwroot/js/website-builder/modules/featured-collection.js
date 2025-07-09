@@ -12,12 +12,38 @@ window.WebsiteBuilderModules.FeaturedCollection = {
         
         if (!config || config.isHidden) return '';
         
-        const settings = config.config || {};
+        // Handle both direct config and nested config.config structures
+        let settings;
+        if (config.config) {
+            // Structure from currentSectionsConfig.featuredCollections[id]
+            settings = config.config;
+            console.log('[FEATURED COLLECTION] Using nested config.config');
+        } else {
+            // Direct config object
+            settings = config;
+            console.log('[FEATURED COLLECTION] Using direct config');
+        }
+        
+        // Debug: Check if we're getting stale data
+        if (config.id && window.currentSectionsConfig?.featuredCollections?.[config.id]) {
+            const currentData = window.currentSectionsConfig.featuredCollections[config.id];
+            console.log('[FEATURED COLLECTION] Current data in currentSectionsConfig:', currentData);
+            if (currentData.config && currentData.config.colorScheme !== settings.colorScheme) {
+                console.warn('[FEATURED COLLECTION] WARNING: Stale data detected! Using fresh data from currentSectionsConfig');
+                settings = currentData.config;
+            }
+        }
+        
+        console.log('[FEATURED COLLECTION] Settings extracted:', settings);
+        console.log('[FEATURED COLLECTION] Color scheme value:', settings.colorScheme);
+        
         const schemeColors = window.getColorSchemeValues ? window.getColorSchemeValues(settings.colorScheme || 'scheme1') : {
             background: '#ffffff',
             text: '#000000',
             border: '#e0e0e0'
         };
+        
+        console.log('[FEATURED COLLECTION] Scheme colors:', schemeColors);
         
         // Determinar si mostrar productos o colecciones
         const hasProducts = settings.products && settings.products.length > 0;
@@ -26,20 +52,123 @@ window.WebsiteBuilderModules.FeaturedCollection = {
         
         // Si hay productos seleccionados, tienen prioridad
         if (hasProducts) {
-            return this.renderProductsView(settings, schemeColors);
+            // IMPORTANTE: Pasar el ID de la instancia a la función de renderizado
+            settings.id = config.id;
+            return window.WebsiteBuilderModules.FeaturedCollection.renderProductsView(settings, schemeColors);
         } else if (hasCollections || collectionId) {
-            return this.renderCollectionView(settings, schemeColors);
+            // IMPORTANTE: Pasar el ID de la instancia a la función de renderizado
+            settings.id = config.id;
+            return window.WebsiteBuilderModules.FeaturedCollection.renderCollectionView(settings, schemeColors);
         } else {
-            return this.renderEmptyState(settings, schemeColors);
+            // IMPORTANTE: Pasar el ID de la instancia a la función de renderizado
+            settings.id = config.id;
+            return window.WebsiteBuilderModules.FeaturedCollection.renderEmptyState(settings, schemeColors);
         }
     },
     
     // Renderizar vista de productos específicos
     renderProductsView: function(settings, schemeColors) {
         const uniqueId = 'featured-collection-' + Date.now();
+        const isGrid = settings.desktopLayout === 'grid';
+        const isCarousel = settings.desktopLayout === 'carousel';
+        const isSlider = settings.desktopLayout === 'slider';
+        const cardsPerRow = parseInt(settings.desktopCardsPerRow) || 4;
+        const totalProducts = settings.products ? settings.products.length : 0;
+        const needsArrows = (isCarousel && totalProducts > cardsPerRow) || isSlider;
+        const showArrowsOnHover = settings.showArrowsOnHover !== false; // Default true
+        
+        // Configuración de autoplay
+        const autoplayEnabled = settings.autoplayMode !== 'none' && isSlider;
+        const autoplaySpeed = (settings.autoplaySpeed || 3) * 1000; // Convertir a milisegundos
+        
+        // Calcular el ancho de las cards considerando el espacio entre ellas
+        const spaceBetween = settings.desktopSpaceBetweenCards || 16;
+        const cardWidth = isGrid ? 
+            `calc(${100/cardsPerRow}% - ${spaceBetween * (cardsPerRow - 1) / cardsPerRow}px)` : 
+            isSlider ? 
+            '100%' : // Slider muestra una card a la vez a ancho completo
+            `calc((100% - ${spaceBetween * (cardsPerRow - 1)}px) / ${cardsPerRow})`;
         
         return `
-            <div id="${uniqueId}" class="section-wrapper featured-collection-section" data-section-id="featured-collection" style="background-color: ${schemeColors.background}; padding-top: ${settings.topPadding || 96}px; padding-bottom: ${settings.bottomPadding || 48}px;">
+            <style>
+                #${uniqueId} .carousel-container,
+                #${uniqueId} .slider-container {
+                    position: relative;
+                }
+                #${uniqueId} .carousel-wrapper,
+                #${uniqueId} .slider-wrapper {
+                    overflow: hidden;
+                    margin: 0 -${spaceBetween/2}px;
+                }
+                #${uniqueId} .carousel-track,
+                #${uniqueId} .slider-track {
+                    display: flex;
+                    transition: transform 0.3s ease;
+                }
+                #${uniqueId} .product-card {
+                    flex: 0 0 ${cardWidth};
+                    margin: 0 ${spaceBetween/2}px;
+                    transition: transform 0.2s ease;
+                }
+                ${isSlider ? `
+                #${uniqueId} .slider-track {
+                    transition: transform 0.5s ease;
+                }
+                #${uniqueId} .slider-container .product-card {
+                    display: flex;
+                    justify-content: center;
+                }
+                ` : ''}
+                #${uniqueId} .product-card:hover {
+                    transform: translateY(-4px);
+                }
+                #${uniqueId} .carousel-arrow {
+                    position: absolute;
+                    top: 50%;
+                    transform: translateY(-50%);
+                    width: 44px;
+                    height: 44px;
+                    background: rgba(255, 255, 255, 0.9);
+                    border: 1px solid rgba(0, 0, 0, 0.1);
+                    border-radius: 50%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    cursor: pointer;
+                    transition: all 0.2s ease;
+                    z-index: 2;
+                    ${showArrowsOnHover ? 'opacity: 0;' : 'opacity: 1;'}
+                }
+                ${showArrowsOnHover ? `
+                #${uniqueId} .carousel-container:hover .carousel-arrow {
+                    opacity: 1;
+                }
+                ` : ''}
+                #${uniqueId} .carousel-arrow:hover {
+                    background: #ffffff;
+                    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+                }
+                #${uniqueId} .carousel-arrow.prev {
+                    left: 10px;
+                }
+                #${uniqueId} .carousel-arrow.next {
+                    right: 10px;
+                }
+                #${uniqueId} .carousel-arrow.disabled {
+                    opacity: 0.3;
+                    cursor: not-allowed;
+                }
+                #${uniqueId} .grid-layout {
+                    display: flex;
+                    flex-wrap: wrap;
+                    margin: 0 -${spaceBetween/2}px;
+                }
+                #${uniqueId} .grid-layout .product-card {
+                    flex: 0 0 ${cardWidth};
+                    margin: ${spaceBetween/2}px;
+                }
+            </style>
+            <div id="${uniqueId}" class="section-wrapper featured-collection-section" data-section-id="featured-collection" data-element-id="${settings.id || uniqueId}" style="background-color: ${schemeColors.background}; padding-top: ${settings.topPadding || 96}px; padding-bottom: ${settings.bottomPadding || 48}px;" data-color-scheme="${settings.colorScheme || 'scheme1'}">
                 <div class="section-header-tag">
                     <span class="material-symbols-outlined" style="font-size: 16px;">inventory_2</span>
                     ${window.translations && window.translations[window.currentLanguage] ? 
@@ -48,29 +177,182 @@ window.WebsiteBuilderModules.FeaturedCollection = {
                 </div>
                 <div class="container" style="max-width: ${settings.width === 'full' ? '100%' : '1200px'}; margin: 0 auto; padding: 0 ${settings.addSidePaddings ? '20px' : '0'};">
                     ${settings.heading ? `
-                        <h2 style="font-size: ${this.getHeadingSize(settings.headingSize)}; text-align: ${settings.headingAlignment || 'left'}; color: ${schemeColors.text}; margin-bottom: 30px;">
+                        <h2 style="font-size: ${window.WebsiteBuilderModules.FeaturedCollection.getHeadingSize(settings.headingSize)}; text-align: ${settings.headingAlignment || 'left'}; color: ${schemeColors.text}; margin-bottom: 30px;">
                             ${settings.heading}
                         </h2>
                     ` : ''}
                     
-                    <div class="${settings.desktopLayout || 'grid'}-layout" style="display: flex; flex-wrap: wrap; gap: ${settings.desktopSpaceBetweenCards || 16}px;">
-                        <!-- Productos específicos se renderizarán aquí -->
-                        <div style="text-align: center; padding: 40px; width: 100%;">
-                            <p style="color: ${schemeColors.text};">Selected products will be displayed here</p>
-                            <p style="color: ${schemeColors.text}; font-size: 12px; margin-top: 10px;">Product IDs: ${settings.products.join(', ')}</p>
+                    ${isCarousel || isSlider ? `
+                        <div class="${isSlider ? 'slider' : 'carousel'}-container" data-autoplay="${autoplayEnabled}" data-autoplay-speed="${autoplaySpeed}">
+                            ${needsArrows ? `
+                                <button class="carousel-arrow prev" onclick="window.WebsiteBuilderModules.FeaturedCollection.${isSlider ? 'slideSlider' : 'slideCarousel'}('${uniqueId}', 'prev', ${isSlider ? 1 : cardsPerRow})">
+                                    <span class="material-symbols-outlined">chevron_left</span>
+                                </button>
+                                <button class="carousel-arrow next" onclick="window.WebsiteBuilderModules.FeaturedCollection.${isSlider ? 'slideSlider' : 'slideCarousel'}('${uniqueId}', 'next', ${isSlider ? 1 : cardsPerRow})">
+                                    <span class="material-symbols-outlined">chevron_right</span>
+                                </button>
+                            ` : ''}
+                            <div class="${isSlider ? 'slider' : 'carousel'}-wrapper">
+                                <div class="${isSlider ? 'slider' : 'carousel'}-track" data-current-slide="0" data-total-slides="${isSlider ? totalProducts : Math.ceil(totalProducts / cardsPerRow)}">
+                                    ${settings.products && settings.products.length > 0 ? 
+                                        settings.products.map((productId, index) => {
+                                            return window.WebsiteBuilderModules.FeaturedCollection.renderProductCard(productId, index, settings, schemeColors, cardWidth);
+                                        }).join('') 
+                                        : `
+                                        <div style="text-align: center; padding: 40px; width: 100%;">
+                                            <p style="color: ${schemeColors.text};">No products selected</p>
+                                        </div>
+                                    `}
+                                </div>
+                            </div>
                         </div>
-                    </div>
+                    ` : `
+                        <div class="grid-layout">
+                            ${settings.products && settings.products.length > 0 ? 
+                                settings.products.slice(0, settings.cardsToShow || 16).map((productId, index) => {
+                                    return window.WebsiteBuilderModules.FeaturedCollection.renderProductCard(productId, index, settings, schemeColors, cardWidth);
+                                }).join('') 
+                                : `
+                                <div style="text-align: center; padding: 40px; width: 100%;">
+                                    <p style="color: ${schemeColors.text};">No products selected</p>
+                                </div>
+                            `}
+                        </div>
+                    `}
                 </div>
             </div>
+            <script>
+                // Initialize carousel/slider on load
+                if (${(isCarousel || isSlider) && needsArrows}) {
+                    setTimeout(() => {
+                        window.WebsiteBuilderModules.FeaturedCollection.updateCarouselArrows('${uniqueId}');
+                    }, 100);
+                }
+                
+                // Initialize autoplay for slider
+                if (${isSlider && autoplayEnabled}) {
+                    setTimeout(() => {
+                        window.WebsiteBuilderModules.FeaturedCollection.initSliderAutoplay('${uniqueId}', ${autoplaySpeed});
+                    }, 200);
+                }
+            </script>
         `;
     },
     
     // Renderizar vista de colección
     renderCollectionView: function(settings, schemeColors) {
         const uniqueId = 'featured-collection-' + Date.now();
+        const isGrid = settings.desktopLayout === 'grid';
+        const isCarousel = settings.desktopLayout === 'carousel';
+        const isSlider = settings.desktopLayout === 'slider';
+        const cardsPerRow = parseInt(settings.desktopCardsPerRow) || 4;
+        
+        // Determinar si debemos mostrar el collection card
+        const showCollectionCard = settings.cardPosition !== 'noCard';
+        const collectionCardFirst = settings.cardPosition === 'beforeAllItems';
+        
+        // Contar total de items (productos + collection card si está visible)
+        const totalProducts = settings.collectionProducts ? settings.collectionProducts.length : 0;
+        const totalItems = totalProducts + (showCollectionCard ? 1 : 0);
+        const needsArrows = (isCarousel && totalItems > cardsPerRow) || isSlider;
+        const showArrowsOnHover = settings.showArrowsOnHover !== false; // Default true
+        
+        // Configuración de autoplay
+        const autoplayEnabled = settings.autoplayMode !== 'none' && isSlider;
+        const autoplaySpeed = (settings.autoplaySpeed || 3) * 1000; // Convertir a milisegundos
+        
+        // Calcular el ancho de las cards considerando el espacio entre ellas
+        const spaceBetween = settings.desktopSpaceBetweenCards || 16;
+        const cardWidth = isGrid ? 
+            `calc(${100/cardsPerRow}% - ${spaceBetween * (cardsPerRow - 1) / cardsPerRow}px)` : 
+            isSlider ? 
+            '100%' : // Slider muestra una card a la vez a ancho completo
+            `calc((100% - ${spaceBetween * (cardsPerRow - 1)}px) / ${cardsPerRow})`;
         
         return `
-            <div id="${uniqueId}" class="section-wrapper featured-collection-section" data-section-id="featured-collection" style="background-color: ${schemeColors.background}; padding-top: ${settings.topPadding || 96}px; padding-bottom: ${settings.bottomPadding || 48}px;">
+            <style>
+                #${uniqueId} .carousel-container,
+                #${uniqueId} .slider-container {
+                    position: relative;
+                }
+                #${uniqueId} .carousel-wrapper,
+                #${uniqueId} .slider-wrapper {
+                    overflow: hidden;
+                    margin: 0 -${spaceBetween/2}px;
+                }
+                #${uniqueId} .carousel-track,
+                #${uniqueId} .slider-track {
+                    display: flex;
+                    transition: transform 0.3s ease;
+                }
+                #${uniqueId} .product-card,
+                #${uniqueId} .collection-card {
+                    flex: 0 0 ${cardWidth};
+                    margin: 0 ${spaceBetween/2}px;
+                    transition: transform 0.2s ease;
+                }
+                ${isSlider ? `
+                #${uniqueId} .slider-track {
+                    transition: transform 0.5s ease;
+                }
+                #${uniqueId} .slider-container .product-card,
+                #${uniqueId} .slider-container .collection-card {
+                    display: flex;
+                    justify-content: center;
+                }
+                ` : ''}
+                #${uniqueId} .product-card:hover,
+                #${uniqueId} .collection-card:hover {
+                    transform: translateY(-4px);
+                }
+                #${uniqueId} .carousel-arrow {
+                    position: absolute;
+                    top: 50%;
+                    transform: translateY(-50%);
+                    width: 44px;
+                    height: 44px;
+                    background: rgba(255, 255, 255, 0.9);
+                    border: 1px solid rgba(0, 0, 0, 0.1);
+                    border-radius: 50%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    cursor: pointer;
+                    transition: all 0.2s ease;
+                    z-index: 2;
+                    ${showArrowsOnHover ? 'opacity: 0;' : 'opacity: 1;'}
+                }
+                ${showArrowsOnHover ? `
+                #${uniqueId} .carousel-container:hover .carousel-arrow {
+                    opacity: 1;
+                }
+                ` : ''}
+                #${uniqueId} .carousel-arrow:hover {
+                    background: #ffffff;
+                    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+                }
+                #${uniqueId} .carousel-arrow.prev {
+                    left: 10px;
+                }
+                #${uniqueId} .carousel-arrow.next {
+                    right: 10px;
+                }
+                #${uniqueId} .carousel-arrow.disabled {
+                    opacity: 0.3;
+                    cursor: not-allowed;
+                }
+                #${uniqueId} .grid-layout {
+                    display: flex;
+                    flex-wrap: wrap;
+                    margin: 0 -${spaceBetween/2}px;
+                }
+                #${uniqueId} .grid-layout .product-card,
+                #${uniqueId} .grid-layout .collection-card {
+                    flex: 0 0 ${cardWidth};
+                    margin: ${spaceBetween/2}px;
+                }
+            </style>
+            <div id="${uniqueId}" class="section-wrapper featured-collection-section" data-section-id="featured-collection" data-element-id="${settings.id || uniqueId}" style="background-color: ${schemeColors.background}; padding-top: ${settings.topPadding || 96}px; padding-bottom: ${settings.bottomPadding || 48}px;" data-color-scheme="${settings.colorScheme || 'scheme1'}">
                 <div class="section-header-tag">
                     <span class="material-symbols-outlined" style="font-size: 16px;">inventory_2</span>
                     ${window.translations && window.translations[window.currentLanguage] ? 
@@ -79,28 +361,95 @@ window.WebsiteBuilderModules.FeaturedCollection = {
                 </div>
                 <div class="container" style="max-width: ${settings.width === 'full' ? '100%' : '1200px'}; margin: 0 auto; padding: 0 ${settings.addSidePaddings ? '20px' : '0'};">
                     ${settings.heading ? `
-                        <h2 style="font-size: ${this.getHeadingSize(settings.headingSize)}; text-align: ${settings.headingAlignment || 'left'}; color: ${schemeColors.text}; margin-bottom: 30px;">
+                        <h2 style="font-size: ${window.WebsiteBuilderModules.FeaturedCollection.getHeadingSize(settings.headingSize)}; text-align: ${settings.headingAlignment || 'left'}; color: ${schemeColors.text}; margin-bottom: 30px;">
                             ${settings.heading}
                         </h2>
                     ` : ''}
                     
-                    <div class="${settings.desktopLayout || 'grid'}-layout" style="display: flex; flex-wrap: wrap; gap: ${settings.desktopSpaceBetweenCards || 16}px;">
-                        <!-- Productos de la colección se renderizarán aquí -->
-                        <div style="text-align: center; padding: 40px; width: 100%;">
-                            <p style="color: ${schemeColors.text};">
-                                ${settings.collections && settings.collections.length > 0 
-                                    ? `Collections: ${settings.collectionNames ? settings.collectionNames.join(', ') : settings.collections.length + ' selected'}`
-                                    : `Collection: ${settings.collectionName || 'Collection'}`}
-                            </p>
-                            <p style="color: ${schemeColors.text}; font-size: 12px; margin-top: 10px;">
-                                ${settings.collections && settings.collections.length > 1 
-                                    ? 'Products from these collections will be displayed'
-                                    : 'Products from this collection will be displayed'}
-                            </p>
+                    ${isCarousel ? `
+                        <div class="carousel-container">
+                            ${needsArrows ? `
+                                <button class="carousel-arrow prev" onclick="window.WebsiteBuilderModules.FeaturedCollection.slideCarousel('${uniqueId}', 'prev', ${cardsPerRow})">
+                                    <span class="material-symbols-outlined">chevron_left</span>
+                                </button>
+                                <button class="carousel-arrow next" onclick="window.WebsiteBuilderModules.FeaturedCollection.slideCarousel('${uniqueId}', 'next', ${cardsPerRow})">
+                                    <span class="material-symbols-outlined">chevron_right</span>
+                                </button>
+                            ` : ''}
+                            <div class="carousel-wrapper">
+                                <div class="carousel-track" data-current-slide="0" data-total-slides="${Math.ceil(totalItems / cardsPerRow)}">
+                                    ${showCollectionCard && collectionCardFirst ? window.WebsiteBuilderModules.FeaturedCollection.renderCollectionCard(settings, schemeColors, cardWidth) : ''}
+                                    
+                                    ${settings.collectionProducts && settings.collectionProducts.length > 0 ? 
+                                        settings.collectionProducts.map((product, index) => {
+                                            // Para productos de colección, los datos vienen estructurados diferente
+                                            const productSettings = {
+                                                ...settings,
+                                                productNames: settings.collectionProducts.map(p => p.name),
+                                                productImages: settings.collectionProducts.map(p => p.image),
+                                                productPrices: settings.collectionProducts.map(p => p.price)
+                                            };
+                                            return window.WebsiteBuilderModules.FeaturedCollection.renderProductCard(product.id, index, productSettings, schemeColors, cardWidth);
+                                        }).join('') 
+                                        : `
+                                        <div style="text-align: center; padding: 40px; width: 100%;">
+                                            <p style="color: ${schemeColors.text};">
+                                                ${settings.collections && settings.collections.length > 0 
+                                                    ? 'Loading products from selected collections...'
+                                                    : 'Select a collection to display products'}
+                                            </p>
+                                        </div>
+                                    `}
+                                    
+                                    ${showCollectionCard && !collectionCardFirst ? window.WebsiteBuilderModules.FeaturedCollection.renderCollectionCard(settings, schemeColors, cardWidth) : ''}
+                                </div>
+                            </div>
                         </div>
-                    </div>
+                    ` : `
+                        <div class="grid-layout">
+                            ${showCollectionCard && collectionCardFirst ? window.WebsiteBuilderModules.FeaturedCollection.renderCollectionCard(settings, schemeColors, cardWidth) : ''}
+                            
+                            ${settings.collectionProducts && settings.collectionProducts.length > 0 ? 
+                                settings.collectionProducts.slice(0, settings.cardsToShow || 16).map((product, index) => {
+                                    // Para productos de colección, los datos vienen estructurados diferente
+                                    const productSettings = {
+                                        ...settings,
+                                        productNames: settings.collectionProducts.map(p => p.name),
+                                        productImages: settings.collectionProducts.map(p => p.image),
+                                        productPrices: settings.collectionProducts.map(p => p.price)
+                                    };
+                                    return window.WebsiteBuilderModules.FeaturedCollection.renderProductCard(product.id, index, productSettings, schemeColors, cardWidth);
+                                }).join('') 
+                                : `
+                                <div style="text-align: center; padding: 40px; width: 100%;">
+                                    <p style="color: ${schemeColors.text};">
+                                        ${settings.collections && settings.collections.length > 0 
+                                            ? 'Loading products from selected collections...'
+                                            : 'Select a collection to display products'}
+                                    </p>
+                                </div>
+                            `}
+                            
+                            ${showCollectionCard && !collectionCardFirst ? window.WebsiteBuilderModules.FeaturedCollection.renderCollectionCard(settings, schemeColors, cardWidth) : ''}
+                        </div>
+                    `}
                 </div>
             </div>
+            <script>
+                // Initialize carousel/slider on load
+                if (${(isCarousel || isSlider) && needsArrows}) {
+                    setTimeout(() => {
+                        window.WebsiteBuilderModules.FeaturedCollection.updateCarouselArrows('${uniqueId}');
+                    }, 100);
+                }
+                
+                // Initialize autoplay for slider
+                if (${isSlider && autoplayEnabled}) {
+                    setTimeout(() => {
+                        window.WebsiteBuilderModules.FeaturedCollection.initSliderAutoplay('${uniqueId}', ${autoplaySpeed});
+                    }, 200);
+                }
+            </script>
         `;
     },
     
@@ -109,7 +458,7 @@ window.WebsiteBuilderModules.FeaturedCollection = {
         const uniqueId = 'featured-collection-' + Date.now();
         
         return `
-            <div id="${uniqueId}" class="section-wrapper featured-collection-section" data-section-id="featured-collection" style="background-color: ${schemeColors.background}; padding-top: ${settings.topPadding || 96}px; padding-bottom: ${settings.bottomPadding || 48}px;">
+            <div id="${uniqueId}" class="section-wrapper featured-collection-section" data-section-id="featured-collection" data-element-id="${settings.id || uniqueId}" style="background-color: ${schemeColors.background}; padding-top: ${settings.topPadding || 96}px; padding-bottom: ${settings.bottomPadding || 48}px;" data-color-scheme="${settings.colorScheme || 'scheme1'}">
                 <div class="section-header-tag">
                     <span class="material-symbols-outlined" style="font-size: 16px;">inventory_2</span>
                     ${window.translations && window.translations[window.currentLanguage] ? 
@@ -140,6 +489,238 @@ window.WebsiteBuilderModules.FeaturedCollection = {
             heading8: '16px'
         };
         return sizes[size] || '28px';
+    },
+    
+    // Renderizar un product card
+    renderProductCard: function(productId, index, settings, schemeColors, cardWidth) {
+        // Obtener configuración global de product cards
+        const globalProductCards = window.currentGlobalThemeSettings?.productCards || {};
+        
+        // Obtener datos del producto
+        const productName = settings.productNames && settings.productNames[index] ? settings.productNames[index] : `Product ${index + 1}`;
+        const productImage = settings.productImages && settings.productImages[index] ? settings.productImages[index] : null;
+        const productVendor = settings.productVendors && settings.productVendors[index] ? settings.productVendors[index] : null;
+        const productPrice = settings.productPrices && settings.productPrices[index] ? 
+            (typeof settings.productPrices[index] === 'number' ? settings.productPrices[index] : parseFloat(settings.productPrices[index])) : 
+            0;
+        const productComparePrice = settings.productComparePrices && settings.productComparePrices[index] ? 
+            (typeof settings.productComparePrices[index] === 'number' ? settings.productComparePrices[index] : parseFloat(settings.productComparePrices[index])) : 
+            null;
+        
+        
+        // Datos de rating (por ahora usando valores demo)
+        const productRating = settings.productRatings && settings.productRatings[index] ? settings.productRatings[index] : 4.5;
+        const productReviewCount = settings.productReviewCounts && settings.productReviewCounts[index] ? settings.productReviewCounts[index] : 12;
+        
+        // Determinar el aspect ratio (local tiene prioridad sobre global)
+        const imageRatioSetting = settings.imageRatio || globalProductCards.imageRatio || 'default';
+        const ratios = {
+            'default': 'padding-bottom: 100%;',
+            'square': 'padding-bottom: 100%;',
+            'portrait': 'padding-bottom: 125%;',
+            'landscape': 'padding-bottom: 75%;',
+            'adapt': '' // Sin padding, se adapta a la imagen
+        };
+        const imageRatio = ratios[imageRatioSetting] || ratios['default'];
+        
+        // Determinar si mostrar vendor (configuración global)
+        const showVendor = globalProductCards.showVendor !== false && productVendor;
+        
+        // Determinar si mostrar currency code
+        const showCurrencyCode = globalProductCards.showCurrencyCode === true;
+        const currencyCode = showCurrencyCode ? ' USD' : '';
+        
+        // Determinar tamaño del precio
+        const priceSizeMap = {
+            'small': '14px',
+            'medium': '16px',
+            'large': '18px'
+        };
+        const priceSize = priceSizeMap[globalProductCards.priceLabelSize] || '16px';
+        
+        // Generar ID único para el hover del quick view
+        const cardId = `product-card-${productId}-${index}-${Date.now()}`;
+        
+        // Función para renderizar estrellas
+        const renderStars = (rating) => {
+            const fullStars = Math.floor(rating);
+            const hasHalfStar = rating % 1 >= 0.5;
+            const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
+            
+            let starsHtml = '';
+            // Estrellas llenas
+            for (let i = 0; i < fullStars; i++) {
+                starsHtml += '<span class="material-symbols-outlined" style="font-size: 16px; color: #ffb800; font-variation-settings: \'FILL\' 1;">star</span>';
+            }
+            // Media estrella
+            if (hasHalfStar) {
+                starsHtml += '<span class="material-symbols-outlined" style="font-size: 16px; color: #ffb800; font-variation-settings: \'FILL\' 1;">star_half</span>';
+            }
+            // Estrellas vacías
+            for (let i = 0; i < emptyStars; i++) {
+                starsHtml += '<span class="material-symbols-outlined" style="font-size: 16px; color: #d4d4d4;">star</span>';
+            }
+            return starsHtml;
+        };
+        
+        // Determinar qué mostrar según la configuración de rating
+        const ratingDisplay = globalProductCards.productRating || 'none';
+        let ratingHtml = '';
+        
+        switch (ratingDisplay) {
+            case 'stars-only':
+                ratingHtml = renderStars(productRating);
+                break;
+            case 'review-count-only':
+                ratingHtml = `<span style="font-size: 12px; color: ${schemeColors.text}; opacity: 0.6;">(${productReviewCount} reviews)</span>`;
+                break;
+            case 'average-rating-only':
+                ratingHtml = `<span style="font-size: 12px; color: ${schemeColors.text}; opacity: 0.6;">${productRating.toFixed(1)}/5.0</span>`;
+                break;
+            case 'review-count-and-stars':
+                ratingHtml = `
+                    ${renderStars(productRating)}
+                    <span style="font-size: 12px; color: ${schemeColors.text}; opacity: 0.6; margin-left: 6px;">(${productReviewCount})</span>
+                `;
+                break;
+            case 'average-rating-and-stars':
+                ratingHtml = `
+                    ${renderStars(productRating)}
+                    <span style="font-size: 12px; color: ${schemeColors.text}; opacity: 0.6; margin-left: 6px;">${productRating.toFixed(1)}</span>
+                `;
+                break;
+        }
+        
+        return `
+            <div class="product-card" id="${cardId}" style="position: relative;">
+                <div class="product-image-wrapper" style="position: relative; overflow: hidden; border-radius: 8px; ${imageRatio}">
+                    ${productImage ? `
+                        <img src="${productImage}" alt="${productName}" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover;">
+                    ` : `
+                        <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #f0f0f0; display: flex; align-items: center; justify-content: center;">
+                            <i class="material-icons" style="font-size: 48px; color: #ccc;">image</i>
+                        </div>
+                    `}
+                    
+                    <!-- Quick view button (aparece en hover) -->
+                    <button class="quick-view-btn" style="
+                        position: absolute;
+                        bottom: 10px;
+                        left: 50%;
+                        transform: translateX(-50%);
+                        background: rgba(255, 255, 255, 0.95);
+                        border: none;
+                        padding: 8px 16px;
+                        border-radius: 4px;
+                        font-size: 13px;
+                        font-weight: 500;
+                        cursor: pointer;
+                        opacity: 0;
+                        transition: opacity 0.2s ease;
+                        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+                    ">
+                        ${window.translations && window.translations[window.currentLanguage] ? 
+                            (window.translations[window.currentLanguage]['productCard.quickView'] || 'Quick view') : 
+                            'Quick view'}
+                    </button>
+                </div>
+                
+                <div class="product-info" style="padding: 12px 4px; text-align: ${settings.contentAlignment || 'left'};">
+                    ${showVendor && productVendor ? `
+                        <p style="font-size: 11px; margin: 0 0 6px 0; color: ${schemeColors.text}; opacity: 0.6; text-transform: uppercase; letter-spacing: 0.8px; font-weight: 500;">
+                            ${productVendor}
+                        </p>
+                    ` : ''}
+                    
+                    <h3 style="font-size: 14px; font-weight: 400; line-height: 1.3; margin: 0 0 6px 0; color: ${schemeColors.text}; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">
+                        ${productName}
+                    </h3>
+                    
+                    ${ratingHtml ? `<div style="margin: 6px 0; display: flex; align-items: center; line-height: 1;">${ratingHtml}</div>` : ''}
+                    
+                    <div style="display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap;">
+                        <span style="font-size: ${priceSize}; color: ${schemeColors.text}; font-weight: ${productComparePrice && productComparePrice > productPrice ? '500' : '400'};">
+                            $${productPrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}${currencyCode}
+                        </span>
+                        
+                        ${productComparePrice && productComparePrice > productPrice ? `
+                            <span style="font-size: ${priceSize === '18px' ? '14px' : priceSize === '16px' ? '13px' : '12px'}; color: ${schemeColors.text}; opacity: 0.5; text-decoration: line-through;">
+                                $${productComparePrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}${currencyCode}
+                            </span>
+                        ` : ''}
+                        
+                        ${productComparePrice && productComparePrice > productPrice ? `
+                            <span style="font-size: 11px; color: #dc2626; font-weight: 500; background: rgba(220, 38, 38, 0.1); padding: 2px 6px; border-radius: 3px;">
+                                ${Math.round(((productComparePrice - productPrice) / productComparePrice) * 100)}% OFF
+                            </span>
+                        ` : ''}
+                    </div>
+                </div>
+                
+                <style>
+                    #${cardId}:hover .quick-view-btn {
+                        opacity: 1;
+                    }
+                    #${cardId} .quick-view-btn:hover {
+                        background: rgba(255, 255, 255, 1);
+                        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                    }
+                </style>
+            </div>
+        `;
+    },
+    
+    // Renderizar collection card
+    renderCollectionCard: function(settings, schemeColors, cardWidth) {
+        const collectionName = settings.collectionNames && settings.collectionNames[0] ? settings.collectionNames[0] : (settings.collectionName || 'Collection');
+        const collectionImage = settings.collectionImages && settings.collectionImages[0] ? settings.collectionImages[0] : null;
+        const productCount = settings.collectionProductCounts && settings.collectionProductCounts[0] ? settings.collectionProductCounts[0] : 0;
+        
+        // Determinar el aspect ratio
+        const ratios = {
+            'default': 'padding-bottom: 100%;',
+            'square': 'padding-bottom: 100%;',
+            'portrait': 'padding-bottom: 125%;',
+            'landscape': 'padding-bottom: 75%;'
+        };
+        const imageRatio = ratios[settings.imageRatio] || ratios['default'];
+        
+        const isCarousel = settings.desktopLayout === 'carousel';
+        const titleSize = window.WebsiteBuilderModules.FeaturedCollection.getHeadingSize(settings.collectionTitleSize || 'heading6');
+        
+        // Determinar posición del contenido
+        const contentPositionStyles = {
+            'onImage': 'position: absolute; bottom: 0; left: 0; right: 0; padding: 20px; background: rgba(0,0,0,' + (settings.overlayOpacity || 15) / 100 + ');',
+            'onImageTop': 'position: absolute; top: 0; left: 0; right: 0; padding: 20px; background: rgba(0,0,0,' + (settings.overlayOpacity || 15) / 100 + ');',
+            'onImageCenter': 'position: absolute; top: 50%; left: 0; right: 0; transform: translateY(-50%); padding: 20px; background: rgba(0,0,0,' + (settings.overlayOpacity || 15) / 100 + ');'
+        };
+        
+        const contentStyle = contentPositionStyles[settings.contentPosition] || contentPositionStyles['onImage'];
+        const textColor = settings.contentPosition && settings.contentPosition.includes('onImage') ? '#ffffff' : schemeColors.text;
+        
+        return `
+            <div class="collection-card" style="cursor: pointer;">
+                <div class="collection-image-wrapper" style="position: relative; overflow: hidden; border-radius: 8px; ${imageRatio}">
+                    ${collectionImage ? `
+                        <img src="${collectionImage}" alt="${collectionName}" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover;">
+                    ` : `
+                        <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center;">
+                            <i class="material-icons" style="font-size: 64px; color: rgba(255,255,255,0.5);">folder_open</i>
+                        </div>
+                    `}
+                    <div class="collection-content" style="${contentStyle} text-align: ${settings.cardContentAlignment || 'left'};">
+                        <h3 style="font-size: ${titleSize}; font-weight: 600; margin: 0 0 8px 0; color: ${textColor};">
+                            ${collectionName}
+                        </h3>
+                        ${settings.showProductCount ? `
+                            <p style="font-size: 14px; margin: 0; color: ${textColor}; opacity: 0.9;">
+                                ${productCount} ${productCount === 1 ? 'product' : 'products'}
+                            </p>
+                        ` : ''}
+                    </div>
+                </div>
+            </div>
+        `;
     },
     
     // Renderizar la vista de configuración
@@ -234,17 +815,20 @@ window.WebsiteBuilderModules.FeaturedCollection = {
                     <div class="form-group" style="margin-top: 20px;">
                         <label style="font-size: 13px; font-weight: 500; margin-bottom: 8px; color: #5c5e60; display: block;" 
                                data-i18n="desktopLayout">Desktop layout</label>
-                        <div style="display: flex; gap: 12px;">
-                            <label class="radio-option-card" style="flex: 1; padding: 12px; border: 2px solid ${settings.desktopLayout === 'grid' ? '#2962ff' : '#e0e0e0'}; border-radius: 8px; cursor: pointer; text-align: center;">
-                                <input type="radio" name="desktopLayout" value="grid" ${settings.desktopLayout === 'grid' ? 'checked' : ''} style="display: none;">
+                        <div style="display: flex; flex-direction: column; gap: 8px;">
+                            <label style="display: flex; align-items: center; cursor: pointer; font-size: 13px; color: #202223;">
+                                <input type="radio" name="desktopLayout" value="grid" ${settings.desktopLayout === 'grid' ? 'checked' : ''} 
+                                       style="margin-right: 8px; width: 16px; height: 16px; cursor: pointer;">
                                 <span data-i18n="layout.grid">Grid</span>
                             </label>
-                            <label class="radio-option-card" style="flex: 1; padding: 12px; border: 2px solid ${settings.desktopLayout === 'carousel' ? '#2962ff' : '#e0e0e0'}; border-radius: 8px; cursor: pointer; text-align: center;">
-                                <input type="radio" name="desktopLayout" value="carousel" ${settings.desktopLayout === 'carousel' ? 'checked' : ''} style="display: none;">
+                            <label style="display: flex; align-items: center; cursor: pointer; font-size: 13px; color: #202223;">
+                                <input type="radio" name="desktopLayout" value="carousel" ${settings.desktopLayout === 'carousel' ? 'checked' : ''} 
+                                       style="margin-right: 8px; width: 16px; height: 16px; cursor: pointer;">
                                 <span data-i18n="layout.carousel">Carousel</span>
                             </label>
-                            <label class="radio-option-card" style="flex: 1; padding: 12px; border: 2px solid ${settings.desktopLayout === 'slider' ? '#2962ff' : '#e0e0e0'}; border-radius: 8px; cursor: pointer; text-align: center;">
-                                <input type="radio" name="desktopLayout" value="slider" ${settings.desktopLayout === 'slider' ? 'checked' : ''} style="display: none;">
+                            <label style="display: flex; align-items: center; cursor: pointer; font-size: 13px; color: #202223;">
+                                <input type="radio" name="desktopLayout" value="slider" ${settings.desktopLayout === 'slider' ? 'checked' : ''} 
+                                       style="margin-right: 8px; width: 16px; height: 16px; cursor: pointer;">
                                 <span data-i18n="layout.slider">Slider</span>
                             </label>
                         </div>
@@ -722,8 +1306,12 @@ window.WebsiteBuilderModules.FeaturedCollection = {
         // Asegurar que el ID global esté actualizado
         window.currentFeaturedCollectionId = sectionId;
         
+        console.log('[FEATURED COLLECTION] Using section ID:', sectionId);
+        
         // Helper function para actualizar configuración
         const updateConfig = (key, value) => {
+            console.log(`[FEATURED COLLECTION] updateConfig called - key: ${key}, value: ${value}, sectionId: ${sectionId}`);
+            
             // Inicializar estructura si no existe
             if (!window.currentSectionsConfig.featuredCollections) {
                 window.currentSectionsConfig.featuredCollections = {};
@@ -742,6 +1330,7 @@ window.WebsiteBuilderModules.FeaturedCollection = {
             window.currentSectionsConfig.featuredCollections[sectionId].config[key] = value;
             
             console.log(`[FEATURED COLLECTION] Updated ${key} to:`, value);
+            console.log('[FEATURED COLLECTION] Current config after update:', window.currentSectionsConfig.featuredCollections[sectionId].config);
             
             // CRÍTICO: Usar función setter, NO asignación directa
             if (typeof window.setHasPendingPageStructureChanges === 'function') {
@@ -755,6 +1344,7 @@ window.WebsiteBuilderModules.FeaturedCollection = {
             }
             
             if (typeof window.renderPreview === 'function') {
+                console.log('[FEATURED COLLECTION] Calling renderPreview()');
                 window.renderPreview();
             }
         };
@@ -817,20 +1407,72 @@ window.WebsiteBuilderModules.FeaturedCollection = {
             }
         });
         
-        // Desktop layout radio buttons con actualización visual
+        // Desktop layout radio buttons
         $('input[name="desktopLayout"]').off('change.featuredCollection').on('change.featuredCollection', function() {
             const selectedValue = $(this).val();
             updateConfig('desktopLayout', selectedValue);
             
-            // Actualizar bordes visuales
-            $('.radio-option-card').each(function() {
-                const $card = $(this);
-                const $radio = $card.find('input[type="radio"]');
-                if ($radio.attr('name') === 'desktopLayout') {
-                    $card.css('border-color', $radio.is(':checked') ? '#2962ff' : '#e0e0e0');
+            // Mostrar/ocultar la sección de autoplay dependiendo del layout
+            const $autoplayTitle = $('h4[data-i18n="autoplay"]');
+            if ($autoplayTitle.length > 0) {
+                const $autoplaySection = $autoplayTitle.closest('.form-group');
+                const $autoplayModeGroup = $('#featuredCollectionAutoplayMode').closest('.form-group');
+                const $autoplaySpeedContainer = $('#autoplaySpeedContainer');
+                
+                if (selectedValue === 'slider') {
+                    // Mostrar el título y las opciones de autoplay
+                    $autoplaySection.show();
+                    $autoplayModeGroup.show();
+                    
+                    // Mantener el estado actual del autoplay speed container
+                    const autoplayMode = $('#featuredCollectionAutoplayMode').val();
+                    if (autoplayMode === 'none') {
+                        $autoplaySpeedContainer.hide();
+                    } else {
+                        $autoplaySpeedContainer.show();
+                    }
+                } else {
+                    // Ocultar todo lo relacionado con autoplay
+                    $autoplaySection.hide();
+                    $autoplayModeGroup.hide();
+                    $autoplaySpeedContainer.hide();
                 }
-            });
+            }
         });
+        
+        // Inicializar visibilidad de autoplay al cargar
+        setTimeout(function() {
+            const initialLayout = $('input[name="desktopLayout"]:checked').val();
+            console.log('[FEATURED COLLECTION] Initial layout on load:', initialLayout);
+            
+            // Buscar el título "Autoplay" y ocultar toda esa sección si no es slider
+            const $autoplayTitle = $('h4[data-i18n="autoplay"]');
+            if ($autoplayTitle.length > 0) {
+                // Obtener el contenedor padre que incluye el título y los campos
+                const $autoplaySection = $autoplayTitle.closest('.form-group');
+                const $autoplayModeGroup = $('#featuredCollectionAutoplayMode').closest('.form-group');
+                const $autoplaySpeedContainer = $('#autoplaySpeedContainer');
+                
+                if (initialLayout !== 'slider') {
+                    // Ocultar el título y las opciones de autoplay
+                    $autoplaySection.hide();
+                    $autoplayModeGroup.hide();
+                    $autoplaySpeedContainer.hide();
+                } else {
+                    // Mostrar el título y las opciones
+                    $autoplaySection.show();
+                    $autoplayModeGroup.show();
+                    
+                    // Verificar si el speed container debe mostrarse
+                    const autoplayMode = $('#featuredCollectionAutoplayMode').val();
+                    if (autoplayMode === 'none') {
+                        $autoplaySpeedContainer.hide();
+                    } else {
+                        $autoplaySpeedContainer.show();
+                    }
+                }
+            }
+        }, 100); // Pequeño delay para asegurar que el DOM esté listo
         
         // Alignment buttons para heading
         $('.alignment-btn').off('click.featuredCollection').on('click.featuredCollection', function() {
@@ -851,7 +1493,7 @@ window.WebsiteBuilderModules.FeaturedCollection = {
         
         // Toggle checkboxes
         $('.shopify-toggle').off('change.featuredCollection').on('change.featuredCollection', function() {
-            const field = this.id.replace('featuredCollection', '');
+            const field = $(this).attr('id').replace('featuredCollection', '');
             const fieldName = field.charAt(0).toLowerCase() + field.slice(1);
             updateConfig(fieldName, $(this).is(':checked'));
         });
@@ -859,7 +1501,7 @@ window.WebsiteBuilderModules.FeaturedCollection = {
         // Range sliders con actualización de display
         $('input[type="range"]').off('input.featuredCollection').on('input.featuredCollection', function() {
             const value = $(this).val();
-            const field = this.id.replace('featuredCollection', '');
+            const field = $(this).attr('id').replace('featuredCollection', '');
             const fieldName = field.charAt(0).toLowerCase() + field.slice(1);
             
             // Update display value
@@ -882,6 +1524,7 @@ window.WebsiteBuilderModules.FeaturedCollection = {
             console.log('[FEATURED COLLECTION] Products change button clicked');
             window.WebsiteBuilderModules.FeaturedCollection.openProductsSelector();
         });
+        
     },
     
     // Abrir selector de colección
@@ -915,7 +1558,7 @@ window.WebsiteBuilderModules.FeaturedCollection = {
         }
         
         // Renderizar la vista de selección en el mismo panel
-        this.renderCollectionSelectorView();
+        window.WebsiteBuilderModules.FeaturedCollection.renderCollectionSelectorView();
     },
     
     // Renderizar vista de selección de colecciones
@@ -1289,12 +1932,16 @@ window.WebsiteBuilderModules.FeaturedCollection = {
         
         // Si hay productos guardados, cargarlos
         if (currentConfig && currentConfig.products) {
-            // Por ahora solo guardamos los IDs con nombres placeholder
+            // Cargar los productos con todos sus datos
             currentConfig.products.forEach((id, index) => {
                 window.WebsiteBuilderModules.FeaturedCollection.selectedProducts.push({
                     id: id,
                     title: currentConfig.productNames ? currentConfig.productNames[index] : `Product ${id}`,
-                    imageUrl: currentConfig.productImages ? currentConfig.productImages[index] : null
+                    imageUrl: currentConfig.productImages ? currentConfig.productImages[index] : null,
+                    image: currentConfig.productImages ? currentConfig.productImages[index] : null,
+                    price: currentConfig.productPrices ? parseFloat(currentConfig.productPrices[index]) || 0 : 0,
+                    vendor: currentConfig.productVendors ? currentConfig.productVendors[index] : '',
+                    compareAtPrice: currentConfig.productComparePrices ? parseFloat(currentConfig.productComparePrices[index]) || null : null
                 });
             });
         }
@@ -1613,6 +2260,13 @@ window.WebsiteBuilderModules.FeaturedCollection = {
         
         window.currentSectionsConfig.featuredCollections[sectionId].config.products = this.selectedProducts.map(p => p.id);
         
+        // IMPORTANTE: Guardar también los datos completos de los productos para el renderizado
+        window.currentSectionsConfig.featuredCollections[sectionId].config.productNames = this.selectedProducts.map(p => p.title);
+        window.currentSectionsConfig.featuredCollections[sectionId].config.productImages = this.selectedProducts.map(p => p.imageUrl || p.image);
+        window.currentSectionsConfig.featuredCollections[sectionId].config.productPrices = this.selectedProducts.map(p => parseFloat(p.price) || 0);
+        window.currentSectionsConfig.featuredCollections[sectionId].config.productVendors = this.selectedProducts.map(p => p.vendor || '');
+        window.currentSectionsConfig.featuredCollections[sectionId].config.productComparePrices = this.selectedProducts.map(p => p.compareAtPrice ? parseFloat(p.compareAtPrice) : null);
+        
         // Actualizar UI
         if (this.selectedProducts.length > 0) {
             const productNames = this.selectedProducts.map(p => p.title).join(', ');
@@ -1631,6 +2285,8 @@ window.WebsiteBuilderModules.FeaturedCollection = {
         if (typeof window.updateSaveButtonState === 'function') {
             window.updateSaveButtonState();
         }
+        
+        // Actualizar el preview
         if (typeof window.renderPreview === 'function') {
             window.renderPreview();
         }
@@ -1793,18 +2449,27 @@ window.WebsiteBuilderModules.FeaturedCollection = {
         }
         
         if (this.selectedProducts.length > 0) {
-            // Guardar IDs, nombres e imágenes de productos
+            // Guardar IDs, nombres, imágenes, precios y vendors de productos
             window.currentSectionsConfig.featuredCollections[sectionId].config.products = 
                 this.selectedProducts.map(p => p.id);
             window.currentSectionsConfig.featuredCollections[sectionId].config.productNames = 
                 this.selectedProducts.map(p => p.title);
             window.currentSectionsConfig.featuredCollections[sectionId].config.productImages = 
                 this.selectedProducts.map(p => p.imageUrl || null);
+            window.currentSectionsConfig.featuredCollections[sectionId].config.productPrices = 
+                this.selectedProducts.map(p => parseFloat(p.price) || 0);
+            window.currentSectionsConfig.featuredCollections[sectionId].config.productVendors = 
+                this.selectedProducts.map(p => p.vendor || '');
+            window.currentSectionsConfig.featuredCollections[sectionId].config.productComparePrices = 
+                this.selectedProducts.map(p => p.compareAtPrice ? parseFloat(p.compareAtPrice) : null);
         } else {
             // Limpiar selección
             delete window.currentSectionsConfig.featuredCollections[sectionId].config.products;
             delete window.currentSectionsConfig.featuredCollections[sectionId].config.productNames;
             delete window.currentSectionsConfig.featuredCollections[sectionId].config.productImages;
+            delete window.currentSectionsConfig.featuredCollections[sectionId].config.productPrices;
+            delete window.currentSectionsConfig.featuredCollections[sectionId].config.productVendors;
+            delete window.currentSectionsConfig.featuredCollections[sectionId].config.productComparePrices;
         }
         
         // Marcar como cambios pendientes
@@ -1823,6 +2488,130 @@ window.WebsiteBuilderModules.FeaturedCollection = {
         const html = window.WebsiteBuilderModules.FeaturedCollection.renderSettings(sectionData);
         $('#sidebar-dynamic-content').html(html);
         window.WebsiteBuilderModules.FeaturedCollection.attachEventListeners();
+    },
+    
+    // Función para controlar el carousel
+    slideCarousel: function(uniqueId, direction, cardsPerRow) {
+        console.log('[FEATURED COLLECTION] Sliding carousel:', uniqueId, direction, cardsPerRow);
+        
+        const $container = $(`#${uniqueId}`);
+        const $track = $container.find('.carousel-track');
+        const currentSlide = parseInt($track.attr('data-current-slide')) || 0;
+        const totalSlides = parseInt($track.attr('data-total-slides')) || 1;
+        
+        let newSlide = currentSlide;
+        
+        if (direction === 'prev') {
+            newSlide = Math.max(0, currentSlide - 1);
+        } else if (direction === 'next') {
+            newSlide = Math.min(totalSlides - 1, currentSlide + 1);
+        }
+        
+        // Calcular el desplazamiento
+        const slideWidth = 100; // 100% por slide
+        const translateX = -(newSlide * slideWidth);
+        
+        // Aplicar la transformación
+        $track.css('transform', `translateX(${translateX}%)`);
+        $track.attr('data-current-slide', newSlide);
+        
+        // Actualizar el estado de las flechas
+        this.updateCarouselArrows(uniqueId);
+    },
+    
+    // Actualizar estado de las flechas del carousel
+    updateCarouselArrows: function(uniqueId) {
+        const $container = $(`#${uniqueId}`);
+        const $track = $container.find('.carousel-track');
+        const currentSlide = parseInt($track.attr('data-current-slide')) || 0;
+        const totalSlides = parseInt($track.attr('data-total-slides')) || 1;
+        
+        const $prevButton = $container.find('.carousel-arrow.prev');
+        const $nextButton = $container.find('.carousel-arrow.next');
+        
+        // Deshabilitar/habilitar botones según la posición
+        if (currentSlide === 0) {
+            $prevButton.addClass('disabled');
+        } else {
+            $prevButton.removeClass('disabled');
+        }
+        
+        if (currentSlide >= totalSlides - 1) {
+            $nextButton.addClass('disabled');
+        } else {
+            $nextButton.removeClass('disabled');
+        }
+    },
+    
+    // Función para controlar el slider (muestra un producto a la vez)
+    slideSlider: function(uniqueId, direction) {
+        console.log('[FEATURED COLLECTION] Sliding slider:', uniqueId, direction);
+        
+        const $container = $(`#${uniqueId}`);
+        const $track = $container.find('.slider-track');
+        const currentSlide = parseInt($track.attr('data-current-slide')) || 0;
+        const totalSlides = parseInt($track.attr('data-total-slides')) || 1;
+        
+        let newSlide = currentSlide;
+        
+        if (direction === 'prev') {
+            newSlide = currentSlide > 0 ? currentSlide - 1 : totalSlides - 1; // Loop to end
+        } else if (direction === 'next') {
+            newSlide = currentSlide < totalSlides - 1 ? currentSlide + 1 : 0; // Loop to start
+        }
+        
+        // Calcular el desplazamiento
+        const translateX = -(newSlide * 100);
+        
+        // Aplicar la transformación
+        $track.css('transform', `translateX(${translateX}%)`);
+        $track.attr('data-current-slide', newSlide);
+        
+        // Reiniciar autoplay si existe
+        if ($container.find('.slider-container').data('autoplay-interval')) {
+            clearInterval($container.find('.slider-container').data('autoplay-interval'));
+            const autoplaySpeed = parseInt($container.find('.slider-container').data('autoplay-speed')) || 3000;
+            this.initSliderAutoplay(uniqueId, autoplaySpeed);
+        }
+    },
+    
+    // Inicializar autoplay para el slider
+    initSliderAutoplay: function(uniqueId, speed) {
+        console.log('[FEATURED COLLECTION] Initializing slider autoplay:', uniqueId, speed);
+        
+        const $container = $(`#${uniqueId}`);
+        const $sliderContainer = $container.find('.slider-container');
+        
+        // Limpiar cualquier intervalo existente
+        if ($sliderContainer.data('autoplay-interval')) {
+            clearInterval($sliderContainer.data('autoplay-interval'));
+        }
+        
+        // Crear nuevo intervalo
+        const interval = setInterval(() => {
+            this.slideSlider(uniqueId, 'next');
+        }, speed);
+        
+        // Guardar referencia del intervalo
+        $sliderContainer.data('autoplay-interval', interval);
+        
+        // Pausar en hover
+        $sliderContainer.on('mouseenter', () => {
+            if ($sliderContainer.data('autoplay-interval')) {
+                clearInterval($sliderContainer.data('autoplay-interval'));
+                $sliderContainer.data('autoplay-interval', null);
+            }
+        });
+        
+        // Reanudar al salir
+        $sliderContainer.on('mouseleave', () => {
+            if (!$sliderContainer.data('autoplay-interval')) {
+                const newInterval = setInterval(() => {
+                    this.slideSlider(uniqueId, 'next');
+                }, speed);
+                $sliderContainer.data('autoplay-interval', newInterval);
+            }
+        });
     }
 };
 

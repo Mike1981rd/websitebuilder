@@ -2361,9 +2361,16 @@ function renderPreview() {
                 } else if (sectionId.startsWith('featured-collection-')) {
                     const config = currentSectionsConfig.featuredCollections?.[sectionId];
                     if (config && !config.isHidden) {
+                        // Try to use the module's render function first
+                        let renderedHtml = '';
+                        if (iframeWindow.WebsiteBuilderModules?.FeaturedCollection?.render) {
+                            renderedHtml = iframeWindow.WebsiteBuilderModules.FeaturedCollection.render(config);
+                        } else if (iframeWindow.renderFeaturedCollection) {
+                            renderedHtml = iframeWindow.renderFeaturedCollection(config, sectionId);
+                        }
                         // Render featured collection with preview section wrapper
                         finalHtml += `<div data-section-id="featured-collection" data-element-id="${sectionId}" class="preview-section">
-                            ${iframeWindow.renderFeaturedCollection ? iframeWindow.renderFeaturedCollection(config, sectionId) : ''}
+                            ${renderedHtml}
                         </div>`;
                     }
                 }
@@ -2684,7 +2691,33 @@ function renderPreview() {
                 // Logic for featured collection section
                 $('.topbar-nav-icon').removeClass('active');
                 $('.topbar-nav-icon[data-view="sections"]').addClass('active');
-                window.currentFeaturedCollectionId = sectionId;
+                
+                // CRÍTICO: Para featured collection SIEMPRE necesitamos el ID de la instancia
+                let actualSectionId = sectionId;
+                
+                // Si solo tenemos 'featured-collection', buscar el element-id del wrapper
+                if (sectionId === 'featured-collection') {
+                    // Buscar hacia arriba el wrapper que tiene el data-element-id
+                    const $wrapper = $(this).closest('[data-element-id]');
+                    if ($wrapper.length && $wrapper.data('element-id')) {
+                        actualSectionId = $wrapper.data('element-id');
+                        console.log('[PREVIEW CLICK] Found instance ID from wrapper:', actualSectionId);
+                    } else {
+                        // Fallback: buscar en currentSectionsConfig
+                        const featuredCollections = window.currentSectionsConfig?.featuredCollections;
+                        if (featuredCollections) {
+                            const ids = Object.keys(featuredCollections).filter(id => id.startsWith('featured-collection-'));
+                            if (ids.length > 0) {
+                                actualSectionId = ids[0]; // Usar el primer ID encontrado
+                                console.log('[PREVIEW CLICK] Found instance ID from config:', actualSectionId);
+                            }
+                        }
+                    }
+                }
+                
+                console.log('[PREVIEW CLICK] Featured collection using ID:', actualSectionId);
+                
+                window.currentFeaturedCollectionId = actualSectionId;
                 window.switchSidebarView('featuredCollectionSettings');
             }
             // Aquí añadiremos más 'else if' para otras secciones en el futuro.
@@ -2755,6 +2788,12 @@ function renderFeaturedCollection(config, sectionId) {
         config = window.currentSectionsConfig.featuredCollections[sectionId];
     }
     
+    // Use the module's render function if available
+    if (window.WebsiteBuilderModules && window.WebsiteBuilderModules.FeaturedCollection && window.WebsiteBuilderModules.FeaturedCollection.render) {
+        return window.WebsiteBuilderModules.FeaturedCollection.render(config);
+    }
+    
+    // Fallback to basic rendering
     const schemeColors = getColorSchemeValues(config.config?.colorScheme || 'scheme1');
     const settings = config.config || {};
     
@@ -17936,15 +17975,42 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                 currentSectionsConfig.featuredCollections = {};
             }
             
-            // Create new featured collection instance
+            // Create new featured collection instance with all default values
             currentSectionsConfig.featuredCollections[instanceId] = {
                 id: instanceId,
                 isHidden: false,
                 config: {
-                    title: 'Featured collection',
-                    collectionId: null,
-                    productsToShow: 4,
-                    colorScheme: 'scheme1'
+                    colorScheme: 'scheme1',
+                    width: 'page',
+                    desktopLayout: 'grid',
+                    mobileLayout: 'carousel',
+                    heading: 'Featured collection',
+                    headingSize: 'heading5',
+                    headingAlignment: 'left',
+                    collection: '',
+                    collectionName: '',
+                    products: [],
+                    productNames: [],
+                    productImages: [],
+                    productPrices: [],
+                    imageRatio: 'default',
+                    contentAlignment: 'left',
+                    cardsToShow: 16,
+                    desktopCardsPerRow: 4,
+                    desktopSpaceBetweenCards: 16,
+                    mobileSpaceBetweenCards: 16,
+                    showArrowsOnHover: true,
+                    cardPosition: 'afterAllItems',
+                    contentPosition: 'onImage',
+                    cardContentAlignment: 'left',
+                    collectionTitleSize: 'heading6',
+                    showProductCount: true,
+                    overlayOpacity: 15,
+                    autoplayMode: 'none',
+                    autoplaySpeed: 3,
+                    addSidePaddings: true,
+                    topPadding: 96,
+                    bottomPadding: 48
                 }
             };
             

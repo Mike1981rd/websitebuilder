@@ -292,11 +292,13 @@
     <script src="~/js/website-builder/modules/contact-form.js?v=@DateTime.Now.Ticks"></script>
     <script src="~/js/website-builder/modules/footer.js?v=@DateTime.Now.Ticks"></script>
     <script src="~/js/website-builder/modules/featured-product.js?v=@DateTime.Now.Ticks"></script>
+    <script src="~/js/website-builder/modules/featured-collection.js?v=@DateTime.Now.Ticks"></script>
     
     <script>
         // Log module availability after all modules are loaded
         console.log('[PREVIEW TEMPLATE] Modules loaded:', Object.keys(window.WebsiteBuilderModules || {}));
         console.log('[PREVIEW TEMPLATE] Featured Product module available:', !!window.WebsiteBuilderModules.FeaturedProduct);
+        console.log('[PREVIEW TEMPLATE] Featured Collection module available:', !!window.WebsiteBuilderModules.FeaturedCollection);
         console.log('[PREVIEW TEMPLATE] getColorSchemeValues available:', typeof window.getColorSchemeValues);
     </script>
 </body>

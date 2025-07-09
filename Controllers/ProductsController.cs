@@ -683,12 +683,13 @@ namespace Hotel.Controllers
                     .Take(20) // Limitar a 20 resultados
                     .Select(p => new
                     {
-                        p.Id,
-                        p.Title,
-                        p.ProductType,
-                        p.Vendor,
-                        p.Price,
-                        ImageUrl = _context.ProductImages
+                        id = p.Id,
+                        title = p.Title,
+                        productType = p.ProductType,
+                        vendor = p.Vendor,
+                        price = p.Price,
+                        compareAtPrice = p.CompareAtPrice,
+                        imageUrl = _context.ProductImages
                             .Where(img => img.ProductId == p.Id)
                             .OrderBy(img => img.Position)
                             .Select(img => img.ImageUrl)
