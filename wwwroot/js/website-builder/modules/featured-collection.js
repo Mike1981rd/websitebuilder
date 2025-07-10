@@ -115,8 +115,13 @@ window.WebsiteBuilderModules.FeaturedCollection = {
                     transition: transform 0.5s ease;
                 }
                 #${uniqueId} .slider-container .product-card {
-                    display: flex;
-                    justify-content: center;
+                    max-width: 400px;
+                    margin: 0 auto;
+                    padding: 0 ${spaceBetween/2}px;
+                }
+                #${uniqueId} .slider-container .product-image-wrapper {
+                    height: 400px;
+                    padding-bottom: 0 !important;
                 }
                 ` : ''}
                 #${uniqueId} .product-card:hover {
@@ -221,21 +226,22 @@ window.WebsiteBuilderModules.FeaturedCollection = {
                     `}
                 </div>
             </div>
-            <script>
-                // Initialize carousel/slider on load
-                if (${(isCarousel || isSlider) && needsArrows}) {
+            ${(isCarousel || isSlider) && needsArrows ? `
+                <script>
+                    // Initialize carousel/slider on load
                     setTimeout(() => {
                         window.WebsiteBuilderModules.FeaturedCollection.updateCarouselArrows('${uniqueId}');
                     }, 100);
-                }
-                
-                // Initialize autoplay for slider
-                if (${isSlider && autoplayEnabled}) {
+                </script>
+            ` : ''}
+            ${isSlider && autoplayEnabled ? `
+                <script>
+                    // Initialize autoplay for slider
                     setTimeout(() => {
                         window.WebsiteBuilderModules.FeaturedCollection.initSliderAutoplay('${uniqueId}', ${autoplaySpeed});
                     }, 200);
-                }
-            </script>
+                </script>
+            ` : ''}
         `;
     },
     
@@ -435,21 +441,22 @@ window.WebsiteBuilderModules.FeaturedCollection = {
                     `}
                 </div>
             </div>
-            <script>
-                // Initialize carousel/slider on load
-                if (${(isCarousel || isSlider) && needsArrows}) {
+            ${(isCarousel || isSlider) && needsArrows ? `
+                <script>
+                    // Initialize carousel/slider on load
                     setTimeout(() => {
                         window.WebsiteBuilderModules.FeaturedCollection.updateCarouselArrows('${uniqueId}');
                     }, 100);
-                }
-                
-                // Initialize autoplay for slider
-                if (${isSlider && autoplayEnabled}) {
+                </script>
+            ` : ''}
+            ${isSlider && autoplayEnabled ? `
+                <script>
+                    // Initialize autoplay for slider
                     setTimeout(() => {
                         window.WebsiteBuilderModules.FeaturedCollection.initSliderAutoplay('${uniqueId}', ${autoplaySpeed});
                     }, 200);
-                }
-            </script>
+                </script>
+            ` : ''}
         `;
     },
     
@@ -655,6 +662,8 @@ window.WebsiteBuilderModules.FeaturedCollection = {
                             </span>
                         ` : ''}
                     </div>
+                    
+                    ${settings.showAddToCartButton ? window.WebsiteBuilderModules.FeaturedCollection.renderAddToCartButton(settings, schemeColors, cardId) : ''}
                 </div>
                 
                 <style>
@@ -750,6 +759,8 @@ window.WebsiteBuilderModules.FeaturedCollection = {
             desktopSpaceBetweenCards: 16,
             mobileSpaceBetweenCards: 16,
             showArrowsOnHover: true,
+            showAddToCartButton: false,
+            addToCartButtonStyle: 'solid',
             cardPosition: 'afterAllItems',
             contentPosition: 'onImage',
             cardContentAlignment: 'left',
@@ -1097,6 +1108,33 @@ window.WebsiteBuilderModules.FeaturedCollection = {
                             <input type="checkbox" class="shopify-toggle" id="featuredCollectionShowArrowsOnHover" ${settings.showArrowsOnHover ? 'checked' : ''}>
                             <label for="featuredCollectionShowArrowsOnHover" class="toggle-slider"></label>
                         </label>
+                    </div>
+
+                    <!-- Show add to cart button (toggle) -->
+                    <div class="form-group" style="margin-top: 20px;">
+                        <label class="toggle-field">
+                            <span data-i18n="showAddToCartButton">Show add to cart button</span>
+                            <input type="checkbox" class="shopify-toggle" id="featuredCollectionShowAddToCartButton" ${settings.showAddToCartButton ? 'checked' : ''}>
+                            <label for="featuredCollectionShowAddToCartButton" class="toggle-slider"></label>
+                        </label>
+                    </div>
+
+                    <!-- Add to cart button style -->
+                    <div class="form-group" style="margin-top: 20px; ${settings.showAddToCartButton ? '' : 'display:none;'}" id="addToCartButtonStyleContainer">
+                        <label style="font-size: 13px; font-weight: 500; margin-bottom: 8px; color: #5c5e60; display: block;" 
+                               data-i18n="addToCartButtonStyle">Add to cart button style</label>
+                        <div style="display: flex; flex-direction: column; gap: 8px;">
+                            <label style="display: flex; align-items: center; cursor: pointer; font-size: 13px; color: #202223;">
+                                <input type="radio" name="addToCartButtonStyle" value="solid" ${settings.addToCartButtonStyle === 'solid' || !settings.addToCartButtonStyle ? 'checked' : ''} 
+                                       style="margin-right: 8px; width: 16px; height: 16px; cursor: pointer;">
+                                <span data-i18n="buttonStyle.solid">Solid</span>
+                            </label>
+                            <label style="display: flex; align-items: center; cursor: pointer; font-size: 13px; color: #202223;">
+                                <input type="radio" name="addToCartButtonStyle" value="outline" ${settings.addToCartButtonStyle === 'outline' ? 'checked' : ''} 
+                                       style="margin-right: 8px; width: 16px; height: 16px; cursor: pointer;">
+                                <span data-i18n="buttonStyle.outline">Outline</span>
+                            </label>
+                        </div>
                     </div>
 
                     <!-- Collection card Section Title -->
@@ -1496,6 +1534,20 @@ window.WebsiteBuilderModules.FeaturedCollection = {
             const field = $(this).attr('id').replace('featuredCollection', '');
             const fieldName = field.charAt(0).toLowerCase() + field.slice(1);
             updateConfig(fieldName, $(this).is(':checked'));
+            
+            // Mostrar/ocultar opciones de estilo del botón add to cart
+            if (fieldName === 'showAddToCartButton') {
+                if ($(this).is(':checked')) {
+                    $('#addToCartButtonStyleContainer').show();
+                } else {
+                    $('#addToCartButtonStyleContainer').hide();
+                }
+            }
+        });
+        
+        // Add to cart button style radio buttons
+        $('input[name="addToCartButtonStyle"]').off('change.featuredCollection').on('change.featuredCollection', function() {
+            updateConfig('addToCartButtonStyle', $(this).val());
         });
         
         // Range sliders con actualización de display
@@ -2612,6 +2664,65 @@ window.WebsiteBuilderModules.FeaturedCollection = {
                 $sliderContainer.data('autoplay-interval', newInterval);
             }
         });
+    },
+    
+    // Renderizar botón Add to Cart
+    renderAddToCartButton: function(settings, schemeColors, cardId) {
+        // Debug para ver qué colores están llegando
+        console.log('[FEATURED COLLECTION] Render Add to Cart Button - schemeColors:', schemeColors);
+        console.log('[FEATURED COLLECTION] Button style:', settings.addToCartButtonStyle);
+        
+        // Obtener la fuente del sistema
+        let fontFamily = 'Inter';
+        try {
+            if (window.getFontNameFromValueSafe && window.currentGlobalThemeSettings && 
+                window.currentGlobalThemeSettings.typography && 
+                window.currentGlobalThemeSettings.typography.body && 
+                window.currentGlobalThemeSettings.typography.body.font) {
+                fontFamily = window.getFontNameFromValueSafe(window.currentGlobalThemeSettings.typography.body.font);
+            }
+        } catch (e) {
+            console.error('[FEATURED COLLECTION] Error getting font:', e);
+        }
+        
+        // Crear estilos inline para evitar problemas con template strings
+        const isOutline = settings.addToCartButtonStyle === 'outline';
+        
+        // Obtener colores con acceso seguro
+        const solidButtonBg = (schemeColors && schemeColors['solid-button']) ? schemeColors['solid-button'] : '#121212';
+        const solidButtonText = (schemeColors && schemeColors['solid-button-text']) ? schemeColors['solid-button-text'] : '#FFFFFF';
+        const outlineButtonBorder = (schemeColors && schemeColors['outline-button']) ? schemeColors['outline-button'] : '#121212';
+        const outlineButtonText = (schemeColors && schemeColors['outline-button-text']) ? schemeColors['outline-button-text'] : '#121212';
+        
+        // Construir el HTML del botón
+        const buttonClass = 'add-to-cart-btn-' + cardId;
+        
+        if (isOutline) {
+            return '<button class="' + buttonClass + '" ' +
+                   'style="width: 100%; margin-top: 12px; padding: 10px 16px; border-radius: 4px; ' +
+                   'font-size: 14px; font-family: ' + fontFamily + '; font-weight: 500; cursor: pointer; ' +
+                   'transition: all 0.2s ease; background: transparent; ' +
+                   'color: ' + outlineButtonText + '; border: 1px solid ' + outlineButtonBorder + ';">' +
+                   '<span data-i18n="addToCart">Add to cart</span>' +
+                   '</button>' +
+                   '<style>' +
+                   '.' + buttonClass + ':hover { ' +
+                   'background-color: ' + outlineButtonBorder + ' !important; ' +
+                   'color: ' + solidButtonText + ' !important; ' +
+                   'border-color: ' + outlineButtonBorder + ' !important; }' +
+                   '</style>';
+        } else {
+            return '<button class="' + buttonClass + '" ' +
+                   'style="width: 100%; margin-top: 12px; padding: 10px 16px; border-radius: 4px; ' +
+                   'font-size: 14px; font-family: ' + fontFamily + '; font-weight: 500; cursor: pointer; ' +
+                   'transition: all 0.2s ease; background: ' + solidButtonBg + '; ' +
+                   'color: ' + solidButtonText + '; border: none;">' +
+                   '<span data-i18n="addToCart">Add to cart</span>' +
+                   '</button>' +
+                   '<style>' +
+                   '.' + buttonClass + ':hover { opacity: 0.85; }' +
+                   '</style>';
+        }
     }
 };
 
