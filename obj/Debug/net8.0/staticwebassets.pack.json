@@ -21,6 +21,10 @@
       "PackagePath": "staticwebassets\\TestImages\\AccordionMenuPreview.png"
     },
     {
+      "Id": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\TestImages\\Cartdrawersetup.png",
+      "PackagePath": "staticwebassets\\TestImages\\Cartdrawersetup.png"
+    },
+    {
       "Id": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\TestImages\\Contenttab1.png",
       "PackagePath": "staticwebassets\\TestImages\\Contenttab1.png"
     },
@@ -51,6 +55,10 @@
     {
       "Id": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\TestImages\\contactformpreviewmodal.png",
       "PackagePath": "staticwebassets\\TestImages\\contactformpreviewmodal.png"
+    },
+    {
+      "Id": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\TestImages\\draweronly.png",
+      "PackagePath": "staticwebassets\\TestImages\\draweronly.png"
     },
     {
       "Id": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\TestImages\\estilos.png",
@@ -199,6 +207,10 @@
     {
       "Id": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\js\\site.js",
       "PackagePath": "staticwebassets\\js\\site.js"
+    },
+    {
+      "Id": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\js\\website-builder-modules\\cart.js",
+      "PackagePath": "staticwebassets\\js\\website-builder-modules\\cart.js"
     },
     {
       "Id": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\wwwroot\\js\\website-builder.js",

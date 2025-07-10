@@ -821,6 +821,171 @@ Módulos que implementan correctamente el sistema:
 
 ---
 
+# Agregar Nueva Sección Fija al Website Builder (Cart como ejemplo)
+
+## Resumen
+Cuando necesitas agregar una nueva sección fija (como Header, Footer, Cart) al panel lateral del Website Builder, debes modificar varios lugares específicos en website-builder.js (archivo de 24,000+ líneas) y crear un módulo independiente.
+
+## Ejemplo Completo: Implementación de Cart
+
+### 1. Crear Módulo Independiente
+
+**Archivo**: `/wwwroot/js/website-builder-modules/cart.js`
+- Estructura modular siguiendo el patrón IIFE
+- Auto-registro del módulo
+- Funciones principales: `renderSettings()`, `renderPreview()`, `attachEventHandlers()`
+
+### 2. Agregar Traducciones
+
+**Ubicación**: website-builder.js
+- **Español**: Línea 4636 (dentro del objeto translations.es)
+- **Inglés**: Línea 5484 (dentro del objeto translations.en)
+
+```javascript
+// En español (línea 4636)
+'sections.cart': 'Carrito',
+
+// En inglés (línea 5484)
+'sections.cart': 'Cart',
+```
+
+### 3. Agregar HTML de la Sección al Panel Lateral
+
+**Ubicación**: website-builder.js - función `renderBlockListView()` 
+- **Línea**: 10085-10099
+- **Posición**: Entre Header y Template sections
+
+```javascript
+<!-- Cart Section -->
+<div class="sidebar-section expanded">
+    <div class="sidebar-section-header">
+        <div class="section-title-wrapper">
+            <span class="section-title" data-i18n="sections.cart">Carrito</span>
+        </div>
+        <i class="material-icons section-expand-icon">chevron_right</i>
+    </div>
+    <div class="sidebar-section-content" id="cart-sections-container">
+        <div class="sidebar-subsection" data-block-type="cart" data-section-id="cart">
+            <i class="material-icons" style="font-size: 16px;">shopping_cart</i>
+            <span class="subsection-text" data-i18n="sections.cart">Carrito</span>
+        </div>
+    </div>
+</div>
+```
+
+### 4. Agregar Click Handler
+
+**Ubicación**: website-builder.js - función `attachBlockListEventListeners()`
+- **Línea**: 13761-13764
+
+```javascript
+// Handle cart click
+else if (blockType === 'cart') {
+    console.log('[DEBUG] Cart section clicked, opening settings');
+    switchSidebarView('cartSettings');
+}
+```
+
+### 5. Agregar Vista en switchSidebarView
+
+**Ubicación**: website-builder.js - función `switchSidebarView()`
+- **Línea**: 6830-6835
+
+```javascript
+} else if (viewName === 'cartSettings') {
+    // Cart settings view
+    console.log('[DEBUG] Rendering cart settings');
+    dynamicContentArea.innerHTML = renderCartSettings();
+    attachCartEventListeners();
+    setTimeout(applyTranslations, 0);
+}
+```
+
+### 6. Crear Función de Renderizado
+
+**Ubicación**: website-builder.js
+- **Línea**: 9325 (función `renderCartSettings()`)
+
+```javascript
+function renderCartSettings() {
+    // Usar el módulo si está disponible
+    if (window.WebsiteBuilderModules && window.WebsiteBuilderModules.Cart) {
+        const cartModule = window.WebsiteBuilderModules.Cart;
+        const settings = cartModule.getCurrentSettings();
+        return cartModule.renderSettings(settings);
+    }
+    
+    // Fallback si el módulo no está cargado
+    return '<div>Error: Cart module not loaded</div>';
+}
+```
+
+### 7. Crear Event Listeners
+
+**Ubicación**: website-builder.js
+- Función `attachCartEventListeners()` que delega al módulo
+
+```javascript
+function attachCartEventListeners() {
+    if (window.WebsiteBuilderModules && window.WebsiteBuilderModules.Cart) {
+        window.WebsiteBuilderModules.Cart.attachEventHandlers();
+    }
+}
+```
+
+### 8. Cargar el Módulo
+
+**Ubicación**: Views/WebsiteBuilder/Index.cshtml
+- Agregar script tag para cargar el módulo
+
+```html
+<script src="~/js/website-builder-modules/cart.js"></script>
+```
+
+## Estructura del Módulo Cart
+
+### Configuración Principal
+- `name`: Identificador único ('cart')
+- `isFixed`: true (no se puede eliminar como header/footer)
+- `defaultSettings`: Objeto con todas las configuraciones por defecto
+
+### Funciones Principales
+1. **renderSettings()**: Genera HTML para el panel de configuración
+2. **renderPreview()**: Genera HTML para el preview (actualmente simplificado)
+3. **attachEventHandlers()**: Adjunta todos los event listeners
+4. **getCurrentSettings()**: Obtiene configuración actual o defaults
+5. **saveSettings()**: Guarda configuración (usa el sistema global)
+
+### Características Implementadas
+- Color scheme selector
+- Image ratio options
+- Show/hide toggles para order notes y taxes
+- Configuración expandible del tema
+- Progress bar con objetivo de envío gratis
+- CSS personalizado
+- Todos los campos se guardan correctamente en `currentSectionsConfig.cart`
+
+## Notas Importantes
+
+- **Secciones Fijas vs Dinámicas**: Cart, Header y Footer son secciones fijas (no se pueden agregar/eliminar/reordenar)
+- **Iconos**: Para secciones fijas NO agregues iconos de acción (visibility toggle, add, delete)
+- **Traducciones**: Siempre agrega en ambos idiomas usando el sistema de Website Builder (`applyTranslations()`)
+- **Consistencia**: Usa el mismo nombre en todos lados (cart, cartSettings, etc.)
+- **Archivo Grande**: website-builder.js tiene 24,000+ líneas, siempre documenta números de línea exactos
+- **Modularización**: Nuevas secciones deben seguir el patrón modular como cart.js
+
+## Patrón de Implementación Recomendado
+
+1. **Primero**: Crear el módulo independiente en `/wwwroot/js/website-builder-modules/`
+2. **Segundo**: Agregar traducciones en ambos idiomas
+3. **Tercero**: Agregar HTML de la sección al panel lateral
+4. **Cuarto**: Implementar click handler
+5. **Quinto**: Agregar caso en switchSidebarView
+6. **Sexto**: Crear funciones de renderizado y event listeners que deleguen al módulo
+7. **Último**: Cargar el módulo en Index.cshtml
+
+---
+
 ## 📝 Notas Finales
 
 Este documento debe mantenerse actualizado cuando se agreguen nuevos patrones o se modifiquen los existentes. Es la referencia principal para mantener consistencia en todo el proyecto Hotel Admin.

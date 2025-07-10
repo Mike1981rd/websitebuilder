@@ -4633,6 +4633,7 @@ $(document).ready(async function() {
             'sections.header': 'Encabezado',
             'sections.announcementBar': 'Barra de anuncios',
             'sections.headerSection': 'Encabezado',
+            'sections.cart': 'Carrito',
             'sections.template': 'Plantilla',
             'sections.slideshow': 'Presentación de diapositivas',
             'sections.multirow': 'Varias filas',
@@ -5480,6 +5481,7 @@ $(document).ready(async function() {
             'sections.header': 'Header',
             'sections.announcementBar': 'Announcement bar',
             'sections.headerSection': 'Header',
+            'sections.cart': 'Cart',
             'sections.template': 'Template',
             'sections.slideshow': 'Slideshow',
             'sections.multirow': 'Multirow',
@@ -6825,6 +6827,12 @@ $(document).ready(async function() {
             } else {
                 console.error('[DEBUG] No HTML returned from footer renderSettings');
             }
+        } else if (viewName === 'cartSettings') {
+            // Cart settings view
+            console.log('[DEBUG] Rendering cart settings');
+            dynamicContentArea.innerHTML = renderCartSettings();
+            attachCartEventListeners();
+            setTimeout(applyTranslations, 0);
         } else if (viewName === 'featuredCollectionSettings') {
             // Featured Collection settings - usar módulo
             console.log('[DEBUG] Rendering featured collection settings');
@@ -9313,6 +9321,308 @@ $(document).ready(async function() {
         setTimeout(applyTranslations, 0);
     }
     
+    // Function to render cart settings view
+    function renderCartSettings() {
+        const currentLang = currentLanguage || 'es';
+        const settings = currentSectionsConfig.cart || {
+            colorScheme: 'scheme1',
+            imageRatio: 'default',
+            showOrderNotes: true,
+            showTaxesAndShipping: true,
+            showAs: 'drawer',
+            showProgressBar: true,
+            freeShippingGoal: 0,
+            progressBarGradient: 'gradient-linear',
+            darkenImageBackground: true,
+            edgeRounding: 'size-2-4px',
+            customCSS: ''
+        };
+        
+        // Initialize cart config if it doesn't exist
+        if (!currentSectionsConfig.cart) {
+            currentSectionsConfig.cart = settings;
+        }
+        
+        return `
+            <div style="display: flex; flex-direction: column; height: 100%; position: relative; overflow: hidden;">
+                <!-- Header con flecha de regreso -->
+                <div class="sidebar-view-header" style="position: relative; z-index: 10;">
+                    <button class="back-to-sections-btn">
+                        <i class="material-icons">arrow_back</i>
+                    </button>
+                    <h3 data-i18n="cart.drawer.title">${currentLang === 'es' ? 'Cart drawer' : 'Cart drawer'}</h3>
+                    <button class="view-menu-btn" style="position: absolute; right: 10px; top: 10px; background: none; border: none; cursor: pointer; padding: 5px;">
+                        <i class="material-icons">more_vert</i>
+                    </button>
+                </div>
+                
+                <!-- Contenido con scroll -->
+                <div style="padding: 20px; overflow-y: auto; overflow-x: hidden; flex: 1; height: calc(100% - 60px); box-sizing: border-box;">
+                    
+                    <!-- Don't remove message -->
+                    <div style="background-color: #fef8e7; border: 1px solid #f5e6c8; border-radius: 4px; padding: 12px; margin-bottom: 20px; font-size: 13px; color: #5c5e60;">
+                        <span data-i18n="cart.warning.dontRemove">
+                            ${currentLang === 'es' ? "NO ELIMINES el bloque 'Items' para el funcionamiento correcto del carrito" : "DON'T REMOVE the 'Items' block for correct cart operation"}
+                        </span>
+                    </div>
+                    
+                    <!-- Color scheme -->
+                    <div class="form-group">
+                        <label style="font-size: 13px; font-weight: 500; margin-bottom: 8px; color: #5c5e60; display: block;" 
+                               data-i18n="cart.settings.colorScheme">${currentLang === 'es' ? 'Esquema de color' : 'Color scheme'}</label>
+                        <select class="shopify-select" id="cart-color-scheme" 
+                                style="width: 100%; padding: 8px 12px; border: 1px solid #e0e0e0; border-radius: 4px; background: white;">
+                            <option value="scheme1" ${settings.colorScheme === 'scheme1' ? 'selected' : ''} 
+                                    data-i18n="colorScheme.scheme1">Esquema 1</option>
+                            <option value="scheme2" ${settings.colorScheme === 'scheme2' ? 'selected' : ''} 
+                                    data-i18n="colorScheme.scheme2">Esquema 2</option>
+                            <option value="scheme3" ${settings.colorScheme === 'scheme3' ? 'selected' : ''} 
+                                    data-i18n="colorScheme.scheme3">Esquema 3</option>
+                            <option value="scheme4" ${settings.colorScheme === 'scheme4' ? 'selected' : ''} 
+                                    data-i18n="colorScheme.scheme4">Esquema 4</option>
+                            <option value="scheme5" ${settings.colorScheme === 'scheme5' ? 'selected' : ''} 
+                                    data-i18n="colorScheme.scheme5">Esquema 5</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Image ratio -->
+                    <div class="form-group" style="margin-top: 20px;">
+                        <label style="font-size: 13px; font-weight: 500; margin-bottom: 8px; color: #5c5e60; display: block;" 
+                               data-i18n="cart.settings.imageRatio">${currentLang === 'es' ? 'Relación de imagen' : 'Image ratio'}</label>
+                        <select class="shopify-select" id="cart-image-ratio" 
+                                style="width: 100%; padding: 8px 12px; border: 1px solid #e0e0e0; border-radius: 4px; background: white;">
+                            <option value="default" ${settings.imageRatio === 'default' ? 'selected' : ''} 
+                                    data-i18n="cart.imageRatio.default">Default</option>
+                            <option value="portrait" ${settings.imageRatio === 'portrait' ? 'selected' : ''} 
+                                    data-i18n="cart.imageRatio.portrait">Portrait</option>
+                            <option value="square" ${settings.imageRatio === 'square' ? 'selected' : ''} 
+                                    data-i18n="cart.imageRatio.square">Square</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Show order notes toggle -->
+                    <div class="form-group" style="margin-top: 20px;">
+                        <label class="toggle-field">
+                            <span data-i18n="cart.settings.showOrderNotes">${currentLang === 'es' ? 'Mostrar notas del pedido' : 'Show order notes'}</span>
+                            <input type="checkbox" class="shopify-toggle" id="cart-show-order-notes" ${settings.showOrderNotes ? 'checked' : ''}>
+                            <label for="cart-show-order-notes" class="toggle-slider"></label>
+                        </label>
+                    </div>
+                    
+                    <!-- Show taxes and shipping costs toggle -->
+                    <div class="form-group" style="margin-top: 16px;">
+                        <label class="toggle-field">
+                            <span data-i18n="cart.settings.showTaxesAndShipping">${currentLang === 'es' ? 'Mostrar impuestos y costos de envío' : 'Show taxes and shipping costs'}</span>
+                            <input type="checkbox" class="shopify-toggle" id="cart-show-taxes-shipping" ${settings.showTaxesAndShipping ? 'checked' : ''}>
+                            <label for="cart-show-taxes-shipping" class="toggle-slider"></label>
+                        </label>
+                    </div>
+                    
+                    <!-- Configuración del tema expandible -->
+                    <div class="form-group" style="margin-top: 24px;">
+                        <details class="shopify-details" ${settings.showAs ? 'open' : ''}>
+                            <summary style="cursor: pointer; padding: 12px 0; font-size: 14px; font-weight: 500; color: #303030; display: flex; align-items: center; justify-content: space-between;">
+                                <span data-i18n="cart.sections.themeConfig">${currentLang === 'es' ? 'Configuración del tema' : 'Theme configuration'}</span>
+                                <i class="material-icons" style="font-size: 20px;">expand_more</i>
+                            </summary>
+                            <div style="padding-top: 16px;">
+                                
+                                <!-- Show as -->
+                                <div class="form-group">
+                                    <label style="font-size: 13px; font-weight: 500; margin-bottom: 8px; color: #5c5e60; display: block;" 
+                                           data-i18n="cart.settings.showAs">${currentLang === 'es' ? 'Mostrar como' : 'Show as'}</label>
+                                    <select class="shopify-select" id="cart-show-as" 
+                                            style="width: 100%; padding: 8px 12px; border: 1px solid #e0e0e0; border-radius: 4px; background: white;">
+                                        <option value="drawer" ${settings.showAs === 'drawer' ? 'selected' : ''} 
+                                                data-i18n="cart.showAs.drawer">${currentLang === 'es' ? 'Cajón' : 'Drawer'}</option>
+                                        <option value="page" ${settings.showAs === 'page' ? 'selected' : ''} 
+                                                data-i18n="cart.showAs.page">${currentLang === 'es' ? 'Página' : 'Page'}</option>
+                                        <option value="drawer-and-page" ${settings.showAs === 'drawer-and-page' ? 'selected' : ''} 
+                                                data-i18n="cart.showAs.drawerAndPage">${currentLang === 'es' ? 'Cajón y página' : 'Drawer and page'}</option>
+                                    </select>
+                                </div>
+                                
+                                <!-- Show progress bar toggle -->
+                                <div class="form-group" style="margin-top: 16px;">
+                                    <label class="toggle-field">
+                                        <span data-i18n="cart.settings.showProgressBar">${currentLang === 'es' ? 'Mostrar barra de progreso' : 'Show progress bar'}</span>
+                                        <input type="checkbox" class="shopify-toggle" id="cart-show-progress-bar" ${settings.showProgressBar ? 'checked' : ''}>
+                                        <label for="cart-show-progress-bar" class="toggle-slider"></label>
+                                    </label>
+                                </div>
+                                
+                                <!-- Free shipping goal (shown only if progress bar is enabled) -->
+                                <div class="form-group" style="margin-top: 16px; ${!settings.showProgressBar ? 'display: none;' : ''}" id="free-shipping-goal-group">
+                                    <label style="font-size: 13px; font-weight: 500; margin-bottom: 8px; color: #5c5e60; display: block;" 
+                                           data-i18n="cart.settings.freeShippingGoal">${currentLang === 'es' ? 'Meta de envío gratis' : 'Free shipping goal'}</label>
+                                    <input type="number" 
+                                           id="cart-free-shipping-goal" 
+                                           value="${settings.freeShippingGoal || 0}"
+                                           placeholder="0"
+                                           style="width: 100%; padding: 8px 12px; border: 1px solid #e0e0e0; border-radius: 4px;"
+                                           min="0"
+                                           step="1">
+                                </div>
+                                
+                                <!-- Progress bar gradient (shown only if progress bar is enabled) -->
+                                <div class="form-group" style="margin-top: 16px; ${!settings.showProgressBar ? 'display: none;' : ''}" id="progress-bar-gradient-group">
+                                    <label style="font-size: 13px; font-weight: 500; margin-bottom: 8px; color: #5c5e60; display: block;" 
+                                           data-i18n="cart.settings.progressBarGradient">${currentLang === 'es' ? 'Degradado de la barra de progreso' : 'Progress bar gradient'}</label>
+                                    <select class="shopify-select" id="cart-progress-gradient" 
+                                            style="width: 100%; padding: 8px 12px; border: 1px solid #e0e0e0; border-radius: 4px; background: white;">
+                                        <option value="gradient-linear" ${settings.progressBarGradient === 'gradient-linear' ? 'selected' : ''} 
+                                                data-i18n="cart.gradient.linear">${currentLang === 'es' ? 'Degradado lineal' : 'Linear gradient'}</option>
+                                        <option value="gradient-radial" ${settings.progressBarGradient === 'gradient-radial' ? 'selected' : ''} 
+                                                data-i18n="cart.gradient.radial">${currentLang === 'es' ? 'Degradado radial' : 'Radial gradient'}</option>
+                                        <option value="solid-color" ${settings.progressBarGradient === 'solid-color' ? 'selected' : ''} 
+                                                data-i18n="cart.gradient.solid">${currentLang === 'es' ? 'Color sólido' : 'Solid color'}</option>
+                                    </select>
+                                </div>
+                                
+                                <!-- Darken image background toggle -->
+                                <div class="form-group" style="margin-top: 16px;">
+                                    <label class="toggle-field">
+                                        <span data-i18n="cart.settings.darkenImageBg">${currentLang === 'es' ? 'Oscurecer fondo de imagen' : 'Darken image background'}</span>
+                                        <input type="checkbox" class="shopify-toggle" id="cart-darken-image-bg" ${settings.darkenImageBackground ? 'checked' : ''}>
+                                        <label for="cart-darken-image-bg" class="toggle-slider"></label>
+                                    </label>
+                                </div>
+                                
+                                <!-- Edge rounding -->
+                                <div class="form-group" style="margin-top: 20px;">
+                                    <label style="font-size: 13px; font-weight: 500; margin-bottom: 8px; color: #5c5e60; display: block;" 
+                                           data-i18n="cart.settings.edgeRounding">${currentLang === 'es' ? 'Redondeo de bordes' : 'Edge rounding'}</label>
+                                    <select class="shopify-select" id="cart-edge-rounding" 
+                                            style="width: 100%; padding: 8px 12px; border: 1px solid #e0e0e0; border-radius: 4px; background: white;">
+                                        <option value="size-2-4px" ${settings.edgeRounding === 'size-2-4px' ? 'selected' : ''} 
+                                                data-i18n="cart.edgeRounding.size2">${currentLang === 'es' ? 'Tamaño 2 - 4px' : 'Size 2 - 4px'}</option>
+                                        <option value="size-1-2px" ${settings.edgeRounding === 'size-1-2px' ? 'selected' : ''} 
+                                                data-i18n="cart.edgeRounding.size1">${currentLang === 'es' ? 'Tamaño 1 - 2px' : 'Size 1 - 2px'}</option>
+                                        <option value="size-3-8px" ${settings.edgeRounding === 'size-3-8px' ? 'selected' : ''} 
+                                                data-i18n="cart.edgeRounding.size3">${currentLang === 'es' ? 'Tamaño 3 - 8px' : 'Size 3 - 8px'}</option>
+                                        <option value="none" ${settings.edgeRounding === 'none' ? 'selected' : ''} 
+                                                data-i18n="cart.edgeRounding.none">${currentLang === 'es' ? 'Sin redondeo' : 'No rounding'}</option>
+                                    </select>
+                                </div>
+                                
+                            </div>
+                        </details>
+                    </div>
+                    
+                    <!-- CSS personalizado expandible -->
+                    <div class="form-group" style="margin-top: 16px;">
+                        <details class="shopify-details">
+                            <summary style="cursor: pointer; padding: 12px 0; font-size: 14px; font-weight: 500; color: #303030; display: flex; align-items: center; justify-content: space-between;">
+                                <span data-i18n="cart.sections.customCSS">${currentLang === 'es' ? 'CSS personalizado' : 'Custom CSS'}</span>
+                                <i class="material-icons" style="font-size: 20px;">expand_more</i>
+                            </summary>
+                            <div style="padding-top: 16px;">
+                                <textarea id="cart-custom-css" 
+                                          placeholder=".cart-drawer { }"
+                                          style="width: 100%; min-height: 120px; padding: 12px; border: 1px solid #e0e0e0; border-radius: 4px; font-family: Monaco, Consolas, monospace; font-size: 13px;"
+                                >${settings.customCSS || ''}</textarea>
+                            </div>
+                        </details>
+                    </div>
+                    
+                </div>
+            </div>
+        `;
+    }
+    
+    // Function to attach cart event listeners
+    function attachCartEventListeners() {
+        // Back button
+        $('.back-to-sections-btn').off('click.cart').on('click.cart', function() {
+            switchSidebarView('blockList');
+        });
+        
+        // Helper function to update cart configuration
+        const updateCartConfig = (key, value) => {
+            if (!currentSectionsConfig.cart) {
+                currentSectionsConfig.cart = {};
+            }
+            currentSectionsConfig.cart[key] = value;
+            hasPendingPageStructureChanges = true;
+            updateSaveButtonState();
+        };
+        
+        // Color scheme dropdown
+        $('#cart-color-scheme').off('change.cart').on('change.cart', function() {
+            updateCartConfig('colorScheme', $(this).val());
+        });
+        
+        // Image ratio dropdown
+        $('#cart-image-ratio').off('change.cart').on('change.cart', function() {
+            updateCartConfig('imageRatio', $(this).val());
+        });
+        
+        // Show order notes toggle
+        $('#cart-show-order-notes').off('change.cart').on('change.cart', function() {
+            updateCartConfig('showOrderNotes', $(this).is(':checked'));
+        });
+        
+        // Show taxes and shipping toggle
+        $('#cart-show-taxes-shipping').off('change.cart').on('change.cart', function() {
+            updateCartConfig('showTaxesAndShipping', $(this).is(':checked'));
+        });
+        
+        // Show as dropdown
+        $('#cart-show-as').off('change.cart').on('change.cart', function() {
+            updateCartConfig('showAs', $(this).val());
+        });
+        
+        // Show progress bar toggle - with conditional field visibility
+        $('#cart-show-progress-bar').off('change.cart').on('change.cart', function() {
+            const isChecked = $(this).is(':checked');
+            updateCartConfig('showProgressBar', isChecked);
+            
+            // Show/hide dependent fields
+            if (isChecked) {
+                $('#free-shipping-goal-group').show();
+                $('#progress-bar-gradient-group').show();
+            } else {
+                $('#free-shipping-goal-group').hide();
+                $('#progress-bar-gradient-group').hide();
+            }
+        });
+        
+        // Free shipping goal input
+        $('#cart-free-shipping-goal').off('input.cart').on('input.cart', function() {
+            updateCartConfig('freeShippingGoal', parseInt($(this).val()) || 0);
+        });
+        
+        // Progress bar gradient dropdown
+        $('#cart-progress-gradient').off('change.cart').on('change.cart', function() {
+            updateCartConfig('progressBarGradient', $(this).val());
+        });
+        
+        // Darken image background toggle
+        $('#cart-darken-image-bg').off('change.cart').on('change.cart', function() {
+            updateCartConfig('darkenImageBackground', $(this).is(':checked'));
+        });
+        
+        // Edge rounding dropdown
+        $('#cart-edge-rounding').off('change.cart').on('change.cart', function() {
+            updateCartConfig('edgeRounding', $(this).val());
+        });
+        
+        // Custom CSS textarea
+        $('#cart-custom-css').off('input.cart').on('input.cart', function() {
+            updateCartConfig('customCSS', $(this).val());
+        });
+        
+        // Handle details/summary animation for expandible sections
+        $('details.shopify-details').off('toggle.cart').on('toggle.cart', function() {
+            const $icon = $(this).find('summary i.material-icons');
+            if ($(this).prop('open')) {
+                $icon.text('expand_less');
+            } else {
+                $icon.text('expand_more');
+            }
+        });
+    }
+    
     // Function to render announcement items
     function renderAnnouncementItems() {
         console.log('[DEBUG] Rendering announcement items:', currentSectionsConfig.announcements);
@@ -9768,6 +10078,22 @@ $(document).ready(async function() {
                             <i class="material-icons">add_circle</i>
                             <span data-i18n="sections.addHeaderSection">Agregar sección de encabezado</span>
                         </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Cart Section -->
+            <div class="sidebar-section expanded">
+                <div class="sidebar-section-header">
+                    <div class="section-title-wrapper">
+                        <span class="section-title" data-i18n="sections.cart">Carrito</span>
+                    </div>
+                    <i class="material-icons section-expand-icon">chevron_right</i>
+                </div>
+                <div class="sidebar-section-content" id="cart-sections-container">
+                    <div class="sidebar-subsection" data-block-type="cart" data-section-id="cart">
+                        <i class="material-icons" style="font-size: 16px;">shopping_cart</i>
+                        <span class="subsection-text" data-i18n="sections.cart">Carrito</span>
                     </div>
                 </div>
             </div>
@@ -13430,6 +13756,11 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
             else if (blockType === 'footer') {
                 console.log('[DEBUG] Footer section clicked, opening settings');
                 switchSidebarView('footerSettings');
+            }
+            // Handle cart click
+            else if (blockType === 'cart') {
+                console.log('[DEBUG] Cart section clicked, opening settings');
+                switchSidebarView('cartSettings');
             }
             // Handle footer block click
             else if (blockType === 'footer-block') {
@@ -26415,4 +26746,119 @@ document.head.appendChild(style);
         }
     };
     
+// ========== MODULAR SYSTEM LOADER - FUERA DE DOCUMENT READY ==========
+// El sistema modular debe estar disponible ANTES de que los módulos intenten registrarse
+
+console.log('[MODULE LOADER] Initializing modular system...');
+
+window.WebsiteBuilderModules = window.WebsiteBuilderModules || {};
+window.registeredModules = window.registeredModules || {};
+
+// Create module view handler
+window.moduleViewHandler = function(viewName, data) {
+    console.log('[MODULE LOADER] Checking view:', viewName);
+    console.log('[MODULE LOADER] Registered modules:', Object.keys(window.registeredModules));
+    
+    // Check if this is a module view
+    for (const moduleName in window.registeredModules) {
+        if (viewName === `${moduleName}Settings`) {
+            console.log(`[MODULE LOADER] Found matching module: ${moduleName}`);
+            const module = window.registeredModules[moduleName];
+            
+            // Update sidebar view tracking
+            previousSidebarView = currentSidebarView;
+            currentSidebarView = viewName;
+            
+            try {
+                const html = module.renderSettings(data);
+                $('#sidebar-dynamic-content').html(html);
+                
+                if (module.attachEventHandlers) {
+                    setTimeout(() => {
+                        module.attachEventHandlers();
+                    }, 0);
+                }
+                
+                // Apply translations if available
+                if (typeof applyTranslations === 'function') {
+                    setTimeout(applyTranslations, 0);
+                }
+                
+                console.log(`[MODULE LOADER] Successfully loaded view: ${viewName}`);
+                return true;
+            } catch (error) {
+                console.error(`[MODULE LOADER] Error rendering ${viewName}:`, error);
+                return false;
+            }
+        }
+    }
+    console.log('[MODULE LOADER] No matching module found for:', viewName);
+    return false;
+};
+
+// We'll override switchSidebarView after document ready
+$(document).ready(function() {
+    // Store the original switchSidebarView function
+    if (!window.originalSwitchSidebarView && window.switchSidebarView) {
+        window.originalSwitchSidebarView = window.switchSidebarView;
+        console.log('[MODULE LOADER] Stored original switchSidebarView');
+        
+        // Override switchSidebarView to check modules first
+        window.switchSidebarView = function(viewName, data) {
+            console.log('[MODULE LOADER] switchSidebarView intercepted:', viewName);
+            
+            // Try module handler first
+            if (window.moduleViewHandler(viewName, data)) {
+                return;
+            }
+            
+            // Fall back to original function
+            console.log('[MODULE LOADER] Falling back to original switchSidebarView');
+            return window.originalSwitchSidebarView.apply(this, arguments);
+        };
+    }
+});
+
+window.registerWebsiteBuilderModule = function(module) {
+    if (!module || !module.config || !module.config.name) {
+        console.error('[MODULE LOADER] Invalid module registration:', module);
+        return false;
+    }
+    
+    const moduleName = module.config.name;
+    
+    // Prevent duplicate registration
+    if (window.registeredModules[moduleName]) {
+        console.warn(`[MODULE LOADER] Module '${moduleName}' already registered`);
+        return false;
+    }
+    
+    // 1. Register translations when available
+    if (module.config.displayName) {
+        $(document).ready(function() {
+            if (typeof translations !== 'undefined') {
+                Object.keys(module.config.displayName).forEach(lang => {
+                    if (translations[lang]) {
+                        translations[lang][`sections.${moduleName}`] = module.config.displayName[lang];
+                    }
+                });
+            }
+        });
+    }
+    
+    // 2. Register preview render function
+    if (module.renderPreview) {
+        window[`render${moduleName.charAt(0).toUpperCase() + moduleName.slice(1)}`] = function(settings) {
+            return module.renderPreview(settings);
+        };
+    }
+    
+    // 3. Mark as registered
+    window.registeredModules[moduleName] = module;
+    
+    console.log(`[MODULE LOADER] Successfully registered module: ${moduleName}`);
+    return true;
+};
+
+// ========== FIN DEL LOADER ==========
 

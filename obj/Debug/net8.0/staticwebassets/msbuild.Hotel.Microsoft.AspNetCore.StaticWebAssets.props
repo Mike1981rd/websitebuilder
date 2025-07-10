@@ -156,8 +156,8 @@
       <RelatedAsset></RelatedAsset>
       <AssetTraitName></AssetTraitName>
       <AssetTraitValue></AssetTraitValue>
-      <Fingerprint>efglxwy45d</Fingerprint>
-      <Integrity>aqfzNjiSlPsf5XzpWQ+ySw6EsXO5fxtFEaAF9L52HuQ=</Integrity>
+      <Fingerprint>1rhesgv1o2</Fingerprint>
+      <Integrity>o6I8xA71gr+Bm+dMp97BTHlAVf9L0cRdsyPgVKKsBTE=</Integrity>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
       <OriginalItemSpec>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\css\website-builder.css'))</OriginalItemSpec>
@@ -264,11 +264,29 @@
       <RelatedAsset></RelatedAsset>
       <AssetTraitName></AssetTraitName>
       <AssetTraitValue></AssetTraitValue>
-      <Fingerprint>hvugyvonsl</Fingerprint>
-      <Integrity>s4ERYxxlRyHOxCbLjiK12GtsMgELlskowW/rVygViE0=</Integrity>
+      <Fingerprint>cyi5f7xh73</Fingerprint>
+      <Integrity>NCol+iwd7xBTni4J08aFwhw6dlgnyUjye6OdxhR5g/g=</Integrity>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
       <OriginalItemSpec>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\js\website-builder.js'))</OriginalItemSpec>
+    </StaticWebAsset>
+    <StaticWebAsset Include="$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\js\website-builder-modules\cart.js'))">
+      <SourceType>Package</SourceType>
+      <SourceId>Hotel</SourceId>
+      <ContentRoot>$(MSBuildThisFileDirectory)..\staticwebassets\</ContentRoot>
+      <BasePath>_content/Hotel</BasePath>
+      <RelativePath>js/website-builder-modules/cart.js</RelativePath>
+      <AssetKind>All</AssetKind>
+      <AssetMode>All</AssetMode>
+      <AssetRole>Primary</AssetRole>
+      <RelatedAsset></RelatedAsset>
+      <AssetTraitName></AssetTraitName>
+      <AssetTraitValue></AssetTraitValue>
+      <Fingerprint>ehr3kschto</Fingerprint>
+      <Integrity>Hs5e6YqF6gSdlclSt/XmbBP65cmVur3Zw24Rkk5a/C0=</Integrity>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+      <OriginalItemSpec>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\js\website-builder-modules\cart.js'))</OriginalItemSpec>
     </StaticWebAsset>
     <StaticWebAsset Include="$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\js\website-builder.js.backup'))">
       <SourceType>Package</SourceType>
@@ -336,8 +354,8 @@
       <RelatedAsset></RelatedAsset>
       <AssetTraitName></AssetTraitName>
       <AssetTraitValue></AssetTraitValue>
-      <Fingerprint>469efaflq3</Fingerprint>
-      <Integrity>7CwI78zpiUl4asoAHRCh1CNwCWyAF6re2ud8b36+sy4=</Integrity>
+      <Fingerprint>4rn1p7aojj</Fingerprint>
+      <Integrity>gAN4SePRLLt1V3TT0Zx54E18iQqM6pJooauyWuOD1m4=</Integrity>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
       <OriginalItemSpec>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\js\website-builder\modules\featured-collection.js'))</OriginalItemSpec>
@@ -1638,6 +1656,24 @@
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
       <OriginalItemSpec>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\TestImages\AccordionMenuPreview.png'))</OriginalItemSpec>
     </StaticWebAsset>
+    <StaticWebAsset Include="$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\TestImages\Cartdrawersetup.png'))">
+      <SourceType>Package</SourceType>
+      <SourceId>Hotel</SourceId>
+      <ContentRoot>$(MSBuildThisFileDirectory)..\staticwebassets\</ContentRoot>
+      <BasePath>_content/Hotel</BasePath>
+      <RelativePath>TestImages/Cartdrawersetup.png</RelativePath>
+      <AssetKind>All</AssetKind>
+      <AssetMode>All</AssetMode>
+      <AssetRole>Primary</AssetRole>
+      <RelatedAsset></RelatedAsset>
+      <AssetTraitName></AssetTraitName>
+      <AssetTraitValue></AssetTraitValue>
+      <Fingerprint>yf3gv7o0ms</Fingerprint>
+      <Integrity>bvDvbigkXTQCCKaO2BA/XjLl1Rv6NwvyE79JsYOz64I=</Integrity>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+      <OriginalItemSpec>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\TestImages\Cartdrawersetup.png'))</OriginalItemSpec>
+    </StaticWebAsset>
     <StaticWebAsset Include="$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\TestImages\contactform1.png'))">
       <SourceType>Package</SourceType>
       <SourceId>Hotel</SourceId>
@@ -1763,6 +1799,24 @@
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
       <OriginalItemSpec>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\TestImages\Contenttab3.png'))</OriginalItemSpec>
+    </StaticWebAsset>
+    <StaticWebAsset Include="$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\TestImages\draweronly.png'))">
+      <SourceType>Package</SourceType>
+      <SourceId>Hotel</SourceId>
+      <ContentRoot>$(MSBuildThisFileDirectory)..\staticwebassets\</ContentRoot>
+      <BasePath>_content/Hotel</BasePath>
+      <RelativePath>TestImages/draweronly.png</RelativePath>
+      <AssetKind>All</AssetKind>
+      <AssetMode>All</AssetMode>
+      <AssetRole>Primary</AssetRole>
+      <RelatedAsset></RelatedAsset>
+      <AssetTraitName></AssetTraitName>
+      <AssetTraitValue></AssetTraitValue>
+      <Fingerprint>0h3o3oarm1</Fingerprint>
+      <Integrity>bDUBHobZEiLYEdr3G2m/BRA8FzuJBgIZ/AxBoE6F9jY=</Integrity>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+      <OriginalItemSpec>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\TestImages\draweronly.png'))</OriginalItemSpec>
     </StaticWebAsset>
     <StaticWebAsset Include="$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\TestImages\estilos.png'))">
       <SourceType>Package</SourceType>

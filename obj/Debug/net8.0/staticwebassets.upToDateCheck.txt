@@ -26,6 +26,7 @@ wwwroot\js\website-builder\modules\multicolumn.js
 wwwroot\js\website-builder\modules\newsletter.js
 wwwroot\js\website-builder\modules\richtext.js
 wwwroot\js\website-builder\modules\testimonials.js
+wwwroot\js\website-builder-modules\cart.js
 wwwroot\js\website-render-functions.js
 wwwroot\lib\bootstrap\dist\css\bootstrap.css
 wwwroot\lib\bootstrap\dist\css\bootstrap.css.map
@@ -88,6 +89,7 @@ wwwroot\TestImages\Accordion1.png
 wwwroot\TestImages\Accordion2.png
 wwwroot\TestImages\Accordion3.png
 wwwroot\TestImages\AccordionMenuPreview.png
+wwwroot\TestImages\Cartdrawersetup.png
 wwwroot\TestImages\contactform1.png
 wwwroot\TestImages\contactform2.png
 wwwroot\TestImages\contactformeditorstructure.png
@@ -95,6 +97,7 @@ wwwroot\TestImages\contactformpreviewmodal.png
 wwwroot\TestImages\Contenttab1.png
 wwwroot\TestImages\Contenttab2.png
 wwwroot\TestImages\Contenttab3.png
+wwwroot\TestImages\draweronly.png
 wwwroot\TestImages\estilos.png
 wwwroot\TestImages\footer.png
 wwwroot\TestImages\footer-estructura.png
