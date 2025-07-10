@@ -664,6 +664,8 @@ window.WebsiteBuilderModules.FeaturedCollection = {
                     </div>
                     
                     ${settings.showAddToCartButton ? window.WebsiteBuilderModules.FeaturedCollection.renderAddToCartButton(settings, schemeColors, cardId) : ''}
+                    ${settings.showBuyButton ? window.WebsiteBuilderModules.FeaturedCollection.renderBuyButton(settings, schemeColors, cardId) : ''}
+                    ${settings.showReserveButton ? window.WebsiteBuilderModules.FeaturedCollection.renderReserveButton(settings, schemeColors, cardId) : ''}
                 </div>
                 
                 <style>
@@ -761,6 +763,13 @@ window.WebsiteBuilderModules.FeaturedCollection = {
             showArrowsOnHover: true,
             showAddToCartButton: false,
             addToCartButtonStyle: 'solid',
+            addToCartButtonText: 'Add to cart',
+            showBuyButton: false,
+            buyButtonStyle: 'solid',
+            buyButtonText: 'Buy now',
+            showReserveButton: false,
+            reserveButtonStyle: 'solid',
+            reserveButtonText: 'Reserve',
             cardPosition: 'afterAllItems',
             contentPosition: 'onImage',
             cardContentAlignment: 'left',
@@ -796,51 +805,51 @@ window.WebsiteBuilderModules.FeaturedCollection = {
                     <!-- Color scheme -->
                     <div class="form-group">
                         <label style="font-size: 13px; font-weight: 500; margin-bottom: 8px; color: #5c5e60; display: block;" 
-                               data-i18n="colorScheme">Color scheme</label>
+                               data-i18n="featuredCollection.colorScheme">Color scheme</label>
                         <select class="shopify-select" id="featuredCollectionColorScheme" 
                                 style="width: 100%; padding: 8px 12px; border: 1px solid #e0e0e0; border-radius: 4px; background: white;">
-                            <option value="default" ${settings.colorScheme === 'default' ? 'selected' : ''} data-i18n="colorScheme.default">Default</option>
-                            <option value="scheme1" ${settings.colorScheme === 'scheme1' ? 'selected' : ''} data-i18n="colorScheme.scheme1">Scheme 1</option>
-                            <option value="scheme2" ${settings.colorScheme === 'scheme2' ? 'selected' : ''} data-i18n="colorScheme.scheme2">Scheme 2</option>
-                            <option value="scheme3" ${settings.colorScheme === 'scheme3' ? 'selected' : ''} data-i18n="colorScheme.scheme3">Scheme 3</option>
-                            <option value="scheme4" ${settings.colorScheme === 'scheme4' ? 'selected' : ''} data-i18n="colorScheme.scheme4">Scheme 4</option>
-                            <option value="scheme5" ${settings.colorScheme === 'scheme5' ? 'selected' : ''} data-i18n="colorScheme.scheme5">Scheme 5</option>
+                            <option value="default" ${settings.colorScheme === 'default' ? 'selected' : ''} data-i18n="featuredCollection.colorScheme.default">Default</option>
+                            <option value="scheme1" ${settings.colorScheme === 'scheme1' ? 'selected' : ''} data-i18n="featuredCollection.colorScheme.scheme1">Scheme 1</option>
+                            <option value="scheme2" ${settings.colorScheme === 'scheme2' ? 'selected' : ''} data-i18n="featuredCollection.colorScheme.scheme2">Scheme 2</option>
+                            <option value="scheme3" ${settings.colorScheme === 'scheme3' ? 'selected' : ''} data-i18n="featuredCollection.colorScheme.scheme3">Scheme 3</option>
+                            <option value="scheme4" ${settings.colorScheme === 'scheme4' ? 'selected' : ''} data-i18n="featuredCollection.colorScheme.scheme4">Scheme 4</option>
+                            <option value="scheme5" ${settings.colorScheme === 'scheme5' ? 'selected' : ''} data-i18n="featuredCollection.colorScheme.scheme5">Scheme 5</option>
                         </select>
                         <div style="font-size: 12px; color: #666; margin-top: 5px;">
-                            <a href="#" style="color: #2962ff;" onclick="return false;" data-i18n="learnAboutColorSchemes">Learn about color schemes</a>
+                            <a href="#" style="color: #2962ff;" onclick="return false;" data-i18n="featuredCollection.learnAboutColorSchemes">Learn about color schemes</a>
                         </div>
                     </div>
 
                     <!-- Width -->
                     <div class="form-group" style="margin-top: 20px;">
                         <label style="font-size: 13px; font-weight: 500; margin-bottom: 8px; color: #5c5e60; display: block;" 
-                               data-i18n="width">Width</label>
+                               data-i18n="featuredCollection.width">Width</label>
                         <select class="shopify-select" id="featuredCollectionWidth" 
                                 style="width: 100%; padding: 8px 12px; border: 1px solid #e0e0e0; border-radius: 4px; background: white;">
-                            <option value="page" ${settings.width === 'page' ? 'selected' : ''} data-i18n="width.page">Page</option>
-                            <option value="full" ${settings.width === 'full' ? 'selected' : ''} data-i18n="width.full">Full width</option>
+                            <option value="page" ${settings.width === 'page' ? 'selected' : ''} data-i18n="featuredCollection.width.page">Page</option>
+                            <option value="full" ${settings.width === 'full' ? 'selected' : ''} data-i18n="featuredCollection.width.full">Full width</option>
                         </select>
                     </div>
 
                     <!-- Desktop layout -->
                     <div class="form-group" style="margin-top: 20px;">
                         <label style="font-size: 13px; font-weight: 500; margin-bottom: 8px; color: #5c5e60; display: block;" 
-                               data-i18n="desktopLayout">Desktop layout</label>
+                               data-i18n="featuredCollection.desktopLayout">Desktop layout</label>
                         <div style="display: flex; flex-direction: column; gap: 8px;">
                             <label style="display: flex; align-items: center; cursor: pointer; font-size: 13px; color: #202223;">
                                 <input type="radio" name="desktopLayout" value="grid" ${settings.desktopLayout === 'grid' ? 'checked' : ''} 
                                        style="margin-right: 8px; width: 16px; height: 16px; cursor: pointer;">
-                                <span data-i18n="layout.grid">Grid</span>
+                                <span data-i18n="featuredCollection.layout.grid">Grid</span>
                             </label>
                             <label style="display: flex; align-items: center; cursor: pointer; font-size: 13px; color: #202223;">
                                 <input type="radio" name="desktopLayout" value="carousel" ${settings.desktopLayout === 'carousel' ? 'checked' : ''} 
                                        style="margin-right: 8px; width: 16px; height: 16px; cursor: pointer;">
-                                <span data-i18n="layout.carousel">Carousel</span>
+                                <span data-i18n="featuredCollection.layout.carousel">Carousel</span>
                             </label>
                             <label style="display: flex; align-items: center; cursor: pointer; font-size: 13px; color: #202223;">
                                 <input type="radio" name="desktopLayout" value="slider" ${settings.desktopLayout === 'slider' ? 'checked' : ''} 
                                        style="margin-right: 8px; width: 16px; height: 16px; cursor: pointer;">
-                                <span data-i18n="layout.slider">Slider</span>
+                                <span data-i18n="featuredCollection.layout.slider">Slider</span>
                             </label>
                         </div>
                     </div>
@@ -848,36 +857,36 @@ window.WebsiteBuilderModules.FeaturedCollection = {
                     <!-- Mobile layout -->
                     <div class="form-group" style="margin-top: 20px;">
                         <label style="font-size: 13px; font-weight: 500; margin-bottom: 8px; color: #5c5e60; display: block;" 
-                               data-i18n="mobileLayout">Mobile layout</label>
+                               data-i18n="featuredCollection.mobileLayout">Mobile layout</label>
                         <select class="shopify-select" id="featuredCollectionMobileLayout" 
                                 style="width: 100%; padding: 8px 12px; border: 1px solid #e0e0e0; border-radius: 4px; background: white;">
-                            <option value="carousel" ${settings.mobileLayout === 'carousel' ? 'selected' : ''} data-i18n="layout.carousel">Carousel</option>
-                            <option value="grid" ${settings.mobileLayout === 'grid' ? 'selected' : ''} data-i18n="layout.grid">Grid</option>
+                            <option value="carousel" ${settings.mobileLayout === 'carousel' ? 'selected' : ''} data-i18n="featuredCollection.layout.carousel">Carousel</option>
+                            <option value="grid" ${settings.mobileLayout === 'grid' ? 'selected' : ''} data-i18n="featuredCollection.layout.grid">Grid</option>
                         </select>
                     </div>
 
                     <!-- Collection Section Title -->
                     <div class="form-group" style="margin-top: 30px;">
                         <h4 style="font-size: 16px; font-weight: 600; margin-bottom: 20px; color: #202223;" 
-                            data-i18n="collection">Collection</h4>
+                            data-i18n="featuredCollection.collection">Collection</h4>
                     </div>
                     
                     <!-- Heading -->
                     <div class="form-group">
                         <label style="font-size: 13px; font-weight: 500; margin-bottom: 8px; color: #5c5e60; display: block;" 
-                               data-i18n="heading">Heading</label>
+                               data-i18n="featuredCollection.heading">Heading</label>
                         <input type="text" 
                                id="featuredCollectionHeading" 
                                value="${settings.heading || ''}"
                                placeholder="Enter heading"
-                               data-i18n-placeholder="heading.placeholder"
+                               data-i18n-placeholder="featuredCollection.heading.placeholder"
                                style="width: 100%; padding: 8px 12px; border: 1px solid #e0e0e0; border-radius: 4px;">
                     </div>
 
                     <!-- Heading size -->
                     <div class="form-group" style="margin-top: 20px;">
                         <label style="font-size: 13px; font-weight: 500; margin-bottom: 8px; color: #5c5e60; display: block;" 
-                               data-i18n="headingSize">Heading size</label>
+                               data-i18n="featuredCollection.headingSize">Heading size</label>
                         <select class="shopify-select" id="featuredCollectionHeadingSize" 
                                 style="width: 100%; padding: 8px 12px; border: 1px solid #e0e0e0; border-radius: 4px; background: white;">
                             <option value="heading1" ${settings.headingSize === 'heading1' ? 'selected' : ''}>Heading 1</option>
@@ -894,7 +903,7 @@ window.WebsiteBuilderModules.FeaturedCollection = {
                     <!-- Heading alignment -->
                     <div class="form-group" style="margin-top: 20px;">
                         <label style="font-size: 13px; font-weight: 500; margin-bottom: 8px; color: #5c5e60; display: block;" 
-                               data-i18n="headingAlignment">Heading alignment</label>
+                               data-i18n="featuredCollection.headingAlignment">Heading alignment</label>
                         <div style="display: flex; gap: 8px;">
                             <button class="alignment-btn ${settings.headingAlignment === 'left' ? 'active' : ''}" 
                                     data-value="left" 
@@ -916,7 +925,7 @@ window.WebsiteBuilderModules.FeaturedCollection = {
                     <!-- Collection selector -->
                     <div class="form-group" style="margin-top: 20px;">
                         <label style="font-size: 13px; font-weight: 500; margin-bottom: 8px; color: #5c5e60; display: block;" 
-                               data-i18n="collection">Collection</label>
+                               data-i18n="featuredCollection.collection">Collection</label>
                         <div style="border: 1px solid #e0e0e0; border-radius: 8px; background: white; padding: 16px;">
                             ${settings.collections && settings.collections.length > 0 ? `
                                 <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; max-height: 200px; overflow-y: auto;">
@@ -933,7 +942,7 @@ window.WebsiteBuilderModules.FeaturedCollection = {
                                     }).join('')}
                                     ${settings.collections.length > 5 ? `
                                         <div style="text-align: center; padding: 8px; color: #666; font-size: 13px; background: #f0f0f0; border-radius: 4px;">
-                                            <span>+${settings.collections.length - 5} más colecciones</span>
+                                            <span>+${settings.collections.length - 5} ${window.translations && window.translations[window.currentLanguage] ? (window.translations[window.currentLanguage]['featuredCollection.moreCollections'] || '+ más colecciones').replace('+', '') : 'más colecciones'}</span>
                                         </div>
                                     ` : ''}
                                 </div>
@@ -947,18 +956,18 @@ window.WebsiteBuilderModules.FeaturedCollection = {
                             ` : `
                                 <div style="text-align: center; padding: 20px; color: #666;">
                                     <i class="material-icons" style="font-size: 48px; color: #e0e0e0; display: block; margin-bottom: 8px;">folder_open</i>
-                                    <span style="font-size: 14px;">No collection selected</span>
+                                    <span style="font-size: 14px;">${window.translations && window.translations[window.currentLanguage] ? (window.translations[window.currentLanguage]['featuredCollection.noCollectionSelected'] || 'No collection selected') : 'No collection selected'}</span>
                                 </div>
                             `)}
                             <button style="width: 100%; padding: 8px 16px; background: white; border: 1px solid #e0e0e0; border-radius: 4px; cursor: pointer; color: #202223; font-weight: 500;" 
-                                    data-i18n="change">Cambiar</button>
+                                    data-i18n="featuredCollection.change">Cambiar</button>
                         </div>
                     </div>
                     
                     <!-- Products selector -->
                     <div class="form-group" style="margin-top: 20px;">
                         <label style="font-size: 13px; font-weight: 500; margin-bottom: 8px; color: #5c5e60; display: block;" 
-                               data-i18n="products">Products</label>
+                               data-i18n="featuredCollection.products">Products</label>
                         <div style="border: 1px solid #e0e0e0; border-radius: 8px; background: white; padding: 16px;">
                             ${settings.products && settings.products.length > 0 ? `
                                 <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; max-height: 200px; overflow-y: auto;">
@@ -980,47 +989,47 @@ window.WebsiteBuilderModules.FeaturedCollection = {
                                     }).join('')}
                                     ${settings.products.length > 5 ? `
                                         <div style="text-align: center; padding: 8px; color: #666; font-size: 13px; background: #f0f0f0; border-radius: 4px;">
-                                            <span>+${settings.products.length - 5} más productos</span>
+                                            <span>+${settings.products.length - 5} ${window.translations && window.translations[window.currentLanguage] ? (window.translations[window.currentLanguage]['featuredCollection.moreProducts'] || '+ más productos').replace('+', '') : 'más productos'}</span>
                                         </div>
                                     ` : ''}
                                 </div>
                             ` : `
                                 <div style="text-align: center; padding: 20px; color: #666;">
                                     <i class="material-icons" style="font-size: 48px; color: #e0e0e0; display: block; margin-bottom: 8px;">inventory_2</i>
-                                    <span style="font-size: 14px;">No products selected</span>
+                                    <span style="font-size: 14px;">${window.translations && window.translations[window.currentLanguage] ? (window.translations[window.currentLanguage]['featuredCollection.noProductsSelected'] || 'No products selected') : 'No products selected'}</span>
                                 </div>
                             `}
                             <button style="width: 100%; padding: 8px 16px; background: white; border: 1px solid #e0e0e0; border-radius: 4px; cursor: pointer; color: #202223; font-weight: 500; margin-top: ${settings.products && settings.products.length > 0 ? '12px' : '0'};" 
-                                    data-i18n="change">Cambiar</button>
+                                    data-i18n="featuredCollection.change">Cambiar</button>
                         </div>
                         <div style="font-size: 12px; color: #666; margin-top: 8px;">
-                            <span data-i18n="productsHavePriority">Products have priority over a collection</span>
+                            <span data-i18n="featuredCollection.productsHavePriority">Products have priority over a collection</span>
                         </div>
                     </div>
 
                     <!-- Cards Section Title -->
                     <div class="form-group" style="margin-top: 30px;">
                         <h4 style="font-size: 16px; font-weight: 600; margin-bottom: 20px; color: #202223;" 
-                            data-i18n="cards">Cards</h4>
+                            data-i18n="featuredCollection.cards">Cards</h4>
                     </div>
 
                     <!-- Image ratio -->
                     <div class="form-group">
                         <label style="font-size: 13px; font-weight: 500; margin-bottom: 8px; color: #5c5e60; display: block;" 
-                               data-i18n="imageRatio">Image ratio</label>
+                               data-i18n="featuredCollection.imageRatio">Image ratio</label>
                         <select class="shopify-select" id="featuredCollectionImageRatio" 
                                 style="width: 100%; padding: 8px 12px; border: 1px solid #e0e0e0; border-radius: 4px; background: white;">
-                            <option value="default" ${settings.imageRatio === 'default' ? 'selected' : ''} data-i18n="imageRatio.default">Default</option>
-                            <option value="square" ${settings.imageRatio === 'square' ? 'selected' : ''} data-i18n="imageRatio.square">Square</option>
-                            <option value="portrait" ${settings.imageRatio === 'portrait' ? 'selected' : ''} data-i18n="imageRatio.portrait">Portrait</option>
-                            <option value="landscape" ${settings.imageRatio === 'landscape' ? 'selected' : ''} data-i18n="imageRatio.landscape">Landscape</option>
+                            <option value="default" ${settings.imageRatio === 'default' ? 'selected' : ''} data-i18n="featuredCollection.imageRatio.default">Default</option>
+                            <option value="square" ${settings.imageRatio === 'square' ? 'selected' : ''} data-i18n="featuredCollection.imageRatio.square">Square</option>
+                            <option value="portrait" ${settings.imageRatio === 'portrait' ? 'selected' : ''} data-i18n="featuredCollection.imageRatio.portrait">Portrait</option>
+                            <option value="landscape" ${settings.imageRatio === 'landscape' ? 'selected' : ''} data-i18n="featuredCollection.imageRatio.landscape">Landscape</option>
                         </select>
                     </div>
 
                     <!-- Content alignment -->
                     <div class="form-group" style="margin-top: 20px;">
                         <label style="font-size: 13px; font-weight: 500; margin-bottom: 8px; color: #5c5e60; display: block;" 
-                               data-i18n="contentAlignment">Content alignment</label>
+                               data-i18n="featuredCollection.contentAlignment">Content alignment</label>
                         <div style="display: flex; gap: 8px;">
                             <button class="alignment-btn ${settings.contentAlignment === 'left' ? 'active' : ''}" 
                                     data-value="left" 
@@ -1044,7 +1053,7 @@ window.WebsiteBuilderModules.FeaturedCollection = {
                     <!-- Cards to show (slider) -->
                     <div class="form-group" style="margin-top: 20px;">
                         <label style="font-size: 13px; font-weight: 500; margin-bottom: 8px; color: #5c5e60; display: block;" 
-                               data-i18n="cardsToShow">Cards to show</label>
+                               data-i18n="featuredCollection.cardsToShow">Cards to show</label>
                         <div style="display: flex; align-items: center; gap: 12px;">
                             <input type="range" 
                                    min="2" 
@@ -1059,7 +1068,7 @@ window.WebsiteBuilderModules.FeaturedCollection = {
                     <!-- Desktop cards per row (slider) -->
                     <div class="form-group" style="margin-top: 20px;">
                         <label style="font-size: 13px; font-weight: 500; margin-bottom: 8px; color: #5c5e60; display: block;" 
-                               data-i18n="desktopCardsPerRow">Desktop cards per row</label>
+                               data-i18n="featuredCollection.desktopCardsPerRow">Desktop cards per row</label>
                         <div style="display: flex; align-items: center; gap: 12px;">
                             <input type="range" 
                                    min="1" 
@@ -1074,7 +1083,7 @@ window.WebsiteBuilderModules.FeaturedCollection = {
                     <!-- Desktop space between cards (slider) -->
                     <div class="form-group" style="margin-top: 20px;">
                         <label style="font-size: 13px; font-weight: 500; margin-bottom: 8px; color: #5c5e60; display: block;" 
-                               data-i18n="desktopSpaceBetweenCards">Desktop space between cards</label>
+                               data-i18n="featuredCollection.desktopSpaceBetweenCards">Desktop space between cards</label>
                         <div style="display: flex; align-items: center; gap: 12px;">
                             <input type="range" 
                                    min="0" 
@@ -1089,7 +1098,7 @@ window.WebsiteBuilderModules.FeaturedCollection = {
                     <!-- Mobile space between cards (slider) -->
                     <div class="form-group" style="margin-top: 20px;">
                         <label style="font-size: 13px; font-weight: 500; margin-bottom: 8px; color: #5c5e60; display: block;" 
-                               data-i18n="mobileSpaceBetweenCards">Mobile space between cards</label>
+                               data-i18n="featuredCollection.mobileSpaceBetweenCards">Mobile space between cards</label>
                         <div style="display: flex; align-items: center; gap: 12px;">
                             <input type="range" 
                                    min="0" 
@@ -1104,7 +1113,7 @@ window.WebsiteBuilderModules.FeaturedCollection = {
                     <!-- Show arrows on hover (toggle) -->
                     <div class="form-group" style="margin-top: 20px;">
                         <label class="toggle-field">
-                            <span data-i18n="showArrowsOnHover">Show arrows on hover</span>
+                            <span data-i18n="featuredCollection.showArrowsOnHover">Show arrows on hover</span>
                             <input type="checkbox" class="shopify-toggle" id="featuredCollectionShowArrowsOnHover" ${settings.showArrowsOnHover ? 'checked' : ''}>
                             <label for="featuredCollectionShowArrowsOnHover" class="toggle-slider"></label>
                         </label>
@@ -1113,7 +1122,7 @@ window.WebsiteBuilderModules.FeaturedCollection = {
                     <!-- Show add to cart button (toggle) -->
                     <div class="form-group" style="margin-top: 20px;">
                         <label class="toggle-field">
-                            <span data-i18n="showAddToCartButton">Show add to cart button</span>
+                            <span data-i18n="featuredCollection.showAddToCartButton">Show add to cart button</span>
                             <input type="checkbox" class="shopify-toggle" id="featuredCollectionShowAddToCartButton" ${settings.showAddToCartButton ? 'checked' : ''}>
                             <label for="featuredCollectionShowAddToCartButton" class="toggle-slider"></label>
                         </label>
@@ -1122,55 +1131,115 @@ window.WebsiteBuilderModules.FeaturedCollection = {
                     <!-- Add to cart button style -->
                     <div class="form-group" style="margin-top: 20px; ${settings.showAddToCartButton ? '' : 'display:none;'}" id="addToCartButtonStyleContainer">
                         <label style="font-size: 13px; font-weight: 500; margin-bottom: 8px; color: #5c5e60; display: block;" 
-                               data-i18n="addToCartButtonStyle">Add to cart button style</label>
-                        <div style="display: flex; flex-direction: column; gap: 8px;">
-                            <label style="display: flex; align-items: center; cursor: pointer; font-size: 13px; color: #202223;">
-                                <input type="radio" name="addToCartButtonStyle" value="solid" ${settings.addToCartButtonStyle === 'solid' || !settings.addToCartButtonStyle ? 'checked' : ''} 
-                                       style="margin-right: 8px; width: 16px; height: 16px; cursor: pointer;">
-                                <span data-i18n="buttonStyle.solid">Solid</span>
-                            </label>
-                            <label style="display: flex; align-items: center; cursor: pointer; font-size: 13px; color: #202223;">
-                                <input type="radio" name="addToCartButtonStyle" value="outline" ${settings.addToCartButtonStyle === 'outline' ? 'checked' : ''} 
-                                       style="margin-right: 8px; width: 16px; height: 16px; cursor: pointer;">
-                                <span data-i18n="buttonStyle.outline">Outline</span>
-                            </label>
-                        </div>
+                               data-i18n="featuredCollection.addToCartButtonStyle">Add to cart button style</label>
+                        <select class="shopify-select" id="featuredCollectionAddToCartButtonStyle" 
+                                style="width: 100%; padding: 8px 12px; border: 1px solid #e0e0e0; border-radius: 4px; background: white;">
+                            <option value="solid" ${settings.addToCartButtonStyle === 'solid' || !settings.addToCartButtonStyle ? 'selected' : ''} data-i18n="featuredCollection.buttonStyle.solid">Solid</option>
+                            <option value="outline" ${settings.addToCartButtonStyle === 'outline' ? 'selected' : ''} data-i18n="featuredCollection.buttonStyle.outline">Outline</option>
+                        </select>
+                        
+                        <!-- Add to cart button text -->
+                        <label style="font-size: 13px; font-weight: 500; margin-bottom: 8px; margin-top: 16px; color: #5c5e60; display: block;" 
+                               data-i18n="featuredCollection.addToCartButtonText">Add to cart button text</label>
+                        <input type="text" 
+                               id="featuredCollectionAddToCartButtonText" 
+                               value="${settings.addToCartButtonText || 'Add to cart'}"
+                               placeholder="Add to cart"
+                               style="width: 100%; padding: 8px 12px; border: 1px solid #e0e0e0; border-radius: 4px; font-size: 14px;">
+                    </div>
+
+                    <!-- Show buy button (toggle) -->
+                    <div class="form-group" style="margin-top: 20px;">
+                        <label class="toggle-field">
+                            <span data-i18n="featuredCollection.showBuyButton">Show buy button</span>
+                            <input type="checkbox" class="shopify-toggle" id="featuredCollectionShowBuyButton" ${settings.showBuyButton ? 'checked' : ''}>
+                            <label for="featuredCollectionShowBuyButton" class="toggle-slider"></label>
+                        </label>
+                    </div>
+
+                    <!-- Buy button style -->
+                    <div class="form-group" style="margin-top: 20px; ${settings.showBuyButton ? '' : 'display:none;'}" id="buyButtonStyleContainer">
+                        <label style="font-size: 13px; font-weight: 500; margin-bottom: 8px; color: #5c5e60; display: block;" 
+                               data-i18n="featuredCollection.buyButtonStyle">Buy button style</label>
+                        <select class="shopify-select" id="featuredCollectionBuyButtonStyle" 
+                                style="width: 100%; padding: 8px 12px; border: 1px solid #e0e0e0; border-radius: 4px; background: white;">
+                            <option value="solid" ${settings.buyButtonStyle === 'solid' || !settings.buyButtonStyle ? 'selected' : ''} data-i18n="featuredCollection.buttonStyle.solid">Solid</option>
+                            <option value="outline" ${settings.buyButtonStyle === 'outline' ? 'selected' : ''} data-i18n="featuredCollection.buttonStyle.outline">Outline</option>
+                        </select>
+                        
+                        <!-- Buy button text -->
+                        <label style="font-size: 13px; font-weight: 500; margin-bottom: 8px; margin-top: 16px; color: #5c5e60; display: block;" 
+                               data-i18n="featuredCollection.buyButtonText">Buy button text</label>
+                        <input type="text" 
+                               id="featuredCollectionBuyButtonText" 
+                               value="${settings.buyButtonText || 'Buy now'}"
+                               placeholder="Buy now"
+                               style="width: 100%; padding: 8px 12px; border: 1px solid #e0e0e0; border-radius: 4px; font-size: 14px;">
+                    </div>
+
+                    <!-- Show reserve button (toggle) -->
+                    <div class="form-group" style="margin-top: 20px;">
+                        <label class="toggle-field">
+                            <span data-i18n="featuredCollection.showReserveButton">Show reserve button</span>
+                            <input type="checkbox" class="shopify-toggle" id="featuredCollectionShowReserveButton" ${settings.showReserveButton ? 'checked' : ''}>
+                            <label for="featuredCollectionShowReserveButton" class="toggle-slider"></label>
+                        </label>
+                    </div>
+
+                    <!-- Reserve button style -->
+                    <div class="form-group" style="margin-top: 20px; ${settings.showReserveButton ? '' : 'display:none;'}" id="reserveButtonStyleContainer">
+                        <label style="font-size: 13px; font-weight: 500; margin-bottom: 8px; color: #5c5e60; display: block;" 
+                               data-i18n="featuredCollection.reserveButtonStyle">Reserve button style</label>
+                        <select class="shopify-select" id="featuredCollectionReserveButtonStyle" 
+                                style="width: 100%; padding: 8px 12px; border: 1px solid #e0e0e0; border-radius: 4px; background: white;">
+                            <option value="solid" ${settings.reserveButtonStyle === 'solid' || !settings.reserveButtonStyle ? 'selected' : ''} data-i18n="featuredCollection.buttonStyle.solid">Solid</option>
+                            <option value="outline" ${settings.reserveButtonStyle === 'outline' ? 'selected' : ''} data-i18n="featuredCollection.buttonStyle.outline">Outline</option>
+                        </select>
+                        
+                        <!-- Reserve button text -->
+                        <label style="font-size: 13px; font-weight: 500; margin-bottom: 8px; margin-top: 16px; color: #5c5e60; display: block;" 
+                               data-i18n="featuredCollection.reserveButtonText">Reserve button text</label>
+                        <input type="text" 
+                               id="featuredCollectionReserveButtonText" 
+                               value="${settings.reserveButtonText || 'Reserve'}"
+                               placeholder="Reserve"
+                               style="width: 100%; padding: 8px 12px; border: 1px solid #e0e0e0; border-radius: 4px; font-size: 14px;">
                     </div>
 
                     <!-- Collection card Section Title -->
                     <div class="form-group" style="margin-top: 30px;">
                         <h4 style="font-size: 16px; font-weight: 600; margin-bottom: 20px; color: #202223;" 
-                            data-i18n="collectionCard">Collection card</h4>
+                            data-i18n="featuredCollection.collectionCard">Collection card</h4>
                     </div>
 
                     <!-- Card position -->
                     <div class="form-group">
                         <label style="font-size: 13px; font-weight: 500; margin-bottom: 8px; color: #5c5e60; display: block;" 
-                               data-i18n="cardPosition">Card position</label>
+                               data-i18n="featuredCollection.cardPosition">Card position</label>
                         <select class="shopify-select" id="featuredCollectionCardPosition" 
                                 style="width: 100%; padding: 8px 12px; border: 1px solid #e0e0e0; border-radius: 4px; background: white;">
-                            <option value="afterAllItems" ${settings.cardPosition === 'afterAllItems' ? 'selected' : ''} data-i18n="cardPosition.afterAllItems">After all items</option>
-                            <option value="beforeAllItems" ${settings.cardPosition === 'beforeAllItems' ? 'selected' : ''} data-i18n="cardPosition.beforeAllItems">Before all items</option>
-                            <option value="noCard" ${settings.cardPosition === 'noCard' ? 'selected' : ''} data-i18n="cardPosition.noCard">No card</option>
+                            <option value="afterAllItems" ${settings.cardPosition === 'afterAllItems' ? 'selected' : ''} data-i18n="featuredCollection.cardPosition.afterAllItems">After all items</option>
+                            <option value="beforeAllItems" ${settings.cardPosition === 'beforeAllItems' ? 'selected' : ''} data-i18n="featuredCollection.cardPosition.beforeAllItems">Before all items</option>
+                            <option value="noCard" ${settings.cardPosition === 'noCard' ? 'selected' : ''} data-i18n="featuredCollection.cardPosition.noCard">No card</option>
                         </select>
                     </div>
 
                     <!-- Content position -->
                     <div class="form-group" style="margin-top: 20px;">
                         <label style="font-size: 13px; font-weight: 500; margin-bottom: 8px; color: #5c5e60; display: block;" 
-                               data-i18n="contentPosition">Content position</label>
+                               data-i18n="featuredCollection.contentPosition">Content position</label>
                         <select class="shopify-select" id="featuredCollectionContentPosition" 
                                 style="width: 100%; padding: 8px 12px; border: 1px solid #e0e0e0; border-radius: 4px; background: white;">
-                            <option value="onImage" ${settings.contentPosition === 'onImage' ? 'selected' : ''} data-i18n="contentPosition.onImage">On image - Bottom</option>
-                            <option value="onImageTop" ${settings.contentPosition === 'onImageTop' ? 'selected' : ''} data-i18n="contentPosition.onImageTop">On image - Top</option>
-                            <option value="onImageCenter" ${settings.contentPosition === 'onImageCenter' ? 'selected' : ''} data-i18n="contentPosition.onImageCenter">On image - Center</option>
+                            <option value="onImage" ${settings.contentPosition === 'onImage' ? 'selected' : ''} data-i18n="featuredCollection.contentPosition.onImage">On image - Bottom</option>
+                            <option value="onImageTop" ${settings.contentPosition === 'onImageTop' ? 'selected' : ''} data-i18n="featuredCollection.contentPosition.onImageTop">On image - Top</option>
+                            <option value="onImageCenter" ${settings.contentPosition === 'onImageCenter' ? 'selected' : ''} data-i18n="featuredCollection.contentPosition.onImageCenter">On image - Center</option>
                         </select>
                     </div>
 
                     <!-- Card content alignment -->
                     <div class="form-group" style="margin-top: 20px;">
                         <label style="font-size: 13px; font-weight: 500; margin-bottom: 8px; color: #5c5e60; display: block;" 
-                               data-i18n="contentAlignment">Content alignment</label>
+                               data-i18n="featuredCollection.contentAlignment">Content alignment</label>
                         <div style="display: flex; gap: 8px;">
                             <button class="alignment-btn ${settings.cardContentAlignment === 'left' ? 'active' : ''}" 
                                     data-value="left"
@@ -1202,7 +1271,7 @@ window.WebsiteBuilderModules.FeaturedCollection = {
                     <!-- Collection title size -->
                     <div class="form-group" style="margin-top: 20px;">
                         <label style="font-size: 13px; font-weight: 500; margin-bottom: 8px; color: #5c5e60; display: block;" 
-                               data-i18n="collectionTitleSize">Collection title size</label>
+                               data-i18n="featuredCollection.collectionTitleSize">Collection title size</label>
                         <select class="shopify-select" id="featuredCollectionTitleSize" 
                                 style="width: 100%; padding: 8px 12px; border: 1px solid #e0e0e0; border-radius: 4px; background: white;">
                             <option value="heading1" ${settings.collectionTitleSize === 'heading1' ? 'selected' : ''}>Heading 1</option>
@@ -1219,7 +1288,7 @@ window.WebsiteBuilderModules.FeaturedCollection = {
                     <!-- Show product count (toggle) -->
                     <div class="form-group" style="margin-top: 20px;">
                         <label class="toggle-field">
-                            <span data-i18n="showProductCount">Show product count</span>
+                            <span data-i18n="featuredCollection.showProductCount">Show product count</span>
                             <input type="checkbox" class="shopify-toggle" id="featuredCollectionShowProductCount" ${settings.showProductCount ? 'checked' : ''}>
                             <label for="featuredCollectionShowProductCount" class="toggle-slider"></label>
                         </label>
@@ -1228,7 +1297,7 @@ window.WebsiteBuilderModules.FeaturedCollection = {
                     <!-- Overlay opacity (slider) -->
                     <div class="form-group" style="margin-top: 20px;">
                         <label style="font-size: 13px; font-weight: 500; margin-bottom: 8px; color: #5c5e60; display: block;" 
-                               data-i18n="overlayOpacity">Overlay opacity</label>
+                               data-i18n="featuredCollection.overlayOpacity">Overlay opacity</label>
                         <div style="display: flex; align-items: center; gap: 12px;">
                             <input type="range" 
                                    min="0" 
@@ -1239,33 +1308,33 @@ window.WebsiteBuilderModules.FeaturedCollection = {
                             <span style="min-width: 40px; text-align: right; color: #202223;">${settings.overlayOpacity}%</span>
                         </div>
                         <div style="font-size: 12px; color: #666; margin-top: 5px;">
-                            <span data-i18n="overlayOpacityHelp">Only for 'on image' positions</span>
+                            <span data-i18n="featuredCollection.overlayOpacityHelp">Only for 'on image' positions</span>
                         </div>
                     </div>
 
                     <!-- Autoplay Section Title -->
                     <div class="form-group" style="margin-top: 30px;">
                         <h4 style="font-size: 16px; font-weight: 600; margin-bottom: 20px; color: #202223;" 
-                            data-i18n="autoplay">Autoplay</h4>
+                            data-i18n="featuredCollection.autoplay">Autoplay</h4>
                     </div>
 
                     <!-- Autoplay mode -->
                     <div class="form-group">
                         <label style="font-size: 13px; font-weight: 500; margin-bottom: 8px; color: #5c5e60; display: block;" 
-                               data-i18n="autoplayMode">Autoplay mode</label>
+                               data-i18n="featuredCollection.autoplayMode">Autoplay mode</label>
                         <select class="shopify-select" id="featuredCollectionAutoplayMode" 
                                 style="width: 100%; padding: 8px 12px; border: 1px solid #e0e0e0; border-radius: 4px; background: white;">
-                            <option value="none" ${settings.autoplayMode === 'none' ? 'selected' : ''} data-i18n="autoplayMode.none">None</option>
-                            <option value="desktop" ${settings.autoplayMode === 'desktop' ? 'selected' : ''} data-i18n="autoplayMode.desktop">Desktop only</option>
-                            <option value="mobile" ${settings.autoplayMode === 'mobile' ? 'selected' : ''} data-i18n="autoplayMode.mobile">Mobile only</option>
-                            <option value="both" ${settings.autoplayMode === 'both' ? 'selected' : ''} data-i18n="autoplayMode.both">Desktop and mobile</option>
+                            <option value="none" ${settings.autoplayMode === 'none' ? 'selected' : ''} data-i18n="featuredCollection.autoplayMode.none">None</option>
+                            <option value="desktop" ${settings.autoplayMode === 'desktop' ? 'selected' : ''} data-i18n="featuredCollection.autoplayMode.desktop">Desktop only</option>
+                            <option value="mobile" ${settings.autoplayMode === 'mobile' ? 'selected' : ''} data-i18n="featuredCollection.autoplayMode.mobile">Mobile only</option>
+                            <option value="both" ${settings.autoplayMode === 'both' ? 'selected' : ''} data-i18n="featuredCollection.autoplayMode.both">Desktop and mobile</option>
                         </select>
                     </div>
 
                     <!-- Autoplay speed (slider) -->
                     <div class="form-group" style="margin-top: 20px; ${settings.autoplayMode === 'none' ? 'display:none;' : ''}" id="autoplaySpeedContainer">
                         <label style="font-size: 13px; font-weight: 500; margin-bottom: 8px; color: #5c5e60; display: block;" 
-                               data-i18n="autoplaySpeed">Autoplay speed</label>
+                               data-i18n="featuredCollection.autoplaySpeed">Autoplay speed</label>
                         <div style="display: flex; align-items: center; gap: 12px;">
                             <input type="range" 
                                    min="1" 
@@ -1280,13 +1349,13 @@ window.WebsiteBuilderModules.FeaturedCollection = {
                     <!-- Paddings Section Title -->
                     <div class="form-group" style="margin-top: 30px;">
                         <h4 style="font-size: 16px; font-weight: 600; margin-bottom: 20px; color: #202223;" 
-                            data-i18n="paddings">Paddings</h4>
+                            data-i18n="featuredCollection.paddings">Paddings</h4>
                     </div>
 
                     <!-- Add side paddings (toggle) -->
                     <div class="form-group">
                         <label class="toggle-field">
-                            <span data-i18n="addSidePaddings">Add side paddings</span>
+                            <span data-i18n="featuredCollection.addSidePaddings">Add side paddings</span>
                             <input type="checkbox" class="shopify-toggle" id="featuredCollectionAddSidePaddings" ${settings.addSidePaddings ? 'checked' : ''}>
                             <label for="featuredCollectionAddSidePaddings" class="toggle-slider"></label>
                         </label>
@@ -1295,7 +1364,7 @@ window.WebsiteBuilderModules.FeaturedCollection = {
                     <!-- Top padding (slider) -->
                     <div class="form-group" style="margin-top: 20px;">
                         <label style="font-size: 13px; font-weight: 500; margin-bottom: 8px; color: #5c5e60; display: block;" 
-                               data-i18n="topPadding">Top padding</label>
+                               data-i18n="featuredCollection.topPadding">Top padding</label>
                         <div style="display: flex; align-items: center; gap: 12px;">
                             <input type="range" 
                                    min="0" 
@@ -1310,7 +1379,7 @@ window.WebsiteBuilderModules.FeaturedCollection = {
                     <!-- Bottom padding (slider) -->
                     <div class="form-group" style="margin-top: 20px;">
                         <label style="font-size: 13px; font-weight: 500; margin-bottom: 8px; color: #5c5e60; display: block;" 
-                               data-i18n="bottomPadding">Bottom padding</label>
+                               data-i18n="featuredCollection.bottomPadding">Bottom padding</label>
                         <div style="display: flex; align-items: center; gap: 12px;">
                             <input type="range" 
                                    min="0" 
@@ -1325,6 +1394,63 @@ window.WebsiteBuilderModules.FeaturedCollection = {
                 </div>
             </div>
         `;
+    },
+    
+    // Renderizar botón Reserve
+    renderReserveButton: function(settings, schemeColors, cardId) {
+        console.log('[FEATURED COLLECTION] Rendering reserve button with settings:', settings);
+        
+        // Obtener font family de forma segura
+        let fontFamily = 'Helvetica, Arial, sans-serif';
+        try {
+            if (window.getFontNameFromValueSafe && window.currentGlobalThemeSettings && 
+                window.currentGlobalThemeSettings.typography && 
+                window.currentGlobalThemeSettings.typography.body && 
+                window.currentGlobalThemeSettings.typography.body.font) {
+                fontFamily = window.getFontNameFromValueSafe(window.currentGlobalThemeSettings.typography.body.font);
+            }
+        } catch (e) {
+            console.error('[FEATURED COLLECTION] Error getting font:', e);
+        }
+        
+        // Crear estilos inline para evitar problemas con template strings
+        const isOutline = settings.reserveButtonStyle === 'outline';
+        
+        // Obtener colores con acceso seguro
+        const solidButtonBg = (schemeColors && schemeColors['solid-button']) ? schemeColors['solid-button'] : '#121212';
+        const solidButtonText = (schemeColors && schemeColors['solid-button-text']) ? schemeColors['solid-button-text'] : '#FFFFFF';
+        const outlineButtonBorder = (schemeColors && schemeColors['outline-button']) ? schemeColors['outline-button'] : '#121212';
+        const outlineButtonText = (schemeColors && schemeColors['outline-button-text']) ? schemeColors['outline-button-text'] : '#121212';
+        
+        // Construir el HTML del botón
+        const buttonClass = 'reserve-button-' + cardId;
+        
+        if (isOutline) {
+            return '<button class="' + buttonClass + '" ' +
+                   'style="width: 100%; margin-top: 12px; padding: 10px 16px; border-radius: 4px; ' +
+                   'font-size: 14px; font-family: ' + fontFamily + '; font-weight: 500; cursor: pointer; ' +
+                   'transition: all 0.2s ease; background: transparent; ' +
+                   'color: ' + outlineButtonText + '; border: 1px solid ' + outlineButtonBorder + ';">' +
+                   '<span>' + (settings.reserveButtonText || 'Reserve') + '</span>' +
+                   '</button>' +
+                   '<style>' +
+                   '.' + buttonClass + ':hover { ' +
+                   'background-color: ' + outlineButtonBorder + ' !important; ' +
+                   'color: ' + solidButtonText + ' !important; ' +
+                   'border-color: ' + outlineButtonBorder + ' !important; }' +
+                   '</style>';
+        } else {
+            return '<button class="' + buttonClass + '" ' +
+                   'style="width: 100%; margin-top: 12px; padding: 10px 16px; border-radius: 4px; ' +
+                   'font-size: 14px; font-family: ' + fontFamily + '; font-weight: 500; cursor: pointer; ' +
+                   'transition: all 0.2s ease; background: ' + solidButtonBg + '; ' +
+                   'color: ' + solidButtonText + '; border: none;">' +
+                   '<span>' + (settings.reserveButtonText || 'Reserve') + '</span>' +
+                   '</button>' +
+                   '<style>' +
+                   '.' + buttonClass + ':hover { opacity: 0.85; }' +
+                   '</style>';
+        }
     },
     
     // Adjuntar event listeners
@@ -1451,7 +1577,7 @@ window.WebsiteBuilderModules.FeaturedCollection = {
             updateConfig('desktopLayout', selectedValue);
             
             // Mostrar/ocultar la sección de autoplay dependiendo del layout
-            const $autoplayTitle = $('h4[data-i18n="autoplay"]');
+            const $autoplayTitle = $('h4[data-i18n="featuredCollection.autoplay"]');
             if ($autoplayTitle.length > 0) {
                 const $autoplaySection = $autoplayTitle.closest('.form-group');
                 const $autoplayModeGroup = $('#featuredCollectionAutoplayMode').closest('.form-group');
@@ -1484,7 +1610,7 @@ window.WebsiteBuilderModules.FeaturedCollection = {
             console.log('[FEATURED COLLECTION] Initial layout on load:', initialLayout);
             
             // Buscar el título "Autoplay" y ocultar toda esa sección si no es slider
-            const $autoplayTitle = $('h4[data-i18n="autoplay"]');
+            const $autoplayTitle = $('h4[data-i18n="featuredCollection.autoplay"]');
             if ($autoplayTitle.length > 0) {
                 // Obtener el contenedor padre que incluye el título y los campos
                 const $autoplaySection = $autoplayTitle.closest('.form-group');
@@ -1543,11 +1669,54 @@ window.WebsiteBuilderModules.FeaturedCollection = {
                     $('#addToCartButtonStyleContainer').hide();
                 }
             }
+            
+            // Mostrar/ocultar opciones de estilo del botón buy
+            if (fieldName === 'showBuyButton') {
+                if ($(this).is(':checked')) {
+                    $('#buyButtonStyleContainer').show();
+                } else {
+                    $('#buyButtonStyleContainer').hide();
+                }
+            }
+            
+            // Mostrar/ocultar opciones de estilo del botón reserve
+            if (fieldName === 'showReserveButton') {
+                if ($(this).is(':checked')) {
+                    $('#reserveButtonStyleContainer').show();
+                } else {
+                    $('#reserveButtonStyleContainer').hide();
+                }
+            }
         });
         
-        // Add to cart button style radio buttons
-        $('input[name="addToCartButtonStyle"]').off('change.featuredCollection').on('change.featuredCollection', function() {
+        // Add to cart button style select
+        $('#featuredCollectionAddToCartButtonStyle').off('change.featuredCollection').on('change.featuredCollection', function() {
             updateConfig('addToCartButtonStyle', $(this).val());
+        });
+        
+        // Add to cart button text input
+        $('#featuredCollectionAddToCartButtonText').off('input.featuredCollection').on('input.featuredCollection', function() {
+            updateConfig('addToCartButtonText', $(this).val());
+        });
+        
+        // Buy button style select
+        $('#featuredCollectionBuyButtonStyle').off('change.featuredCollection').on('change.featuredCollection', function() {
+            updateConfig('buyButtonStyle', $(this).val());
+        });
+        
+        // Buy button text input
+        $('#featuredCollectionBuyButtonText').off('input.featuredCollection').on('input.featuredCollection', function() {
+            updateConfig('buyButtonText', $(this).val());
+        });
+        
+        // Reserve button style select
+        $('#featuredCollectionReserveButtonStyle').off('change.featuredCollection').on('change.featuredCollection', function() {
+            updateConfig('reserveButtonStyle', $(this).val());
+        });
+        
+        // Reserve button text input
+        $('#featuredCollectionReserveButtonText').off('input.featuredCollection').on('input.featuredCollection', function() {
+            updateConfig('reserveButtonText', $(this).val());
         });
         
         // Range sliders con actualización de display
@@ -2703,7 +2872,7 @@ window.WebsiteBuilderModules.FeaturedCollection = {
                    'font-size: 14px; font-family: ' + fontFamily + '; font-weight: 500; cursor: pointer; ' +
                    'transition: all 0.2s ease; background: transparent; ' +
                    'color: ' + outlineButtonText + '; border: 1px solid ' + outlineButtonBorder + ';">' +
-                   '<span data-i18n="addToCart">Add to cart</span>' +
+                   '<span>' + (settings.addToCartButtonText || 'Add to cart') + '</span>' +
                    '</button>' +
                    '<style>' +
                    '.' + buttonClass + ':hover { ' +
@@ -2717,7 +2886,64 @@ window.WebsiteBuilderModules.FeaturedCollection = {
                    'font-size: 14px; font-family: ' + fontFamily + '; font-weight: 500; cursor: pointer; ' +
                    'transition: all 0.2s ease; background: ' + solidButtonBg + '; ' +
                    'color: ' + solidButtonText + '; border: none;">' +
-                   '<span data-i18n="addToCart">Add to cart</span>' +
+                   '<span>' + (settings.addToCartButtonText || 'Add to cart') + '</span>' +
+                   '</button>' +
+                   '<style>' +
+                   '.' + buttonClass + ':hover { opacity: 0.85; }' +
+                   '</style>';
+        }
+    },
+    
+    // Renderizar botón Buy button
+    renderBuyButton: function(settings, schemeColors, cardId) {
+        console.log('[FEATURED COLLECTION] Rendering buy button with settings:', settings);
+        
+        // Obtener font family de forma segura
+        let fontFamily = 'Helvetica, Arial, sans-serif';
+        try {
+            if (window.getFontNameFromValueSafe && window.currentGlobalThemeSettings && 
+                window.currentGlobalThemeSettings.typography && 
+                window.currentGlobalThemeSettings.typography.body && 
+                window.currentGlobalThemeSettings.typography.body.font) {
+                fontFamily = window.getFontNameFromValueSafe(window.currentGlobalThemeSettings.typography.body.font);
+            }
+        } catch (e) {
+            console.error('[FEATURED COLLECTION] Error getting font:', e);
+        }
+        
+        // Crear estilos inline para evitar problemas con template strings
+        const isOutline = settings.buyButtonStyle === 'outline';
+        
+        // Obtener colores con acceso seguro
+        const solidButtonBg = (schemeColors && schemeColors['solid-button']) ? schemeColors['solid-button'] : '#121212';
+        const solidButtonText = (schemeColors && schemeColors['solid-button-text']) ? schemeColors['solid-button-text'] : '#FFFFFF';
+        const outlineButtonBorder = (schemeColors && schemeColors['outline-button']) ? schemeColors['outline-button'] : '#121212';
+        const outlineButtonText = (schemeColors && schemeColors['outline-button-text']) ? schemeColors['outline-button-text'] : '#121212';
+        
+        // Construir el HTML del botón
+        const buttonClass = 'buy-button-' + cardId;
+        
+        if (isOutline) {
+            return '<button class="' + buttonClass + '" ' +
+                   'style="width: 100%; margin-top: 12px; padding: 10px 16px; border-radius: 4px; ' +
+                   'font-size: 14px; font-family: ' + fontFamily + '; font-weight: 500; cursor: pointer; ' +
+                   'transition: all 0.2s ease; background: transparent; ' +
+                   'color: ' + outlineButtonText + '; border: 1px solid ' + outlineButtonBorder + ';">' +
+                   '<span>' + (settings.buyButtonText || 'Buy now') + '</span>' +
+                   '</button>' +
+                   '<style>' +
+                   '.' + buttonClass + ':hover { ' +
+                   'background-color: ' + outlineButtonBorder + ' !important; ' +
+                   'color: ' + solidButtonText + ' !important; ' +
+                   'border-color: ' + outlineButtonBorder + ' !important; }' +
+                   '</style>';
+        } else {
+            return '<button class="' + buttonClass + '" ' +
+                   'style="width: 100%; margin-top: 12px; padding: 10px 16px; border-radius: 4px; ' +
+                   'font-size: 14px; font-family: ' + fontFamily + '; font-weight: 500; cursor: pointer; ' +
+                   'transition: all 0.2s ease; background: ' + solidButtonBg + '; ' +
+                   'color: ' + solidButtonText + '; border: none;">' +
+                   '<span>' + (settings.buyButtonText || 'Buy now') + '</span>' +
                    '</button>' +
                    '<style>' +
                    '.' + buttonClass + ':hover { opacity: 0.85; }' +
