@@ -663,7 +663,7 @@ window.WebsiteBuilderModules.FeaturedCollection = {
                         ` : ''}
                     </div>
                     
-                    ${settings.showAddToCartButton ? window.WebsiteBuilderModules.FeaturedCollection.renderAddToCartButton(settings, schemeColors, cardId) : ''}
+                    ${settings.showAddToCartButton ? window.WebsiteBuilderModules.FeaturedCollection.renderAddToCartButton(settings, schemeColors, cardId, {name: productName, price: productPrice, vendor: productVendor || 'Store', image: productImage}) : ''}
                     ${settings.showBuyButton ? window.WebsiteBuilderModules.FeaturedCollection.renderBuyButton(settings, schemeColors, cardId) : ''}
                     ${settings.showReserveButton ? window.WebsiteBuilderModules.FeaturedCollection.renderReserveButton(settings, schemeColors, cardId) : ''}
                 </div>
@@ -2836,7 +2836,7 @@ window.WebsiteBuilderModules.FeaturedCollection = {
     },
     
     // Renderizar botón Add to Cart
-    renderAddToCartButton: function(settings, schemeColors, cardId) {
+    renderAddToCartButton: function(settings, schemeColors, cardId, productData = {}) {
         // Debug para ver qué colores están llegando
         console.log('[FEATURED COLLECTION] Render Add to Cart Button - schemeColors:', schemeColors);
         console.log('[FEATURED COLLECTION] Button style:', settings.addToCartButtonStyle);
@@ -2866,8 +2866,16 @@ window.WebsiteBuilderModules.FeaturedCollection = {
         // Construir el HTML del botón
         const buttonClass = 'add-to-cart-btn-' + cardId;
         
+        // Usar los datos del producto recibidos
+        const escapedName = (productData.name || 'Product').replace(/"/g, '&quot;');
+        const escapedVendor = (productData.vendor || 'Store').replace(/"/g, '&quot;');
+        const escapedImage = (productData.image || '').replace(/"/g, '&quot;');
+        
+        // Codificar los datos del producto como atributos data
+        const dataAttributes = `data-product-id="${cardId}" data-product-name="${escapedName}" data-product-price="${productData.price || 0}" data-product-vendor="${escapedVendor}" data-product-image="${escapedImage}"`;
+        
         if (isOutline) {
-            return '<button class="' + buttonClass + '" ' +
+            return '<button class="' + buttonClass + ' add-to-cart-button" ' + dataAttributes + ' ' +
                    'style="width: 100%; margin-top: 12px; padding: 10px 16px; border-radius: 4px; ' +
                    'font-size: 14px; font-family: ' + fontFamily + '; font-weight: 500; cursor: pointer; ' +
                    'transition: all 0.2s ease; background: transparent; ' +
@@ -2881,7 +2889,7 @@ window.WebsiteBuilderModules.FeaturedCollection = {
                    'border-color: ' + outlineButtonBorder + ' !important; }' +
                    '</style>';
         } else {
-            return '<button class="' + buttonClass + '" ' +
+            return '<button class="' + buttonClass + ' add-to-cart-button" ' + dataAttributes + ' ' +
                    'style="width: 100%; margin-top: 12px; padding: 10px 16px; border-radius: 4px; ' +
                    'font-size: 14px; font-family: ' + fontFamily + '; font-weight: 500; cursor: pointer; ' +
                    'transition: all 0.2s ease; background: ' + solidButtonBg + '; ' +

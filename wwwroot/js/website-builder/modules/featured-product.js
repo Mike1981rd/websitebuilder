@@ -527,9 +527,23 @@ window.WebsiteBuilderModules.FeaturedProduct = {
                         };
                     }
                     
+                    // Get product data from the config parameter
+                    const productData = config.selectedProduct || {};
+                    const productId = 'featured-product-' + Date.now();
+                    const escapedName = (productData.name || 'Product').replace(/"/g, '&quot;');
+                    const escapedVendor = (productData.vendor || 'Store').replace(/"/g, '&quot;');
+                    const escapedImage = (productData.images && productData.images.length > 0 ? productData.images[0].url : '').replace(/"/g, '&quot;');
+                    const productPrice = productData.price || 0;
+                    
                     html += `
                         <div style="margin-bottom: 20px;">
-                            <button class="add-to-cart-btn" style="font-family: ${bodyFont}; display: block; width: auto; min-width: 280px; padding: 18px 40px; background: ${addToCartButton.background}; color: ${addToCartButton.text}; border: ${addToCartButton.border !== 'none' ? `2px solid ${addToCartButton.border}` : 'none'}; border-radius: 4px; font-size: 16px; font-weight: 500; cursor: pointer; margin-bottom: 12px; transition: all 0.2s; position: relative; overflow: hidden;">
+                            <button class="add-to-cart-btn add-to-cart-button" 
+                                    data-product-id="${productId}" 
+                                    data-product-name="${escapedName}" 
+                                    data-product-price="${productPrice}" 
+                                    data-product-vendor="${escapedVendor}" 
+                                    data-product-image="${escapedImage}"
+                                    style="font-family: ${bodyFont}; display: block; width: auto; min-width: 280px; padding: 18px 40px; background: ${addToCartButton.background}; color: ${addToCartButton.text}; border: ${addToCartButton.border !== 'none' ? `2px solid ${addToCartButton.border}` : 'none'}; border-radius: 4px; font-size: 16px; font-weight: 500; cursor: pointer; margin-bottom: 12px; transition: all 0.2s; position: relative; overflow: hidden;">
                                 <span style="position: relative; z-index: 1;">Agregar al carrito</span>
                             </button>
                             ${showDynamicCheckout ? `

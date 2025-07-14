@@ -300,6 +300,104 @@
         console.log('[PREVIEW TEMPLATE] Featured Product module available:', !!window.WebsiteBuilderModules.FeaturedProduct);
         console.log('[PREVIEW TEMPLATE] Featured Collection module available:', !!window.WebsiteBuilderModules.FeaturedCollection);
         console.log('[PREVIEW TEMPLATE] getColorSchemeValues available:', typeof window.getColorSchemeValues);
+        
+        // Add to cart button event listener for iframe context
+        $(document).ready(function() {
+            $(document).on('click', '.add-to-cart-button', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                const $button = $(this);
+                const productData = {
+                    id: $button.data('product-id'),
+                    name: $button.data('product-name'),
+                    price: parseFloat($button.data('product-price')) || 0,
+                    vendor: $button.data('product-vendor') || 'Store',
+                    image: $button.data('product-image') || ''
+                };
+                
+                console.log('[PREVIEW] Add to cart clicked, product data:', productData);
+                
+                // Always use parent window's function since we're in iframe
+                if (window.parent && window.parent.addToCartWithData) {
+                    window.parent.addToCartWithData(productData);
+                }
+            });
+            
+            // Cart icon click handler for iframe
+            $(document).on('click', '.cart-icon-wrapper', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                e.stopImmediatePropagation(); // Stop all other handlers
+                
+                console.log('[PREVIEW] Cart icon clicked in iframe');
+                
+                // First check if drawer exists
+                let drawers = document.querySelectorAll('.cart-drawer');
+                console.log('[PREVIEW] Found drawers:', drawers.length);
+                
+                // If no drawer exists, try to create it
+                if (drawers.length === 0 && window.renderCartDrawer && window.parent && window.parent.currentSectionsConfig) {
+                    console.log('[PREVIEW] No drawer found, attempting to create it');
+                    const cartConfig = window.parent.currentSectionsConfig.cart || { colorScheme: 'scheme1' };
+                    const drawerHtml = window.renderCartDrawer({ ...cartConfig, autoOpen: false });
+                    
+                    if (drawerHtml) {
+                        // Add drawer to body
+                        const tempDiv = document.createElement('div');
+                        tempDiv.innerHTML = drawerHtml;
+                        
+                        // Extract and execute scripts
+                        const scripts = tempDiv.querySelectorAll('script');
+                        
+                        // Append all non-script elements
+                        while (tempDiv.firstChild) {
+                            if (tempDiv.firstChild.tagName !== 'SCRIPT') {
+                                document.body.appendChild(tempDiv.firstChild);
+                            } else {
+                                tempDiv.removeChild(tempDiv.firstChild);
+                            }
+                        }
+                        
+                        // Execute scripts
+                        scripts.forEach(script => {
+                            const newScript = document.createElement('script');
+                            newScript.textContent = script.textContent;
+                            document.body.appendChild(newScript);
+                        });
+                        
+                        // Re-query for drawers
+                        drawers = document.querySelectorAll('.cart-drawer');
+                        console.log('[PREVIEW] Drawers after creation:', drawers.length);
+                    }
+                }
+                
+                // Now try to open the drawer
+                if (drawers.length > 0) {
+                    const drawer = drawers[0];
+                    const overlay = document.getElementById(drawer.id + '-overlay');
+                    console.log('[PREVIEW] Found drawer:', drawer.id, 'and overlay:', overlay ? 'yes' : 'no');
+                    
+                    if (drawer && overlay) {
+                        // Update cart content if parent function exists
+                        if (window.parent && window.parent.updateCartDrawerContent) {
+                            window.parent.updateCartDrawerContent(drawer.id);
+                        }
+                        
+                        // Open drawer
+                        console.log('[PREVIEW] Opening drawer');
+                        overlay.style.display = 'block';
+                        setTimeout(() => {
+                            drawer.style.right = '0';
+                        }, 10);
+                    }
+                } else {
+                    console.log('[PREVIEW] No drawer found to open');
+                }
+                
+                return false; // Extra prevention
+            });
+        });
     </script>
 </body>
 </html>

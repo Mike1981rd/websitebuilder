@@ -222,12 +222,18 @@
     
     <script>
         // Variables globales necesarias para el renderizado
-        let currentSectionsConfig = {};
-        let currentGlobalThemeSettings = {};
-        let currentMenusData = [];
+        window.currentSectionsConfig = {};
+        window.currentGlobalThemeSettings = {};
+        window.currentMenusData = [];
         let currentAnnouncementIndex = 0;
-        let currentLanguage = 'es';
+        let currentLanguage = localStorage.getItem('preferredLanguage') || 'es';
         let announcementAutoplayTimer = null;
+        let translations = {};
+        
+        // Alias para compatibilidad
+        let currentSectionsConfig = window.currentSectionsConfig;
+        let currentGlobalThemeSettings = window.currentGlobalThemeSettings;
+        let currentMenusData = window.currentMenusData;
         
         // Helper function para obtener valores de color scheme
         window.getColorSchemeValues = function(schemeName) {
@@ -363,12 +369,14 @@
                 
                 // Parsear las configuraciones JSON
                 if (websiteData.globalThemeSettingsJson) {
-                    currentGlobalThemeSettings = JSON.parse(websiteData.globalThemeSettingsJson);
+                    window.currentGlobalThemeSettings = JSON.parse(websiteData.globalThemeSettingsJson);
+                    currentGlobalThemeSettings = window.currentGlobalThemeSettings;
                 }
                 
                 if (websiteData.sectionsConfigJson) {
                     try {
-                        currentSectionsConfig = JSON.parse(websiteData.sectionsConfigJson);
+                        window.currentSectionsConfig = JSON.parse(websiteData.sectionsConfigJson);
+                        currentSectionsConfig = window.currentSectionsConfig;
                         console.log('Sections config loaded from sectionsConfigJson:', currentSectionsConfig);
                         
                         // Normalize section names in sectionOrder
@@ -489,10 +497,12 @@
                 
                 // Cargar menús si existen
                 if (currentGlobalThemeSettings.menus && Array.isArray(currentGlobalThemeSettings.menus)) {
-                    currentMenusData = currentGlobalThemeSettings.menus;
+                    window.currentMenusData = currentGlobalThemeSettings.menus;
+                    currentMenusData = window.currentMenusData;
                     console.log('Loaded menus from global settings:', currentMenusData);
                 } else if (currentSectionsConfig.menus && Array.isArray(currentSectionsConfig.menus)) {
-                    currentMenusData = currentSectionsConfig.menus;
+                    window.currentMenusData = currentSectionsConfig.menus;
+                    currentMenusData = window.currentMenusData;
                     console.log('Loaded menus from sections config:', currentMenusData);
                 } else {
                     console.log('No menus found, using default menu');
@@ -946,6 +956,20 @@
                 `;
             }
             
+            // Renderizar cart drawer si está configurado
+            if (currentSectionsConfig.cart) {
+                const cartConfig = currentSectionsConfig.cart;
+                if (cartConfig.showAs === 'drawer' || cartConfig.showAs === 'drawer-and-page') {
+                    console.log('[PREVIEW] Rendering cart drawer');
+                    // No auto-abrir en el preview real, solo en la vista de configuración
+                    const drawerConfig = { ...cartConfig, autoOpen: false };
+                    
+                    if (window.renderCartDrawer) {
+                        finalHtml += window.renderCartDrawer(drawerConfig);
+                    }
+                }
+            }
+            
             previewContent.innerHTML = finalHtml;
             
             // Attach accordion event listeners
@@ -965,6 +989,9 @@
             
             // Start announcement autoplay if configured
             startAnnouncementAutoplay();
+            
+            // Update cart icon count after rendering
+            updateCartIconCount();
             
             // Inicializar slideshows con autorotate
             if (typeof initializeSlideshows === 'function') {
@@ -1254,8 +1281,394 @@
         // (Se copiarán desde website-builder.js)
         
         // Cargar los datos cuando el DOM esté listo
+        // Cart management system
+        let cartItems = [];
+        
+        // Format price with thousands separator
+        function formatPrice(price) {
+            return price.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        }
+        
+        // Load cart from localStorage
+        function loadCart() {
+            const savedCart = localStorage.getItem('websiteBuilderCart');
+            if (savedCart) {
+                cartItems = JSON.parse(savedCart);
+            }
+            return cartItems;
+        }
+        
+        // Save cart to localStorage
+        function saveCart() {
+            localStorage.setItem('websiteBuilderCart', JSON.stringify(cartItems));
+        }
+        
+        // Add to cart with product data
+        window.addToCartWithData = function(productData) {
+            console.log('[CART] Adding product with data:', productData);
+            
+            // Load current cart
+            loadCart();
+            
+            // Check if product already exists in cart
+            const existingItemIndex = cartItems.findIndex(item => item.id === productData.id);
+            
+            if (existingItemIndex > -1) {
+                // Increment quantity if already exists
+                cartItems[existingItemIndex].quantity += 1;
+            } else {
+                // Add new item with quantity 1
+                cartItems.push({
+                    ...productData,
+                    quantity: 1
+                });
+            }
+            
+            // Save to localStorage
+            saveCart();
+            
+            // Update cart icon count
+            updateCartIconCount();
+            
+            // Open cart drawer
+            const drawers = document.querySelectorAll('.cart-drawer');
+            if (drawers.length > 0) {
+                const drawer = drawers[0];
+                const overlay = document.getElementById(drawer.id + '-overlay');
+                
+                if (drawer && overlay) {
+                    updateCartDrawerContent(drawer.id);
+                    overlay.style.display = 'block';
+                    setTimeout(() => {
+                        drawer.style.right = '0';
+                    }, 10);
+                }
+            }
+            
+            console.log('[CART] Cart updated:', cartItems);
+        };
+        
+        // Update cart icon count
+        function updateCartIconCount() {
+            loadCart();
+            const totalItems = cartItems.reduce((total, item) => total + item.quantity, 0);
+            console.log('[CART] Total items in cart:', totalItems);
+            
+            const cartBadge = document.querySelector('.cart-count-badge');
+            const cartWrapper = document.querySelector('.cart-icon-wrapper');
+            
+            if (cartWrapper) {
+                if (totalItems > 0) {
+                    if (cartBadge) {
+                        cartBadge.textContent = totalItems;
+                    } else {
+                        // Get cart color scheme to apply correct colors
+                        let badgeColor = '#f0f0f0';
+                        let badgeTextColor = '#333333';
+                        
+                        // Try to get cart configuration colors
+                        if (currentSectionsConfig.cart && currentSectionsConfig.cart.colorScheme) {
+                            const cartScheme = currentSectionsConfig.cart.colorScheme;
+                            const cartSchemeColors = getColorSchemeValues(cartScheme);
+                            badgeColor = cartSchemeColors.foreground || '#f0f0f0';
+                            badgeTextColor = cartSchemeColors.text || '#333333';
+                            console.log('[CART] Using cart color scheme:', cartScheme);
+                            console.log('[CART] Scheme colors:', cartSchemeColors);
+                            console.log('[CART] Badge colors - background:', badgeColor, 'text:', badgeTextColor);
+                        } else {
+                            console.log('[CART] No cart color scheme found, using defaults');
+                            console.log('[CART] currentSectionsConfig.cart:', currentSectionsConfig.cart);
+                        }
+                        
+                        // Create badge
+                        const badge = document.createElement('span');
+                        badge.className = 'cart-count-badge';
+                        badge.textContent = totalItems;
+                        badge.style.cssText = `position: absolute; top: -8px; right: -8px; background-color: ${badgeColor}; color: ${badgeTextColor}; border-radius: 50%; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 500;`;
+                        cartWrapper.style.position = 'relative';
+                        cartWrapper.appendChild(badge);
+                    }
+                } else if (cartBadge) {
+                    cartBadge.remove();
+                }
+            }
+        }
+        
+        // Helper function to get cart badge colors
+        function getCartBadgeColors(colorScheme) {
+            const schemeColors = getColorSchemeValues(colorScheme || 'scheme1');
+            return {
+                background: schemeColors.foreground || '#f0f0f0',
+                text: schemeColors.text || '#333333' // Use text color instead of background
+            };
+        }
+        
+        // Close cart drawer function
+        window.closeCartDrawer = function(drawerId) {
+            console.log('[CART-DRAWER] Closing drawer:', drawerId);
+            const drawer = document.getElementById(drawerId);
+            const overlay = document.getElementById(drawerId + '-overlay');
+            if (drawer && overlay) {
+                drawer.style.right = '-480px';
+                setTimeout(() => {
+                    overlay.style.display = 'none';
+                }, 300);
+            }
+        };
+        
+        // Update cart drawer content
+        function updateCartDrawerContent(drawerId) {
+            console.log('[CART] Updating drawer content for:', drawerId);
+            
+            const drawer = document.getElementById(drawerId);
+            if (!drawer) {
+                console.log('[CART] Drawer not found:', drawerId);
+                return;
+            }
+            
+            const cartContent = drawer.querySelector('.cart-drawer-content');
+            if (!cartContent) {
+                console.log('[CART] Cart content element not found');
+                return;
+            }
+            
+            // Load current cart
+            loadCart();
+            console.log('[CART] Cart items loaded:', cartItems.length, cartItems);
+            
+            // Get translations
+            const trans = translations[currentLanguage] || translations['es'] || {};
+            
+            if (cartItems.length === 0) {
+                // Show empty cart message
+                cartContent.innerHTML = `
+                    <div style="text-align: center; padding: 40px 20px;">
+                        <p style="margin-bottom: 24px;">${trans['cart.empty.message'] || 'Your cart is currently empty.'}</p>
+                        <button onclick="if(window.closeCartDrawer) { window.closeCartDrawer('${drawerId}'); }" 
+                                style="padding: 12px 24px; background-color: #121212; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px;">
+                            ${trans['cart.continue.shopping'] || 'Continue shopping'}
+                        </button>
+                    </div>
+                `;
+            } else {
+                // Show cart items
+                let cartItemsHtml = cartItems.map(item => `
+                    <div style="display: flex; gap: 16px; padding: 16px 20px; border-bottom: 1px solid #e5e5e5;">
+                        ${item.image ? `
+                            <img src="${item.image}" alt="${item.name}" style="width: 80px; height: 80px; object-fit: cover; border-radius: 4px; flex-shrink: 0;">
+                        ` : `
+                            <div style="width: 80px; height: 80px; background-color: #f0f0f0; border-radius: 4px; flex-shrink: 0; display: flex; align-items: center; justify-content: center;">
+                                <span class="material-symbols-outlined" style="font-size: 32px; color: #ccc;">image</span>
+                            </div>
+                        `}
+                        <div style="flex: 1; padding-left: 8px;">
+                            <h4 style="margin: 0 0 4px 0; font-size: 14px; font-weight: 500;">${item.name}</h4>
+                            <p style="margin: 0 0 8px 0; font-size: 12px; color: #666;">${item.vendor}</p>
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <div style="display: flex; align-items: center; border: 1px solid #e5e5e5; border-radius: 4px;">
+                                    <button onclick="updateCartQuantity('${item.id}', ${item.quantity - 1})" 
+                                            style="width: 32px; height: 32px; border: none; background: none; cursor: pointer;">-</button>
+                                    <span style="padding: 0 12px; font-size: 14px;">${item.quantity}</span>
+                                    <button onclick="updateCartQuantity('${item.id}', ${item.quantity + 1})" 
+                                            style="width: 32px; height: 32px; border: none; background: none; cursor: pointer;">+</button>
+                                </div>
+                                <span style="font-size: 14px; font-weight: 500;">$${formatPrice(item.price * item.quantity)}</span>
+                            </div>
+                        </div>
+                        <button onclick="removeFromCart('${item.id}')" 
+                                style="width: 24px; height: 24px; border: none; background: none; cursor: pointer; padding: 0; margin-left: 8px;">
+                            <span class="material-symbols-outlined" style="font-size: 20px;">close</span>
+                        </button>
+                    </div>
+                `).join('');
+                
+                const subtotal = cartItems.reduce((total, item) => total + (item.price * item.quantity), 0);
+                
+                cartContent.innerHTML = `
+                    <div style="flex: 1; overflow-y: auto;">
+                        ${cartItemsHtml}
+                    </div>
+                    <div style="padding: 20px; border-top: 1px solid #e5e5e5;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 16px;">
+                            <span style="font-size: 16px; font-weight: 500;">${trans['cart.subtotal'] || 'Subtotal'}</span>
+                            <span style="font-size: 16px; font-weight: 500;">$${formatPrice(subtotal)}</span>
+                        </div>
+                        <button style="width: 100%; padding: 12px; background-color: #121212; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; margin-bottom: 8px;">
+                            ${trans['cart.checkout'] || 'Checkout'}
+                        </button>
+                        <button onclick="if(window.closeCartDrawer) { window.closeCartDrawer('${drawerId}'); }" 
+                                style="width: 100%; padding: 12px; background-color: transparent; color: #121212; border: 1px solid #121212; border-radius: 4px; cursor: pointer; font-size: 14px;">
+                            ${trans['cart.continue.shopping'] || 'Continue shopping'}
+                        </button>
+                    </div>
+                `;
+            }
+        }
+        
+        // Update cart quantity
+        window.updateCartQuantity = function(productId, newQuantity) {
+            console.log('[CART] Updating quantity for:', productId, 'to:', newQuantity);
+            
+            if (newQuantity <= 0) {
+                removeFromCart(productId);
+                return;
+            }
+            
+            loadCart();
+            const itemIndex = cartItems.findIndex(item => item.id === productId);
+            if (itemIndex > -1) {
+                cartItems[itemIndex].quantity = newQuantity;
+                saveCart();
+                
+                // Update drawer content
+                const drawers = document.querySelectorAll('.cart-drawer');
+                if (drawers.length > 0) {
+                    updateCartDrawerContent(drawers[0].id);
+                }
+                
+                updateCartIconCount();
+            }
+        };
+        
+        // Remove from cart
+        window.removeFromCart = function(productId) {
+            console.log('[CART] Removing product:', productId);
+            
+            loadCart();
+            cartItems = cartItems.filter(item => item.id !== productId);
+            saveCart();
+            
+            // Update drawer content
+            const drawers = document.querySelectorAll('.cart-drawer');
+            if (drawers.length > 0) {
+                updateCartDrawerContent(drawers[0].id);
+            }
+            
+            updateCartIconCount();
+        };
+        
+        // Translations
+        translations = {
+            'es': {
+                'cart.drawer.title': 'Cajón del carrito',
+                'cart.empty.message': 'Tu carrito está actualmente vacío.',
+                'cart.continue.shopping': 'Continuar comprando',
+                'cart.checkout': 'Finalizar compra',
+                'cart.subtotal': 'Subtotal'
+            },
+            'en': {
+                'cart.drawer.title': 'Cart drawer',
+                'cart.empty.message': 'Your cart is currently empty.',
+                'cart.continue.shopping': 'Continue shopping',
+                'cart.checkout': 'Checkout',
+                'cart.subtotal': 'Subtotal'
+            }
+        };
+        
         $(document).ready(function() {
             loadWebsiteData();
+            
+            // Initialize cart count on load
+            setTimeout(() => {
+                updateCartIconCount();
+            }, 1000);
+            
+            // Add to cart button event listener
+            $(document).on('click', '.add-to-cart-button', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                const $button = $(this);
+                const productData = {
+                    id: $button.data('product-id'),
+                    name: $button.data('product-name'),
+                    price: parseFloat($button.data('product-price')) || 0,
+                    vendor: $button.data('product-vendor') || 'Store',
+                    image: $button.data('product-image') || ''
+                };
+                
+                console.log('[PREVIEW] Add to cart clicked, product data:', productData);
+                
+                // Use parent window's function if available
+                if (window.parent && window.parent.addToCartWithData && window.parent !== window) {
+                    window.parent.addToCartWithData(productData);
+                } else {
+                    // Handle cart in preview real
+                    addToCartWithData(productData);
+                }
+            });
+            
+            // Cart icon click handler
+            $(document).on('click', '.cart-icon-wrapper', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                e.stopImmediatePropagation();
+                
+                console.log('[PREVIEW REAL] Cart icon clicked');
+                
+                // Find cart drawer
+                let drawers = document.querySelectorAll('.cart-drawer');
+                console.log('[PREVIEW REAL] Found drawers:', drawers.length);
+                
+                // If no drawer exists, try to create it
+                if (drawers.length === 0 && window.renderCartDrawer) {
+                    console.log('[PREVIEW REAL] No drawer found, attempting to create it');
+                    const cartConfig = currentSectionsConfig.cart || { colorScheme: 'scheme1' };
+                    const drawerHtml = window.renderCartDrawer({ ...cartConfig, autoOpen: false });
+                    
+                    if (drawerHtml) {
+                        // Add drawer to body
+                        const tempDiv = document.createElement('div');
+                        tempDiv.innerHTML = drawerHtml;
+                        
+                        // Extract and execute scripts
+                        const scripts = tempDiv.querySelectorAll('script');
+                        
+                        // Append all non-script elements
+                        while (tempDiv.firstChild) {
+                            if (tempDiv.firstChild.tagName !== 'SCRIPT') {
+                                document.body.appendChild(tempDiv.firstChild);
+                            } else {
+                                tempDiv.removeChild(tempDiv.firstChild);
+                            }
+                        }
+                        
+                        // Execute scripts
+                        scripts.forEach(script => {
+                            const newScript = document.createElement('script');
+                            newScript.textContent = script.textContent;
+                            document.body.appendChild(newScript);
+                        });
+                        
+                        // Re-query for drawers
+                        drawers = document.querySelectorAll('.cart-drawer');
+                        console.log('[PREVIEW REAL] Drawers after creation:', drawers.length);
+                    }
+                }
+                
+                // Now try to open the drawer
+                if (drawers.length > 0) {
+                    const drawer = drawers[0];
+                    const overlay = document.getElementById(drawer.id + '-overlay');
+                    console.log('[PREVIEW REAL] Found drawer:', drawer.id, 'and overlay:', overlay ? 'yes' : 'no');
+                    
+                    if (drawer && overlay) {
+                        // Update cart content
+                        updateCartDrawerContent(drawer.id);
+                        
+                        // Open drawer
+                        console.log('[PREVIEW REAL] Opening drawer');
+                        overlay.style.display = 'block';
+                        setTimeout(() => {
+                            drawer.style.right = '0';
+                        }, 10);
+                    }
+                } else {
+                    console.log('[PREVIEW REAL] No drawer found to open');
+                }
+                
+                return false;
+            });
         });
     </script>
 </body>

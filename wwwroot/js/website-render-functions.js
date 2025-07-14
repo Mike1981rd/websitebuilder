@@ -139,6 +139,54 @@ function getColorSchemeValues(schemeName) {
 }
 
 // Función para renderizar el header
+// Helper function to get cart badge color from cart's color scheme
+function getCartBadgeColor() {
+    try {
+        // Get cart configuration
+        let cartConfig = null;
+        
+        if (typeof window !== 'undefined' && window.currentSectionsConfig && window.currentSectionsConfig.cart) {
+            cartConfig = window.currentSectionsConfig.cart;
+        } else if (typeof window !== 'undefined' && window.parent && window.parent.currentSectionsConfig && window.parent.currentSectionsConfig.cart) {
+            cartConfig = window.parent.currentSectionsConfig.cart;
+        }
+        
+        if (cartConfig && cartConfig.colorScheme) {
+            const cartSchemeColors = getColorSchemeValues(cartConfig.colorScheme);
+            return cartSchemeColors.foreground || '#f0f0f0';
+        }
+    } catch (e) {
+        console.log('[CART] Error getting cart badge color:', e);
+    }
+    
+    // Default fallback
+    return '#f0f0f0';
+}
+
+// Helper function to get cart badge text color from cart's color scheme
+function getCartBadgeTextColor() {
+    try {
+        // Get cart configuration
+        let cartConfig = null;
+        
+        if (typeof window !== 'undefined' && window.currentSectionsConfig && window.currentSectionsConfig.cart) {
+            cartConfig = window.currentSectionsConfig.cart;
+        } else if (typeof window !== 'undefined' && window.parent && window.parent.currentSectionsConfig && window.parent.currentSectionsConfig.cart) {
+            cartConfig = window.parent.currentSectionsConfig.cart;
+        }
+        
+        if (cartConfig && cartConfig.colorScheme) {
+            const cartSchemeColors = getColorSchemeValues(cartConfig.colorScheme);
+            return cartSchemeColors.text || '#333333';
+        }
+    } catch (e) {
+        console.log('[CART] Error getting cart badge text color:', e);
+    }
+    
+    // Default fallback
+    return '#333333';
+}
+
 function renderHeader(config) {
     if (!config || config.isHidden) return '';
 
@@ -237,12 +285,59 @@ function renderHeader(config) {
         `;
     }
     
+    // Get cart count from localStorage to persist across re-renders
+    let cartCount = 0;
+    try {
+        if (typeof window !== 'undefined') {
+            let cartItems = [];
+            
+            // Try to get from parent window first
+            if (window.parent && window.parent !== window && window.parent.localStorage) {
+                const savedCart = window.parent.localStorage.getItem('websiteBuilderCart');
+                if (savedCart) {
+                    cartItems = JSON.parse(savedCart);
+                }
+            } else {
+                // Direct access to localStorage
+                const savedCart = localStorage.getItem('websiteBuilderCart');
+                if (savedCart) {
+                    cartItems = JSON.parse(savedCart);
+                }
+            }
+            
+            cartCount = cartItems.reduce((total, item) => total + (item.quantity || 0), 0);
+        }
+    } catch (e) {
+        console.log('[HEADER] Error getting cart count:', e);
+    }
+    
     // Icons section
     const iconsHtml = `
         <div class="header-icons-right" style="display: flex; gap: 24px; align-items: center;">
             <span class="${iconClass}" style="font-size: 24px; font-weight: ${iconWeight}; cursor: pointer; color: ${schemeColors.text};">${searchIcon}</span>
             <span class="${iconClass}" style="font-size: 24px; font-weight: ${iconWeight}; cursor: pointer; color: ${schemeColors.text};">${personIcon}</span>
-            <span class="${iconClass}" style="font-size: 24px; font-weight: ${iconWeight}; cursor: pointer; color: ${schemeColors.text};">${cartIcon}</span>
+            <div class="cart-icon-wrapper" style="position: relative; cursor: pointer;">
+                <span class="${iconClass} cart-icon-header" style="font-size: 24px; font-weight: ${iconWeight}; color: ${schemeColors.text};">${cartIcon}</span>
+                ${cartCount > 0 ? `
+                    <span class="cart-count-badge" style="
+                        position: absolute;
+                        top: -8px;
+                        right: -8px;
+                        background-color: ${getCartBadgeColor()};
+                        color: ${getCartBadgeTextColor()};
+                        font-size: 11px;
+                        font-weight: 500;
+                        padding: 2px 6px;
+                        border-radius: 10px;
+                        min-width: 18px;
+                        height: 18px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        line-height: 1;
+                    ">${cartCount}</span>
+                ` : ''}
+            </div>
         </div>
     `;
     
@@ -2482,5 +2577,102 @@ function renderFooter(config) {
                 </div>
             </div>
         </div>
+    `;
+}
+
+// Función para renderizar el cart drawer
+function renderCartDrawer(config) {
+    console.log('[CART-DRAWER] Rendering cart drawer with config:', config);
+    console.log('[CART-DRAWER] Auto-open:', config.autoOpen);
+    
+    const schemeColors = getColorSchemeValues(config.colorScheme || 'scheme1');
+    const drawerWidth = '480px'; // Ancho aumentado del drawer
+    
+    // Crear un ID único para este drawer
+    const drawerId = 'cart-drawer-' + Date.now();
+    
+    return `
+        <!-- Cart Drawer Overlay -->
+        <div id="${drawerId}-overlay" class="cart-drawer-overlay" 
+             style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); z-index: 9998; display: none; cursor: pointer;"
+             onclick="if(window.parent && window.parent.closeCartDrawer) { window.parent.closeCartDrawer('${drawerId}'); } else { window.closeCartDrawer('${drawerId}'); }"></div>
+        
+        <!-- Cart Drawer -->
+        <div id="${drawerId}" class="cart-drawer" 
+             style="position: fixed; top: 0; right: -${drawerWidth}; width: ${drawerWidth}; height: 100%; background-color: ${schemeColors.background}; z-index: 9999; transition: right 0.3s ease-in-out; box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1); overflow-y: auto;">
+            
+            <!-- Drawer Header -->
+            <div class="cart-drawer-header" style="display: flex; align-items: center; justify-content: space-between; padding: 20px; border-bottom: 1px solid ${schemeColors.border || '#e0e0e0'};">
+                <h3 style="margin: 0; font-size: 18px; font-weight: 500; color: ${schemeColors.text};">
+                    ${window.translations?.[window.currentLanguage]?.['cart.drawer.title'] || 'Cart drawer'}
+                </h3>
+                <button onclick="if(window.parent && window.parent.closeCartDrawer) { window.parent.closeCartDrawer('${drawerId}'); } else { window.closeCartDrawer('${drawerId}'); }" 
+                        style="background: none; border: none; cursor: pointer; padding: 8px; color: ${schemeColors.text}; display: flex; align-items: center; justify-content: center; border-radius: 4px; transition: background-color 0.2s ease;"
+                        onmouseover="this.style.backgroundColor='rgba(0,0,0,0.05)'"
+                        onmouseout="this.style.backgroundColor='transparent'">
+                    <i class="material-icons" style="font-size: 24px;">close</i>
+                </button>
+            </div>
+            
+            <!-- Cart Content (dynamically updated) -->
+            <div class="cart-drawer-content">
+                <!-- Content will be dynamically updated by updateCartDrawerContent -->
+            </div>
+            
+            <!-- Progress Bar (if enabled) -->
+            ${config.showProgressBar && config.freeShippingGoal > 0 ? `
+                <div class="cart-progress-section" style="padding: 20px; border-top: 1px solid ${schemeColors.border || '#e0e0e0'};">
+                    <div class="progress-message" style="text-align: center; margin-bottom: 10px; color: ${schemeColors.text}; font-size: 14px;">
+                        ${window.translations?.[window.currentLanguage]?.['cart.shipping.message'] || 'Free shipping on orders over'} $${config.freeShippingGoal}
+                    </div>
+                    <div class="progress-bar" style="width: 100%; height: 8px; background-color: ${schemeColors.foreground || '#f0f0f0'}; border-radius: 4px; overflow: hidden;">
+                        <div class="progress-fill" style="width: 0%; height: 100%; background: ${config.progressBarGradient === 'gradient-linear' ? 'linear-gradient(90deg, #ffba00, #ff6b00)' : '#ffba00'}; transition: width 0.3s ease;"></div>
+                    </div>
+                </div>
+            ` : ''}
+        </div>
+        
+        <script type="text/javascript">
+            // Función para abrir el drawer
+            window.openCartDrawer = function(drawerId) {
+                console.log('[CART-DRAWER] Opening drawer:', drawerId);
+                const drawer = document.getElementById(drawerId);
+                const overlay = document.getElementById(drawerId + '-overlay');
+                if (drawer && overlay) {
+                    // Update cart content if parent function exists
+                    if (window.parent && window.parent.updateCartDrawerContent) {
+                        window.parent.updateCartDrawerContent(drawerId);
+                    }
+                    
+                    overlay.style.display = 'block';
+                    setTimeout(() => {
+                        drawer.style.right = '0';
+                    }, 10);
+                } else {
+                    console.error('[CART-DRAWER] Drawer or overlay not found:', drawerId);
+                }
+            }
+            
+            // Función para cerrar el drawer
+            window.closeCartDrawer = function(drawerId) {
+                console.log('[CART-DRAWER] Closing drawer:', drawerId);
+                const drawer = document.getElementById(drawerId);
+                const overlay = document.getElementById(drawerId + '-overlay');
+                if (drawer && overlay) {
+                    drawer.style.right = '-480px';
+                    setTimeout(() => {
+                        overlay.style.display = 'none';
+                    }, 300);
+                }
+            }
+            
+            // Auto-abrir el drawer si estamos en la vista de configuración
+            ${config.autoOpen ? `
+                console.log('[CART-DRAWER] Auto-open enabled, opening in 500ms');
+                setTimeout(() => {
+                    window.openCartDrawer('${drawerId}');
+                }, 600);
+            ` : ''}
+        </script>
     `;
 }
