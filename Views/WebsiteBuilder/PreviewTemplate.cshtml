@@ -229,11 +229,25 @@
     <!-- Variables globales necesarias para el renderizado -->
     <script>
         // Variables globales que necesitan las funciones de renderizado
-        let currentSectionsConfig = window.parent.currentSectionsConfig || {};
-        let currentGlobalThemeSettings = window.parent.currentGlobalThemeSettings || {};
-        let currentMenusData = window.parent.currentMenusData || [];
+        // Estas se actualizarán dinámicamente desde el parent cuando se llame renderPreview()
+        let currentSectionsConfig = {};
+        let currentPageData = {};
+        let currentGlobalThemeSettings = {};
+        let currentMenusData = [];
         let currentAnnouncementIndex = 0;
-        let currentLanguage = window.parent.currentLanguage || 'es';
+        let currentLanguage = 'es';
+        let currentPageId = 'home';
+        let pagesConfig = {};
+        
+        // Inicializar con valores del parent si están disponibles
+        if (window.parent) {
+            currentSectionsConfig = window.parent.currentSectionsConfig || {};
+            currentGlobalThemeSettings = window.parent.currentGlobalThemeSettings || {};
+            currentMenusData = window.parent.currentMenusData || [];
+            currentLanguage = window.parent.currentLanguage || 'es';
+            currentPageId = window.parent.currentPageId || 'home';
+            pagesConfig = window.parent.pagesConfig || {};
+        }
         
         // Helper function para obtener el nombre de la fuente
         window.getFontNameFromValueSafe = window.parent.getFontNameFromValueSafe || function(fontValue) {
@@ -274,6 +288,21 @@
         if (!window.currentGlobalThemeSettings && window.parent && window.parent.currentGlobalThemeSettings) {
             window.currentGlobalThemeSettings = window.parent.currentGlobalThemeSettings;
             console.log('[PREVIEW TEMPLATE] Copied currentGlobalThemeSettings from parent');
+        }
+        
+        // Ensure getColorSchemeValues is available before modules load
+        if (!window.getColorSchemeValues) {
+            console.warn('[PREVIEW TEMPLATE] getColorSchemeValues not available, creating basic version');
+            window.getColorSchemeValues = function(schemeName) {
+                const schemes = {
+                    'scheme1': { background: '#ffffff', text: '#333333', border: '#e5e5e5' },
+                    'scheme2': { background: '#1a1a1a', text: '#ffffff', border: '#333333' },
+                    'scheme3': { background: '#f0f0f0', text: '#333333', border: '#cccccc' },
+                    'scheme4': { background: '#0066cc', text: '#ffffff', border: '#0052a3' },
+                    'scheme5': { background: '#ff6b6b', text: '#ffffff', border: '#ff5252' }
+                };
+                return schemes[schemeName] || schemes['scheme1'];
+            };
         }
     </script>
     
@@ -337,9 +366,19 @@
                 console.log('[PREVIEW] Found drawers:', drawers.length);
                 
                 // If no drawer exists, try to create it
-                if (drawers.length === 0 && window.renderCartDrawer && window.parent && window.parent.currentSectionsConfig) {
+                if (drawers.length === 0 && window.renderCartDrawer) {
                     console.log('[PREVIEW] No drawer found, attempting to create it');
-                    const cartConfig = window.parent.currentSectionsConfig.cart || { colorScheme: 'scheme1' };
+                    let cartConfig = { colorScheme: 'scheme1' };
+                    
+                    // Try to get cart config from the correct location
+                    if (window.currentPageData && window.currentPageData.sectionsConfig && window.currentPageData.sectionsConfig.cart) {
+                        cartConfig = window.currentPageData.sectionsConfig.cart;
+                    } else if (window.currentSectionsConfig && window.currentSectionsConfig.cart) {
+                        cartConfig = window.currentSectionsConfig.cart;
+                    } else if (window.parent && window.parent.currentSectionsConfig && window.parent.currentSectionsConfig.cart) {
+                        cartConfig = window.parent.currentSectionsConfig.cart;
+                    }
+                    
                     const drawerHtml = window.renderCartDrawer({ ...cartConfig, autoOpen: false });
                     
                     if (drawerHtml) {

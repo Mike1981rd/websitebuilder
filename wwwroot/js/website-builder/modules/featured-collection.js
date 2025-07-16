@@ -25,12 +25,37 @@ window.WebsiteBuilderModules.FeaturedCollection = {
         }
         
         // Debug: Check if we're getting stale data
-        if (config.id && window.currentSectionsConfig?.featuredCollections?.[config.id]) {
-            const currentData = window.currentSectionsConfig.featuredCollections[config.id];
-            console.log('[FEATURED COLLECTION] Current data in currentSectionsConfig:', currentData);
-            if (currentData.config && currentData.config.colorScheme !== settings.colorScheme) {
-                console.warn('[FEATURED COLLECTION] WARNING: Stale data detected! Using fresh data from currentSectionsConfig');
-                settings = currentData.config;
+        // Try to get fresh data from the correct location based on current page structure
+        if (config.id) {
+            let freshData = null;
+            
+            // First check if we have currentPageData (passed from parent to iframe)
+            if (window.currentPageData && window.currentPageData.sectionsConfig && window.currentPageData.sectionsConfig.featuredCollections) {
+                freshData = window.currentPageData.sectionsConfig.featuredCollections[config.id];
+                if (freshData) {
+                    console.log('[FEATURED COLLECTION] Found fresh data in currentPageData:', freshData);
+                }
+            }
+            
+            // Then try pagesConfig structure
+            if (!freshData && window.pagesConfig && window.currentPageId && window.pagesConfig[window.currentPageId]) {
+                const pageData = window.pagesConfig[window.currentPageId];
+                if (pageData.sectionsConfig && pageData.sectionsConfig.featuredCollections && pageData.sectionsConfig.featuredCollections[config.id]) {
+                    freshData = pageData.sectionsConfig.featuredCollections[config.id];
+                    console.log('[FEATURED COLLECTION] Found fresh data in pagesConfig:', freshData);
+                }
+            }
+            
+            // Fallback to currentSectionsConfig for backward compatibility
+            if (!freshData && window.currentSectionsConfig?.featuredCollections?.[config.id]) {
+                freshData = window.currentSectionsConfig.featuredCollections[config.id];
+                console.log('[FEATURED COLLECTION] Found fresh data in currentSectionsConfig:', freshData);
+            }
+            
+            // Use fresh data if found and it's different
+            if (freshData && freshData.config) {
+                console.log('[FEATURED COLLECTION] Using fresh data config');
+                settings = freshData.config;
             }
         }
         
@@ -959,7 +984,7 @@ window.WebsiteBuilderModules.FeaturedCollection = {
                                     <span style="font-size: 14px;">${window.translations && window.translations[window.currentLanguage] ? (window.translations[window.currentLanguage]['featuredCollection.noCollectionSelected'] || 'No collection selected') : 'No collection selected'}</span>
                                 </div>
                             `)}
-                            <button style="width: 100%; padding: 8px 16px; background: white; border: 1px solid #e0e0e0; border-radius: 4px; cursor: pointer; color: #202223; font-weight: 500;" 
+                            <button id="featured-collection-change-collection-btn" style="width: 100%; padding: 8px 16px; background: white; border: 1px solid #e0e0e0; border-radius: 4px; cursor: pointer; color: #202223; font-weight: 500;" 
                                     data-i18n="featuredCollection.change">Cambiar</button>
                         </div>
                     </div>
@@ -999,7 +1024,7 @@ window.WebsiteBuilderModules.FeaturedCollection = {
                                     <span style="font-size: 14px;">${window.translations && window.translations[window.currentLanguage] ? (window.translations[window.currentLanguage]['featuredCollection.noProductsSelected'] || 'No products selected') : 'No products selected'}</span>
                                 </div>
                             `}
-                            <button style="width: 100%; padding: 8px 16px; background: white; border: 1px solid #e0e0e0; border-radius: 4px; cursor: pointer; color: #202223; font-weight: 500; margin-top: ${settings.products && settings.products.length > 0 ? '12px' : '0'};" 
+                            <button id="featured-collection-change-products-btn" style="width: 100%; padding: 8px 16px; background: white; border: 1px solid #e0e0e0; border-radius: 4px; cursor: pointer; color: #202223; font-weight: 500; margin-top: ${settings.products && settings.products.length > 0 ? '12px' : '0'};" 
                                     data-i18n="featuredCollection.change">Cambiar</button>
                         </div>
                         <div style="font-size: 12px; color: #666; margin-top: 8px;">
@@ -1734,17 +1759,58 @@ window.WebsiteBuilderModules.FeaturedCollection = {
             updateConfig(fieldName, parseInt(value));
         });
         
-        // Collection change button
-        $('.form-group button[data-i18n="change"]').eq(0).off('click.featuredCollection').on('click.featuredCollection', function() {
-            console.log('[FEATURED COLLECTION] Collection change button clicked');
-            window.WebsiteBuilderModules.FeaturedCollection.openCollectionSelector();
-        });
-        
-        // Products change button
-        $('.form-group button[data-i18n="change"]').eq(1).off('click.featuredCollection').on('click.featuredCollection', function() {
-            console.log('[FEATURED COLLECTION] Products change button clicked');
-            window.WebsiteBuilderModules.FeaturedCollection.openProductsSelector();
-        });
+        // Collection change button - Direct approach with ID
+        setTimeout(() => {
+            console.log('[FEATURED COLLECTION] Setting up collection change button...');
+            
+            // Try multiple approaches to ensure we catch the button
+            // Approach 1: Direct ID selector
+            $('#featured-collection-change-collection-btn').off('click').on('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('[FEATURED COLLECTION] Collection button clicked (ID selector)');
+                window.WebsiteBuilderModules.FeaturedCollection.openCollectionSelector();
+            });
+            
+            // Approach 2: Document-level delegation (backup)
+            $(document).off('click.fcCollection').on('click.fcCollection', '#featured-collection-change-collection-btn', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('[FEATURED COLLECTION] Collection button clicked (delegated)');
+                window.WebsiteBuilderModules.FeaturedCollection.openCollectionSelector();
+            });
+            
+            // Debug: Check if button exists
+            const collectionBtn = $('#featured-collection-change-collection-btn');
+            console.log('[FEATURED COLLECTION] Collection button found:', collectionBtn.length > 0);
+            if (collectionBtn.length > 0) {
+                console.log('[FEATURED COLLECTION] Button text:', collectionBtn.text());
+                console.log('[FEATURED COLLECTION] Button HTML:', collectionBtn[0].outerHTML);
+            }
+            
+            // Products change button - Direct approach with ID
+            $('#featured-collection-change-products-btn').off('click').on('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('[FEATURED COLLECTION] Products button clicked (ID selector)');
+                window.WebsiteBuilderModules.FeaturedCollection.openProductsSelector();
+            });
+            
+            // Approach 2: Document-level delegation for products (backup)
+            $(document).off('click.fcProducts').on('click.fcProducts', '#featured-collection-change-products-btn', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('[FEATURED COLLECTION] Products button clicked (delegated)');
+                window.WebsiteBuilderModules.FeaturedCollection.openProductsSelector();
+            });
+            
+            // Debug: Check if products button exists
+            const productsBtn = $('#featured-collection-change-products-btn');
+            console.log('[FEATURED COLLECTION] Products button found:', productsBtn.length > 0);
+            if (productsBtn.length > 0) {
+                console.log('[FEATURED COLLECTION] Products button text:', productsBtn.text());
+            }
+        }, 200);
         
     },
     
@@ -1766,14 +1832,16 @@ window.WebsiteBuilderModules.FeaturedCollection = {
                 currentConfig.collections.forEach((id, index) => {
                     window.WebsiteBuilderModules.FeaturedCollection.selectedCollections.push({
                         id: id,
-                        title: currentConfig.collectionNames[index] || 'Collection'
+                        title: currentConfig.collectionNames[index] || 'Collection',
+                        imageUrl: currentConfig.collectionImages ? currentConfig.collectionImages[index] : null
                     });
                 });
             } else if (currentConfig.collection && currentConfig.collectionName) {
                 // Formato antiguo con una sola colección
                 window.WebsiteBuilderModules.FeaturedCollection.selectedCollections.push({
                     id: currentConfig.collection,
-                    title: currentConfig.collectionName
+                    title: currentConfig.collectionName,
+                    imageUrl: null // No había imagen en formato antiguo
                 });
             }
         }
@@ -2096,30 +2164,47 @@ window.WebsiteBuilderModules.FeaturedCollection = {
         
         const sectionId = window.currentFeaturedCollectionId || 'featured-collection-' + Date.now();
         
-        // Actualizar configuración
-        if (!window.currentSectionsConfig.featuredCollections) {
-            window.currentSectionsConfig.featuredCollections = {};
-        }
-        if (!window.currentSectionsConfig.featuredCollections[sectionId]) {
-            window.currentSectionsConfig.featuredCollections[sectionId] = { config: {} };
+        // Obtener referencia correcta según la estructura actual
+        let targetConfig;
+        
+        // Primero intentar con pagesConfig
+        if (window.pagesConfig && window.currentPageId && window.pagesConfig[window.currentPageId]) {
+            const pageData = window.pagesConfig[window.currentPageId];
+            if (!pageData.sectionsConfig) pageData.sectionsConfig = {};
+            if (!pageData.sectionsConfig.featuredCollections) pageData.sectionsConfig.featuredCollections = {};
+            if (!pageData.sectionsConfig.featuredCollections[sectionId]) {
+                pageData.sectionsConfig.featuredCollections[sectionId] = { config: {} };
+            }
+            targetConfig = pageData.sectionsConfig.featuredCollections[sectionId];
+        } else {
+            // Fallback a currentSectionsConfig
+            if (!window.currentSectionsConfig.featuredCollections) {
+                window.currentSectionsConfig.featuredCollections = {};
+            }
+            if (!window.currentSectionsConfig.featuredCollections[sectionId]) {
+                window.currentSectionsConfig.featuredCollections[sectionId] = { config: {} };
+            }
+            targetConfig = window.currentSectionsConfig.featuredCollections[sectionId];
         }
         
         if (this.selectedCollections.length > 0) {
             // Guardar IDs y nombres de colecciones
-            window.currentSectionsConfig.featuredCollections[sectionId].config.collections = 
-                this.selectedCollections.map(c => c.id);
-            window.currentSectionsConfig.featuredCollections[sectionId].config.collectionNames = 
-                this.selectedCollections.map(c => c.title);
+            targetConfig.config.collections = this.selectedCollections.map(c => c.id);
+            targetConfig.config.collectionNames = this.selectedCollections.map(c => c.title);
             
+            // NUEVO: Guardar URLs de imágenes
+            targetConfig.config.collectionImages = this.selectedCollections.map(c => c.imageUrl || '');
+                
             // Por compatibilidad, mantener el primer elemento como collection singular
-            window.currentSectionsConfig.featuredCollections[sectionId].config.collection = this.selectedCollections[0].id;
-            window.currentSectionsConfig.featuredCollections[sectionId].config.collectionName = this.selectedCollections[0].title;
+            targetConfig.config.collection = this.selectedCollections[0].id;
+            targetConfig.config.collectionName = this.selectedCollections[0].title;
         } else {
             // Limpiar selección
-            delete window.currentSectionsConfig.featuredCollections[sectionId].config.collections;
-            delete window.currentSectionsConfig.featuredCollections[sectionId].config.collectionNames;
-            delete window.currentSectionsConfig.featuredCollections[sectionId].config.collection;
-            delete window.currentSectionsConfig.featuredCollections[sectionId].config.collectionName;
+            delete targetConfig.config.collections;
+            delete targetConfig.config.collectionNames;
+            delete targetConfig.config.collectionImages;
+            delete targetConfig.config.collection;
+            delete targetConfig.config.collectionName;
         }
         
         // Marcar como cambios pendientes
@@ -2471,22 +2556,37 @@ window.WebsiteBuilderModules.FeaturedCollection = {
         
         const sectionId = window.currentFeaturedCollectionId || 'featured-collection-' + Date.now();
         
-        // Actualizar configuración
-        if (!window.currentSectionsConfig.featuredCollections) {
-            window.currentSectionsConfig.featuredCollections = {};
-        }
-        if (!window.currentSectionsConfig.featuredCollections[sectionId]) {
-            window.currentSectionsConfig.featuredCollections[sectionId] = { config: {} };
+        // Obtener referencia correcta según la estructura actual
+        let targetConfig;
+        
+        // Primero intentar con pagesConfig
+        if (window.pagesConfig && window.currentPageId && window.pagesConfig[window.currentPageId]) {
+            const pageData = window.pagesConfig[window.currentPageId];
+            if (!pageData.sectionsConfig) pageData.sectionsConfig = {};
+            if (!pageData.sectionsConfig.featuredCollections) pageData.sectionsConfig.featuredCollections = {};
+            if (!pageData.sectionsConfig.featuredCollections[sectionId]) {
+                pageData.sectionsConfig.featuredCollections[sectionId] = { config: {} };
+            }
+            targetConfig = pageData.sectionsConfig.featuredCollections[sectionId];
+        } else {
+            // Fallback a currentSectionsConfig
+            if (!window.currentSectionsConfig.featuredCollections) {
+                window.currentSectionsConfig.featuredCollections = {};
+            }
+            if (!window.currentSectionsConfig.featuredCollections[sectionId]) {
+                window.currentSectionsConfig.featuredCollections[sectionId] = { config: {} };
+            }
+            targetConfig = window.currentSectionsConfig.featuredCollections[sectionId];
         }
         
-        window.currentSectionsConfig.featuredCollections[sectionId].config.products = this.selectedProducts.map(p => p.id);
+        targetConfig.config.products = this.selectedProducts.map(p => p.id);
         
         // IMPORTANTE: Guardar también los datos completos de los productos para el renderizado
-        window.currentSectionsConfig.featuredCollections[sectionId].config.productNames = this.selectedProducts.map(p => p.title);
-        window.currentSectionsConfig.featuredCollections[sectionId].config.productImages = this.selectedProducts.map(p => p.imageUrl || p.image);
-        window.currentSectionsConfig.featuredCollections[sectionId].config.productPrices = this.selectedProducts.map(p => parseFloat(p.price) || 0);
-        window.currentSectionsConfig.featuredCollections[sectionId].config.productVendors = this.selectedProducts.map(p => p.vendor || '');
-        window.currentSectionsConfig.featuredCollections[sectionId].config.productComparePrices = this.selectedProducts.map(p => p.compareAtPrice ? parseFloat(p.compareAtPrice) : null);
+        targetConfig.config.productNames = this.selectedProducts.map(p => p.title);
+        targetConfig.config.productImages = this.selectedProducts.map(p => p.imageUrl || p.image);
+        targetConfig.config.productPrices = this.selectedProducts.map(p => parseFloat(p.price) || 0);
+        targetConfig.config.productVendors = this.selectedProducts.map(p => p.vendor || '');
+        targetConfig.config.productComparePrices = this.selectedProducts.map(p => p.compareAtPrice ? parseFloat(p.compareAtPrice) : null);
         
         // Actualizar UI
         if (this.selectedProducts.length > 0) {
@@ -2661,32 +2761,41 @@ window.WebsiteBuilderModules.FeaturedCollection = {
         
         const sectionId = window.currentFeaturedCollectionId || 'featured-collection-' + Date.now();
         
-        // Actualizar configuración
-        if (!window.currentSectionsConfig.featuredCollections) {
-            window.currentSectionsConfig.featuredCollections = {};
-        }
-        if (!window.currentSectionsConfig.featuredCollections[sectionId]) {
-            window.currentSectionsConfig.featuredCollections[sectionId] = { config: {} };
+        // Obtener referencia correcta según la estructura actual
+        let targetConfig;
+        
+        // Primero intentar con pagesConfig
+        if (window.pagesConfig && window.currentPageId && window.pagesConfig[window.currentPageId]) {
+            const pageData = window.pagesConfig[window.currentPageId];
+            if (!pageData.sectionsConfig) pageData.sectionsConfig = {};
+            if (!pageData.sectionsConfig.featuredCollections) pageData.sectionsConfig.featuredCollections = {};
+            if (!pageData.sectionsConfig.featuredCollections[sectionId]) {
+                pageData.sectionsConfig.featuredCollections[sectionId] = { config: {} };
+            }
+            targetConfig = pageData.sectionsConfig.featuredCollections[sectionId];
+        } else {
+            // Fallback a currentSectionsConfig
+            if (!window.currentSectionsConfig.featuredCollections) {
+                window.currentSectionsConfig.featuredCollections = {};
+            }
+            if (!window.currentSectionsConfig.featuredCollections[sectionId]) {
+                window.currentSectionsConfig.featuredCollections[sectionId] = { config: {} };
+            }
+            targetConfig = window.currentSectionsConfig.featuredCollections[sectionId];
         }
         
         if (this.selectedProducts.length > 0) {
             // Guardar IDs, nombres, imágenes, precios y vendors de productos
-            window.currentSectionsConfig.featuredCollections[sectionId].config.products = 
-                this.selectedProducts.map(p => p.id);
-            window.currentSectionsConfig.featuredCollections[sectionId].config.productNames = 
-                this.selectedProducts.map(p => p.title);
-            window.currentSectionsConfig.featuredCollections[sectionId].config.productImages = 
-                this.selectedProducts.map(p => p.imageUrl || null);
-            window.currentSectionsConfig.featuredCollections[sectionId].config.productPrices = 
-                this.selectedProducts.map(p => parseFloat(p.price) || 0);
-            window.currentSectionsConfig.featuredCollections[sectionId].config.productVendors = 
-                this.selectedProducts.map(p => p.vendor || '');
-            window.currentSectionsConfig.featuredCollections[sectionId].config.productComparePrices = 
-                this.selectedProducts.map(p => p.compareAtPrice ? parseFloat(p.compareAtPrice) : null);
+            targetConfig.config.products = this.selectedProducts.map(p => p.id);
+            targetConfig.config.productNames = this.selectedProducts.map(p => p.title);
+            targetConfig.config.productImages = this.selectedProducts.map(p => p.imageUrl || null);
+            targetConfig.config.productPrices = this.selectedProducts.map(p => parseFloat(p.price) || 0);
+            targetConfig.config.productVendors = this.selectedProducts.map(p => p.vendor || '');
+            targetConfig.config.productComparePrices = this.selectedProducts.map(p => p.compareAtPrice ? parseFloat(p.compareAtPrice) : null);
         } else {
             // Limpiar selección
-            delete window.currentSectionsConfig.featuredCollections[sectionId].config.products;
-            delete window.currentSectionsConfig.featuredCollections[sectionId].config.productNames;
+            delete targetConfig.config.products;
+            delete targetConfig.config.productNames;
             delete window.currentSectionsConfig.featuredCollections[sectionId].config.productImages;
             delete window.currentSectionsConfig.featuredCollections[sectionId].config.productPrices;
             delete window.currentSectionsConfig.featuredCollections[sectionId].config.productVendors;

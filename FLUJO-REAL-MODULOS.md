@@ -1457,47 +1457,103 @@ render: function(config) {
 
 ## ETAPA 8: PREVIEW REAL
 
-### 🔴 IMPLEMENTACIÓN FINAL
+### 🔴 INFORMACIÓN CRÍTICA - ACTUALIZACIÓN MÚLTIPLES PÁGINAS
 
-#### 8.1 Caso en Preview.cshtml (~línea 578)
+Con la implementación de múltiples páginas, el sistema de preview real ha cambiado significativamente:
+
+#### Campo de Datos Correcto
+- **USAR**: `websiteData.pagesConfigJson` - Campo activo que contiene la configuración de todas las páginas
+- **NO USAR**: `websiteData.pagesJson` - Campo deprecado que ya no se utiliza
+- **Ubicación**: Views/WebsiteBuilder/Preview.cshtml línea ~338
+
+#### Estructura de Datos Actual
 ```javascript
-} else if (sectionId === 'accordion') {
-    console.log('[PREVIEW] Processing accordion section');
-    const accordionConfig = currentSectionsConfig.accordion;
-    
-    if (accordionConfig && !accordionConfig.isHidden) {
-        if (window.WebsiteBuilderModules && window.WebsiteBuilderModules.Accordion && window.WebsiteBuilderModules.Accordion.render) {
-            console.log('[PREVIEW] Rendering accordion with module');
-            finalHtml += window.WebsiteBuilderModules.Accordion.render(accordionConfig);
-        } else {
-            console.log('[PREVIEW] Accordion module not available');
-        }
-    }
+// pagesConfigJson contiene:
+{
+  "home": {
+    "id": "home",
+    "title": "Página de inicio",
+    "type": "home",
+    "sectionOrder": [...],
+    "sectionsConfig": {...}
+  },
+  "cart": {
+    "id": "cart",
+    "title": "Carrito",
+    "type": "cart",
+    "sectionOrder": ["cart"],
+    "sectionsConfig": {...}
+  }
+}
 ```
 
-#### 8.2 Event Listeners para Accordion en Preview Real (~línea 527)
+### 🔴 IMPLEMENTACIÓN FINAL
+
+#### 8.1 Carga de Datos en Preview.cshtml (~línea 338)
 ```javascript
-// Function to attach accordion event listeners
+// CORRECTO - Cargar desde pagesConfigJson
+if (websiteData.pagesConfigJson) {
+    const pagesData = JSON.parse(websiteData.pagesConfigJson);
+    
+    // Determinar página actual (por defecto 'home')
+    const currentPageId = 'home'; // O obtener de URL/contexto
+    
+    if (pagesData[currentPageId]) {
+        currentSectionsConfig = pagesData[currentPageId].sectionsConfig || {};
+        sectionOrder = pagesData[currentPageId].sectionOrder || [];
+    }
+}
+```
+
+#### 8.2 Renderización de Secciones en Preview.cshtml
+```javascript
+// En la función renderPreviewContent() (~línea 430)
+function renderPreviewContent() {
+    const container = document.getElementById('preview-container');
+    if (!container) return;
+    
+    let finalHtml = '';
+    
+    // Renderizar secciones según sectionOrder
+    if (sectionOrder && sectionOrder.length > 0) {
+        sectionOrder.forEach(sectionId => {
+            // Para cada módulo nuevo, agregar su caso aquí
+            if (sectionId === 'accordion') {
+                const accordionConfig = currentSectionsConfig.accordion;
+                
+                if (accordionConfig && !accordionConfig.isHidden) {
+                    if (window.WebsiteBuilderModules && window.WebsiteBuilderModules.Accordion && window.WebsiteBuilderModules.Accordion.render) {
+                        finalHtml += window.WebsiteBuilderModules.Accordion.render(accordionConfig);
+                    }
+                }
+            }
+            // Otros casos para header, footer, etc...
+        });
+    }
+    
+    container.innerHTML = finalHtml;
+    
+    // Attachar event listeners después de renderizar
+    setTimeout(() => {
+        attachAccordionEventListeners();
+        // Otros event listeners...
+    }, 100);
+}
+```
+
+#### 8.3 Event Listeners para Interactividad (~línea 527)
+```javascript
+// Ejemplo para accordion - cada módulo necesita sus propios event listeners
 function attachAccordionEventListeners() {
     const faqHeaders = document.querySelectorAll('[data-accordion-toggle="true"]');
-    console.log('[PREVIEW ACCORDION] Found', faqHeaders.length, 'FAQ headers');
     
-    faqHeaders.forEach((header, index) => {
+    faqHeaders.forEach((header) => {
         header.addEventListener('click', function(e) {
             e.preventDefault();
-            e.stopPropagation();
-            
             const itemIndex = this.dataset.itemIndex;
             const accordionId = this.dataset.accordionId;
             const content = document.querySelector(`.faq-content-${accordionId}-${itemIndex}`);
             const isActive = this.classList.contains('active');
-            
-            // Get toggle icon element
-            const toggleIcon = this.querySelector('.faq-toggle');
-            
-            // Get accordion config to know the toggle style
-            const config = currentSectionsConfig.accordion;
-            const toggleStyle = config?.toggleStyle || 'plus-minus';
             
             if (isActive) {
                 this.classList.remove('active');
@@ -1505,19 +1561,11 @@ function attachAccordionEventListeners() {
                     content.classList.remove('active');
                     content.style.maxHeight = '0';
                 }
-                // Update toggle icon
-                if (toggleIcon && window.WebsiteBuilderModules?.Accordion?.getToggleIcon) {
-                    toggleIcon.textContent = window.WebsiteBuilderModules.Accordion.getToggleIcon(toggleStyle, false);
-                }
             } else {
                 this.classList.add('active');
                 if (content) {
                     content.classList.add('active');
                     content.style.maxHeight = content.scrollHeight + 'px';
-                }
-                // Update toggle icon
-                if (toggleIcon && window.WebsiteBuilderModules?.Accordion?.getToggleIcon) {
-                    toggleIcon.textContent = window.WebsiteBuilderModules.Accordion.getToggleIcon(toggleStyle, true);
                 }
             }
         });
@@ -1525,13 +1573,32 @@ function attachAccordionEventListeners() {
 }
 ```
 
-#### 8.3 Llamar a attachAccordionEventListeners después de renderizar (~línea 671)
-```javascript
-previewContent.innerHTML = finalHtml;
+### 🔴 PUNTOS CRÍTICOS PARA NUEVOS MÓDULOS
 
-// Attach accordion event listeners
-attachAccordionEventListeners();
-```
+1. **Cargar script del módulo**: Agregar `<script src="~/js/website-builder/modules/[modulo].js"></script>` en Preview.cshtml
+2. **Agregar caso en renderPreviewContent()**: Para que el módulo se renderice
+3. **Crear función de event listeners**: Si el módulo tiene interactividad
+4. **Llamar event listeners**: En el setTimeout después de renderizar
+
+### 🔴 DIFERENCIAS CON PREVIEW DEL EDITOR
+
+- **Preview del Editor** (PreviewTemplate.cshtml): Vista dentro del iframe del editor
+- **Preview Real** (Preview.cshtml): Vista completa de la página, accesible con el ícono del ojo
+- **Datos**: Preview real carga desde `pagesConfigJson`, no desde variables globales del editor
+
+### 🔴 ERRORES COMUNES Y SOLUCIONES
+
+1. **Error: Preview muestra solo header y footer**
+   - **Causa**: Leyendo de `websiteData.pagesJson` (deprecado) en lugar de `websiteData.pagesConfigJson`
+   - **Solución**: Actualizar a `pagesConfigJson` en línea ~338 de Preview.cshtml
+
+2. **Error: Secciones no aparecen en preview real**
+   - **Causa**: No se está accediendo correctamente a la estructura anidada de páginas
+   - **Solución**: Usar `pagesData[currentPageId].sectionsConfig` y `pagesData[currentPageId].sectionOrder`
+
+3. **Error: Módulos no tienen interactividad en preview real**
+   - **Causa**: Scripts del módulo no cargados o event listeners no attachados
+   - **Solución**: Agregar script en Preview.cshtml y llamar event listeners después de renderizar
 
 ## ETAPA 9: FUNCIONALIDADES AVANZADAS - TOGGLE STYLE
 

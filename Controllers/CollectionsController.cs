@@ -591,6 +591,7 @@ namespace Hotel.Controllers
         // GET: api/builder/collections/search
         [HttpGet]
         [Route("api/builder/collections/search")]
+        [AllowAnonymous]
         public async Task<IActionResult> SearchCollectionsForBuilder(string query = "")
         {
             try

@@ -82,7 +82,28 @@
       },
       {
         "Name": "pageId",
+        "Type": "System.String",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Hotel.Controllers.WebSitesController",
+    "Method": "GetPageStructure",
+    "RelativePath": "api/builder/websites/{id}/pages/{pageId}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
         "Type": "System.Int32",
+        "IsRequired": true
+      },
+      {
+        "Name": "pageId",
+        "Type": "System.String",
         "IsRequired": true
       }
     ],

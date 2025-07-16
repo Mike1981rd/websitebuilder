@@ -661,6 +661,7 @@ namespace Hotel.Controllers
         // GET: api/builder/products/search
         [HttpGet]
         [Route("api/builder/products/search")]
+        [AllowAnonymous]
         public async Task<IActionResult> SearchProductsForBuilder(string query = "")
         {
             try
@@ -709,6 +710,7 @@ namespace Hotel.Controllers
         // GET: api/builder/products
         [HttpGet]
         [Route("api/builder/products")]
+        [AllowAnonymous]
         public async Task<IActionResult> GetProductsForBuilder()
         {
             try

@@ -364,7 +364,7 @@
                 const websiteData = await response.json();
                 console.log('[PREVIEW] Website data loaded:', websiteData);
                 console.log('[PREVIEW] sectionsConfigJson:', websiteData.sectionsConfigJson);
-                console.log('[PREVIEW] pagesJson:', websiteData.pagesJson);
+                console.log('[PREVIEW] pagesConfigJson:', websiteData.pagesConfigJson);
                 console.log('[PREVIEW] globalThemeSettingsJson:', websiteData.globalThemeSettingsJson);
                 
                 // Parsear las configuraciones JSON
@@ -396,21 +396,55 @@
                     }
                 }
                 
-                // Check if pagesJson has sectionsConfig - DEPRECATED: pagesJson no debería sobrescribir sectionsConfigJson
-                // Comentado porque sectionsConfigJson es la fuente correcta de datos
-                /*
-                if (websiteData.pagesJson) {
+                // Load sections from pagesConfigJson
+                if (websiteData.pagesConfigJson) {
                     try {
-                        const pagesData = JSON.parse(websiteData.pagesJson);
-                        if (pagesData.sectionsConfig) {
-                            currentSectionsConfig = pagesData.sectionsConfig;
-                            console.log('Sections config loaded from pagesJson:', currentSectionsConfig);
+                        const pagesData = JSON.parse(websiteData.pagesConfigJson);
+                        console.log('[PREVIEW] Parsed pagesConfigJson:', pagesData);
+                        
+                        // Check if pagesData has the structure we expect
+                        if (pagesData.home && pagesData.home.sectionsConfig) {
+                            // Structure with multiple pages: pagesData.home.sectionsConfig
+                            currentSectionsConfig = {
+                                ...currentSectionsConfig,
+                                ...pagesData.home.sectionsConfig,
+                                sectionOrder: pagesData.home.sectionOrder || []
+                            };
+                            console.log('[PREVIEW] Sections config loaded from pagesConfigJson.home:', currentSectionsConfig);
+                        } else if (pagesData.sectionsConfig) {
+                            // Single page structure: pagesData has sectionsConfig directly
+                            console.log('[PREVIEW] pagesData.sectionOrder:', pagesData.sectionOrder);
+                            console.log('[PREVIEW] pagesData.sectionsConfig.sectionOrder:', pagesData.sectionsConfig.sectionOrder);
+                            console.log('[PREVIEW] pagesData.sectionsConfig keys:', Object.keys(pagesData.sectionsConfig));
+                            
+                            // Merge all properties from pagesData into currentSectionsConfig
+                            currentSectionsConfig = {
+                                ...currentSectionsConfig,
+                                ...pagesData.sectionsConfig
+                            };
+                            
+                            // sectionOrder can be at different levels, check both
+                            if (pagesData.sectionOrder) {
+                                currentSectionsConfig.sectionOrder = pagesData.sectionOrder;
+                            } else if (pagesData.sectionsConfig.sectionOrder) {
+                                // Already included in spread above, but make it explicit
+                                currentSectionsConfig.sectionOrder = pagesData.sectionsConfig.sectionOrder;
+                            }
+                            
+                            // Same for other arrays
+                            if (pagesData.announcementOrder) {
+                                currentSectionsConfig.announcementOrder = pagesData.announcementOrder;
+                            } else if (pagesData.sectionsConfig.announcementOrder) {
+                                currentSectionsConfig.announcementOrder = pagesData.sectionsConfig.announcementOrder;
+                            }
+                            
+                            console.log('[PREVIEW] Sections config loaded from pagesConfigJson directly:', currentSectionsConfig);
+                            console.log('[PREVIEW] currentSectionsConfig.sectionOrder after merge:', currentSectionsConfig.sectionOrder);
                         }
                     } catch (error) {
-                        console.error('Error parsing pagesJson:', error);
+                        console.error('[PREVIEW] Error parsing pagesConfigJson:', error);
                     }
                 }
-                */
                 
                 console.log('[PREVIEW] Final sections config:', currentSectionsConfig);
                 console.log('[PREVIEW] Section order:', currentSectionsConfig?.sectionOrder);

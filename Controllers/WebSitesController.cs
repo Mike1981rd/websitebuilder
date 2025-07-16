@@ -54,12 +54,22 @@ namespace Hotel.Controllers
                         Template = "default",
                         GlobalThemeSettingsJson = GetDefaultGlobalThemeSettings("default"),
                         SectionsConfigJson = GetDefaultSectionsConfig(),
+                        PagesConfigJson = GetDefaultPagesConfig(),
                         PagesJson = "[]",
                         NavigationJson = "[]",
                         SeoSettingsJson = "{}"
                     };
 
                     _context.WebSites.Add(website);
+                    await _context.SaveChangesAsync();
+                }
+
+                // Ensure PagesConfigJson is populated for existing websites
+                if (string.IsNullOrEmpty(website.PagesConfigJson) || website.PagesConfigJson == "{}")
+                {
+                    website.PagesConfigJson = GetDefaultPagesConfig();
+                    website.UpdatedAt = DateTime.UtcNow;
+                    _context.Entry(website).State = EntityState.Modified;
                     await _context.SaveChangesAsync();
                 }
 
@@ -300,9 +310,39 @@ namespace Hotel.Controllers
             return "{}";
         }
 
+        private string GetDefaultPagesConfig()
+        {
+            return @"{
+                ""home"": {
+                    ""id"": ""home"",
+                    ""title"": ""Página de inicio"",
+                    ""type"": ""home"",
+                    ""sectionOrder"": [],
+                    ""sectionsConfig"": {}
+                },
+                ""cart"": {
+                    ""id"": ""cart"",
+                    ""title"": ""Carrito"",
+                    ""type"": ""cart"",
+                    ""sectionOrder"": [""announcement"", ""header"", ""cart"", ""footer""],
+                    ""sectionsConfig"": {
+                        ""cart"": {
+                            ""isHidden"": false,
+                            ""colorScheme"": ""default"",
+                            ""width"": ""extraSmall"",
+                            ""imageRatio"": ""default"",
+                            ""addSidePaddings"": false,
+                            ""topPadding"": 96,
+                            ""bottomPadding"": 96
+                        }
+                    }
+                }
+            }";
+        }
+
         // PUT: api/builder/websites/{id}/pages/{pageId}
         [HttpPut("{id}/pages/{pageId}")]
-        public async Task<IActionResult> UpdatePageStructure(int id, int pageId)
+        public async Task<IActionResult> UpdatePageStructure(int id, string pageId)
         {
             try
             {
@@ -345,28 +385,52 @@ namespace Hotel.Controllers
                     return NotFound(new { message = "Website not found" });
                 }
 
-                // Parse the page structure to extract sectionsConfig
+                // Parse existing pages config or create new one
+                var pagesConfig = new Dictionary<string, JsonElement>();
+                
+                try
+                {
+                    if (!string.IsNullOrEmpty(website.PagesConfigJson))
+                    {
+                        var existingPages = JsonDocument.Parse(website.PagesConfigJson);
+                        foreach (var page in existingPages.RootElement.EnumerateObject())
+                        {
+                            pagesConfig[page.Name] = page.Value;
+                        }
+                    }
+                }
+                catch (JsonException ex)
+                {
+                    _logger.LogWarning(ex, "Could not parse existing PagesConfigJson, starting fresh");
+                }
+
+                // Update the specific page
                 try
                 {
                     var pageData = JsonDocument.Parse(dto.PageStructureJson).RootElement;
+                    var pageKey = dto.PageId ?? pageId;
                     
-                    // Extract sectionsConfig if it exists
-                    if (pageData.TryGetProperty("sectionsConfig", out JsonElement sectionsConfig))
+                    // Store the page data
+                    pagesConfig[pageKey] = pageData;
+                    
+                    // Also update SectionsConfigJson for backward compatibility
+                    if (pageKey == "home" && pageData.TryGetProperty("sectionsConfig", out JsonElement sectionsConfig))
                     {
                         website.SectionsConfigJson = sectionsConfig.GetRawText();
-                        _logger.LogInformation("Saving sectionsConfig to SectionsConfigJson");
                     }
-                    else
+                    
+                    // Serialize back to JSON
+                    website.PagesConfigJson = JsonSerializer.Serialize(pagesConfig, new JsonSerializerOptions
                     {
-                        // If no sectionsConfig property, save the entire structure
-                        website.SectionsConfigJson = dto.PageStructureJson;
-                        _logger.LogInformation("No sectionsConfig found, saving entire structure");
-                    }
+                        WriteIndented = false
+                    });
+                    
+                    _logger.LogInformation("Successfully updated page config for page: {PageKey}", pageKey);
                 }
-                catch (JsonException)
+                catch (JsonException ex)
                 {
-                    // If parsing fails, save as is
-                    website.SectionsConfigJson = dto.PageStructureJson;
+                    _logger.LogError(ex, "Error parsing page structure JSON");
+                    return BadRequest(new { message = "Invalid page structure JSON format." });
                 }
                 
                 website.UpdatedAt = DateTime.UtcNow;
@@ -382,6 +446,140 @@ namespace Hotel.Controllers
             {
                 _logger.LogError(ex, "Error updating page structure");
                 return StatusCode(500, new { message = "An error occurred while updating the page structure" });
+            }
+        }
+
+        // GET: api/builder/websites/{id}/pages/{pageId}
+        [HttpGet("{id}/pages/{pageId}")]
+        public async Task<IActionResult> GetPageStructure(int id, string pageId)
+        {
+            try
+            {
+                var website = await _context.WebSites.FindAsync(id);
+                if (website == null)
+                {
+                    return NotFound(new { message = "Website not found" });
+                }
+
+                // Get global sections from home page or SectionsConfigJson
+                JsonElement? globalSections = null;
+                Dictionary<string, JsonElement> globalSectionsDict = new Dictionary<string, JsonElement>();
+                
+                // First try to get global sections from home page in PagesConfigJson
+                if (!string.IsNullOrEmpty(website.PagesConfigJson))
+                {
+                    try
+                    {
+                        var pagesConfig = JsonDocument.Parse(website.PagesConfigJson);
+                        if (pagesConfig.RootElement.TryGetProperty("home", out JsonElement homeData) &&
+                            homeData.TryGetProperty("sectionsConfig", out JsonElement homeSections))
+                        {
+                            // Extract global sections from home
+                            if (homeSections.TryGetProperty("announcementBar", out JsonElement announcementBar))
+                                globalSectionsDict["announcementBar"] = announcementBar;
+                            if (homeSections.TryGetProperty("header", out JsonElement header))
+                                globalSectionsDict["header"] = header;
+                            if (homeSections.TryGetProperty("footer", out JsonElement footer))
+                                globalSectionsDict["footer"] = footer;
+                            if (homeSections.TryGetProperty("announcements", out JsonElement announcements))
+                                globalSectionsDict["announcements"] = announcements;
+                            if (homeSections.TryGetProperty("announcementOrder", out JsonElement announcementOrder))
+                                globalSectionsDict["announcementOrder"] = announcementOrder;
+                        }
+                    }
+                    catch (JsonException) { }
+                }
+                
+                // Fallback to SectionsConfigJson if no global sections found
+                if (globalSectionsDict.Count == 0 && !string.IsNullOrEmpty(website.SectionsConfigJson))
+                {
+                    try
+                    {
+                        var sectionsConfig = JsonDocument.Parse(website.SectionsConfigJson);
+                        if (sectionsConfig.RootElement.TryGetProperty("announcementBar", out JsonElement announcementBar))
+                            globalSectionsDict["announcementBar"] = announcementBar;
+                        if (sectionsConfig.RootElement.TryGetProperty("header", out JsonElement header))
+                            globalSectionsDict["header"] = header;
+                        if (sectionsConfig.RootElement.TryGetProperty("footer", out JsonElement footer))
+                            globalSectionsDict["footer"] = footer;
+                        if (sectionsConfig.RootElement.TryGetProperty("announcements", out JsonElement announcements))
+                            globalSectionsDict["announcements"] = announcements;
+                        if (sectionsConfig.RootElement.TryGetProperty("announcementOrder", out JsonElement announcementOrder))
+                            globalSectionsDict["announcementOrder"] = announcementOrder;
+                    }
+                    catch (JsonException) { }
+                }
+
+                // Try to get page from PagesConfigJson
+                if (!string.IsNullOrEmpty(website.PagesConfigJson))
+                {
+                    try
+                    {
+                        var pagesConfig = JsonDocument.Parse(website.PagesConfigJson);
+                        if (pagesConfig.RootElement.TryGetProperty(pageId, out JsonElement pageData))
+                        {
+                            // For non-home pages, merge global sections
+                            if (pageId != "home" && globalSectionsDict.Count > 0)
+                            {
+                                // Parse the page data
+                                var pageObj = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(pageData.GetRawText());
+                                
+                                // Ensure sectionsConfig exists
+                                if (!pageObj.ContainsKey("sectionsConfig"))
+                                {
+                                    pageObj["sectionsConfig"] = JsonDocument.Parse("{}").RootElement;
+                                }
+                                
+                                // Parse sectionsConfig
+                                var sectionsConfig = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(pageObj["sectionsConfig"].GetRawText());
+                                
+                                // Merge global sections into sectionsConfig
+                                foreach (var kvp in globalSectionsDict)
+                                {
+                                    if (!sectionsConfig.ContainsKey(kvp.Key))
+                                    {
+                                        sectionsConfig[kvp.Key] = kvp.Value;
+                                    }
+                                }
+                                
+                                // Update the pageObj with merged sectionsConfig
+                                pageObj["sectionsConfig"] = JsonDocument.Parse(JsonSerializer.Serialize(sectionsConfig)).RootElement;
+                                
+                                // Return the merged result
+                                return Ok(new { pageStructure = JsonSerializer.Serialize(pageObj) });
+                            }
+                            else
+                            {
+                                // For home page or if no global sections, return as is
+                                return Ok(new { pageStructure = pageData.GetRawText() });
+                            }
+                        }
+                    }
+                    catch (JsonException ex)
+                    {
+                        _logger.LogWarning(ex, "Error parsing PagesConfigJson");
+                    }
+                }
+
+                // If page not found and it's home page, return from SectionsConfigJson for backward compatibility
+                if (pageId == "home" && !string.IsNullOrEmpty(website.SectionsConfigJson))
+                {
+                    return Ok(new { pageStructure = website.SectionsConfigJson });
+                }
+
+                // Return default structure for new pages with global sections
+                var defaultStructure = new Dictionary<string, object>
+                {
+                    ["sectionOrder"] = pageId == "cart" ? new[] { "announcement", "header", "cart", "footer" } : new string[] { },
+                    ["sectionsConfig"] = globalSectionsDict
+                };
+                
+                return Ok(new { pageStructure = JsonSerializer.Serialize(defaultStructure) });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting page structure");
+                return StatusCode(500, new { message = "An error occurred while retrieving the page structure" });
             }
         }
 
@@ -853,6 +1051,9 @@ namespace Hotel.Controllers
     {
         [JsonPropertyName("pageStructureJson")]
         public string PageStructureJson { get; set; } = string.Empty;
+        
+        [JsonPropertyName("pageId")]
+        public string? PageId { get; set; }
     }
 
     public class NavigationItem

@@ -38,7 +38,10 @@ namespace Hotel.Models
         // JSON storage for sections configuration
         public string SectionsConfigJson { get; set; } = "{}";
 
-        // JSON storage for pages
+        // JSON storage for pages configuration (includes section order per page)
+        public string PagesConfigJson { get; set; } = "{}";
+
+        // JSON storage for pages (deprecated - migrated to PagesConfigJson)
         public string PagesJson { get; set; } = "[]";
 
         // JSON storage for navigation

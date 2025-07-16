@@ -13,8 +13,10 @@ window.setHasPendingPageStructureChanges = function(value) {
 window.getHasPendingPageStructureChanges = function() {
     return hasPendingPageStructureChanges;
 };
-let currentPageId = 1; // Default to home page
+let currentPageId = 'home'; // Default to home page
 let currentPageBlocks = [];
+let currentPageType = 'home'; // Track the type of current page
+let pagesConfig = {}; // Store all pages configuration
 let currentSelectedColorScheme = 'scheme1'; // Track which color scheme is being edited
 let currentSidebarView = 'blockList'; // Track the current sidebar view
 let previousSidebarView = null; // Track previous view for back navigation
@@ -257,6 +259,188 @@ function getColorSchemeValues(schemeName) {
 // Make it globally accessible
 window.getColorSchemeValues = getColorSchemeValues;
 
+// Function to switch between pages
+async function switchToPage(pageId) {
+    console.log('[DEBUG] Switching to page:', pageId);
+    console.log('[DEBUG] Current pagesConfig:', JSON.parse(JSON.stringify(pagesConfig)));
+    console.log('[DEBUG] Page data for', pageId, ':', pagesConfig[pageId]);
+    console.log('[DEBUG] Current sections config before switch:', JSON.parse(JSON.stringify(currentSectionsConfig)));
+    
+    if (!currentWebsiteId) {
+        console.error('[ERROR] Cannot switch page: website not loaded');
+        return;
+    }
+    
+    // Update current page variables
+    currentPageId = pageId;
+    currentPageType = pagesConfig[pageId]?.type || 'home';
+    
+    // Update UI
+    $('.page-item').removeClass('active');
+    $(`.page-item[data-page-id="${pageId}"]`).addClass('active');
+    $('.page-name').text(pagesConfig[pageId]?.title || pageId);
+    
+    // Load page data
+    if (pagesConfig[pageId]) {
+        const pageData = pagesConfig[pageId];
+        
+        // Update currentPageBlocks
+        currentPageBlocks = pageData.blocks || [];
+        
+        // Update currentSectionsConfig with page-specific data
+        if (pageData.sectionsConfig || pageData.sectionOrder) {
+            // Get global sections from home page or current config
+            let globalSections = {};
+            
+            // Try to get global sections from home page first (most reliable source)
+            if (pagesConfig['home'] && pagesConfig['home'].sectionsConfig) {
+                const homeConfig = pagesConfig['home'].sectionsConfig;
+                if (homeConfig.announcementBar) globalSections.announcementBar = homeConfig.announcementBar;
+                if (homeConfig.header) globalSections.header = homeConfig.header;
+                if (homeConfig.footer) globalSections.footer = homeConfig.footer;
+                if (homeConfig.announcements) globalSections.announcements = homeConfig.announcements;
+                if (homeConfig.announcementOrder) globalSections.announcementOrder = homeConfig.announcementOrder;
+            } else {
+                // Fallback to current sections config
+                if (currentSectionsConfig.announcementBar) globalSections.announcementBar = currentSectionsConfig.announcementBar;
+                if (currentSectionsConfig.header) globalSections.header = currentSectionsConfig.header;
+                if (currentSectionsConfig.footer) globalSections.footer = currentSectionsConfig.footer;
+                if (currentSectionsConfig.announcements) globalSections.announcements = currentSectionsConfig.announcements;
+                if (currentSectionsConfig.announcementOrder) globalSections.announcementOrder = currentSectionsConfig.announcementOrder;
+            }
+            
+            console.log('[DEBUG] Global sections extracted:', globalSections);
+            
+            // Start with a clean slate from page data
+            // Ensure global sections are always in the sectionOrder
+            const pageSectionOrder = pageData.sectionOrder || [];
+            const globalSectionOrder = ['announcement', 'header'];
+            const footerSectionOrder = ['footer'];
+            
+            // Combine: global sections + page sections + footer
+            const combinedSectionOrder = [
+                ...globalSectionOrder,
+                ...pageSectionOrder.filter(s => !globalSectionOrder.includes(s) && !footerSectionOrder.includes(s)),
+                ...footerSectionOrder
+            ];
+            
+            currentSectionsConfig = {
+                ...pageData.sectionsConfig, // Page-specific sections first
+                ...globalSections, // Then global sections (this ensures global sections are always present)
+                sectionOrder: combinedSectionOrder // Ensure sectionOrder includes global sections
+            };
+            window.currentSectionsConfig = currentSectionsConfig;
+            
+            console.log('[DEBUG] After switching to page, currentSectionsConfig keys:', Object.keys(currentSectionsConfig));
+            console.log('[DEBUG] sectionOrder after switch:', currentSectionsConfig.sectionOrder);
+        } else {
+            // For new pages, reset to minimal structure
+            // Keep only global sections like header, footer, announcement
+            const globalSections = {
+                announcementBar: currentSectionsConfig.announcementBar,
+                header: currentSectionsConfig.header,
+                footer: currentSectionsConfig.footer,
+                announcements: currentSectionsConfig.announcements,
+                announcementOrder: currentSectionsConfig.announcementOrder
+            };
+            currentSectionsConfig = {
+                ...globalSections,
+                sectionOrder: []
+            };
+            window.currentSectionsConfig = currentSectionsConfig;
+        }
+        
+        // Update sidebar view
+        switchSidebarView('blockList');
+        
+        // Re-render preview
+        renderPreview();
+        
+        // Reset pending changes flag for the new page
+        hasPendingPageStructureChanges = false;
+        updateSaveButtonState();
+    } else {
+        // If page doesn't exist in config, try to load from server
+        await loadPageFromServer(pageId);
+    }
+}
+
+// Function to load page data from server
+async function loadPageFromServer(pageId) {
+    try {
+        if (!currentWebsiteId) {
+            console.error('[ERROR] Cannot load page: currentWebsiteId is null');
+            return;
+        }
+        
+        const response = await fetch(`/api/builder/websites/${currentWebsiteId}/pages/${pageId}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            const pageStructure = JSON.parse(data.pageStructure);
+            
+            // Update pagesConfig
+            pagesConfig[pageId] = pageStructure;
+            
+            // Get global sections from home page or current config
+            let globalSections = {};
+            
+            // Try to get global sections from home page first (most reliable source)
+            if (pagesConfig['home'] && pagesConfig['home'].sectionsConfig) {
+                const homeConfig = pagesConfig['home'].sectionsConfig;
+                if (homeConfig.announcementBar) globalSections.announcementBar = homeConfig.announcementBar;
+                if (homeConfig.header) globalSections.header = homeConfig.header;
+                if (homeConfig.footer) globalSections.footer = homeConfig.footer;
+                if (homeConfig.announcements) globalSections.announcements = homeConfig.announcements;
+                if (homeConfig.announcementOrder) globalSections.announcementOrder = homeConfig.announcementOrder;
+            } else {
+                // Fallback to current sections config
+                if (currentSectionsConfig.announcementBar) globalSections.announcementBar = currentSectionsConfig.announcementBar;
+                if (currentSectionsConfig.header) globalSections.header = currentSectionsConfig.header;
+                if (currentSectionsConfig.footer) globalSections.footer = currentSectionsConfig.footer;
+                if (currentSectionsConfig.announcements) globalSections.announcements = currentSectionsConfig.announcements;
+                if (currentSectionsConfig.announcementOrder) globalSections.announcementOrder = currentSectionsConfig.announcementOrder;
+            }
+            
+            console.log('[DEBUG] Global sections for page load:', globalSections);
+            
+            // Ensure global sections are always in the sectionOrder
+            const pageSectionOrder = pageStructure.sectionOrder || [];
+            const globalSectionOrder = ['announcement', 'header'];
+            const footerSectionOrder = ['footer'];
+            
+            // Combine: global sections + page sections + footer
+            const combinedSectionOrder = [
+                ...globalSectionOrder,
+                ...pageSectionOrder.filter(s => !globalSectionOrder.includes(s) && !footerSectionOrder.includes(s)),
+                ...footerSectionOrder
+            ];
+            
+            // Update currentSectionsConfig with preserved global sections and combined order
+            currentSectionsConfig = {
+                ...pageStructure.sectionsConfig, // Page-specific sections first
+                ...globalSections, // Then preserve global sections (this ensures global sections are always present)
+                sectionOrder: combinedSectionOrder // Ensure sectionOrder includes global sections
+            };
+            window.currentSectionsConfig = currentSectionsConfig;
+            
+            // Update UI and re-render
+            switchSidebarView('blockList');
+            renderPreview();
+            
+            hasPendingPageStructureChanges = false;
+            updateSaveButtonState();
+        }
+    } catch (error) {
+        console.error('Error loading page from server:', error);
+    }
+}
+
 // Function to load current website data from the backend - moved outside document.ready
 async function loadCurrentWebsite() {
     try {
@@ -312,8 +496,12 @@ async function loadCurrentWebsite() {
         
         const website = await response.json();
         console.log('[DEBUG] Loaded website data:', website);
+        console.log('[DEBUG] Website object keys:', Object.keys(website));
         // C# serializes properties with capital first letter by default
         currentWebsiteId = website.id || website.Id;
+        if (!currentWebsiteId) {
+            console.error('[ERROR] Could not find website ID in response');
+        }
         console.log('[DEBUG] Set currentWebsiteId to:', currentWebsiteId);
         
         // Parse and load global theme settings
@@ -369,8 +557,54 @@ async function loadCurrentWebsite() {
             hasPendingGlobalSettingsChanges = true;
         }
         
+        // Parse and load pages config
+        if (website.pagesConfigJson) {
+            try {
+                pagesConfig = JSON.parse(website.pagesConfigJson);
+                console.log('[DEBUG] Loaded pages config:', pagesConfig);
+                
+                // Load the current page (default to home)
+                if (pagesConfig[currentPageId]) {
+                    const pageData = pagesConfig[currentPageId];
+                    currentPageType = pageData.type || 'home';
+                    
+                    // Update the page selector UI
+                    $('.page-name').text(pageData.title || 'Página de inicio');
+                }
+            } catch (e) {
+                console.error('Error parsing pagesConfigJson:', e);
+                pagesConfig = {};
+            }
+        }
+        
         // Parse and load sections config
-        if (website.sectionsConfigJson) {
+        // First check if we have home page data in pagesConfig
+        if (pagesConfig && pagesConfig['home'] && pagesConfig['home'].sectionsConfig) {
+            console.log('[DEBUG] Loading sections from pagesConfig.home instead of sectionsConfigJson');
+            const homePageData = pagesConfig['home'];
+            
+            // Reconstruct currentSectionsConfig from home page data
+            // Ensure global sections are always in the sectionOrder
+            const pageSectionOrder = homePageData.sectionOrder || [];
+            const globalSectionOrder = ['announcement', 'header'];
+            const footerSectionOrder = ['footer'];
+            
+            // Combine: global sections + page sections + footer
+            const combinedSectionOrder = [
+                ...globalSectionOrder,
+                ...pageSectionOrder.filter(s => !globalSectionOrder.includes(s) && !footerSectionOrder.includes(s)),
+                ...footerSectionOrder
+            ];
+            
+            currentSectionsConfig = {
+                ...homePageData.sectionsConfig,
+                sectionOrder: combinedSectionOrder
+            };
+            window.currentSectionsConfig = currentSectionsConfig;
+            
+            console.log('[DEBUG] Loaded sections config from pagesConfig:', currentSectionsConfig);
+        } else if (website.sectionsConfigJson) {
+            // Fallback to sectionsConfigJson for backward compatibility
             try {
                 const sectionsData = JSON.parse(website.sectionsConfigJson);
                 console.log('[DEBUG] Raw sectionsData from server:', JSON.stringify(sectionsData, null, 2));
@@ -667,6 +901,29 @@ async function loadCurrentWebsite() {
                             }
                         }*/
                     console.log('[DEBUG] Loaded sections config from DB:', currentSectionsConfig);
+                    
+                    // IMPORTANT: Only update pagesConfig['home'] if we're currently on the home page
+                    // This prevents overwriting data when we're on a different page
+                    if (currentPageId === 'home') {
+                        if (!pagesConfig['home']) {
+                            pagesConfig['home'] = {
+                                id: 'home',
+                                title: 'Página de inicio',
+                                type: 'home'
+                            };
+                        }
+                        
+                        // Extract sectionOrder from currentSectionsConfig if it exists
+                        const { sectionOrder, ...sectionsWithoutOrder } = currentSectionsConfig;
+                        
+                        pagesConfig['home'].sectionOrder = sectionOrder || [];
+                        pagesConfig['home'].sectionsConfig = sectionsWithoutOrder;
+                        pagesConfig['home'].blocks = currentPageBlocks || [];
+                        
+                        console.log('[DEBUG] Updated pagesConfig.home with sections from DB:', pagesConfig['home']);
+                    } else {
+                        console.log('[DEBUG] Not updating pagesConfig.home because current page is:', currentPageId);
+                    }
                 }
             } catch (e) {
                 console.error('Error parsing sections config data:', e);
@@ -697,7 +954,7 @@ async function loadCurrentWebsite() {
             }
         } else {
             // Initialize with defaults if no data
-            console.log('[DEBUG] No sectionsConfigJson found, using defaults');
+            console.log('[DEBUG] No sectionsConfigJson or pagesConfig.home found, using defaults');
             currentSectionsConfig = {
                 announcementBar: {},
                 header: {},
@@ -742,51 +999,7 @@ async function loadCurrentWebsite() {
             }
         }
         
-        // Load sections configuration from sectionsConfigJson
-        if (website.sectionsConfigJson) {
-            try {
-                const sectionsData = JSON.parse(website.sectionsConfigJson);
-                console.log('[DEBUG] Loading sections from sectionsConfigJson:', sectionsData);
-                
-                if (sectionsData && typeof sectionsData === 'object') {
-                    // If we didn't get sections from pagesJson, use this
-                    if (!currentSectionsConfig.sectionOrder) {
-                        currentSectionsConfig = sectionsData;
-                        window.currentSectionsConfig = currentSectionsConfig;
-                        console.log('[DEBUG] Using sections from sectionsConfigJson');
-                        
-                        // Log multi-instance sections if they exist
-                        if (currentSectionsConfig.contactForms) {
-                            console.log('[DEBUG] Loaded contactForms:', Object.keys(currentSectionsConfig.contactForms));
-                        }
-                        if (currentSectionsConfig.featuredCollections) {
-                            console.log('[DEBUG] Loaded featuredCollections:', Object.keys(currentSectionsConfig.featuredCollections));
-                        }
-                        
-                        // Ensure footer is initialized with defaults if missing
-                        if (!currentSectionsConfig.footer) {
-                            currentSectionsConfig.footer = {
-                                isHidden: false,
-                                colorScheme: 'scheme1',
-                                showColorBackground: false,
-                                width: 'screen',
-                                desktopColumnCount: 3,
-                                showSeparator: false,
-                                showPaymentIcons: true,
-                                copyrightNotice: 'Purrteam All Rights Reserved by Mango Pos Solutions LLC© Copyright 2022.',
-                                showLanguageSelector: true,
-                                showCurrencySelector: true,
-                                showPolicyLinks: true,
-                                blocks: {},
-                                blockOrder: []
-                            };
-                        }
-                    }
-                }
-            } catch (e) {
-                console.error('Error parsing sectionsConfigJson:', e);
-            }
-        }
+        // Additional sections configuration removed - now handled above in pagesConfig loading
         
         // Load navigation data
         if (website.navigationJson) {
@@ -2217,18 +2430,41 @@ function renderPreview() {
         return;
     }
     
+    // Preparar los datos de la página actual
+    let pageData;
+    if (pagesConfig && pagesConfig[currentPageId]) {
+        pageData = pagesConfig[currentPageId];
+        console.log('[PREVIEW] Using pagesConfig data for page:', currentPageId);
+    } else {
+        // Fallback to currentSectionsConfig for backward compatibility
+        pageData = {
+            sectionsConfig: currentSectionsConfig,
+            sectionOrder: currentSectionsConfig.sectionOrder || []
+        };
+        console.log('[PREVIEW] Using currentSectionsConfig as fallback');
+    }
+    
     // Actualizar las variables globales en el iframe antes de renderizar
     if (previewIframe.contentWindow) {
-        previewIframe.contentWindow.currentSectionsConfig = currentSectionsConfig;
+        // CRÍTICO: Pasar los datos correctos de la página actual
+        previewIframe.contentWindow.currentPageData = pageData;
+        previewIframe.contentWindow.currentSectionsConfig = {
+            ...pageData.sectionsConfig,
+            sectionOrder: pageData.sectionOrder
+        };
         previewIframe.contentWindow.currentGlobalThemeSettings = currentGlobalThemeSettings;
         previewIframe.contentWindow.currentMenusData = currentMenusData;
         previewIframe.contentWindow.currentAnnouncementIndex = currentAnnouncementIndex;
         previewIframe.contentWindow.currentLanguage = currentLanguage;
-        previewIframe.contentWindow.translations = translations; // Agregar traducciones
+        previewIframe.contentWindow.translations = translations;
+        previewIframe.contentWindow.currentPageId = currentPageId;
+        previewIframe.contentWindow.pagesConfig = pagesConfig;
         
         console.log('[PREVIEW] Data passed to iframe:');
+        console.log('[PREVIEW] - currentPageData:', pageData);
+        console.log('[PREVIEW] - currentPageId:', currentPageId);
         console.log('[PREVIEW] - currentMenusData:', currentMenusData);
-        console.log('[PREVIEW] - footer config:', currentSectionsConfig.footer);
+        console.log('[PREVIEW] - footer config:', pageData.sectionsConfig.footer);
         console.log('[PREVIEW] - currentLanguage:', currentLanguage);
         console.log('[PREVIEW] - translations available:', !!translations);
     }
@@ -2240,35 +2476,49 @@ function renderPreview() {
     
     // Verificar si las funciones de renderizado están disponibles en el iframe
     const iframeWindow = previewIframe.contentWindow;
-    const hasRenderFunctions = iframeWindow.renderHeader && iframeWindow.renderAnnouncementBar && iframeWindow.renderSlideshow && iframeWindow.renderMulticolumn;
+    // Solo verificar las funciones esenciales que sabemos que existen
+    const hasRenderFunctions = iframeWindow.renderHeader && iframeWindow.renderAnnouncementBar;
+    
+    console.log('[PREVIEW] Checking render functions availability:');
+    console.log('[PREVIEW] - renderHeader:', !!iframeWindow.renderHeader);
+    console.log('[PREVIEW] - renderAnnouncementBar:', !!iframeWindow.renderAnnouncementBar);
+    console.log('[PREVIEW] - renderFooter:', !!iframeWindow.renderFooter);
+    console.log('[PREVIEW] - WebsiteBuilderModules:', !!iframeWindow.WebsiteBuilderModules);
+    console.log('[PREVIEW] - hasRenderFunctions:', hasRenderFunctions);
     
     if (hasRenderFunctions) {
         // Usar las funciones de renderizado del iframe
         console.log('[PREVIEW] Using iframe render functions');
         
         // Renderizar secciones según el orden definido
-        if (currentSectionsConfig && currentSectionsConfig.sectionOrder) {
-            currentSectionsConfig.sectionOrder.forEach(sectionId => {
+        if (pageData && pageData.sectionOrder) {
+            pageData.sectionOrder.forEach(sectionId => {
                 console.log('[PREVIEW] Rendering section:', sectionId);
                 if (sectionId === 'announcement') {
-                    const config = currentSectionsConfig.announcementBar;
+                    // Try to get announcement config from page data, fallback to global
+                    const config = pageData.sectionsConfig?.announcementBar || currentSectionsConfig.announcementBar;
                     if (config && !config.isHidden) {
+                        console.log('[PREVIEW] Rendering announcement with config from:', pageData.sectionsConfig?.announcementBar ? 'pageData' : 'currentSectionsConfig');
                         finalHtml += iframeWindow.renderAnnouncementBar(config);
                     }
                 } else if (sectionId === 'header') {
-                    const config = currentSectionsConfig.header;
+                    // Try to get header config from page data, fallback to global
+                    const config = pageData.sectionsConfig?.header || currentSectionsConfig.header;
                     if (config && !config.isHidden) {
                         console.log('[PREVIEW] Rendering header with config:', config);
+                        console.log('[PREVIEW] Header found in:', pageData.sectionsConfig?.header ? 'pageData' : 'currentSectionsConfig');
                         console.log('[PREVIEW] Available menus:', currentMenusData);
                         finalHtml += iframeWindow.renderHeader(config);
+                    } else {
+                        console.log('[PREVIEW] Header not rendered. Config:', config, 'isHidden:', config?.isHidden);
                     }
                 } else if (sectionId === 'slideshow') {
-                    const config = currentSectionsConfig.slideshow;
+                    const config = pageData.sectionsConfig.slideshow;
                     if (config && !config.isHidden) {
                         finalHtml += iframeWindow.renderSlideshow(config);
                     }
                 } else if (sectionId === 'multicolumn') {
-                    const config = currentSectionsConfig.multicolumn;
+                    const config = pageData.sectionsConfig.multicolumn;
                     if (config && !config.isHidden) {
                         // Intentar usar el módulo primero
                         const moduleRender = iframeWindow.WebsiteBuilderModules?.Multicolumn?.render;
@@ -2279,7 +2529,7 @@ function renderPreview() {
                         }
                     }
                 } else if (sectionId === 'imageWithText' || sectionId === 'images-with-text') {
-                    const config = currentSectionsConfig.imageWithText;
+                    const config = pageData.sectionsConfig.imageWithText;
                     if (config && !config.isHidden) {
                         // Try to use the module first
                         const moduleRender = iframeWindow.WebsiteBuilderModules?.ImageWithText?.render;
@@ -2290,7 +2540,7 @@ function renderPreview() {
                         }
                     }
                 } else if (sectionId === 'testimonials') {
-                    const config = currentSectionsConfig.testimonials;
+                    const config = pageData.sectionsConfig.testimonials;
                     if (config && !config.isHidden) {
                         // Try to use the module first
                         const moduleRender = iframeWindow.WebsiteBuilderModules?.Testimonials?.render;
@@ -2301,7 +2551,7 @@ function renderPreview() {
                         }
                     }
                 } else if (sectionId === 'accordion') {
-                    const config = currentSectionsConfig.accordion;
+                    const config = pageData.sectionsConfig.accordion;
                     if (config && !config.isHidden) {
                         const moduleRender = iframeWindow.WebsiteBuilderModules?.Accordion?.render;
                         if (moduleRender) {
@@ -2311,7 +2561,7 @@ function renderPreview() {
                         }
                     }
                 } else if (sectionId === 'imageBanner') {
-                    const config = currentSectionsConfig.imageBanner;
+                    const config = pageData.sectionsConfig.imageBanner;
                     if (config && !config.isHidden) {
                         const moduleRender = iframeWindow.WebsiteBuilderModules?.ImageBanner?.render;
                         if (moduleRender) {
@@ -2321,7 +2571,7 @@ function renderPreview() {
                         }
                     }
                 } else if (sectionId === 'newsletter') {
-                    const config = currentSectionsConfig.newsletter;
+                    const config = pageData.sectionsConfig.newsletter;
                     if (config && !config.isHidden) {
                         const moduleRender = iframeWindow.WebsiteBuilderModules?.Newsletter?.render;
                         if (moduleRender) {
@@ -2331,7 +2581,7 @@ function renderPreview() {
                         }
                     }
                 } else if (sectionId === 'gallery') {
-                    const config = currentSectionsConfig.gallery;
+                    const config = pageData.sectionsConfig.gallery;
                     if (config && !config.isHidden) {
                         const moduleRender = iframeWindow.WebsiteBuilderModules?.Gallery?.render;
                         if (moduleRender) {
@@ -2341,7 +2591,7 @@ function renderPreview() {
                         }
                     }
                 } else if (sectionId === 'richText') {
-                    const config = currentSectionsConfig.richText;
+                    const config = pageData.sectionsConfig.richText;
                     if (config && !config.isHidden) {
                         const moduleRender = iframeWindow.WebsiteBuilderModules?.RichText?.render;
                         if (moduleRender) {
@@ -2352,7 +2602,7 @@ function renderPreview() {
                     }
                 } else if (sectionId.startsWith('contact-form-')) {
                     // Handle contact form sections
-                    const config = currentSectionsConfig.contactForms?.[sectionId];
+                    const config = pageData.sectionsConfig.contactForms?.[sectionId];
                     if (config && !config.isHidden) {
                         const moduleRender = iframeWindow.WebsiteBuilderModules?.ContactForm?.render;
                         if (moduleRender) {
@@ -2363,17 +2613,21 @@ function renderPreview() {
                         }
                     }
                 } else if (sectionId === 'footer') {
-                    const config = currentSectionsConfig.footer;
+                    // Try to get footer config from page data, fallback to global
+                    const config = pageData.sectionsConfig?.footer || currentSectionsConfig.footer;
                     if (config && !config.isHidden) {
+                        console.log('[PREVIEW] Rendering footer with config from:', pageData.sectionsConfig?.footer ? 'pageData' : 'currentSectionsConfig');
                         const moduleRender = iframeWindow.WebsiteBuilderModules?.Footer?.render;
                         if (moduleRender) {
                             finalHtml += moduleRender(config);
                         } else if (iframeWindow.renderFooter) {
                             finalHtml += iframeWindow.renderFooter(config);
                         }
+                    } else {
+                        console.log('[PREVIEW] Footer not rendered. Config:', config, 'isHidden:', config?.isHidden);
                     }
                 } else if (sectionId === 'featured-product') {
-                    const config = currentSectionsConfig.featuredProduct;
+                    const config = pageData.sectionsConfig.featuredProduct;
                     if (config && !config.isHidden) {
                         const moduleRender = iframeWindow.WebsiteBuilderModules?.FeaturedProduct?.render;
                         if (moduleRender) {
@@ -2383,28 +2637,64 @@ function renderPreview() {
                         }
                     }
                 } else if (sectionId.startsWith('featured-collection-')) {
-                    const config = currentSectionsConfig.featuredCollections?.[sectionId];
+                    const config = pageData.sectionsConfig.featuredCollections?.[sectionId];
+                    console.log('[PREVIEW] Featured Collection config:', config);
+                    console.log('[PREVIEW] Featured Collection module available:', !!iframeWindow.WebsiteBuilderModules?.FeaturedCollection);
+                    
                     if (config && !config.isHidden) {
                         // Try to use the module's render function first
                         let renderedHtml = '';
                         if (iframeWindow.WebsiteBuilderModules?.FeaturedCollection?.render) {
+                            console.log('[PREVIEW] Using FeaturedCollection module render');
                             renderedHtml = iframeWindow.WebsiteBuilderModules.FeaturedCollection.render(config);
                         } else if (iframeWindow.renderFeaturedCollection) {
+                            console.log('[PREVIEW] Using renderFeaturedCollection function');
                             renderedHtml = iframeWindow.renderFeaturedCollection(config, sectionId);
+                        } else {
+                            console.error('[PREVIEW] No render function available for featured collection');
                         }
+                        
+                        console.log('[PREVIEW] Featured Collection rendered HTML length:', renderedHtml.length);
+                        
                         // Render featured collection with preview section wrapper
                         finalHtml += `<div data-section-id="featured-collection" data-element-id="${sectionId}" class="preview-section">
                             ${renderedHtml}
                         </div>`;
+                    }
+                } else if (sectionId === 'cart') {
+                    // Cart section for cart page
+                    const config = pageData.sectionsConfig.cart || {};
+                    if (!config.isHidden) {
+                        // Load cart items from localStorage (websiteBuilderCart)
+                        const savedCart = localStorage.getItem('websiteBuilderCart');
+                        const cartItemsData = savedCart ? JSON.parse(savedCart) : [];
+                        console.log('[PREVIEW] Cart items from websiteBuilderCart:', cartItemsData);
+                        
+                        // Pass cart items as part of config
+                        const cartConfig = {
+                            ...config,
+                            cartItems: cartItemsData
+                        };
+                        
+                        const moduleRender = iframeWindow.WebsiteBuilderModules?.Cart?.render;
+                        if (moduleRender) {
+                            console.log('[PREVIEW] Using Cart module render');
+                            finalHtml += moduleRender(cartConfig);
+                        } else if (iframeWindow.renderCartPage) {
+                            console.log('[PREVIEW] Using renderCartPage function with cartItems:', cartConfig.cartItems.length);
+                            // Also set cart items directly on iframe window before rendering
+                            iframeWindow.passedCartItems = cartConfig.cartItems;
+                            finalHtml += iframeWindow.renderCartPage(cartConfig);
+                        }
                     }
                 }
             });
         }
         
         // Renderizar cart drawer si está configurado como drawer (siempre, no solo en cartSettings)
-        if (currentSectionsConfig.cart) {
-            console.log('[PREVIEW] Cart config:', currentSectionsConfig.cart);
-            const cartConfig = currentSectionsConfig.cart;
+        if (pageData.sectionsConfig.cart) {
+            console.log('[PREVIEW] Cart config:', pageData.sectionsConfig.cart);
+            const cartConfig = pageData.sectionsConfig.cart;
             if (cartConfig.showAs === 'drawer' || cartConfig.showAs === 'drawer-and-page') {
                 console.log('[PREVIEW] Cart showAs matches drawer condition:', cartConfig.showAs);
                 // Auto-abrir solo si estamos en cartSettings
@@ -2439,8 +2729,8 @@ function renderPreview() {
         };
         
         // Renderizar secciones según el orden definido
-        if (currentSectionsConfig && currentSectionsConfig.sectionOrder) {
-            currentSectionsConfig.sectionOrder.forEach(sectionId => {
+        if (pageData && pageData.sectionOrder) {
+            pageData.sectionOrder.forEach(sectionId => {
                 const renderer = renderers[sectionId];
                 // Map section IDs to their config keys
                 let configKey = sectionId;
@@ -2454,28 +2744,28 @@ function renderPreview() {
                 
                 // Handle contact forms separately
                 if (sectionId.startsWith('contact-form-')) {
-                    const config = currentSectionsConfig.contactForms?.[sectionId];
+                    const config = pageData.sectionsConfig.contactForms?.[sectionId];
                     if (config && !config.isHidden && window.WebsiteBuilderModules?.ContactForm?.render) {
                         finalHtml += `<div data-section-id="contact-form" data-element-id="${sectionId}" class="preview-section">
                             ${window.WebsiteBuilderModules.ContactForm.render(config)}
                         </div>`;
                     }
                 } else if (sectionId.startsWith('image-with-text-')) {
-                    const config = currentSectionsConfig.imageWithTextSections?.[sectionId];
+                    const config = pageData.sectionsConfig.imageWithTextSections?.[sectionId];
                     if (config && !config.isHidden && window.WebsiteBuilderModules?.ImageWithText?.render) {
                         finalHtml += `<div data-section-id="image-with-text" data-element-id="${sectionId}" class="preview-section">
                             ${window.WebsiteBuilderModules.ImageWithText.render(config)}
                         </div>`;
                     }
                 } else if (sectionId.startsWith('featured-collection-')) {
-                    const config = currentSectionsConfig.featuredCollections?.[sectionId];
+                    const config = pageData.sectionsConfig.featuredCollections?.[sectionId];
                     if (config && !config.isHidden) {
                         finalHtml += `<div data-section-id="featured-collection" data-element-id="${sectionId}" class="preview-section">
                             ${window.renderFeaturedCollection ? window.renderFeaturedCollection(config, sectionId) : ''}
                         </div>`;
                     }
                 } else {
-                    const config = currentSectionsConfig[configKey];
+                    const config = pageData.sectionsConfig[configKey];
                     if (renderer && config) {
                         finalHtml += renderer(config);
                     }
@@ -2484,9 +2774,9 @@ function renderPreview() {
         }
         
         // Renderizar cart drawer si está configurado como drawer (siempre, no solo en cartSettings)
-        if (currentSectionsConfig.cart) {
-            console.log('[PREVIEW FALLBACK] Cart config:', currentSectionsConfig.cart);
-            const cartConfig = currentSectionsConfig.cart;
+        if (pageData.sectionsConfig.cart) {
+            console.log('[PREVIEW FALLBACK] Cart config:', pageData.sectionsConfig.cart);
+            const cartConfig = pageData.sectionsConfig.cart;
             if (cartConfig.showAs === 'drawer' || cartConfig.showAs === 'drawer-and-page') {
                 console.log('[PREVIEW FALLBACK] Cart showAs matches drawer condition:', cartConfig.showAs);
                 // Auto-abrir solo si estamos en cartSettings
@@ -2514,8 +2804,8 @@ function renderPreview() {
     }, 100);
     
     // Si estamos en cartSettings y el drawer debe abrirse automáticamente
-    if (currentSidebarView === 'cartSettings' && currentSectionsConfig.cart) {
-        const cartConfig = currentSectionsConfig.cart;
+    if (currentSidebarView === 'cartSettings' && pageData.sectionsConfig.cart) {
+        const cartConfig = pageData.sectionsConfig.cart;
         if (cartConfig.showAs === 'drawer' || cartConfig.showAs === 'drawer-and-page') {
             console.log('[PREVIEW] Attempting to auto-open cart drawer');
             
@@ -2768,6 +3058,11 @@ function renderPreview() {
                 $('.topbar-nav-icon').removeClass('active');
                 $('.topbar-nav-icon[data-view="sections"]').addClass('active');
                 window.switchSidebarView('richTextSettings');
+            } else if (sectionId === 'cart') {
+                // Logic for cart section
+                $('.topbar-nav-icon').removeClass('active');
+                $('.topbar-nav-icon[data-view="sections"]').addClass('active');
+                window.switchSidebarView('cartSettings');
             } else if (sectionId === 'featured-product') {
                 // Logic for featured product section
                 $('.topbar-nav-icon').removeClass('active');
@@ -6337,6 +6632,39 @@ $(document).ready(async function() {
     $('.sidebar-loading-text').text(lang.sidebarLoadingText);
     $('.preview-placeholder-text').text(lang.previewAreaPlaceholderText);
     
+    // Page selector functionality
+    $('#page-selector-trigger').on('click', function(e) {
+        e.stopPropagation();
+        $('#page-selector-dropdown').toggle();
+    });
+    
+    // Click outside to close dropdown
+    $(document).on('click', function(e) {
+        if (!$(e.target).closest('.page-selector').length) {
+            $('#page-selector-dropdown').hide();
+        }
+    });
+    
+    // Handle page selection
+    $(document).on('click', '.page-item', async function() {
+        const pageId = $(this).data('page-id');
+        if (pageId === currentPageId) {
+            $('#page-selector-dropdown').hide();
+            return;
+        }
+        
+        // Save current page changes if any
+        if (hasPendingPageStructureChanges) {
+            if (!confirm(translations[currentLanguage]['unsavedChangesWarning'] || 'Tienes cambios sin guardar. ¿Deseas continuar?')) {
+                return;
+            }
+        }
+        
+        // Switch to new page
+        await switchToPage(pageId);
+        $('#page-selector-dropdown').hide();
+    });
+    
     // Initialize modules that have initialization functions
     if (window.WebsiteBuilderModules && window.WebsiteBuilderModules.Newsletter && window.WebsiteBuilderModules.Newsletter.initialize) {
         window.WebsiteBuilderModules.Newsletter.initialize();
@@ -6943,6 +7271,12 @@ $(document).ready(async function() {
             } else {
                 console.error('[DEBUG] No HTML returned from footer renderSettings');
             }
+        } else if (viewName === 'cartPageSettings') {
+            // Cart page settings view (for cart page template)
+            console.log('[DEBUG] Rendering cart page settings');
+            dynamicContentArea.innerHTML = renderCartPageSettings();
+            attachCartPageEventListeners();
+            setTimeout(applyTranslations, 0);
         } else if (viewName === 'cartSettings') {
             // Cart settings view
             console.log('[DEBUG] Rendering cart settings');
@@ -7077,6 +7411,11 @@ $(document).ready(async function() {
             sectionId !== 'announcement' && sectionId !== 'header' && sectionId !== 'footer'
         ) || [];
         
+        console.log('[DEBUG] renderTemplateSections - sectionOrder:', currentSectionsConfig.sectionOrder);
+        console.log('[DEBUG] renderTemplateSections - templateSections:', templateSections);
+        console.log('[DEBUG] renderTemplateSections - multicolumn config:', currentSectionsConfig.multicolumn);
+        console.log('[DEBUG] renderTemplateSections - multicolumn in sectionOrder?', currentSectionsConfig.sectionOrder?.includes('multicolumn'));
+        
         templateSections.forEach(sectionId => {
             // Handle contact forms
             if (sectionId.startsWith('contact-form-')) {
@@ -7198,8 +7537,50 @@ $(document).ready(async function() {
                 if (hasChildren) {
                     html += renderChildElements(sectionId);
                 }
-            } else if (currentSectionsConfig[sectionId]) {
-                const section = currentSectionsConfig[sectionId];
+            } else if (sectionId === 'multicolumn') {
+                // Handle multicolumn section specifically
+                const multicolumnConfig = currentSectionsConfig.multicolumn;
+                
+                if (multicolumnConfig && !multicolumnConfig.isHidden) {
+                    html += `
+                        <div class="sidebar-subsection collapsible-parent" data-block-type="multicolumn" data-element-id="multicolumn" data-section-id="multicolumn">
+                            <i class="material-icons drag-handle">drag_handle</i>
+                            <span class="subsection-text" data-i18n="sections.multicolumn">${getSectionTranslation('multicolumn')}</span>
+                            <div class="subsection-actions">
+                                <button class="action-icon visibility-toggle ${multicolumnConfig.isHidden ? 'is-hidden' : ''}" data-section="multicolumn" title="Toggle visibility">
+                                    <i class="material-icons icon-visible">visibility</i>
+                                    <i class="material-icons icon-hidden">visibility_off</i>
+                                </button>
+                                <button class="action-icon add-icon" data-section="multicolumn" title="Add">
+                                    <i class="material-icons">add</i>
+                                </button>
+                                <button class="action-icon delete-icon" data-section="multicolumn" title="Delete">
+                                    <i class="material-icons">delete</i>
+                                </button>
+                                ${multicolumnConfig.columnOrder?.length > 0 ? `
+                                    <button class="action-icon collapse-toggle" title="Collapse/Expand">
+                                        <i class="material-icons collapse-indicator">expand_more</i>
+                                    </button>
+                                ` : ''}
+                            </div>
+                        </div>
+                    `;
+                    
+                    // Render columns
+                    if (multicolumnConfig.columnOrder?.length > 0) {
+                        html += renderChildElements('multicolumn');
+                    }
+                }
+            } else {
+                // Handle regular sections that might not have a config object yet
+                const section = currentSectionsConfig[sectionId] || {};
+                
+                // Special sections that shouldn't be rendered here
+                if (sectionId === 'cart' && currentPageType === 'cart') {
+                    // Cart section is rendered separately in cart page view
+                    console.log('[DEBUG] Skipping cart section in renderTemplateSections for cart page');
+                    return;
+                }
                 
                 // Check if section needs special handling
                 const needsDragHandle = true; // All template sections should be draggable
@@ -9442,6 +9823,192 @@ $(document).ready(async function() {
         setTimeout(applyTranslations, 0);
     }
     
+    // Function to render cart page settings view (for cart page template)
+    function renderCartPageSettings() {
+        const currentLang = currentLanguage || 'es';
+        const settings = currentSectionsConfig.cart || {
+            colorScheme: 'default',
+            width: 'extraSmall',
+            imageRatio: 'default',
+            addSidePaddings: false,
+            topPadding: 96,
+            bottomPadding: 96
+        };
+        
+        // Initialize cart config if it doesn't exist
+        if (!currentSectionsConfig.cart) {
+            currentSectionsConfig.cart = settings;
+        }
+        
+        return `
+            <div style="display: flex; flex-direction: column; height: 100%; position: relative; overflow: hidden;">
+                <!-- Header -->
+                <div class="sidebar-view-header" style="position: relative; z-index: 10;">
+                    <button class="back-to-sections-btn">
+                        <i class="material-icons">arrow_back</i>
+                    </button>
+                    <h3 data-i18n="sections.cart">${currentLang === 'es' ? 'Carrito' : 'Cart'}</h3>
+                    <button class="view-menu-btn" style="position: absolute; right: 10px; top: 10px; background: none; border: none; cursor: pointer; padding: 5px;">
+                        <i class="material-icons">more_vert</i>
+                    </button>
+                </div>
+                
+                <!-- Content -->
+                <div style="padding: 20px; overflow-y: auto; overflow-x: hidden; flex: 1; height: calc(100% - 60px); box-sizing: border-box;">
+                    
+                    <!-- Don't remove message -->
+                    <div style="background-color: #fef8e7; border: 1px solid #f5e6c8; border-radius: 4px; padding: 12px; margin-bottom: 20px; font-size: 13px; color: #5c5e60;">
+                        <span data-i18n="cart.warning.dontRemoveItems">
+                            ${currentLang === 'es' ? "NO ELIMINES los bloques 'Items', 'Subtotal' y 'Botones' para el funcionamiento correcto del carrito" : "DON'T REMOVE the 'Items', 'Subtotal', and 'Buttons' blocks for correct cart operation"}
+                        </span>
+                    </div>
+                    
+                    <!-- Color scheme -->
+                    <div class="form-group">
+                        <label style="font-size: 13px; font-weight: 500; margin-bottom: 8px; color: #5c5e60; display: block;" 
+                               data-i18n="cart.settings.colorScheme">${currentLang === 'es' ? 'Esquema de color' : 'Color scheme'}</label>
+                        <select class="shopify-select" id="cart-page-color-scheme" 
+                                style="width: 100%; padding: 8px 12px; border: 1px solid #e0e0e0; border-radius: 4px; background: white;">
+                            <option value="default" ${settings.colorScheme === 'default' ? 'selected' : ''} data-i18n="cart.settings.colorScheme.default">Default</option>
+                            <option value="scheme1" ${settings.colorScheme === 'scheme1' ? 'selected' : ''} data-i18n="cart.settings.colorScheme.scheme1">Scheme 1</option>
+                            <option value="scheme2" ${settings.colorScheme === 'scheme2' ? 'selected' : ''} data-i18n="cart.settings.colorScheme.scheme2">Scheme 2</option>
+                            <option value="scheme3" ${settings.colorScheme === 'scheme3' ? 'selected' : ''} data-i18n="cart.settings.colorScheme.scheme3">Scheme 3</option>
+                            <option value="scheme4" ${settings.colorScheme === 'scheme4' ? 'selected' : ''} data-i18n="cart.settings.colorScheme.scheme4">Scheme 4</option>
+                            <option value="scheme5" ${settings.colorScheme === 'scheme5' ? 'selected' : ''} data-i18n="cart.settings.colorScheme.scheme5">Scheme 5</option>
+                        </select>
+                        <a href="#" class="color-scheme-link" style="display: inline-block; margin-top: 5px; color: #2c6ecb; text-decoration: none; font-size: 12px;" 
+                           data-i18n="cart.settings.colorScheme.learn">Learn about color schemes</a>
+                    </div>
+                    
+                    <!-- Width -->
+                    <div class="form-group" style="margin-top: 20px;">
+                        <label style="font-size: 13px; font-weight: 500; margin-bottom: 8px; color: #5c5e60; display: block;" 
+                               data-i18n="cart.settings.width">${currentLang === 'es' ? 'Ancho' : 'Width'}</label>
+                        <select class="shopify-select" id="cart-page-width" 
+                                style="width: 100%; padding: 8px 12px; border: 1px solid #e0e0e0; border-radius: 4px; background: white;">
+                            <option value="extraSmall" ${settings.width === 'extraSmall' ? 'selected' : ''} data-i18n="cart.settings.width.extraSmall">Extra small</option>
+                            <option value="small" ${settings.width === 'small' ? 'selected' : ''} data-i18n="cart.settings.width.small">Small</option>
+                            <option value="medium" ${settings.width === 'medium' ? 'selected' : ''} data-i18n="cart.settings.width.medium">Medium</option>
+                            <option value="large" ${settings.width === 'large' ? 'selected' : ''} data-i18n="cart.settings.width.large">Large</option>
+                            <option value="extraLarge" ${settings.width === 'extraLarge' ? 'selected' : ''} data-i18n="cart.settings.width.extraLarge">Extra large</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Image ratio -->
+                    <div class="form-group" style="margin-top: 20px;">
+                        <label style="font-size: 13px; font-weight: 500; margin-bottom: 8px; color: #5c5e60; display: block;" 
+                               data-i18n="cart.settings.imageRatio">${currentLang === 'es' ? 'Proporción de imagen' : 'Image ratio'}</label>
+                        <select class="shopify-select" id="cart-page-image-ratio" 
+                                style="width: 100%; padding: 8px 12px; border: 1px solid #e0e0e0; border-radius: 4px; background: white;">
+                            <option value="default" ${settings.imageRatio === 'default' ? 'selected' : ''} data-i18n="cart.settings.imageRatio.default">Default</option>
+                            <option value="square" ${settings.imageRatio === 'square' ? 'selected' : ''} data-i18n="cart.settings.imageRatio.square">Square (1:1)</option>
+                            <option value="portrait" ${settings.imageRatio === 'portrait' ? 'selected' : ''} data-i18n="cart.settings.imageRatio.portrait">Portrait (2:3)</option>
+                            <option value="landscape" ${settings.imageRatio === 'landscape' ? 'selected' : ''} data-i18n="cart.settings.imageRatio.landscape">Landscape (4:3)</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Paddings section -->
+                    <div class="form-group" style="margin-top: 24px;">
+                        <h4 style="font-size: 14px; font-weight: 500; margin-bottom: 16px; color: #202223;" 
+                            data-i18n="cart.settings.paddings">${currentLang === 'es' ? 'Espaciados' : 'Paddings'}</h4>
+                        
+                        <!-- Add side paddings toggle -->
+                        <label class="toggle-field" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                            <span data-i18n="cart.settings.addSidePaddings" style="font-size: 13px; color: #5c5e60;">${currentLang === 'es' ? 'Añadir espaciado lateral' : 'Add side paddings'}</span>
+                            <input type="checkbox" class="shopify-toggle" id="cart-page-add-side-paddings" ${settings.addSidePaddings ? 'checked' : ''}>
+                            <label for="cart-page-add-side-paddings" class="toggle-slider"></label>
+                        </label>
+                        
+                        <!-- Top padding -->
+                        <div style="margin-bottom: 16px;">
+                            <label style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                <span style="font-size: 13px; color: #5c5e60;" data-i18n="cart.settings.topPadding">${currentLang === 'es' ? 'Espaciado superior' : 'Top padding'}</span>
+                                <span style="font-size: 13px; color: #8c9196;">${settings.topPadding}px</span>
+                            </label>
+                            <input type="range" id="cart-page-top-padding" min="0" max="200" step="4" value="${settings.topPadding}" 
+                                   style="width: 100%; -webkit-appearance: none; height: 4px; background: #e0e0e0; border-radius: 2px; outline: none;">
+                        </div>
+                        
+                        <!-- Bottom padding -->
+                        <div>
+                            <label style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                <span style="font-size: 13px; color: #5c5e60;" data-i18n="cart.settings.bottomPadding">${currentLang === 'es' ? 'Espaciado inferior' : 'Bottom padding'}</span>
+                                <span style="font-size: 13px; color: #8c9196;">${settings.bottomPadding}px</span>
+                            </label>
+                            <input type="range" id="cart-page-bottom-padding" min="0" max="200" step="4" value="${settings.bottomPadding}" 
+                                   style="width: 100%; -webkit-appearance: none; height: 4px; background: #e0e0e0; border-radius: 2px; outline: none;">
+                        </div>
+                    </div>
+                    
+                </div>
+            </div>
+        `;
+    }
+    
+    // Function to attach cart page event listeners
+    function attachCartPageEventListeners() {
+        console.log('[DEBUG] Attaching cart page event listeners');
+        
+        // Apply translations
+        setTimeout(applyTranslations, 0);
+        
+        // Back button
+        $('.back-to-sections-btn').off('click.cartpage').on('click.cartpage', function() {
+            switchSidebarView('blockList');
+        });
+        
+        // Helper function to update cart configuration
+        const updateCartConfig = (key, value) => {
+            if (!currentSectionsConfig.cart) {
+                currentSectionsConfig.cart = {};
+            }
+            currentSectionsConfig.cart[key] = value;
+            hasPendingPageStructureChanges = true;
+            updateSaveButtonState();
+            renderPreview();
+        };
+        
+        // Color scheme dropdown
+        $('#cart-page-color-scheme').off('change.cartpage').on('change.cartpage', function() {
+            updateCartConfig('colorScheme', $(this).val());
+        });
+        
+        // Width dropdown
+        $('#cart-page-width').off('change.cartpage').on('change.cartpage', function() {
+            updateCartConfig('width', $(this).val());
+        });
+        
+        // Image ratio dropdown
+        $('#cart-page-image-ratio').off('change.cartpage').on('change.cartpage', function() {
+            updateCartConfig('imageRatio', $(this).val());
+        });
+        
+        // Add side paddings toggle
+        $('#cart-page-add-side-paddings').off('change.cartpage').on('change.cartpage', function() {
+            updateCartConfig('addSidePaddings', $(this).is(':checked'));
+        });
+        
+        // Top padding range
+        $('#cart-page-top-padding').off('input.cartpage').on('input.cartpage', function() {
+            const value = $(this).val();
+            $(this).parent().find('span:last').text(value + 'px');
+            updateCartConfig('topPadding', parseInt(value));
+        });
+        
+        // Bottom padding range
+        $('#cart-page-bottom-padding').off('input.cartpage').on('input.cartpage', function() {
+            const value = $(this).val();
+            $(this).parent().find('span:last').text(value + 'px');
+            updateCartConfig('bottomPadding', parseInt(value));
+        });
+        
+        // Color scheme learn link
+        $('.color-scheme-link').off('click.cartpage').on('click.cartpage', function(e) {
+            e.preventDefault();
+            // TODO: Show color scheme help
+        });
+    }
+    
     // Function to render cart settings view
     function renderCartSettings() {
         const currentLang = currentLanguage || 'es';
@@ -10176,8 +10743,88 @@ $(document).ready(async function() {
     
     // Function to render block list view - Shopify style
     function renderBlockListView(pageData) {
-        const pageName = pageData.name || '';
+        const pageName = pagesConfig[currentPageId]?.title || pageData?.name || '';
         
+        // Check if we're on cart page
+        if (currentPageId === 'cart') {
+            return `
+                <!-- Page Title -->
+                <div style="padding: 16px 16px 20px; font-size: 16px; font-weight: 600; color: #202223; line-height: 1.3;">
+                    ${pageName}
+                </div>
+                
+                <!-- Header Section -->
+                <div class="sidebar-section expanded">
+                    <div class="sidebar-section-header">
+                        <div class="section-title-wrapper">
+                            <span class="section-title" data-i18n="sections.header">Encabezado</span>
+                        </div>
+                        <i class="material-icons section-expand-icon">chevron_right</i>
+                    </div>
+                    <div class="sidebar-section-content" id="header-sections-container">
+                        ${renderHeaderSections()}
+                    </div>
+                </div>
+                
+                <!-- Template Section with Cart -->
+                <div class="sidebar-section expanded">
+                    <div class="sidebar-section-header">
+                        <div class="section-title-wrapper">
+                            <span class="section-title" data-i18n="sections.template">Plantilla</span>
+                        </div>
+                        <i class="material-icons section-expand-icon">chevron_right</i>
+                    </div>
+                    <div class="sidebar-section-content" id="template-sections-container">
+                        <!-- Cart Section (fixed for cart page) -->
+                        <div class="sidebar-subsection" data-block-type="cart" data-section-id="cart" data-element-id="cart">
+                            <i class="material-icons" style="font-size: 16px;">shopping_cart</i>
+                            <span class="subsection-text" data-i18n="sections.cart">Carrito</span>
+                            <div class="subsection-actions">
+                                <button class="action-icon visibility-toggle ${currentSectionsConfig.cart?.isHidden ? 'is-hidden' : ''}" data-section="cart" title="Toggle visibility">
+                                    <i class="material-icons icon-visible">visibility</i>
+                                    <i class="material-icons icon-hidden">visibility_off</i>
+                                </button>
+                            </div>
+                        </div>
+                        ${renderTemplateSections()}
+                        <!-- No add section button for cart page - cart should only have cart section -->
+                    </div>
+                </div>
+                
+                <!-- Footer Section -->
+                <div class="sidebar-section expanded">
+                    <div class="sidebar-section-header">
+                        <div class="section-title-wrapper">
+                            <span class="section-title" data-i18n="sections.footer">Pie de página</span>
+                        </div>
+                        <i class="material-icons section-expand-icon">chevron_right</i>
+                    </div>
+                    <div class="sidebar-section-content" id="footer-sections-container">
+                        <div class="sidebar-subsection" data-block-type="footer" data-section-id="footer">
+                            <i class="material-icons" style="font-size: 16px;">view_day</i>
+                            <span class="subsection-text" data-i18n="sections.footerSection">Pie de página</span>
+                            <div class="subsection-actions">
+                                <button class="action-icon visibility-toggle ${currentSectionsConfig.footer?.isHidden ? 'is-hidden' : ''}" data-section="footer" title="Toggle visibility">
+                                    <i class="material-icons icon-visible">visibility</i>
+                                    <i class="material-icons icon-hidden">visibility_off</i>
+                                </button>
+                            </div>
+                        </div>
+                        ${renderFooterBlocks()}
+                    </div>
+                </div>
+                
+                <!-- Footer Links -->
+                <div class="sidebar-footer">
+                    <div class="sidebar-footer-link" id="view-page-link">
+                        <i class="material-icons" style="font-size: 18px;">launch</i>
+                        <span style="font-size: 13px;" data-i18n="sections.viewPage">Ver página</span>
+                    </div>
+                </div>
+            `;
+        }
+        
+        // Default view for home page and other pages
         return `
             <!-- Page Title -->
             <div style="padding: 16px 16px 20px; font-size: 16px; font-weight: 600; color: #202223; line-height: 1.3;">
@@ -10211,10 +10858,16 @@ $(document).ready(async function() {
                     </div>
                     <i class="material-icons section-expand-icon">chevron_right</i>
                 </div>
-                <div class="sidebar-section-content" id="cart-sections-container">
-                    <div class="sidebar-subsection" data-block-type="cart" data-section-id="cart">
+                <div class="sidebar-section-content" id="cart-section-container">
+                    <div class="sidebar-subsection" data-block-type="cart" data-section-id="cart" data-element-id="cart">
                         <i class="material-icons" style="font-size: 16px;">shopping_cart</i>
-                        <span class="subsection-text" data-i18n="sections.cart">Carrito</span>
+                        <span class="subsection-text" data-i18n="sections.cartDrawer">Cart drawer</span>
+                        <div class="subsection-actions">
+                            <button class="action-icon visibility-toggle ${currentSectionsConfig.cart?.isHidden ? 'is-hidden' : ''}" data-section="cart" title="Toggle visibility">
+                                <i class="material-icons icon-visible">visibility</i>
+                                <i class="material-icons icon-hidden">visibility_off</i>
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -11906,6 +12559,7 @@ $(document).ready(async function() {
             { id: 'contact-form', icon: 'mail_outline', name: 'contactForm' },
             // { id: 'custom-liquid', icon: 'code', name: 'customLiquid' }, // Hidden from users
             { id: 'accordion', icon: 'expand_more', name: 'accordion' },
+            { id: 'cart', icon: 'shopping_cart', name: 'cart' }, // Added cart section
             // { id: 'before-after-images', icon: 'compare', name: 'beforeAfterImages' }, // Hidden from users
             // { id: 'blog-posts', icon: 'article', name: 'blogPosts' }, // Hidden - to be developed later
             { id: 'collection-with-text', icon: 'text_snippet', name: 'collectionWithText' },
@@ -13881,7 +14535,12 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
             // Handle cart click
             else if (blockType === 'cart') {
                 console.log('[DEBUG] Cart section clicked, opening settings');
-                switchSidebarView('cartSettings');
+                // Check if we're on cart page
+                if (currentPageId === 'cart') {
+                    switchSidebarView('cartPageSettings');
+                } else {
+                    switchSidebarView('cartSettings');
+                }
             }
             // Handle footer block click
             else if (blockType === 'footer-block') {
@@ -13919,6 +14578,11 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
             else if (blockType === 'richText') {
                 console.log('[DEBUG] RichText section clicked, opening settings');
                 switchSidebarView('richTextSettings');
+            }
+            // Handle cart click
+            else if (blockType === 'cart') {
+                console.log('[DEBUG] Cart section clicked, opening settings');
+                switchSidebarView('cartSettings');
             }
             // Handle featured product click
             else if (blockType === 'featured-product') {
@@ -14673,7 +15337,8 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
         // Footer link
         $('#view-page-link').on('click', function() {
             console.log('Ver página clickeado');
-            // TODO: Implement view page
+            // Open preview in new window
+            window.open('/WebsiteBuilder/Preview', '_blank');
         });
         
         
@@ -15609,9 +16274,15 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                 currentSectionsConfig.header.isHidden = newHiddenState;
                 console.log(`[DEBUG] Header saved as: ${newHiddenState ? 'hidden' : 'visible'}`);
             } else if (section === 'slideshow' || blockType === 'slideshow') {
+                if (!currentSectionsConfig.slideshow) {
+                    currentSectionsConfig.slideshow = {};
+                }
                 currentSectionsConfig.slideshow.isHidden = newHiddenState;
                 console.log(`[DEBUG] Slideshow saved as: ${newHiddenState ? 'hidden' : 'visible'}`);
             } else if (section === 'imageWithText' || blockType === 'imageWithText') {
+                if (!currentSectionsConfig.imageWithText) {
+                    currentSectionsConfig.imageWithText = {};
+                }
                 currentSectionsConfig.imageWithText.isHidden = newHiddenState;
                 console.log(`[DEBUG] Image with text saved as: ${newHiddenState ? 'hidden' : 'visible'}`);
                 
@@ -15640,6 +16311,9 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                     renderPreview();
                 }
             } else if (section === 'testimonials' || blockType === 'testimonials') {
+                if (!currentSectionsConfig.testimonials) {
+                    currentSectionsConfig.testimonials = {};
+                }
                 currentSectionsConfig.testimonials.isHidden = newHiddenState;
                 console.log(`[DEBUG] Testimonials saved as: ${newHiddenState ? 'hidden' : 'visible'}`);
                 
@@ -15648,6 +16322,9 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                     window.forceVisibilitySync('testimonials', newHiddenState);
                 }
             } else if (section === 'accordion' || blockType === 'accordion') {
+                if (!currentSectionsConfig.accordion) {
+                    currentSectionsConfig.accordion = {};
+                }
                 currentSectionsConfig.accordion.isHidden = newHiddenState;
                 console.log(`[DEBUG] Accordion saved as: ${newHiddenState ? 'hidden' : 'visible'}`);
                 
@@ -15655,6 +16332,9 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                     window.forceVisibilitySync('accordion', newHiddenState);
                 }
             } else if (section === 'imageBanner' || blockType === 'imageBanner') {
+                if (!currentSectionsConfig.imageBanner) {
+                    currentSectionsConfig.imageBanner = {};
+                }
                 currentSectionsConfig.imageBanner.isHidden = newHiddenState;
                 console.log(`[DEBUG] Image Banner saved as: ${newHiddenState ? 'hidden' : 'visible'}`);
                 
@@ -15662,6 +16342,9 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                     window.forceVisibilitySync('imageBanner', newHiddenState);
                 }
             } else if (section === 'newsletter' || blockType === 'newsletter') {
+                if (!currentSectionsConfig.newsletter) {
+                    currentSectionsConfig.newsletter = {};
+                }
                 currentSectionsConfig.newsletter.isHidden = newHiddenState;
                 console.log(`[DEBUG] Newsletter saved as: ${newHiddenState ? 'hidden' : 'visible'}`);
                 
@@ -15669,6 +16352,9 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                     window.forceVisibilitySync('newsletter', newHiddenState);
                 }
             } else if (section === 'gallery' || blockType === 'gallery') {
+                if (!currentSectionsConfig.gallery) {
+                    currentSectionsConfig.gallery = {};
+                }
                 currentSectionsConfig.gallery.isHidden = newHiddenState;
                 console.log(`[DEBUG] Gallery saved as: ${newHiddenState ? 'hidden' : 'visible'}`);
                 
@@ -15676,6 +16362,9 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                     window.forceVisibilitySync('gallery', newHiddenState);
                 }
             } else if (section === 'richText' || blockType === 'richText') {
+                if (!currentSectionsConfig.richText) {
+                    currentSectionsConfig.richText = {};
+                }
                 currentSectionsConfig.richText.isHidden = newHiddenState;
                 console.log(`[DEBUG] Rich Text saved as: ${newHiddenState ? 'hidden' : 'visible'}`);
                 
@@ -15683,6 +16372,9 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                     window.forceVisibilitySync('richText', newHiddenState);
                 }
             } else if (section === 'featured-product' || blockType === 'featured-product') {
+                if (!currentSectionsConfig.featuredProduct) {
+                    currentSectionsConfig.featuredProduct = {};
+                }
                 currentSectionsConfig.featuredProduct.isHidden = newHiddenState;
                 console.log(`[DEBUG] Featured Product saved as: ${newHiddenState ? 'hidden' : 'visible'}`);
                 
@@ -15796,6 +16488,18 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                     if (window.forceChildVisibilitySync) {
                         window.forceChildVisibilitySync(elementId, newHiddenState);
                     }
+                }
+            } else if (section) {
+                // Generic handler for any section that doesn't have a specific handler
+                console.log(`[DEBUG] Generic visibility handler for section: ${section}`);
+                if (!currentSectionsConfig[section]) {
+                    currentSectionsConfig[section] = {};
+                }
+                currentSectionsConfig[section].isHidden = newHiddenState;
+                console.log(`[DEBUG] ${section} saved as: ${newHiddenState ? 'hidden' : 'visible'}`);
+                
+                if (window.forceVisibilitySync) {
+                    window.forceVisibilitySync(section, newHiddenState);
                 }
             }
             
@@ -16179,12 +16883,18 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                         // Then, get template sections
                         $('#template-sections-container').find('> .sidebar-subsection').each(function() {
                             const $this = $(this);
-                            const sectionId = $this.data('section-id') || $this.data('block-type');
+                            // CRITICAL: Also check data-element-id for sections with dynamic IDs (contact forms, featured collections)
+                            const sectionId = $this.data('section-id') || $this.data('block-type') || $this.data('element-id');
                             
                             if (sectionId && !newOrder.includes(sectionId)) {
                                 newOrder.push(sectionId);
                             }
                         });
+                        
+                        // Always ensure footer is included if it exists and isn't already in the order
+                        if (!newOrder.includes('footer') && currentSectionsConfig.footer) {
+                            newOrder.push('footer');
+                        }
                         
                         currentSectionsConfig.sectionOrder = newOrder;
                         console.log('[DRAG&DROP] Updated section order:', newOrder);
@@ -16629,6 +17339,11 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                                 }
                             });
                             
+                            // Always ensure footer is included if it exists and isn't already in the order
+                            if (!newOrder.includes('footer') && currentSectionsConfig.footer) {
+                                newOrder.push('footer');
+                            }
+                            
                             currentSectionsConfig.sectionOrder = newOrder;
                             console.log('[DRAG&DROP] Updated section order from template container:', newOrder);
                             
@@ -16733,11 +17448,17 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                             // Get all sections from all containers
                             $('.sidebar-section-content').find('> .sidebar-subsection').each(function() {
                                 const $this = $(this);
-                                const sectionId = $this.data('section-id') || $this.data('block-type');
+                                // CRITICAL: Also check data-element-id for sections with dynamic IDs (contact forms, featured collections)
+                                const sectionId = $this.data('section-id') || $this.data('block-type') || $this.data('element-id');
                                 if (sectionId && !newOrder.includes(sectionId)) {
                                     newOrder.push(sectionId);
                                 }
                             });
+                            
+                            // Always ensure footer is included if it exists and isn't already in the order
+                            if (!newOrder.includes('footer') && currentSectionsConfig.footer) {
+                                newOrder.push('footer');
+                            }
                             
                             currentSectionsConfig.sectionOrder = newOrder;
                             hasPendingPageStructureChanges = true;
@@ -16840,11 +17561,17 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                             // Get all sections from all containers
                             $('.sidebar-section-content').find('> .sidebar-subsection').each(function() {
                                 const $this = $(this);
-                                const sectionId = $this.data('section-id') || $this.data('block-type');
+                                // CRITICAL: Also check data-element-id for sections with dynamic IDs (contact forms, featured collections)
+                                const sectionId = $this.data('section-id') || $this.data('block-type') || $this.data('element-id');
                                 if (sectionId && !newOrder.includes(sectionId)) {
                                     newOrder.push(sectionId);
                                 }
                             });
+                            
+                            // Always ensure footer is included if it exists and isn't already in the order
+                            if (!newOrder.includes('footer') && currentSectionsConfig.footer) {
+                                newOrder.push('footer');
+                            }
                             
                             currentSectionsConfig.sectionOrder = newOrder;
                             hasPendingPageStructureChanges = true;
@@ -17907,8 +18634,14 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                     currentSectionsConfig.sectionOrder = [];
                 }
                 if (!currentSectionsConfig.sectionOrder.includes('slideshow')) {
-                    // Agregar al final del array para respetar el orden visual
-                    currentSectionsConfig.sectionOrder.push('slideshow');
+                    // Find footer index and insert before it
+                    const footerIndex = currentSectionsConfig.sectionOrder.indexOf('footer');
+                    if (footerIndex > -1) {
+                        currentSectionsConfig.sectionOrder.splice(footerIndex, 0, 'slideshow');
+                    } else {
+                        // No footer, add at the end
+                        currentSectionsConfig.sectionOrder.push('slideshow');
+                    }
                 }
                 
                 // Update template sections only
@@ -17988,38 +18721,86 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                     currentSectionsConfig.multicolumn.columnOrder.push(columnId);
                 }
                 
-                // Add multicolumn to section order if not already present
-                if (!currentSectionsConfig.sectionOrder) {
-                    currentSectionsConfig.sectionOrder = [];
-                }
-                if (!currentSectionsConfig.sectionOrder.includes('multicolumn')) {
-                    // Agregar al final del array para respetar el orden visual
+                console.log('[DEBUG] Multicolumn config created:', currentSectionsConfig.multicolumn);
+            } else {
+                console.log('[DEBUG] Multicolumn already exists:', currentSectionsConfig.multicolumn);
+            }
+            
+            // Add multicolumn to section order if not already present
+            console.log('[DEBUG] Before adding to sectionOrder:', currentSectionsConfig.sectionOrder);
+            if (!currentSectionsConfig.sectionOrder) {
+                currentSectionsConfig.sectionOrder = [];
+            }
+            if (!currentSectionsConfig.sectionOrder.includes('multicolumn')) {
+                // Find footer index and insert before it
+                const footerIndex = currentSectionsConfig.sectionOrder.indexOf('footer');
+                console.log('[DEBUG] Footer index:', footerIndex);
+                if (footerIndex > -1) {
+                    currentSectionsConfig.sectionOrder.splice(footerIndex, 0, 'multicolumn');
+                } else {
+                    // No footer, add at the end
                     currentSectionsConfig.sectionOrder.push('multicolumn');
                 }
-                
-                // Update template sections only
-                const templateSectionsHtml = renderTemplateSections();
-                $('#template-sections-container').html(templateSectionsHtml + `
-                    <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e3e3e3;">
-                        <div class="add-section-button add-template-section" data-group="template">
-                            <i class="material-icons">add_circle</i>
-                            <span data-i18n="sections.addTemplateSection">Agregar sección de plantilla</span>
-                        </div>
-                    </div>
-                `);
-                
-                // Apply translations
-                setTimeout(applyTranslations, 0);
-                
-                // Set pending changes flag
-                hasPendingPageStructureChanges = true;
-                updateSaveButtonState();
-                
-                // Update preview
-                renderPreview();
-                
-                console.log('[DEBUG] Multicolumn added successfully');
+                console.log('[DEBUG] After adding to sectionOrder:', currentSectionsConfig.sectionOrder);
+            } else {
+                console.log('[DEBUG] Multicolumn already in sectionOrder');
             }
+            
+            // Update template sections only
+            console.log('[DEBUG] About to render template sections for multicolumn');
+            console.log('[DEBUG] Current sectionOrder before render:', currentSectionsConfig.sectionOrder);
+            const templateSectionsHtml = renderTemplateSections();
+            console.log('[DEBUG] Template sections HTML length:', templateSectionsHtml.length);
+            
+            $('#template-sections-container').html(templateSectionsHtml + `
+                <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e3e3e3;">
+                    <div class="add-section-button add-template-section" data-group="template">
+                        <i class="material-icons">add_circle</i>
+                        <span data-i18n="sections.addTemplateSection">Agregar sección de plantilla</span>
+                    </div>
+                </div>
+            `);
+            
+            // Apply translations
+            setTimeout(applyTranslations, 0);
+            
+            // Set pending changes flag
+            console.log('[DEBUG] Setting hasPendingPageStructureChanges to true');
+            hasPendingPageStructureChanges = true;
+            console.log('[DEBUG] hasPendingPageStructureChanges:', hasPendingPageStructureChanges);
+            updateSaveButtonState();
+            console.log('[DEBUG] Called updateSaveButtonState');
+            
+            // Reinitialize drag and drop
+            setTimeout(() => {
+                initializeDragAndDropSimple();
+            }, 100);
+            
+            // Initialize sortable for columns if multicolumn exists
+            if (currentSectionsConfig.multicolumn && currentSectionsConfig.multicolumn.columnOrder && currentSectionsConfig.multicolumn.columnOrder.length > 0) {
+                setTimeout(() => {
+                    initializeMulticolumnColumnsSortable();
+                }, 100);
+            }
+            
+            // Attach event listeners for multicolumn
+            setTimeout(() => {
+                executeModuleFunction('Multicolumn', 'attachEventListeners');
+            }, 150);
+            
+            // Update preview
+            renderPreview();
+            
+            console.log('[DEBUG] Multicolumn added successfully');
+            
+            // Close modal after adding multicolumn
+            console.log('[DEBUG] Closing add section modal for multicolumn');
+            $('.add-section-overlay').fadeOut(200, function() {
+                console.log('[DEBUG] Modal closed and removed');
+                $(this).remove();
+            });
+            
+            return; // Exit early for multicolumn
         }
         
         // Handle images with text section (using new naming convention)
@@ -18076,8 +18857,14 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                 }
                 // Use consistent naming - imageWithText (camelCase) not images-with-text
                 if (!currentSectionsConfig.sectionOrder.includes('imageWithText')) {
-                    // Add at the end of array to respect visual order
-                    currentSectionsConfig.sectionOrder.push('imageWithText');
+                    // Find footer index and insert before it
+                    const footerIndex = currentSectionsConfig.sectionOrder.indexOf('footer');
+                    if (footerIndex > -1) {
+                        currentSectionsConfig.sectionOrder.splice(footerIndex, 0, 'imageWithText');
+                    } else {
+                        // No footer, add at the end
+                        currentSectionsConfig.sectionOrder.push('imageWithText');
+                    }
                 }
                 
                 // Update template sections only
@@ -18119,7 +18906,14 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                 
                 if (!currentSectionsConfig.sectionOrder.includes('imageWithText')) {
                     console.log('[DEBUG] Adding imageWithText to sectionOrder');
-                    currentSectionsConfig.sectionOrder.push('imageWithText');
+                    // Find footer index and insert before it
+                    const footerIndex = currentSectionsConfig.sectionOrder.indexOf('footer');
+                    if (footerIndex > -1) {
+                        currentSectionsConfig.sectionOrder.splice(footerIndex, 0, 'imageWithText');
+                    } else {
+                        // No footer, add at the end
+                        currentSectionsConfig.sectionOrder.push('imageWithText');
+                    }
                     
                     // Update template sections only
                     const templateSectionsHtml = renderTemplateSections();
@@ -18225,7 +19019,14 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                     currentSectionsConfig.sectionOrder = [];
                 }
                 if (!currentSectionsConfig.sectionOrder.includes('testimonials')) {
-                    currentSectionsConfig.sectionOrder.push('testimonials');
+                    // Find footer index and insert before it
+                    const footerIndex = currentSectionsConfig.sectionOrder.indexOf('footer');
+                    if (footerIndex > -1) {
+                        currentSectionsConfig.sectionOrder.splice(footerIndex, 0, 'testimonials');
+                    } else {
+                        // No footer, add at the end
+                        currentSectionsConfig.sectionOrder.push('testimonials');
+                    }
                 }
                 
                 // Update template sections only
@@ -18288,7 +19089,14 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
             
             // CRÍTICO: usar nombre exacto
             if (!currentSectionsConfig.sectionOrder.includes('accordion')) {
-                currentSectionsConfig.sectionOrder.push('accordion');
+                // Find footer index and insert before it
+                const footerIndex = currentSectionsConfig.sectionOrder.indexOf('footer');
+                if (footerIndex > -1) {
+                    currentSectionsConfig.sectionOrder.splice(footerIndex, 0, 'accordion');
+                } else {
+                    // No footer, add at the end
+                    currentSectionsConfig.sectionOrder.push('accordion');
+                }
             }
             
             const templateSectionsHtml = renderTemplateSections();
@@ -18331,7 +19139,14 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
             }
             
             if (!currentSectionsConfig.sectionOrder.includes('newsletter')) {
-                currentSectionsConfig.sectionOrder.push('newsletter');
+                // Find footer index and insert before it
+                const footerIndex = currentSectionsConfig.sectionOrder.indexOf('footer');
+                if (footerIndex > -1) {
+                    currentSectionsConfig.sectionOrder.splice(footerIndex, 0, 'newsletter');
+                } else {
+                    // No footer, add at the end
+                    currentSectionsConfig.sectionOrder.push('newsletter');
+                }
             }
             
             const templateSectionsHtml = renderTemplateSections();
@@ -18385,7 +19200,14 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                 currentSectionsConfig.sectionOrder = [];
             }
             if (!currentSectionsConfig.sectionOrder.includes('imageBanner')) {
-                currentSectionsConfig.sectionOrder.push('imageBanner');
+                // Find footer index and insert before it
+                const footerIndex = currentSectionsConfig.sectionOrder.indexOf('footer');
+                if (footerIndex > -1) {
+                    currentSectionsConfig.sectionOrder.splice(footerIndex, 0, 'imageBanner');
+                } else {
+                    // No footer, add at the end
+                    currentSectionsConfig.sectionOrder.push('imageBanner');
+                }
             }
             
             // Update UI
@@ -18447,7 +19269,14 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                 currentSectionsConfig.sectionOrder = [];
             }
             if (!currentSectionsConfig.sectionOrder.includes('gallery')) {
-                currentSectionsConfig.sectionOrder.push('gallery');
+                // Find footer index and insert before it
+                const footerIndex = currentSectionsConfig.sectionOrder.indexOf('footer');
+                if (footerIndex > -1) {
+                    currentSectionsConfig.sectionOrder.splice(footerIndex, 0, 'gallery');
+                } else {
+                    // No footer, add at the end
+                    currentSectionsConfig.sectionOrder.push('gallery');
+                }
                 console.log('[DEBUG] Gallery added to sectionOrder:', currentSectionsConfig.sectionOrder);
             }
             
@@ -18486,6 +19315,11 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                 }
             });
             
+            // Always ensure footer is included if it exists and isn't already in the order
+            if (!newOrder.includes('footer') && currentSectionsConfig.footer) {
+                newOrder.push('footer');
+            }
+            
             currentSectionsConfig.sectionOrder = newOrder;
             console.log('[DEBUG] Updated sectionOrder after adding gallery:', newOrder);
             
@@ -18494,6 +19328,70 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
             renderPreview();
             
             console.log('[DEBUG] Gallery added successfully');
+        }
+        
+        // Handle cart section
+        if (group === 'template' && sectionId === 'cart') {
+            console.log('[DEBUG] Adding cart section');
+            
+            // Initialize config if doesn't exist
+            if (!currentSectionsConfig.cart) {
+                currentSectionsConfig.cart = {
+                    id: 'cart',
+                    isHidden: false,
+                    colorScheme: 'default',
+                    width: 'extraSmall',
+                    imageRatio: 'default',
+                    addSidePaddings: false,
+                    topPadding: 96,
+                    bottomPadding: 96,
+                    showAs: 'drawer' // Can be 'drawer' or 'page'
+                };
+            }
+            
+            // Add to section order if not already present
+            if (!currentSectionsConfig.sectionOrder) {
+                currentSectionsConfig.sectionOrder = [];
+            }
+            if (!currentSectionsConfig.sectionOrder.includes('cart')) {
+                // Find footer index and insert before it
+                const footerIndex = currentSectionsConfig.sectionOrder.indexOf('footer');
+                if (footerIndex > -1) {
+                    currentSectionsConfig.sectionOrder.splice(footerIndex, 0, 'cart');
+                } else {
+                    // No footer, add at the end
+                    currentSectionsConfig.sectionOrder.push('cart');
+                }
+                console.log('[DEBUG] Cart added to sectionOrder:', currentSectionsConfig.sectionOrder);
+            }
+            
+            // Update template sections HTML
+            const templateSectionsHtml = renderTemplateSections();
+            $('#template-sections-container').html(templateSectionsHtml + `
+                <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e3e3e3;">
+                    <div class="add-section-button add-template-section" data-group="template">
+                        <i class="material-icons">add_circle</i>
+                        <span data-i18n="sections.addTemplateSection">Agregar sección de plantilla</span>
+                    </div>
+                </div>
+            `);
+            
+            // Apply translations
+            setTimeout(applyTranslations, 0);
+            
+            // Set pending changes flag
+            hasPendingPageStructureChanges = true;
+            updateSaveButtonState();
+            
+            // Update preview
+            renderPreview();
+            
+            // Close modal
+            $('.add-section-overlay').fadeOut(200, function() {
+                $(this).remove();
+            });
+            
+            console.log('[DEBUG] Cart added successfully');
         }
         
         // Handle rich text section
@@ -18515,7 +19413,14 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                 currentSectionsConfig.sectionOrder = [];
             }
             if (!currentSectionsConfig.sectionOrder.includes('richText')) {
-                currentSectionsConfig.sectionOrder.push('richText');
+                // Find footer index and insert before it
+                const footerIndex = currentSectionsConfig.sectionOrder.indexOf('footer');
+                if (footerIndex > -1) {
+                    currentSectionsConfig.sectionOrder.splice(footerIndex, 0, 'richText');
+                } else {
+                    // No footer, add at the end
+                    currentSectionsConfig.sectionOrder.push('richText');
+                }
                 console.log('[DEBUG] Rich Text added to sectionOrder:', currentSectionsConfig.sectionOrder);
             }
             
@@ -18548,6 +19453,11 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                     }
                 }
             });
+            
+            // Always ensure footer is included if it exists and isn't already in the order
+            if (!newOrder.includes('footer') && currentSectionsConfig.footer) {
+                newOrder.push('footer');
+            }
             
             currentSectionsConfig.sectionOrder = newOrder;
             console.log('[DEBUG] Updated sectionOrder after adding rich text:', newOrder);
@@ -18730,7 +19640,14 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
             }
             
             if (!currentSectionsConfig.sectionOrder.includes('featured-product')) {
-                currentSectionsConfig.sectionOrder.push('featured-product');
+                // Find footer index and insert before it
+                const footerIndex = currentSectionsConfig.sectionOrder.indexOf('footer');
+                if (footerIndex > -1) {
+                    currentSectionsConfig.sectionOrder.splice(footerIndex, 0, 'featured-product');
+                } else {
+                    // No footer, add at the end
+                    currentSectionsConfig.sectionOrder.push('featured-product');
+                }
             }
             
             // Update template sections
@@ -23555,7 +24472,8 @@ document.head.appendChild(style);
         
         const $wrapper = $('#gallery-images-wrapper');
         if (!$wrapper.length) {
-            console.error('[GALLERY] Images wrapper not found');
+            // This is normal if gallery section doesn't exist or has no images
+            console.log('[GALLERY] Images wrapper not found - skipping initialization');
             return;
         }
         
@@ -24907,16 +25825,96 @@ document.head.appendChild(style);
             }
             
             // Combine page blocks and sections configuration
+            console.log('[DEBUG] currentSectionsConfig before saving:', JSON.parse(JSON.stringify(currentSectionsConfig)));
+            console.log('[DEBUG] currentSectionsConfig keys:', Object.keys(currentSectionsConfig));
+            
+            // Make a deep copy of currentSectionsConfig to avoid modifying the original
+            const sectionsConfigCopy = JSON.parse(JSON.stringify(currentSectionsConfig));
+            
+            // For all pages, ensure global sections are always included
+            // First try to get from home page, then fallback to currentSectionsConfig
+            let globalSections = {};
+            
+            // Try home page first
+            if (pagesConfig['home'] && pagesConfig['home'].sectionsConfig) {
+                const homeConfig = pagesConfig['home'].sectionsConfig;
+                if (homeConfig.announcementBar) globalSections.announcementBar = homeConfig.announcementBar;
+                if (homeConfig.header) globalSections.header = homeConfig.header;
+                if (homeConfig.footer) globalSections.footer = homeConfig.footer;
+                if (homeConfig.announcements) globalSections.announcements = homeConfig.announcements;
+                if (homeConfig.announcementOrder) globalSections.announcementOrder = homeConfig.announcementOrder;
+            }
+            
+            // Fallback to currentSectionsConfig for any missing global sections
+            if (!globalSections.announcementBar && currentSectionsConfig.announcementBar) {
+                globalSections.announcementBar = currentSectionsConfig.announcementBar;
+            }
+            if (!globalSections.header && currentSectionsConfig.header) {
+                globalSections.header = currentSectionsConfig.header;
+            }
+            if (!globalSections.footer && currentSectionsConfig.footer) {
+                globalSections.footer = currentSectionsConfig.footer;
+            }
+            if (!globalSections.announcements && currentSectionsConfig.announcements) {
+                globalSections.announcements = currentSectionsConfig.announcements;
+            }
+            if (!globalSections.announcementOrder && currentSectionsConfig.announcementOrder) {
+                globalSections.announcementOrder = currentSectionsConfig.announcementOrder;
+            }
+            
+            // Apply global sections to the config being saved
+            if (!sectionsConfigCopy.announcementBar && globalSections.announcementBar) {
+                sectionsConfigCopy.announcementBar = globalSections.announcementBar;
+            }
+            if (!sectionsConfigCopy.header && globalSections.header) {
+                sectionsConfigCopy.header = globalSections.header;
+            }
+            if (!sectionsConfigCopy.footer && globalSections.footer) {
+                sectionsConfigCopy.footer = globalSections.footer;
+            }
+            if (!sectionsConfigCopy.announcements && globalSections.announcements) {
+                sectionsConfigCopy.announcements = globalSections.announcements;
+            }
+            if (!sectionsConfigCopy.announcementOrder && globalSections.announcementOrder) {
+                sectionsConfigCopy.announcementOrder = globalSections.announcementOrder;
+            }
+            
+            // Extract sectionOrder from the copy
+            let sectionOrder = sectionsConfigCopy.sectionOrder || [];
+            delete sectionsConfigCopy.sectionOrder; // Remove sectionOrder from the copy
+            
+            // Ensure global sections are in the sectionOrder
+            const hasAnnouncement = sectionsConfigCopy.announcementBar && !sectionsConfigCopy.announcementBar.isHidden;
+            const hasHeader = sectionsConfigCopy.header && !sectionsConfigCopy.header.isHidden;
+            const hasFooter = sectionsConfigCopy.footer && !sectionsConfigCopy.footer.isHidden;
+            
+            // Remove any existing global sections from the order
+            sectionOrder = sectionOrder.filter(id => id !== 'announcement' && id !== 'header' && id !== 'footer');
+            
+            // Rebuild the order with global sections in correct positions
+            const finalSectionOrder = [];
+            if (hasAnnouncement) finalSectionOrder.push('announcement');
+            if (hasHeader) finalSectionOrder.push('header');
+            finalSectionOrder.push(...sectionOrder);
+            if (hasFooter) finalSectionOrder.push('footer');
+            
             const pageData = {
-                blocks: currentPageBlocks,
-                sectionsConfig: currentSectionsConfig
+                id: currentPageId,
+                title: currentPageId === 'home' ? 'Página de inicio' : currentPageId === 'cart' ? 'Carrito' : currentPageId,
+                type: currentPageType,
+                sectionOrder: finalSectionOrder,
+                sectionsConfig: sectionsConfigCopy,
+                blocks: currentPageBlocks
             };
             console.log('[DEBUG] Saving pageData:', pageData);
+            console.log('[DEBUG] sectionsConfig keys being saved:', Object.keys(sectionsConfigCopy));
+            console.log('[DEBUG] sectionOrder being saved:', sectionOrder);
             console.log('[DEBUG] SectionOrder being saved:', currentSectionsConfig.sectionOrder);
             console.log('[DEBUG] AnnouncementBar isHidden being saved:', currentSectionsConfig.announcementBar?.isHidden);
             console.log('[DEBUG] Header isHidden being saved:', currentSectionsConfig.header?.isHidden);
             const pagePayload = {
-                pageStructureJson: JSON.stringify(pageData)
+                pageStructureJson: JSON.stringify(pageData),
+                pageId: currentPageId
             };
             savePromises.push(
                 fetch(`/api/builder/websites/${currentWebsiteId}/pages/${currentPageId}`, {
@@ -25001,6 +25999,29 @@ document.head.appendChild(style);
                     hasPendingPageStructureChanges = false;
                     hasPendingGlobalSettingsChanges = false;
                     
+                    // Update pagesConfig with the saved data
+                    if (!pagesConfig[currentPageId]) {
+                        pagesConfig[currentPageId] = {};
+                    }
+                    
+                    // Make a deep copy of currentSectionsConfig for pagesConfig
+                    const sectionsConfigForSave = JSON.parse(JSON.stringify(currentSectionsConfig));
+                    const savedSectionOrder = sectionsConfigForSave.sectionOrder || [];
+                    delete sectionsConfigForSave.sectionOrder;
+                    
+                    // Match the structure that was saved
+                    pagesConfig[currentPageId] = {
+                        id: currentPageId,
+                        title: currentPageId === 'home' ? 'Página de inicio' : currentPageId === 'cart' ? 'Carrito' : currentPageId,
+                        type: currentPageType,
+                        sectionOrder: savedSectionOrder,
+                        sectionsConfig: sectionsConfigForSave,
+                        blocks: currentPageBlocks
+                    };
+                    
+                    console.log('[DEBUG] Updated pagesConfig after save:', pagesConfig);
+                    console.log('[DEBUG] Updated pagesConfig[' + currentPageId + '] keys:', Object.keys(pagesConfig[currentPageId].sectionsConfig));
+                    
                     $button.find('.btn-text').text('Guardado');
                     $button.removeClass('loading');
                     // Aquí podrías mostrar una notificación de éxito al usuario
@@ -25011,25 +26032,40 @@ document.head.appendChild(style);
                     // Recargar la vista actual para mostrar los cambios guardados
                     console.log('[DEBUG] Current sidebar view after save:', currentSidebarView);
                     if (currentSidebarView === 'blockList') {
-                        // Esperar un poco antes de recargar para asegurar que todo se haya guardado
-                        setTimeout(() => {
-                            console.log('[DEBUG] Reloading data from server after save...');
-                            loadCurrentWebsite().then(() => {
-                                console.log('[DEBUG] Data reloaded, refreshing blockList view');
-                                console.log('[DEBUG] Current sections config after reload:', JSON.stringify(currentSectionsConfig, null, 2));
-                                console.log('[DEBUG] Announcement bar isHidden:', currentSectionsConfig.announcementBar?.isHidden);
-                                console.log('[DEBUG] Header isHidden:', currentSectionsConfig.header?.isHidden);
+                        // Only reload from server for home page, for other pages just refresh the view
+                        if (currentPageId === 'home') {
+                            // Esperar un poco antes de recargar para asegurar que todo se haya guardado
+                            setTimeout(() => {
+                                console.log('[DEBUG] Reloading data from server after save (home page)...');
+                                loadCurrentWebsite().then(() => {
+                                    console.log('[DEBUG] Data reloaded, refreshing blockList view');
+                                    console.log('[DEBUG] Current sections config after reload:', JSON.stringify(currentSectionsConfig, null, 2));
+                                    console.log('[DEBUG] Announcement bar isHidden:', currentSectionsConfig.announcementBar?.isHidden);
+                                    console.log('[DEBUG] Header isHidden:', currentSectionsConfig.header?.isHidden);
+                                    window.switchSidebarView('blockList', window.getUpdatedPageData());
+                                    // Sync visibility toggle states after view is refreshed
+                                    setTimeout(() => {
+                                        if (typeof syncVisibilityToggleStates === 'function') {
+                                            syncVisibilityToggleStates();
+                                        }
+                                        // Contact forms and image-with-text sections are now rendered by renderTemplateSections
+                                        // No need to reconstruct them separately
+                                    }, 100);
+                                });
+                            }, 500);
+                        } else {
+                            // For non-home pages, just refresh the view without reloading from server
+                            console.log('[DEBUG] Refreshing blockList view without server reload (page:', currentPageId, ')');
+                            setTimeout(() => {
                                 window.switchSidebarView('blockList', window.getUpdatedPageData());
                                 // Sync visibility toggle states after view is refreshed
                                 setTimeout(() => {
                                     if (typeof syncVisibilityToggleStates === 'function') {
                                         syncVisibilityToggleStates();
                                     }
-                                    // Contact forms and image-with-text sections are now rendered by renderTemplateSections
-                                    // No need to reconstruct them separately
                                 }, 100);
-                            });
-                        }, 500);
+                            }, 100);
+                        }
                     } else if (currentSidebarView === 'headerSettings') {
                         // Recargar la vista de header settings
                         console.log('[DEBUG] Reloading header settings view after save');
@@ -25062,16 +26098,18 @@ document.head.appendChild(style);
                         console.log('[DEBUG] Reloading image with text settings view after save');
                         console.log('[DEBUG] Current imageWithText config BEFORE reload:', JSON.stringify(currentSectionsConfig.imageWithText, null, 2));
                         
-                        // Reload data from server first
-                        loadCurrentWebsite().then(() => {
-                            console.log('[DEBUG] Data reloaded from server');
-                            console.log('[DEBUG] imageWithText config AFTER server reload:', JSON.stringify(currentSectionsConfig.imageWithText, null, 2));
-                            
-                            // Return to block list view with updated data
-                            window.switchSidebarView('blockList', window.getUpdatedPageData());
-                            
-                            // Force visibility sync after view is rendered
-                            setTimeout(() => {
+                        // Only reload from server if on home page
+                        if (currentPageId === 'home') {
+                            // Reload data from server first
+                            loadCurrentWebsite().then(() => {
+                                console.log('[DEBUG] Data reloaded from server');
+                                console.log('[DEBUG] imageWithText config AFTER server reload:', JSON.stringify(currentSectionsConfig.imageWithText, null, 2));
+                                
+                                // Return to block list view with updated data
+                                window.switchSidebarView('blockList', window.getUpdatedPageData());
+                                
+                                // Force visibility sync after view is rendered
+                                setTimeout(() => {
                                 console.log('[DEBUG] Force syncing visibility toggle states for imageWithText');
                                 
                                 // Specifically sync imageWithText visibility toggle
@@ -25107,7 +26145,49 @@ document.head.appendChild(style);
                                     syncVisibilityToggleStates();
                                 }
                             }, 200); // Slightly longer delay to ensure DOM is ready
-                        });
+                            });
+                        } else {
+                            // For non-home pages, just refresh the view
+                            window.switchSidebarView('blockList', window.getUpdatedPageData());
+                            
+                            // Force visibility sync after view is rendered
+                            setTimeout(() => {
+                                console.log('[DEBUG] Force syncing visibility toggle states for imageWithText (non-home page)');
+                                
+                                // Specifically sync imageWithText visibility toggle
+                                const $imageWithTextToggle = $('.visibility-toggle[data-section="imageWithText"]');
+                                if ($imageWithTextToggle.length > 0) {
+                                    const isHidden = currentSectionsConfig.imageWithText?.isHidden || false;
+                                    
+                                    // Remove any inline styles that might interfere
+                                    $imageWithTextToggle.find('.icon-visible, .icon-hidden').removeAttr('style');
+                                    
+                                    // Force the correct state
+                                    if (isHidden) {
+                                        $imageWithTextToggle.addClass('is-hidden');
+                                    } else {
+                                        $imageWithTextToggle.removeClass('is-hidden');
+                                    }
+                                    
+                                    console.log('[DEBUG] Forced imageWithText toggle state:', isHidden);
+                                }
+                                
+                                // Also sync child blocks using the new function
+                                if (currentSectionsConfig.imageWithText?.blocks && currentSectionsConfig.imageWithText?.blockOrder) {
+                                    currentSectionsConfig.imageWithText.blockOrder.forEach(blockId => {
+                                        if (currentSectionsConfig.imageWithText.blocks[blockId]) {
+                                            const blockHidden = currentSectionsConfig.imageWithText.blocks[blockId].isHidden || false;
+                                            window.forceChildVisibilitySync(blockId, blockHidden);
+                                        }
+                                    });
+                                }
+                                
+                                // Call general sync as well
+                                if (typeof syncVisibilityToggleStates === 'function') {
+                                    syncVisibilityToggleStates();
+                                }
+                            }, 200);
+                        }
                     } else if (currentSidebarView === 'imageWithTextBlockSettings') {
                         // Permanecer en la vista de configuración de bloque individual
                         console.log('[DEBUG] Staying in image with text block settings view after save');
@@ -25140,7 +26220,33 @@ document.head.appendChild(style);
                     } else if (currentSidebarView === 'accordionSettings') {
                         // Recargar datos y volver a blockList
                         console.log('[DEBUG] Reloading after accordion save');
-                        loadCurrentWebsite().then(() => {
+                        if (currentPageId === 'home') {
+                            loadCurrentWebsite().then(() => {
+                                window.switchSidebarView('blockList', window.getUpdatedPageData());
+                                
+                                setTimeout(() => {
+                                    const isHidden = currentSectionsConfig.accordion?.isHidden || false;
+                                    window.forceVisibilitySync('accordion', isHidden);
+                                
+                                // Sincronizar FAQ items
+                                $('.accordion-faq-item .visibility-toggle').each(function() {
+                                    const $button = $(this);
+                                    const itemId = $button.data('element-id');
+                                    if (itemId && currentSectionsConfig.accordion?.items?.[itemId]) {
+                                        const itemHidden = currentSectionsConfig.accordion.items[itemId].isHidden || false;
+                                        $button.find('.icon-visible, .icon-hidden').removeAttr('style');
+                                        
+                                        if (itemHidden) {
+                                            $button.addClass('is-hidden');
+                                        } else {
+                                            $button.removeClass('is-hidden');
+                                        }
+                                    }
+                                });
+                            }, 200);
+                            });
+                        } else {
+                            // For non-home pages, just refresh the view
                             window.switchSidebarView('blockList', window.getUpdatedPageData());
                             
                             setTimeout(() => {
@@ -25163,11 +26269,37 @@ document.head.appendChild(style);
                                     }
                                 });
                             }, 200);
-                        });
+                        }
                     } else if (currentSidebarView === 'gallerySettings') {
                         // Reload data and return to blockList
                         console.log('[DEBUG] Reloading after gallery save');
-                        loadCurrentWebsite().then(() => {
+                        if (currentPageId === 'home') {
+                            loadCurrentWebsite().then(() => {
+                                window.switchSidebarView('blockList', window.getUpdatedPageData());
+                                
+                                setTimeout(() => {
+                                    const isHidden = currentSectionsConfig.gallery?.isHidden || false;
+                                    window.forceVisibilitySync('gallery', isHidden);
+                                
+                                // Sync gallery images
+                                $('.gallery-image-item .visibility-toggle').each(function() {
+                                    const $button = $(this);
+                                    const imageId = $button.data('image-id');
+                                    if (imageId && currentSectionsConfig.gallery?.images?.[imageId]) {
+                                        const imageHidden = currentSectionsConfig.gallery.images[imageId].isHidden || false;
+                                        $button.find('.icon-visible, .icon-hidden').removeAttr('style');
+                                        
+                                        if (imageHidden) {
+                                            $button.addClass('is-hidden');
+                                        } else {
+                                            $button.removeClass('is-hidden');
+                                        }
+                                    }
+                                });
+                            }, 200);
+                            });
+                        } else {
+                            // For non-home pages, just refresh the view
                             window.switchSidebarView('blockList', window.getUpdatedPageData());
                             
                             setTimeout(() => {
@@ -25190,18 +26322,28 @@ document.head.appendChild(style);
                                     }
                                 });
                             }, 200);
-                        });
+                        }
                     } else if (currentSidebarView === 'imageBannerSettings') {
                         // Recargar datos y volver a blockList
                         console.log('[DEBUG] Reloading after image banner save');
-                        loadCurrentWebsite().then(() => {
+                        if (currentPageId === 'home') {
+                            loadCurrentWebsite().then(() => {
+                                window.switchSidebarView('blockList', window.getUpdatedPageData());
+                                
+                                setTimeout(() => {
+                                    const isHidden = currentSectionsConfig.imageBanner?.isHidden || false;
+                                    window.forceVisibilitySync('imageBanner', isHidden);
+                                }, 200);
+                            });
+                        } else {
+                            // For non-home pages, just refresh the view
                             window.switchSidebarView('blockList', window.getUpdatedPageData());
                             
                             setTimeout(() => {
                                 const isHidden = currentSectionsConfig.imageBanner?.isHidden || false;
                                 window.forceVisibilitySync('imageBanner', isHidden);
                             }, 200);
-                        });
+                        }
                     } else if (currentSidebarView === 'buyButtonsSettings') {
                         // Mantener la vista de buy buttons abierta después de guardar
                         console.log('[DEBUG] Staying in buy buttons settings view after save');
@@ -25557,7 +26699,8 @@ document.head.appendChild(style);
                 sectionsConfig: currentSectionsConfig
             };
             const pagePayload = {
-                pageStructureJson: JSON.stringify(pageData)
+                pageStructureJson: JSON.stringify(pageData),
+                pageId: currentPageId
             };
             savePromises.push(
                 fetch(`/api/builder/websites/${currentWebsiteId}/pages/${currentPageId}`, {

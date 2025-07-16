@@ -133,7 +133,7 @@ window.WebsiteBuilderModules.ContactForm = {
                 }
             </style>
             
-            <div class="section-wrapper" data-section-id="${config.id || 'contact-form'}" id="${uniqueId}" style="padding: 0;">
+            <div class="section-wrapper" data-section-id="${config.id || 'contact-form'}" data-element-id="${config.id || uniqueId}" id="${uniqueId}" style="padding: 0;">
                 <div class="section-header-tag">
                     <span class="material-symbols-outlined" style="font-size: 16px;">mail</span>
                     ${window.translations && window.translations[window.currentLanguage] ? 
@@ -319,8 +319,20 @@ window.WebsiteBuilderModules.ContactForm = {
         }
         window.currentSectionsConfig.contactForms[contactFormId] = defaultConfig;
         
-        // Add to section order
-        window.currentSectionsConfig.sectionOrder.push(contactFormId);
+        // Add to section order - insert before footer if it exists
+        if (!window.currentSectionsConfig.sectionOrder) {
+            window.currentSectionsConfig.sectionOrder = [];
+        }
+        
+        // Find footer position and insert before it
+        const footerIndex = window.currentSectionsConfig.sectionOrder.indexOf('footer');
+        if (footerIndex > -1) {
+            // Insert before footer
+            window.currentSectionsConfig.sectionOrder.splice(footerIndex, 0, contactFormId);
+        } else {
+            // No footer, add at the end
+            window.currentSectionsConfig.sectionOrder.push(contactFormId);
+        }
         
         // Re-render just the template sections content
         const templateContainer = document.getElementById('template-sections-container');
