@@ -21,10 +21,16 @@ namespace Hotel.Controllers
         }
 
         // Vista de preview completa en nueva pestaña
-        public IActionResult Preview()
+        public IActionResult Preview(string page = null)
         {
-            // Por ahora retornamos la vista sin datos
-            // Más adelante aquí cargaremos los datos guardados del website
+            // Check if this is being accessed via /cart route
+            if (Request.Path.Value?.Equals("/cart", StringComparison.OrdinalIgnoreCase) == true)
+            {
+                page = "cart";
+            }
+            
+            // Pass the page parameter to the view
+            ViewBag.Page = page;
             return View();
         }
     }

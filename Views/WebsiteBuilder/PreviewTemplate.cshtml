@@ -361,6 +361,33 @@
                 
                 console.log('[PREVIEW] Cart icon clicked in iframe');
                 
+                // Get cart configuration to check showAs setting
+                let cartConfig = null;
+                if (window.currentPageData && window.currentPageData.sectionsConfig && window.currentPageData.sectionsConfig.cart) {
+                    cartConfig = window.currentPageData.sectionsConfig.cart;
+                } else if (window.currentSectionsConfig && window.currentSectionsConfig.cart) {
+                    cartConfig = window.currentSectionsConfig.cart;
+                } else if (window.parent && window.parent.currentSectionsConfig && window.parent.currentSectionsConfig.cart) {
+                    cartConfig = window.parent.currentSectionsConfig.cart;
+                }
+                
+                const showAs = cartConfig?.showAs || 'drawer';
+                console.log('[PREVIEW] Cart showAs setting:', showAs);
+                
+                // If showAs is 'page', handle differently in editor vs live site
+                if (showAs === 'page') {
+                    // Check if we're in the editor (parent window exists and has switchToPage function)
+                    if (window.parent && window.parent !== window && window.parent.switchToPage) {
+                        console.log('[PREVIEW] In editor, switching to cart page');
+                        window.parent.switchToPage('cart');
+                    } else {
+                        console.log('[PREVIEW] In live site, redirecting to cart page');
+                        window.location.href = '/cart';
+                    }
+                    return;
+                }
+                
+                // Otherwise, show drawer (for 'drawer' or 'drawer-and-page')
                 // First check if drawer exists
                 let drawers = document.querySelectorAll('.cart-drawer');
                 console.log('[PREVIEW] Found drawers:', drawers.length);

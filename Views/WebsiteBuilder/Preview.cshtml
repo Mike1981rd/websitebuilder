@@ -230,6 +230,18 @@
         let announcementAutoplayTimer = null;
         let translations = {};
         
+        // Get page parameter from URL or ViewBag
+        const urlParams = new URLSearchParams(window.location.search);
+        const viewBagPage = '@ViewBag.Page';
+        const currentPageId = urlParams.get('page') || (viewBagPage && viewBagPage !== '' ? viewBagPage : 'home');
+        
+        console.log('[PREVIEW] Debug page detection:', {
+            urlParams: urlParams.toString(),
+            viewBagPage: viewBagPage,
+            currentPageId: currentPageId,
+            url: window.location.href
+        });
+        
         // Alias para compatibilidad
         let currentSectionsConfig = window.currentSectionsConfig;
         let currentGlobalThemeSettings = window.currentGlobalThemeSettings;
@@ -401,10 +413,42 @@
                     try {
                         const pagesData = JSON.parse(websiteData.pagesConfigJson);
                         console.log('[PREVIEW] Parsed pagesConfigJson:', pagesData);
+                        console.log('[PREVIEW] Loading page:', currentPageId);
+                        console.log('[PREVIEW] Available pages:', Object.keys(pagesData));
                         
-                        // Check if pagesData has the structure we expect
-                        if (pagesData.home && pagesData.home.sectionsConfig) {
-                            // Structure with multiple pages: pagesData.home.sectionsConfig
+                        // Check if we have the requested page
+                        if (pagesData[currentPageId]) {
+                            // Load the specific page configuration
+                            const pageConfig = pagesData[currentPageId];
+                            currentSectionsConfig = {
+                                ...currentSectionsConfig,
+                                ...pageConfig.sectionsConfig,
+                                sectionOrder: pageConfig.sectionOrder || []
+                            };
+                            console.log(`[PREVIEW] Sections config loaded from pagesConfigJson.${currentPageId}:`, currentSectionsConfig);
+                        } else if (currentPageId === 'cart') {
+                            // Special handling for cart page
+                            console.log('[PREVIEW] Loading cart page configuration');
+                            // Keep existing header and footer configurations
+                            const existingHeader = currentSectionsConfig.header || {};
+                            const existingFooter = currentSectionsConfig.footer || {};
+                            const existingCart = currentSectionsConfig.cart || {};
+                            
+                            // Cart page should only show header, cart section, and footer
+                            currentSectionsConfig = {
+                                ...currentSectionsConfig,
+                                sectionOrder: ['header', 'cart', 'footer'],
+                                header: existingHeader,
+                                footer: existingFooter,
+                                cart: {
+                                    ...existingCart,
+                                    isHidden: false, // Force cart to be visible
+                                    colorScheme: existingCart.colorScheme || 'scheme1'
+                                }
+                            };
+                            console.log('[PREVIEW] Cart page config set:', currentSectionsConfig);
+                        } else if (pagesData.home && pagesData.home.sectionsConfig) {
+                            // Fallback to home page if requested page doesn't exist
                             currentSectionsConfig = {
                                 ...currentSectionsConfig,
                                 ...pagesData.home.sectionsConfig,
@@ -549,6 +593,23 @@
                     console.log('Found configured menu:', configuredMenu);
                 }
                 
+                // Final check: If we're on cart page, ensure cart configuration
+                if (currentPageId === 'cart') {
+                    console.log('[PREVIEW] Final cart page check - ensuring cart configuration');
+                    // Preserve existing configurations
+                    const existingHeader = currentSectionsConfig.header || {};
+                    const existingFooter = currentSectionsConfig.footer || {};
+                    const existingCart = currentSectionsConfig.cart || {};
+                    
+                    // Override to ensure cart page shows correctly
+                    currentSectionsConfig.sectionOrder = ['header', 'cart', 'footer'];
+                    currentSectionsConfig.cart = {
+                        ...existingCart,
+                        isHidden: false
+                    };
+                    console.log('[PREVIEW] Final cart configuration:', currentSectionsConfig);
+                }
+                
                 // Renderizar el contenido
                 renderPreviewContent();
                 
@@ -626,6 +687,8 @@
         // Función para renderizar el contenido del preview
         function renderPreviewContent() {
             console.log('[PREVIEW] Starting render with config:', currentSectionsConfig);
+            console.log('[PREVIEW] Current page ID:', currentPageId);
+            console.log('[PREVIEW] Section order:', currentSectionsConfig?.sectionOrder);
             const previewContent = document.getElementById('preview-content');
             let finalHtml = '';
             
@@ -918,6 +981,41 @@
                                                 <i class="material-icons" style="font-size: 48px; margin-bottom: 16px;">inventory_2</i>
                                                 <h3>Featured Collection</h3>
                                                 <p>Module is loading...</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                `;
+                            }
+                        }
+                    } else if (sectionId === 'cart') {
+                        console.log('[PREVIEW] Processing cart section');
+                        const cartConfig = currentSectionsConfig.cart;
+                        
+                        if (cartConfig && !cartConfig.isHidden) {
+                            // Force visibility on cart page
+                            if (currentPageId === 'cart') {
+                                cartConfig.isHidden = false;
+                            }
+                            
+                            // Render cart page
+                            if (window.renderCartPage && typeof window.renderCartPage === 'function') {
+                                console.log('[PREVIEW] Rendering cart with renderCartPage');
+                                // Load cart items from localStorage
+                                const cartItems = JSON.parse(localStorage.getItem('websiteBuilderCart') || '[]');
+                                const cartConfigWithItems = {
+                                    ...cartConfig,
+                                    cartItems: cartItems
+                                };
+                                finalHtml += window.renderCartPage(cartConfigWithItems);
+                            } else {
+                                console.log('[PREVIEW] renderCartPage not available, using fallback');
+                                finalHtml += `
+                                    <div class="section-wrapper cart-section" style="padding: 40px 0; background: #f5f5f5;">
+                                        <div class="container" style="max-width: 1200px; margin: 0 auto; padding: 0 20px;">
+                                            <div style="text-align: center; color: #666;">
+                                                <i class="material-icons" style="font-size: 48px; margin-bottom: 16px;">shopping_cart</i>
+                                                <h3>Cart</h3>
+                                                <p>Cart page is loading...</p>
                                             </div>
                                         </div>
                                     </div>
@@ -1382,6 +1480,165 @@
             console.log('[CART] Cart updated:', cartItems);
         };
         
+        // Update cart drawer content for preview real
+        window.updateCartDrawerContent = function(drawerId) {
+            console.log('[PREVIEW REAL] Updating drawer content for:', drawerId);
+            
+            const drawer = document.getElementById(drawerId);
+            if (!drawer) {
+                console.log('[PREVIEW REAL] Drawer not found:', drawerId);
+                return;
+            }
+            
+            const cartContent = drawer.querySelector('.cart-drawer-content');
+            if (!cartContent) {
+                console.log('[PREVIEW REAL] Cart content element not found');
+                return;
+            }
+            
+            // Load current cart
+            loadCart();
+            console.log('[PREVIEW REAL] Cart items loaded:', cartItems.length, cartItems);
+            
+            // Get translations
+            const trans = window.translations?.[currentLanguage] || {};
+            
+            if (cartItems.length === 0) {
+                // Show empty cart message
+                cartContent.innerHTML = `
+                    <div style="text-align: center; padding: 40px 20px;">
+                        <p style="margin-bottom: 24px;">${trans['cart.empty.message'] || 'Your cart is currently empty.'}</p>
+                        <button onclick="window.closeCartDrawer('${drawerId}')" 
+                                style="padding: 12px 24px; background-color: #121212; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px;">
+                            ${trans['cart.continue.shopping'] || 'Continue shopping'}
+                        </button>
+                    </div>
+                `;
+            } else {
+                // Show cart items
+                let cartItemsHtml = cartItems.map(item => `
+                    <div style="display: flex; gap: 16px; padding: 16px 20px; border-bottom: 1px solid #e5e5e5;">
+                        ${item.image ? `
+                            <img src="${item.image}" alt="${item.name}" style="width: 80px; height: 80px; object-fit: cover; border-radius: 4px; flex-shrink: 0;">
+                        ` : `
+                            <div style="width: 80px; height: 80px; background-color: #f0f0f0; border-radius: 4px; flex-shrink: 0; display: flex; align-items: center; justify-content: center;">
+                                <span class="material-symbols-outlined" style="font-size: 32px; color: #ccc;">image</span>
+                            </div>
+                        `}
+                        <div style="flex: 1; padding-left: 8px;">
+                            <h4 style="margin: 0 0 4px 0; font-size: 14px; font-weight: 500;">${item.name}</h4>
+                            <p style="margin: 0 0 8px 0; font-size: 12px; color: #666;">${item.vendor}</p>
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <div style="display: flex; align-items: center; border: 1px solid #e5e5e5; border-radius: 4px;">
+                                    <button onclick="window.updateCartQuantity('${item.id}', ${item.quantity - 1})" 
+                                            style="width: 32px; height: 32px; border: none; background: none; cursor: pointer;">-</button>
+                                    <span style="padding: 0 12px; font-size: 14px;">${item.quantity}</span>
+                                    <button onclick="window.updateCartQuantity('${item.id}', ${item.quantity + 1})" 
+                                            style="width: 32px; height: 32px; border: none; background: none; cursor: pointer;">+</button>
+                                </div>
+                                <span style="font-size: 14px; font-weight: 500;">$${formatPrice(item.price * item.quantity)}</span>
+                            </div>
+                        </div>
+                        <button onclick="window.removeFromCart('${item.id}')" 
+                                style="width: 24px; height: 24px; border: none; background: none; cursor: pointer; padding: 0; margin-left: 8px;">
+                            <span class="material-symbols-outlined" style="font-size: 20px;">close</span>
+                        </button>
+                    </div>
+                `).join('');
+                
+                const subtotal = cartItems.reduce((total, item) => total + (item.price * item.quantity), 0);
+                
+                // Get cart configuration for showAs
+                const cartConfig = currentSectionsConfig.cart || {};
+                const showAs = cartConfig.showAs || 'drawer';
+                
+                let buttonsHtml = '';
+                
+                if (showAs === 'drawer') {
+                    // Only checkout button
+                    buttonsHtml = `
+                        <button onclick="window.location.href='/checkout'" 
+                                style="width: 100%; padding: 12px; background-color: #121212; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; margin-bottom: 8px;">
+                            ${trans['cart.checkout'] || 'Checkout'}
+                        </button>
+                    `;
+                } else if (showAs === 'drawer-and-page') {
+                    // Both view cart and checkout buttons
+                    buttonsHtml = `
+                        <button onclick="window.location.href='/cart'" 
+                                style="width: 100%; padding: 12px; background-color: transparent; color: #121212; border: 1px solid #121212; border-radius: 4px; cursor: pointer; font-size: 14px; margin-bottom: 8px;">
+                            ${trans['cart.viewCart'] || 'View cart'}
+                        </button>
+                        <button onclick="window.location.href='/checkout'" 
+                                style="width: 100%; padding: 12px; background-color: #121212; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; margin-bottom: 8px;">
+                            ${trans['cart.checkout'] || 'Checkout'}
+                        </button>
+                    `;
+                }
+                
+                // Always add continue shopping button
+                buttonsHtml += `
+                    <button onclick="window.closeCartDrawer('${drawerId}')" 
+                            style="width: 100%; padding: 12px; background-color: transparent; color: #121212; border: 1px solid #121212; border-radius: 4px; cursor: pointer; font-size: 14px;">
+                        ${trans['cart.continue.shopping'] || 'Continue shopping'}
+                    </button>
+                `;
+                
+                cartContent.innerHTML = `
+                    <div style="max-height: calc(100vh - 200px); overflow-y: auto;">
+                        ${cartItemsHtml}
+                    </div>
+                    <div style="padding: 20px; border-top: 1px solid #e5e5e5;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 16px;">
+                            <span style="font-size: 16px; font-weight: 500;">${trans['cart.subtotal'] || 'Subtotal'}</span>
+                            <span style="font-size: 16px; font-weight: 500;">$${formatPrice(subtotal)}</span>
+                        </div>
+                        ${buttonsHtml}
+                    </div>
+                `;
+            }
+        };
+        
+        // Update cart quantity
+        window.updateCartQuantity = function(productId, newQuantity) {
+            console.log('[PREVIEW REAL] Updating quantity for:', productId, 'to:', newQuantity);
+            if (newQuantity <= 0) {
+                window.removeFromCart(productId);
+                return;
+            }
+            
+            loadCart();
+            const itemIndex = cartItems.findIndex(item => item.id === productId);
+            if (itemIndex > -1) {
+                cartItems[itemIndex].quantity = newQuantity;
+                saveCart();
+                
+                // Update drawer content
+                const drawers = document.querySelectorAll('.cart-drawer');
+                if (drawers.length > 0) {
+                    updateCartDrawerContent(drawers[0].id);
+                }
+                
+                updateCartIconCount();
+            }
+        };
+        
+        // Remove from cart
+        window.removeFromCart = function(productId) {
+            console.log('[PREVIEW REAL] Removing product:', productId);
+            loadCart();
+            cartItems = cartItems.filter(item => item.id !== productId);
+            saveCart();
+            
+            // Update drawer content
+            const drawers = document.querySelectorAll('.cart-drawer');
+            if (drawers.length > 0) {
+                updateCartDrawerContent(drawers[0].id);
+            }
+            
+            updateCartIconCount();
+        };
+        
         // Update cart icon count
         function updateCartIconCount() {
             loadCart();
@@ -1640,6 +1897,20 @@
                 
                 console.log('[PREVIEW REAL] Cart icon clicked');
                 
+                // Check cart configuration for showAs option
+                const cartConfig = currentSectionsConfig.cart || {};
+                const showAs = cartConfig.showAs || 'drawer';
+                
+                console.log('[PREVIEW REAL] Cart showAs option:', showAs);
+                
+                // If showAs is 'page', redirect to cart page
+                if (showAs === 'page') {
+                    console.log('[PREVIEW REAL] Redirecting to cart page');
+                    window.location.href = '/cart';
+                    return false;
+                }
+                
+                // For 'drawer' or 'drawer-and-page', open the drawer
                 // Find cart drawer
                 let drawers = document.querySelectorAll('.cart-drawer');
                 console.log('[PREVIEW REAL] Found drawers:', drawers.length);
@@ -1647,8 +1918,11 @@
                 // If no drawer exists, try to create it
                 if (drawers.length === 0 && window.renderCartDrawer) {
                     console.log('[PREVIEW REAL] No drawer found, attempting to create it');
-                    const cartConfig = currentSectionsConfig.cart || { colorScheme: 'scheme1' };
-                    const drawerHtml = window.renderCartDrawer({ ...cartConfig, autoOpen: false });
+                    const drawerConfig = currentSectionsConfig.cart || { colorScheme: 'scheme1' };
+                    // Ensure showAs is included in the config
+                    drawerConfig.showAs = drawerConfig.showAs || 'drawer';
+                    console.log('[PREVIEW REAL] Drawer config for rendering:', drawerConfig);
+                    const drawerHtml = window.renderCartDrawer({ ...drawerConfig, autoOpen: false });
                     
                     if (drawerHtml) {
                         // Add drawer to body

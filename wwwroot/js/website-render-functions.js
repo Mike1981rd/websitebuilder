@@ -2677,393 +2677,7 @@ function renderCartDrawer(config) {
     `;
 }
 
-/* INICIO FUNCIÓN ANTIGUA COMENTADA
-function renderCartPageV2(config = {}) {
-    console.log('[CART-PAGE] Rendering cart page with config:', config);
-    
-    const settings = {
-        colorScheme: 'default',
-        width: 'extraSmall',
-        imageRatio: 'default',
-        addSidePaddings: false,
-        topPadding: 96,
-        bottomPadding: 96,
-        cartItems: [], // Default empty array
-        ...config
-    };
-    
-    // Get color scheme values
-    const schemeColors = getColorSchemeValues(settings.colorScheme);
-    
-    // Get width class
-    const widthClasses = {
-        extraSmall: 'max-width: 600px',
-        small: 'max-width: 800px',
-        medium: 'max-width: 1000px',
-        large: 'max-width: 1200px',
-        extraLarge: 'max-width: 1400px'
-    };
-    
-    const widthStyle = widthClasses[settings.width] || widthClasses.extraSmall;
-    
-    // Get image ratio
-    const imageRatios = {
-        default: '1',
-        square: '1',
-        portrait: '2/3',
-        landscape: '4/3'
-    };
-    
-    const imageAspectRatio = imageRatios[settings.imageRatio] || '1';
-    
-    // Side paddings
-    const sidePaddingStyle = settings.addSidePaddings ? 'padding-left: 40px; padding-right: 40px;' : '';
-    
-    // Check if we're in the editor (preview mode)
-    const isEditor = window.parent !== window;
-    console.log('[CART-PAGE] isEditor:', isEditor);
-    console.log('[CART-PAGE] cartItems from config:', settings.cartItems);
-    
-    // Use cart items from config if available
-    const passedCartItems = settings.cartItems || [];
-    
-    // Sample cart items for editor preview if no real items
-    const editorSampleItems = [
-        {
-            name: currentLanguage === 'es' ? 'Camiseta Premium' : 'Premium T-Shirt',
-            price: 29.99,
-            quantity: 2,
-            image: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAiIGhlaWdodD0iODAiIHZpZXdCb3g9IjAgMCA4MCA4MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjgwIiBoZWlnaHQ9IjgwIiBmaWxsPSIjRjBGMEYwIi8+CjxwYXRoIGQ9Ik00MCAxOEMyNS42NDA2IDE4IDE0IDI5LjY0MDYgMTQgNDRDMTQgNTguMzU5NCAyNS42NDA2IDcwIDQwIDcwQzU0LjM1OTQgNzAgNjYgNTguMzU5NCA2NiA0NEM2NiAyOS42NDA2IDU0LjM1OTQgMTggNDAgMThaIiBmaWxsPSIjRDlEOUQ5Ii8+Cjwvc3ZnPg=='
-        },
-        {
-            name: currentLanguage === 'es' ? 'Gorra Deportiva' : 'Sport Cap',
-            price: 19.99,
-            quantity: 1,
-            image: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAiIGhlaWdodD0iODAiIHZpZXdCb3g9IjAgMCA4MCA4MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjgwIiBoZWlnaHQ9IjgwIiBmaWxsPSIjRTVFNUU1Ii8+CjxyZWN0IHg9IjIwIiB5PSIyMCIgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiByeD0iNCIgZmlsbD0iI0NBQ0FDQSIvPgo8L3N2Zz4='
-        },
-        {
-            name: currentLanguage === 'es' ? 'Mochila Urbana' : 'Urban Backpack',
-            price: 49.99,
-            quantity: 1,
-            image: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAiIGhlaWdodD0iODAiIHZpZXdCb3g9IjAgMCA4MCA4MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjgwIiBoZWlnaHQ9IjgwIiBmaWxsPSIjRThFOEU4Ii8+CjxjaXJjbGUgY3g9IjQwIiBjeT0iNDAiIHI9IjI1IiBmaWxsPSIjQkRCREJEIi8+Cjwvc3ZnPg=='
-        }
-    ];
-    
-    // Check if we're in editor context
-    const isInEditor = (typeof window !== 'undefined' && 
-                       window.parent !== window && 
-                       window.parent.document && 
-                       window.parent.document.getElementById('preview-iframe'));
-    
-    return `
-        <div class="section-wrapper" data-section-id="cart" style="
-            padding-top: ${settings.topPadding}px;
-            padding-bottom: ${settings.bottomPadding}px;
-            ${sidePaddingStyle}
-            background-color: ${schemeColors.background};
-            color: ${schemeColors.text};
-        ">
-            ${isInEditor ? `
-                <div class="section-header-tag">
-                    <span class="material-symbols-outlined" style="font-size: 16px;">shopping_cart</span>
-                    ${window.translations?.[window.currentLanguage]?.['sections.cart'] || 'Cart'}
-                </div>
-            ` : ''}
-            <div class="cart-page-container" style="${widthStyle}; margin: 0 auto;">
-                <h1 style="text-align: center; margin-bottom: 40px; font-size: 36px; font-weight: 400;">
-                    ${currentLanguage === 'es' ? 'Carrito' : 'Cart'}
-                </h1>
-                
-                ${!isEditor ? `
-                <!-- Empty cart message -->
-                <div id="cart-empty-message" style="text-align: center; padding: 60px 20px; display: none;">
-                    <p style="font-size: 18px; margin-bottom: 20px;">
-                        ${currentLanguage === 'es' ? 'Tu carrito está vacío' : 'Your cart is empty'}
-                    </p>
-                    <a href="/" style="
-                        display: inline-block;
-                        padding: 12px 24px;
-                        background-color: ${schemeColors['solid-button']};
-                        color: ${schemeColors['solid-button-text']};
-                        text-decoration: none;
-                        border-radius: 4px;
-                        font-weight: 500;
-                    ">
-                        ${currentLanguage === 'es' ? 'Continuar comprando' : 'Continue shopping'}
-                    </a>
-                </div>
-                ` : ''}
-                
-                <!-- Cart items table -->
-                <div id="cart-items-container" style="${isEditor ? '' : 'display: none;'}">
-                    <table style="width: 100%; border-collapse: collapse;">
-                        <thead>
-                            <tr style="border-bottom: 1px solid ${schemeColors.border};">
-                                <th style="text-align: left; padding: 16px 0; font-weight: 500;">
-                                    ${currentLanguage === 'es' ? 'Producto' : 'Product'}
-                                </th>
-                                <th style="text-align: center; padding: 16px 0; font-weight: 500;">
-                                    ${currentLanguage === 'es' ? 'Cantidad' : 'Quantity'}
-                                </th>
-                                <th style="text-align: right; padding: 16px 0; font-weight: 500;">
-                                    ${currentLanguage === 'es' ? 'Total' : 'Total'}
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody id="cart-items-body">
-                            <!-- Cart items will be inserted here -->
-                        </tbody>
-                    </table>
-                    
-                    <!-- Cart footer -->
-                    <div style="margin-top: 40px; padding-top: 40px; border-top: 1px solid ${schemeColors.border};">
-                        <div style="display: flex; justify-content: space-between; align-items: start;">
-                            <!-- Notes section -->
-                            <div style="flex: 1; margin-right: 40px;">
-                                <label for="cart-note" style="display: block; margin-bottom: 8px; font-weight: 500;">
-                                    ${currentLanguage === 'es' ? 'Nota del pedido' : 'Order note'}
-                                </label>
-                                <textarea id="cart-note" style="
-                                    width: 100%;
-                                    min-height: 80px;
-                                    padding: 12px;
-                                    border: 1px solid ${schemeColors.border};
-                                    border-radius: 4px;
-                                    background-color: ${schemeColors.background};
-                                    color: ${schemeColors.text};
-                                    resize: vertical;
-                                "></textarea>
-                            </div>
-                            
-                            <!-- Totals section -->
-                            <div style="min-width: 300px;">
-                                <div style="display: flex; justify-content: space-between; margin-bottom: 16px;">
-                                    <span style="font-size: 18px;">
-                                        ${currentLanguage === 'es' ? 'Subtotal' : 'Subtotal'}
-                                    </span>
-                                    <span id="cart-subtotal" style="font-size: 18px; font-weight: 500;">$0.00</span>
-                                </div>
-                                <p style="font-size: 14px; color: ${schemeColors.text}; opacity: 0.7; margin-bottom: 20px;">
-                                    ${currentLanguage === 'es' ? 'Los impuestos y el envío se calculan en el checkout' : 'Taxes and shipping calculated at checkout'}
-                                </p>
-                                <button ${isEditor ? 'disabled' : ''} onclick="${isEditor ? '' : "window.location.href='/checkout'"}" style="
-                                    width: 100%;
-                                    padding: 16px;
-                                    background-color: ${schemeColors['solid-button']};
-                                    color: ${schemeColors['solid-button-text']};
-                                    border: none;
-                                    border-radius: 4px;
-                                    font-size: 16px;
-                                    font-weight: 500;
-                                    cursor: ${isEditor ? 'default' : 'pointer'};
-                                    ${isEditor ? 'opacity: 0.9;' : ''}
-                                ">
-                                    ${currentLanguage === 'es' ? 'Pasar por caja' : 'Check out'}
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <script>
-            // Update cart page with items
-            (function updateCartPage() {
-                console.log('[CART-PAGE-SCRIPT] Starting updateCartPage');
-                const isEditor = window.parent !== window;
-                let cartItems = [];
-                
-                // Get passed cart items from config
-                const configCartItems = ${JSON.stringify(settings.cartItems || [])};
-                console.log('[CART-PAGE-SCRIPT] Cart items from config:', configCartItems);
-                
-                // In editor, use passed cart items or sample items
-                if (isEditor) {
-                    if (configCartItems && configCartItems.length > 0) {
-                        cartItems = configCartItems;
-                        console.log('[CART-PAGE-SCRIPT] Using real cart items:', cartItems);
-                    } else {
-                        // Use sample items if no real items
-                        cartItems = ${JSON.stringify(editorSampleItems)};
-                        console.log('[CART-PAGE-SCRIPT] Using sample items');
-                    }
-                } else {
-                    // In real site, use localStorage - try both keys for compatibility
-                    const websiteBuilderCart = localStorage.getItem('websiteBuilderCart');
-                    const cartItemsStorage = localStorage.getItem('cartItems');
-                    
-                    if (websiteBuilderCart) {
-                        cartItems = JSON.parse(websiteBuilderCart);
-                    } else if (cartItemsStorage) {
-                        cartItems = JSON.parse(cartItemsStorage);
-                    } else {
-                        cartItems = [];
-                    }
-                }
-                
-                const emptyMessage = document.getElementById('cart-empty-message');
-                const itemsContainer = document.getElementById('cart-items-container');
-                const itemsBody = document.getElementById('cart-items-body');
-                const subtotalElement = document.getElementById('cart-subtotal');
-                
-                if (cartItems.length === 0 && !isEditor) {
-                    // Only show empty message in real site, not in editor
-                    emptyMessage.style.display = 'block';
-                    itemsContainer.style.display = 'none';
-                } else {
-                    emptyMessage.style.display = 'none';
-                    itemsContainer.style.display = 'block';
-                    
-                    // Clear existing items
-                    itemsBody.innerHTML = '';
-                    
-                    let subtotal = 0;
-                    
-                    // Add each item
-                    cartItems.forEach((item, index) => {
-                        subtotal += item.price * item.quantity;
-                        
-                        const row = document.createElement('tr');
-                        row.style.borderBottom = '1px solid ${schemeColors.border}';
-                        row.innerHTML = \`
-                            <td style="padding: 20px 0;">
-                                <div style="display: flex; align-items: center;">
-                                    <div style="
-                                        width: 80px;
-                                        height: 80px;
-                                        background-color: #f0f0f0;
-                                        border-radius: 4px;
-                                        margin-right: 16px;
-                                        aspect-ratio: ${imageAspectRatio};
-                                        overflow: hidden;
-                                    ">
-                                        \${item.image ? 
-                                            \`<img src="\${item.image}" alt="\${item.name}" style="width: 100%; height: 100%; object-fit: cover;">\` :
-                                            \`<div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: #999;">
-                                                <i class="fas fa-image" style="font-size: 24px;"></i>
-                                            </div>\`
-                                        }
-                                    </div>
-                                    <div>
-                                        <h3 style="margin: 0 0 4px 0; font-size: 16px; font-weight: 500;">\${item.name}</h3>
-                                        <p style="margin: 0; font-size: 14px; color: ${schemeColors.text}; opacity: 0.7;">
-                                            $\${item.price.toFixed(2)}
-                                        </p>
-                                    </div>
-                                </div>
-                            </td>
-                            <td style="padding: 20px 0; text-align: center;">
-                                <div style="display: inline-flex; align-items: center; border: 1px solid ${schemeColors.border}; border-radius: 4px;">
-                                    <button ${isEditor ? 'disabled' : ''} onclick="${isEditor ? '' : `updateCartItemQuantity(\${index}, \${item.quantity - 1})`}" style="
-                                        padding: 8px 12px;
-                                        background: none;
-                                        border: none;
-                                        cursor: ${isEditor ? 'default' : 'pointer'};
-                                        color: ${schemeColors.text};
-                                        ${isEditor ? 'opacity: 0.6;' : ''}
-                                    ">−</button>
-                                    <span style="padding: 0 16px; min-width: 40px; text-align: center;">\${item.quantity}</span>
-                                    <button ${isEditor ? 'disabled' : ''} onclick="${isEditor ? '' : `updateCartItemQuantity(\${index}, \${item.quantity + 1})`}" style="
-                                        padding: 8px 12px;
-                                        background: none;
-                                        border: none;
-                                        cursor: ${isEditor ? 'default' : 'pointer'};
-                                        color: ${schemeColors.text};
-                                        ${isEditor ? 'opacity: 0.6;' : ''}
-                                    ">+</button>
-                                </div>
-                                <button ${isEditor ? 'disabled' : ''} onclick="${isEditor ? '' : `removeCartItem(\${index})`}" style="
-                                    display: block;
-                                    margin: 8px auto 0;
-                                    background: none;
-                                    border: none;
-                                    color: ${schemeColors.text};
-                                    opacity: 0.7;
-                                    cursor: ${isEditor ? 'default' : 'pointer'};
-                                    font-size: 12px;
-                                    text-decoration: ${isEditor ? 'none' : 'underline'};
-                                ">
-                                    ${currentLanguage === 'es' ? 'Eliminar' : 'Remove'}
-                                </button>
-                            </td>
-                            <td style="padding: 20px 0; text-align: right; font-weight: 500;">
-                                $\${(item.price * item.quantity).toFixed(2)}
-                            </td>
-                        \`;
-                        itemsBody.appendChild(row);
-                    });
-                    
-                    // Update subtotal
-                    subtotalElement.textContent = '$' + subtotal.toFixed(2);
-                }
-                
-                console.log('[CART-PAGE-SCRIPT] Script completed successfully');
-            })();
-            
-            // Helper functions (only functional in real site, not in editor)
-            function updateCartItemQuantity(index, newQuantity) {
-                if (isEditor) return; // Don't do anything in editor
-                
-                if (newQuantity < 1) {
-                    removeCartItem(index);
-                    return;
-                }
-                
-                // Try both storage keys for compatibility
-                let cartItems = [];
-                const websiteBuilderCart = localStorage.getItem('websiteBuilderCart');
-                const cartItemsStorage = localStorage.getItem('cartItems');
-                
-                if (websiteBuilderCart) {
-                    cartItems = JSON.parse(websiteBuilderCart);
-                } else if (cartItemsStorage) {
-                    cartItems = JSON.parse(cartItemsStorage);
-                }
-                
-                cartItems[index].quantity = newQuantity;
-                
-                // Save to both keys for compatibility
-                localStorage.setItem('websiteBuilderCart', JSON.stringify(cartItems));
-                localStorage.setItem('cartItems', JSON.stringify(cartItems));
-                
-                // Trigger cart update event
-                window.dispatchEvent(new Event('cartUpdated'));
-                
-                // Reload the page to update the view
-                location.reload();
-            }
-            
-            function removeCartItem(index) {
-                if (isEditor) return; // Don't do anything in editor
-                
-                // Try both storage keys for compatibility
-                let cartItems = [];
-                const websiteBuilderCart = localStorage.getItem('websiteBuilderCart');
-                const cartItemsStorage = localStorage.getItem('cartItems');
-                
-                if (websiteBuilderCart) {
-                    cartItems = JSON.parse(websiteBuilderCart);
-                } else if (cartItemsStorage) {
-                    cartItems = JSON.parse(cartItemsStorage);
-                }
-                
-                cartItems.splice(index, 1);
-                
-                // Save to both keys for compatibility
-                localStorage.setItem('websiteBuilderCart', JSON.stringify(cartItems));
-                localStorage.setItem('cartItems', JSON.stringify(cartItems));
-                
-                // Trigger cart update event
-                window.dispatchEvent(new Event('cartUpdated'));
-                
-                // Reload the page to update the view
-                location.reload();
-            }
-        </script>
-    `;
-}
-FIN FUNCIÓN ANTIGUA COMENTADA */
+// Old renderCartPageV2 function has been removed - use renderCartPage instead
 
 // Nueva implementación completamente reconstruida
 function renderCartPage(config = {}) {
@@ -3071,17 +2685,25 @@ function renderCartPage(config = {}) {
     
     // Configuración simple y directa
     const settings = {
-        colorScheme: config.colorScheme || 'scheme1',
+        colorScheme: config.colorScheme || config.config?.colorScheme || 'scheme1',
         cartItems: config.cartItems || [],
-        topPadding: config.topPadding || 96,
-        bottomPadding: config.bottomPadding || 96,
-        width: config.width || 'small'
+        topPadding: config.topPadding || config.config?.topPadding || 96,
+        bottomPadding: config.bottomPadding || config.config?.bottomPadding || 96,
+        width: config.width || config.config?.width || 'small',
+        addSidePaddings: config.addSidePaddings || config.config?.addSidePaddings || false,
+        checkoutButtonText: config.checkoutButtonText || config.config?.checkoutButtonText || (currentLanguage === 'es' ? 'Proceder al pago' : 'Proceed to checkout')
     };
     
     console.log('[CART-V2] Items del carrito:', settings.cartItems);
     
     // Obtener colores del esquema
     const colors = getColorSchemeValues(settings.colorScheme);
+    console.log('[CART-V2] Color scheme colors:', colors);
+    
+    // Obtener colores del botón sólido - usar notación de corchetes para propiedades con guiones
+    const solidButtonBg = (colors && colors['solid-button']) ? colors['solid-button'] : '#121212';
+    const solidButtonText = (colors && colors['solid-button-text']) ? colors['solid-button-text'] : '#FFFFFF';
+    console.log('[CART-V2] Solid button colors:', { bg: solidButtonBg, text: solidButtonText });
     
     // Detectar si estamos en el editor
     const isEditor = window.parent !== window;
@@ -3095,28 +2717,9 @@ function renderCartPage(config = {}) {
         }).format(amount);
     };
     
-    // Items de ejemplo para el editor
-    const sampleItems = [
-        {
-            name: 'Producto de Ejemplo 1',
-            price: 1299.99,
-            quantity: 2,
-            image: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAiIGhlaWdodD0iODAiIGZpbGw9IiNlMGUwZTAiPjxyZWN0IHdpZHRoPSI4MCIgaGVpZ2h0PSI4MCIgZmlsbD0iI2UwZTBlMCIvPjwvc3ZnPg=='
-        },
-        {
-            name: 'Producto de Ejemplo 2',
-            price: 499.99,
-            quantity: 1,
-            image: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAiIGhlaWdodD0iODAiIGZpbGw9IiNkMGQwZDAiPjxyZWN0IHdpZHRoPSI4MCIgaGVpZ2h0PSI4MCIgZmlsbD0iI2QwZDBkMCIvPjwvc3ZnPg=='
-        }
-    ];
-    
-    // Decidir qué items mostrar
-    let itemsToShow = [];
-    if (isEditor) {
-        itemsToShow = settings.cartItems.length > 0 ? settings.cartItems : sampleItems;
-        console.log('[CART-V2] En editor, mostrando:', itemsToShow.length, 'items');
-    }
+    // Decidir qué items mostrar - solo productos reales
+    let itemsToShow = settings.cartItems || [];
+    console.log('[CART-V2] Mostrando:', itemsToShow.length, 'items reales');
     
     // Generar HTML de los items
     let itemsHtml = '';
@@ -3142,16 +2745,33 @@ function renderCartPage(config = {}) {
                 <td style="padding: 20px 0; text-align: center;">
                     <div class="cart-qty-container" style="display: inline-flex; align-items: center; border: 1px solid ${colors.border || '#e0e0e0'}; border-radius: 4px;">
                         <button 
-                            onclick="updateCartQuantity(${index}, -1)" 
-                            style="padding: 8px 12px; background: none; border: none; cursor: pointer; font-size: 16px; color: ${colors.text}; transition: all 0.2s;">−</button>
-                        <span class="cart-qty-value" style="padding: 8px 16px; min-width: 40px; text-align: center;">${item.quantity}</span>
+                            class="cart-qty-btn"
+                            data-product-id="${item.id || index}"
+                            data-action="decrease"
+                            onclick="if(window.parent && window.parent.updateCartQty) { window.parent.updateCartQty('${item.id || index}', -1); } else if(window.updateCartQty) { window.updateCartQty('${item.id || index}', -1); }"
+                            style="padding: 8px 12px; background: none; border: none; cursor: pointer; font-size: 16px; color: ${colors.text};">−</button>
+                        <span class="cart-qty-value" id="cart-qty-${item.id || index}" style="padding: 8px 16px; min-width: 40px; text-align: center;">${item.quantity}</span>
                         <button 
-                            onclick="updateCartQuantity(${index}, 1)" 
-                            style="padding: 8px 12px; background: none; border: none; cursor: pointer; font-size: 16px; color: ${colors.text}; transition: all 0.2s;">+</button>
+                            class="cart-qty-btn"
+                            data-product-id="${item.id || index}"
+                            data-action="increase"
+                            onclick="if(window.parent && window.parent.updateCartQty) { window.parent.updateCartQty('${item.id || index}', 1); } else if(window.updateCartQty) { window.updateCartQty('${item.id || index}', 1); }"
+                            style="padding: 8px 12px; background: none; border: none; cursor: pointer; font-size: 16px; color: ${colors.text};">+</button>
                     </div>
                 </td>
                 <td style="padding: 20px 0; text-align: right; font-weight: 500; color: ${colors.text};">
                     <span class="item-total">${formatCurrency(itemTotal)}</span>
+                </td>
+                <td style="padding: 20px 0; text-align: center;">
+                    <button 
+                        class="cart-remove-btn"
+                        data-product-id="${item.id || index}"
+                        onclick="if(window.parent && window.parent.removeFromCart) { window.parent.removeFromCart('${item.id || index}'); } else if(window.removeFromCart) { window.removeFromCart('${item.id || index}'); }"
+                        style="background: none; border: none; cursor: pointer; padding: 8px; color: ${colors.text}; opacity: 0.6; transition: opacity 0.2s ease;"
+                        onmouseover="this.style.opacity='1'"
+                        onmouseout="this.style.opacity='0.6'">
+                        <span class="material-symbols-outlined" style="font-size: 20px;">delete</span>
+                    </button>
                 </td>
             </tr>
         `;
@@ -3176,102 +2796,78 @@ function renderCartPage(config = {}) {
                 </div>
             ` : ''}
             
-            <div style="${widthStyle} margin: 0 auto; padding: 0 20px;">
+            <div style="${widthStyle} margin: 0 auto; padding: 0 ${settings.addSidePaddings ? '20px' : '0'};">
                 <h1 style="text-align: center; margin-bottom: 40px; font-size: 36px; font-weight: 400; color: ${colors.text};">
                     Carrito
                 </h1>
                 
-                <table style="width: 100%; border-collapse: collapse;">
-                    <thead>
-                        <tr style="border-bottom: 1px solid ${colors.border || '#e0e0e0'};">
-                            <th style="text-align: left; padding: 16px 0; font-weight: 500; color: ${colors.text};">Producto</th>
-                            <th style="text-align: center; padding: 16px 0; font-weight: 500; color: ${colors.text};">Cantidad</th>
-                            <th style="text-align: right; padding: 16px 0; font-weight: 500; color: ${colors.text};">Total</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${itemsHtml}
-                    </tbody>
-                </table>
-                
-                <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid ${colors.border || '#e0e0e0'};">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                        <span style="font-size: 18px; font-weight: 500; color: ${colors.text};">Subtotal</span>
-                        <span id="cart-subtotal" style="font-size: 18px; font-weight: 500; color: ${colors.text};">${formatCurrency(subtotal)}</span>
+                ${itemsToShow.length > 0 ? `
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <thead>
+                            <tr style="border-bottom: 1px solid ${colors.border || '#e0e0e0'};">
+                                <th style="text-align: left; padding: 16px 0; font-weight: 500; color: ${colors.text};">Producto</th>
+                                <th style="text-align: center; padding: 16px 0; font-weight: 500; color: ${colors.text};">Cantidad</th>
+                                <th style="text-align: right; padding: 16px 0; font-weight: 500; color: ${colors.text};">Total</th>
+                                <th style="width: 60px;"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${itemsHtml}
+                        </tbody>
+                    </table>
+                    
+                    <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid ${colors.border || '#e0e0e0'};">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                            <span style="font-size: 18px; font-weight: 500; color: ${colors.text};">Total</span>
+                            <span id="cart-subtotal" style="font-size: 18px; font-weight: 500; color: ${colors.text};">${formatCurrency(subtotal)}</span>
+                        </div>
+                        <button onclick="if(window.parent && window.parent.handleCheckoutClick) { window.parent.handleCheckoutClick(); } else { window.location.href='/checkout'; }" style="
+                            width: 100%;
+                            padding: 16px;
+                            background-color: ${solidButtonBg};
+                            color: ${solidButtonText};
+                            border: none;
+                            border-radius: 4px;
+                            font-size: 16px;
+                            font-weight: 500;
+                            cursor: not-allowed;
+                            transition: all 0.2s ease;
+                        ">
+                            ${settings.checkoutButtonText}
+                        </button>
                     </div>
-                    <button disabled style="
-                        width: 100%;
-                        padding: 16px;
-                        background-color: ${colors.text || '#000'};
-                        color: ${colors.background || '#fff'};
-                        border: none;
-                        border-radius: 4px;
-                        font-size: 16px;
-                        font-weight: 500;
-                        cursor: default;
-                        opacity: 0.7;
-                    ">
-                        Pasar por caja
-                    </button>
-                </div>
+                ` : `
+                    <div style="text-align: center; padding: 60px 20px;">
+                        <div style="margin-bottom: 24px;">
+                            <span class="material-symbols-outlined" style="font-size: 72px; color: ${colors.text}; opacity: 0.3;">
+                                shopping_cart
+                            </span>
+                        </div>
+                        <h2 style="font-size: 24px; margin-bottom: 16px; color: ${colors.text};">
+                            Tu carrito está vacío
+                        </h2>
+                        <p style="font-size: 16px; color: ${colors.text}; opacity: 0.7; margin-bottom: 32px;">
+                            Agrega productos desde la página de inicio
+                        </p>
+                        <button style="
+                            padding: 12px 32px;
+                            background-color: ${solidButtonBg};
+                            color: ${solidButtonText};
+                            border: none;
+                            border-radius: 4px;
+                            font-size: 16px;
+                            font-weight: 500;
+                            cursor: pointer;
+                            transition: all 0.2s ease;
+                        " onclick="window.location.href='/'"
+                        onmouseover="this.style.transform='scale(0.98)'"
+                        onmouseout="this.style.transform='scale(1)'">
+                            Continuar comprando
+                        </button>
+                    </div>
+                `}
             </div>
         </div>
         
-        <script>
-            // Función para actualizar cantidad - debe ser global
-            function updateCartQuantity(index, delta) {
-                console.log('[CART-V2] updateCartQuantity called:', index, delta);
-                
-                const container = document.querySelectorAll('.cart-qty-container')[index];
-                if (!container) return;
-                
-                const quantitySpan = container.querySelector('.cart-qty-value');
-                let currentQty = parseInt(quantitySpan.textContent);
-                let newQty = currentQty + delta;
-                
-                if (newQty >= 1) {
-                    quantitySpan.textContent = newQty;
-                    
-                    // Actualizar el total del item
-                    const priceText = container.closest('tr').querySelector('.item-price').textContent;
-                    const price = parseFloat(priceText.replace(/[^0-9.-]+/g, ''));
-                    const newTotal = price * newQty;
-                    const totalElement = container.closest('tr').querySelector('.item-total');
-                    
-                    // Formatear el nuevo total
-                    const formattedTotal = new Intl.NumberFormat('en-US', {
-                        style: 'currency',
-                        currency: 'USD',
-                        minimumFractionDigits: 2
-                    }).format(newTotal);
-                    
-                    totalElement.textContent = formattedTotal;
-                    
-                    // Recalcular subtotal
-                    updateSubtotal();
-                }
-            }
-            
-            // Función para actualizar subtotal - debe ser global
-            function updateSubtotal() {
-                let subtotal = 0;
-                document.querySelectorAll('.item-total').forEach(el => {
-                    const amount = parseFloat(el.textContent.replace(/[^0-9.-]+/g, ''));
-                    subtotal += amount;
-                });
-                
-                const formattedSubtotal = new Intl.NumberFormat('en-US', {
-                    style: 'currency',
-                    currency: 'USD',
-                    minimumFractionDigits: 2
-                }).format(subtotal);
-                
-                document.getElementById('cart-subtotal').textContent = formattedSubtotal;
-            }
-            
-            // Hacer las funciones disponibles globalmente
-            window.updateCartQuantity = updateCartQuantity;
-            window.updateSubtotal = updateSubtotal;
-        </script>
     `;
 }

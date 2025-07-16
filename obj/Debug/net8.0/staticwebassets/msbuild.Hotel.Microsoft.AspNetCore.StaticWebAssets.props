@@ -264,8 +264,8 @@
       <RelatedAsset></RelatedAsset>
       <AssetTraitName></AssetTraitName>
       <AssetTraitValue></AssetTraitValue>
-      <Fingerprint>1e0sjvso9s</Fingerprint>
-      <Integrity>+X9ZYuZU3AskpMm1HaOgWUaepV3g8L/UtaI39QmuLo4=</Integrity>
+      <Fingerprint>ia8ahq2mk3</Fingerprint>
+      <Integrity>ekHHKa/RDoA0SFn+dPfqbuU5gk4XnI5EWKyd7HcfTD4=</Integrity>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
       <OriginalItemSpec>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\js\website-builder.js'))</OriginalItemSpec>
@@ -552,8 +552,8 @@
       <RelatedAsset></RelatedAsset>
       <AssetTraitName></AssetTraitName>
       <AssetTraitValue></AssetTraitValue>
-      <Fingerprint>lou77q1vh1</Fingerprint>
-      <Integrity>FXa7ULwXhloF3S6wCWouZtUE6pyno3r53Q3SU3G6O4U=</Integrity>
+      <Fingerprint>57cpji6r8s</Fingerprint>
+      <Integrity>/1pUarsUsMXSOn6CSy+7u7LE8Z4RKtf8zQ/HKHU6PVw=</Integrity>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
       <OriginalItemSpec>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\js\website-render-functions.js'))</OriginalItemSpec>

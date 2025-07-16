@@ -93,6 +93,16 @@ app.MapControllerRoute(
     pattern: "admin/{action=Index}/{id?}",
     defaults: new { controller = "Admin" });
 
+app.MapControllerRoute(
+    name: "checkout",
+    pattern: "checkout",
+    defaults: new { controller = "Checkout", action = "Index" });
+
+app.MapControllerRoute(
+    name: "cart",
+    pattern: "cart",
+    defaults: new { controller = "WebsiteBuilder", action = "Preview" });
+
 // Map API controllers
 app.MapControllers();
 

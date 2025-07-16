@@ -18,6 +18,167 @@ let currentPageBlocks = [];
 let currentPageType = 'home'; // Track the type of current page
 let pagesConfig = {}; // Store all pages configuration
 let currentSelectedColorScheme = 'scheme1'; // Track which color scheme is being edited
+
+// Función global para actualizar cantidad en el carrito - disponible para el iframe
+// Función global para eliminar producto del carrito
+window.removeFromCart = function(productId) {
+    console.log('[CART-GLOBAL] removeFromCart llamada - productId:', productId);
+    
+    try {
+        // Eliminar de localStorage
+        let cartItems = JSON.parse(localStorage.getItem('websiteBuilderCart') || '[]');
+        const itemIndex = cartItems.findIndex(item => item.id === productId);
+        
+        if (itemIndex !== -1) {
+            cartItems.splice(itemIndex, 1);
+            localStorage.setItem('websiteBuilderCart', JSON.stringify(cartItems));
+            
+            // Actualizar el contador inmediatamente
+            updateCartIconCount();
+            
+            // Forzar recarga del preview con un pequeño delay para asegurar que localStorage se actualizó
+            setTimeout(() => {
+                console.log('[CART-GLOBAL] Ejecutando renderPreview después de eliminar producto');
+                renderPreview();
+            }, 100);
+            
+            // Actualizar el drawer si está abierto
+            setTimeout(() => {
+                const previewFrame = document.getElementById('preview-iframe');
+                if (previewFrame && previewFrame.contentDocument) {
+                    const previewDoc = previewFrame.contentDocument;
+                    const drawerInIframe = previewDoc.querySelector('.cart-drawer');
+                    if (drawerInIframe && drawerInIframe.style.right === '0px') {
+                        updateCartDrawerContent(drawerInIframe.id);
+                    }
+                }
+            }, 200);
+            
+            console.log('[CART-GLOBAL] Producto eliminado exitosamente');
+        }
+    } catch (error) {
+        console.error('[CART-GLOBAL] Error al eliminar:', error);
+    }
+};
+
+// Función global para actualizar cantidad en el carrito - disponible para el iframe
+window.updateCartQty = function(productId, delta) {
+    console.log('[CART-GLOBAL] updateCartQty llamada - productId:', productId, 'delta:', delta);
+    
+    try {
+        // Buscar en el iframe del preview
+        const previewFrame = document.getElementById('preview-iframe');
+        if (!previewFrame || !previewFrame.contentDocument) {
+            console.error('[CART-GLOBAL] Preview iframe no encontrado');
+            return;
+        }
+        
+        const previewDoc = previewFrame.contentDocument;
+        const qtySpan = previewDoc.getElementById(`cart-qty-${productId}`);
+        
+        if (!qtySpan) {
+            console.error('[CART-GLOBAL] Span de cantidad no encontrado para producto:', productId);
+            return;
+        }
+        
+        let currentQty = parseInt(qtySpan.textContent) || 1;
+        let newQty = currentQty + delta;
+        
+        console.log('[CART-GLOBAL] Cantidad actual:', currentQty, 'Nueva cantidad:', newQty);
+        
+        if (newQty < 1) {
+            // Si la cantidad es 0, eliminar el producto sin confirmación
+            // Eliminar de localStorage
+            let cartItems = JSON.parse(localStorage.getItem('websiteBuilderCart') || '[]');
+            const itemIndex = cartItems.findIndex(item => item.id === productId);
+            if (itemIndex !== -1) {
+                cartItems.splice(itemIndex, 1);
+            }
+            localStorage.setItem('websiteBuilderCart', JSON.stringify(cartItems));
+            
+            // Recargar la página del carrito
+            renderPreview();
+            
+            // Actualizar el contador y drawer
+            updateCartIconCount();
+            const drawerInIframe = previewDoc.querySelector('.cart-drawer');
+            if (drawerInIframe && drawerInIframe.style.right === '0px') {
+                updateCartDrawerContent(drawerInIframe.id);
+            }
+            return;
+        }
+        
+        if (newQty >= 1) {
+            // Actualizar cantidad
+            qtySpan.textContent = newQty;
+            
+            // Actualizar total del item
+            const row = qtySpan.closest('tr');
+            const priceEl = row.querySelector('.item-price');
+            const price = parseFloat(priceEl.textContent.replace(/[^0-9.-]+/g, ''));
+            const newTotal = price * newQty;
+            const totalEl = row.querySelector('.item-total');
+            // Usar formato de moneda con comas
+            const formattedTotal = new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: 'USD',
+                minimumFractionDigits: 2
+            }).format(newTotal);
+            totalEl.textContent = formattedTotal;
+            
+            // Actualizar subtotal
+            let subtotal = 0;
+            previewDoc.querySelectorAll('.item-total').forEach(el => {
+                subtotal += parseFloat(el.textContent.replace(/[^0-9.-]+/g, ''));
+            });
+            
+            const subtotalEl = previewDoc.getElementById('cart-subtotal');
+            if (subtotalEl) {
+                // Usar formato de moneda con comas
+                const formattedSubtotal = new Intl.NumberFormat('en-US', {
+                    style: 'currency',
+                    currency: 'USD',
+                    minimumFractionDigits: 2
+                }).format(subtotal);
+                subtotalEl.textContent = formattedSubtotal;
+            }
+            
+            // IMPORTANTE: Actualizar localStorage y todo el sistema
+            let cartItems = JSON.parse(localStorage.getItem('websiteBuilderCart') || '[]');
+            console.log('[CART-GLOBAL] Cart items antes de actualizar:', cartItems);
+            console.log('[CART-GLOBAL] Buscando producto con ID:', productId);
+            console.log('[CART-GLOBAL] IDs en el carrito:', cartItems.map(item => item.id));
+            
+            // Buscar el item por ID
+            const itemIndex = cartItems.findIndex(item => item.id === productId);
+            
+            if (itemIndex !== -1) {
+                cartItems[itemIndex].quantity = newQty;
+                localStorage.setItem('websiteBuilderCart', JSON.stringify(cartItems));
+                console.log('[CART-GLOBAL] Cart items después de actualizar:', cartItems);
+                
+                // Actualizar el contador del carrito en el header
+                console.log('[CART-GLOBAL] Actualizando contador del carrito...');
+                updateCartIconCount();
+                
+                // Actualizar el drawer si está abierto
+                const drawerInIframe = previewDoc.querySelector('.cart-drawer');
+                console.log('[CART-GLOBAL] Drawer encontrado:', !!drawerInIframe, 'Está abierto:', drawerInIframe?.style.right === '0px');
+                
+                if (drawerInIframe && drawerInIframe.style.right === '0px') {
+                    console.log('[CART-GLOBAL] Actualizando contenido del drawer...');
+                    updateCartDrawerContent(drawerInIframe.id);
+                }
+                
+                console.log('[CART-GLOBAL] Actualización completada - localStorage y UI actualizados');
+            } else {
+                console.error('[CART-GLOBAL] No se encontró el item con productId:', productId);
+            }
+        }
+    } catch (error) {
+        console.error('[CART-GLOBAL] Error:', error);
+    }
+};
 let currentSidebarView = 'blockList'; // Track the current sidebar view
 let previousSidebarView = null; // Track previous view for back navigation
 let currentAnnouncementIndex = 0; // Track current announcement being displayed
@@ -274,6 +435,15 @@ async function switchToPage(pageId) {
     // Update current page variables
     currentPageId = pageId;
     currentPageType = pagesConfig[pageId]?.type || 'home';
+    
+    // Force reload cart page data if it seems corrupted
+    if (pageId === 'cart' && pagesConfig[pageId]) {
+        const cartOrder = pagesConfig[pageId].sectionOrder || [];
+        if (cartOrder.length > 5) {
+            console.log('[DEBUG] Cart page seems corrupted, reloading from server');
+            delete pagesConfig[pageId];
+        }
+    }
     
     // Update UI
     $('.page-item').removeClass('active');
@@ -2414,7 +2584,7 @@ window.renderFooter = renderFooter;
  * Renderiza todas las secciones de la página en el iframe de previsualización.
  */
 function renderPreview() {
-    console.log('[PREVIEW] Rendering preview...');
+    console.log('[PREVIEW] renderPreview llamada - timestamp:', new Date().toISOString());
     const previewIframe = document.getElementById('preview-iframe');
     if (!previewIframe || !previewIframe.contentWindow) {
         console.warn('[PREVIEW] Iframe no encontrado o no listo. Se reintentará.');
@@ -2435,6 +2605,17 @@ function renderPreview() {
     if (pagesConfig && pagesConfig[currentPageId]) {
         pageData = pagesConfig[currentPageId];
         console.log('[PREVIEW] Using pagesConfig data for page:', currentPageId);
+        console.log('[PREVIEW] Page data sectionOrder:', pageData.sectionOrder);
+        console.log('[PREVIEW] Page data sectionOrder length:', pageData.sectionOrder ? pageData.sectionOrder.length : 0);
+        
+        // FIX TEMPORAL: Si es la página del carrito y tiene más de 5 secciones, corregir
+        if (currentPageId === 'cart' && pageData.sectionOrder && pageData.sectionOrder.length > 5) {
+            console.log('[PREVIEW FIX] Cart page has too many sections, fixing...');
+            pageData = {
+                ...pageData,
+                sectionOrder: ['announcement', 'header', 'cart', 'footer']
+            };
+        }
     } else {
         // Fallback to currentSectionsConfig for backward compatibility
         pageData = {
@@ -2663,12 +2844,25 @@ function renderPreview() {
                     }
                 } else if (sectionId === 'cart') {
                     // Cart section for cart page
-                    const config = pageData.sectionsConfig.cart || {};
+                    const config = pageData.sectionsConfig?.cart || {
+                        colorScheme: 'scheme1',
+                        width: 'small',
+                        isHidden: false
+                    };
+                    console.log('[PREVIEW] Cart section config:', config);
+                    console.log('[PREVIEW] Cart isHidden:', config.isHidden);
+                    
+                    // Force cart to be visible on cart page
+                    if (currentPageId === 'cart') {
+                        config.isHidden = false;
+                    }
+                    
                     if (!config.isHidden) {
                         // Load cart items from localStorage (websiteBuilderCart)
                         const savedCart = localStorage.getItem('websiteBuilderCart');
                         const cartItemsData = savedCart ? JSON.parse(savedCart) : [];
                         console.log('[PREVIEW] Cart items from websiteBuilderCart:', cartItemsData);
+                        console.log('[PREVIEW] Cart items count:', cartItemsData.length);
                         
                         // Pass cart items as part of config
                         const cartConfig = {
@@ -2677,6 +2871,9 @@ function renderPreview() {
                         };
                         
                         const moduleRender = iframeWindow.WebsiteBuilderModules?.Cart?.render;
+                        console.log('[PREVIEW] Cart module render available:', !!moduleRender);
+                        console.log('[PREVIEW] renderCartPage available:', !!iframeWindow.renderCartPage);
+                        
                         if (moduleRender) {
                             console.log('[PREVIEW] Using Cart module render');
                             finalHtml += moduleRender(cartConfig);
@@ -2685,6 +2882,8 @@ function renderPreview() {
                             // Also set cart items directly on iframe window before rendering
                             iframeWindow.passedCartItems = cartConfig.cartItems;
                             finalHtml += iframeWindow.renderCartPage(cartConfig);
+                        } else {
+                            console.error('[PREVIEW] No cart render function available!');
                         }
                     }
                 }
@@ -2695,6 +2894,7 @@ function renderPreview() {
         if (pageData.sectionsConfig.cart) {
             console.log('[PREVIEW] Cart config:', pageData.sectionsConfig.cart);
             const cartConfig = pageData.sectionsConfig.cart;
+            // Only render drawer if showAs is 'drawer' or 'drawer-and-page', NOT 'page'
             if (cartConfig.showAs === 'drawer' || cartConfig.showAs === 'drawer-and-page') {
                 console.log('[PREVIEW] Cart showAs matches drawer condition:', cartConfig.showAs);
                 // Auto-abrir solo si estamos en cartSettings
@@ -2777,6 +2977,7 @@ function renderPreview() {
         if (pageData.sectionsConfig.cart) {
             console.log('[PREVIEW FALLBACK] Cart config:', pageData.sectionsConfig.cart);
             const cartConfig = pageData.sectionsConfig.cart;
+            // Only render drawer if showAs is 'drawer' or 'drawer-and-page', NOT 'page'
             if (cartConfig.showAs === 'drawer' || cartConfig.showAs === 'drawer-and-page') {
                 console.log('[PREVIEW FALLBACK] Cart showAs matches drawer condition:', cartConfig.showAs);
                 // Auto-abrir solo si estamos en cartSettings
@@ -2795,8 +2996,10 @@ function renderPreview() {
         }
     }
     
+    console.log('[PREVIEW] Actualizando innerHTML del preview...');
     previewBody.innerHTML = finalHtml;
     console.log('[PREVIEW] Renderizado completado.');
+    console.log('[PREVIEW] Contenido actualizado en el iframe');
     
     // Update cart icon count after rendering
     setTimeout(() => {
@@ -2972,6 +3175,20 @@ function renderPreview() {
             if (isFaqHeader || isFaqTab || isAccordionToggle || isDescriptionTab) {
                 console.log('[PREVIEW CLICK] Click on accordion/description element, letting it handle it');
                 return; // Let the element's own click handler manage this
+            }
+            
+            // Check if click is on cart quantity buttons - let them work
+            const isCartQtyButton = clickedElement.closest('.cart-qty-btn');
+            if (isCartQtyButton) {
+                console.log('[PREVIEW CLICK] Click on cart quantity button, allowing it');
+                return; // Let cart buttons work normally
+            }
+            
+            // Check if click is on cart remove buttons - let them work
+            const isCartRemoveButton = clickedElement.closest('.cart-remove-btn');
+            if (isCartRemoveButton) {
+                console.log('[PREVIEW CLICK] Click on cart remove button, allowing it');
+                return; // Let remove buttons work normally
             }
             
             // Check if click is on other interactive elements (excluding section-header-tag)
@@ -5315,6 +5532,7 @@ $(document).ready(async function() {
             'cart.continue.shopping': 'Continuar comprando',
             'cart.shipping.message': 'Envío gratis en pedidos superiores a',
             'cart.checkout': 'Finalizar compra',
+            'cart.viewCart': 'Ver carrito',
             'cart.subtotal': 'Subtotal',
             'cart.degradadoIn': 'Degradado In...',
             'cart.solid': 'Sólido',
@@ -6092,6 +6310,7 @@ $(document).ready(async function() {
             'cart.continue.shopping': 'Continue shopping',
             'cart.shipping.message': 'Free shipping on orders over',
             'cart.checkout': 'Checkout',
+            'cart.viewCart': 'View cart',
             'cart.subtotal': 'Subtotal',
             // Favicon translations
             'favicon.title': 'Favicon',
@@ -9825,6 +10044,7 @@ $(document).ready(async function() {
     
     // Function to render cart page settings view (for cart page template)
     function renderCartPageSettings() {
+        console.log('[DEBUG] renderCartPageSettings called');
         const currentLang = currentLanguage || 'es';
         const settings = currentSectionsConfig.cart || {
             colorScheme: 'default',
@@ -9832,7 +10052,8 @@ $(document).ready(async function() {
             imageRatio: 'default',
             addSidePaddings: false,
             topPadding: 96,
-            bottomPadding: 96
+            bottomPadding: 96,
+            checkoutButtonText: currentLang === 'es' ? 'Proceder al pago' : 'Proceed to checkout'
         };
         
         // Initialize cart config if it doesn't exist
@@ -9940,6 +10161,17 @@ $(document).ready(async function() {
                         </div>
                     </div>
                     
+                    <!-- Checkout button text -->
+                    <div class="form-group" style="margin-top: 24px;">
+                        <label style="font-size: 13px; font-weight: 500; margin-bottom: 8px; color: #5c5e60; display: block;" 
+                               data-i18n="cart.settings.checkoutButtonText">${currentLang === 'es' ? 'Texto del botón de pagar' : 'Checkout button text'}</label>
+                        <input type="text" 
+                               id="cart-page-checkout-button-text" 
+                               value="${settings.checkoutButtonText || (currentLang === 'es' ? 'Proceder al pago' : 'Proceed to checkout')}" 
+                               placeholder="${currentLang === 'es' ? 'Ej: Proceder al pago' : 'Ex: Proceed to checkout'}"
+                               style="width: 100%; padding: 8px 12px; border: 1px solid #e0e0e0; border-radius: 4px; font-size: 13px;">
+                    </div>
+                    
                 </div>
             </div>
         `;
@@ -10002,6 +10234,11 @@ $(document).ready(async function() {
             updateCartConfig('bottomPadding', parseInt(value));
         });
         
+        // Checkout button text
+        $('#cart-page-checkout-button-text').off('input.cartpage').on('input.cartpage', function() {
+            updateCartConfig('checkoutButtonText', $(this).val());
+        });
+        
         // Color scheme learn link
         $('.color-scheme-link').off('click.cartpage').on('click.cartpage', function(e) {
             e.preventDefault();
@@ -10023,7 +10260,13 @@ $(document).ready(async function() {
             progressBarGradient: 'gradient-linear',
             darkenImageBackground: true,
             edgeRounding: 'size-2-4px',
-            customCSS: ''
+            customCSS: '',
+            // Page-specific settings
+            width: 'small',
+            topPadding: 96,
+            bottomPadding: 96,
+            addSidePaddings: false,
+            checkoutButtonText: currentLang === 'es' ? 'Proceder al pago' : 'Proceed to checkout'
         };
         
         // Initialize cart config if it doesn't exist
@@ -10130,14 +10373,16 @@ $(document).ready(async function() {
                                     </select>
                                 </div>
                                 
-                                <!-- Show progress bar toggle -->
-                                <div class="form-group" style="margin-top: 16px;">
-                                    <label class="toggle-field">
-                                        <span data-i18n="cart.settings.showProgressBar">${currentLang === 'es' ? 'Mostrar barra de progreso' : 'Show progress bar'}</span>
-                                        <input type="checkbox" class="shopify-toggle" id="cart-show-progress-bar" ${settings.showProgressBar ? 'checked' : ''}>
-                                        <label for="cart-show-progress-bar" class="toggle-slider"></label>
-                                    </label>
-                                </div>
+                                <!-- Drawer-specific options (show only for drawer or drawer-and-page) -->
+                                <div id="drawer-specific-options" style="${settings.showAs === 'page' ? 'display: none;' : ''}">
+                                    <!-- Show progress bar toggle -->
+                                    <div class="form-group" style="margin-top: 16px;">
+                                        <label class="toggle-field">
+                                            <span data-i18n="cart.settings.showProgressBar">${currentLang === 'es' ? 'Mostrar barra de progreso' : 'Show progress bar'}</span>
+                                            <input type="checkbox" class="shopify-toggle" id="cart-show-progress-bar" ${settings.showProgressBar ? 'checked' : ''}>
+                                            <label for="cart-show-progress-bar" class="toggle-slider"></label>
+                                        </label>
+                                    </div>
                                 
                                 <!-- Free shipping goal (shown only if progress bar is enabled) -->
                                 <div class="form-group" style="margin-top: 16px; ${!settings.showProgressBar ? 'display: none;' : ''}" id="free-shipping-goal-group">
@@ -10193,6 +10438,82 @@ $(document).ready(async function() {
                                     </select>
                                 </div>
                                 
+                            </div>
+                            
+                            <!-- Page-specific options (show only for page or drawer-and-page) -->
+                            <div id="page-specific-options" style="${settings.showAs === 'drawer' ? 'display: none;' : ''}">
+                                <!-- Width -->
+                                <div class="form-group" style="margin-top: 20px;">
+                                    <label style="font-size: 13px; font-weight: 500; margin-bottom: 8px; color: #5c5e60; display: block;" 
+                                           data-i18n="cart.settings.width">${currentLang === 'es' ? 'Ancho' : 'Width'}</label>
+                                    <select class="shopify-select" id="cart-page-width" 
+                                            style="width: 100%; padding: 8px 12px; border: 1px solid #e0e0e0; border-radius: 4px; background: white;">
+                                        <option value="extraSmall" ${settings.width === 'extraSmall' ? 'selected' : ''} 
+                                                data-i18n="cart.width.extraSmall">${currentLang === 'es' ? 'Extra pequeño' : 'Extra small'}</option>
+                                        <option value="small" ${settings.width === 'small' ? 'selected' : ''} 
+                                                data-i18n="cart.width.small">${currentLang === 'es' ? 'Pequeño' : 'Small'}</option>
+                                        <option value="large" ${settings.width === 'large' ? 'selected' : ''} 
+                                                data-i18n="cart.width.large">${currentLang === 'es' ? 'Grande' : 'Large'}</option>
+                                        <option value="full" ${settings.width === 'full' ? 'selected' : ''} 
+                                                data-i18n="cart.width.full">${currentLang === 'es' ? 'Ancho completo' : 'Full width'}</option>
+                                    </select>
+                                </div>
+                                
+                                <!-- Top padding -->
+                                <div class="form-group" style="margin-top: 16px;">
+                                    <label style="font-size: 13px; font-weight: 500; margin-bottom: 8px; color: #5c5e60; display: block;" 
+                                           data-i18n="cart.settings.topPadding">${currentLang === 'es' ? 'Espacio superior' : 'Top padding'}</label>
+                                    <input type="range" 
+                                           id="cart-page-top-padding" 
+                                           min="0" 
+                                           max="120" 
+                                           step="4" 
+                                           value="${settings.topPadding || 96}"
+                                           style="width: 100%;">
+                                    <div style="display: flex; justify-content: space-between; margin-top: 4px;">
+                                        <span style="font-size: 12px; color: #999;">${currentLang === 'es' ? '0px' : '0px'}</span>
+                                        <span id="cart-page-top-padding-value" style="font-size: 12px; color: #666;">${settings.topPadding || 96}px</span>
+                                        <span style="font-size: 12px; color: #999;">${currentLang === 'es' ? '120px' : '120px'}</span>
+                                    </div>
+                                </div>
+                                
+                                <!-- Bottom padding -->
+                                <div class="form-group" style="margin-top: 16px;">
+                                    <label style="font-size: 13px; font-weight: 500; margin-bottom: 8px; color: #5c5e60; display: block;" 
+                                           data-i18n="cart.settings.bottomPadding">${currentLang === 'es' ? 'Espacio inferior' : 'Bottom padding'}</label>
+                                    <input type="range" 
+                                           id="cart-page-bottom-padding" 
+                                           min="0" 
+                                           max="120" 
+                                           step="4" 
+                                           value="${settings.bottomPadding || 96}"
+                                           style="width: 100%;">
+                                    <div style="display: flex; justify-content: space-between; margin-top: 4px;">
+                                        <span style="font-size: 12px; color: #999;">${currentLang === 'es' ? '0px' : '0px'}</span>
+                                        <span id="cart-page-bottom-padding-value" style="font-size: 12px; color: #666;">${settings.bottomPadding || 96}px</span>
+                                        <span style="font-size: 12px; color: #999;">${currentLang === 'es' ? '120px' : '120px'}</span>
+                                    </div>
+                                </div>
+                                
+                                <!-- Add side paddings toggle -->
+                                <div class="form-group" style="margin-top: 16px;">
+                                    <label class="toggle-field">
+                                        <span data-i18n="cart.settings.addSidePaddings">${currentLang === 'es' ? 'Agregar espacios laterales' : 'Add side paddings'}</span>
+                                        <input type="checkbox" class="shopify-toggle" id="cart-page-add-side-paddings" ${settings.addSidePaddings ? 'checked' : ''}>
+                                        <label for="cart-page-add-side-paddings" class="toggle-slider"></label>
+                                    </label>
+                                </div>
+                                
+                                <!-- Checkout button text -->
+                                <div class="form-group" style="margin-top: 16px;">
+                                    <label style="font-size: 13px; font-weight: 500; margin-bottom: 8px; color: #5c5e60; display: block;" 
+                                           data-i18n="cart.settings.checkoutButtonText">${currentLang === 'es' ? 'Texto del botón de pago' : 'Checkout button text'}</label>
+                                    <input type="text" 
+                                           id="cart-page-checkout-button-text" 
+                                           value="${settings.checkoutButtonText || (currentLang === 'es' ? 'Proceder al pago' : 'Proceed to checkout')}"
+                                           placeholder="${currentLang === 'es' ? 'Proceder al pago' : 'Proceed to checkout'}"
+                                           style="width: 100%; padding: 8px 12px; border: 1px solid #e0e0e0; border-radius: 4px;">
+                                </div>
                             </div>
                         </details>
                     </div>
@@ -10255,9 +10576,25 @@ $(document).ready(async function() {
             updateCartConfig('showTaxesAndShipping', $(this).is(':checked'));
         });
         
-        // Show as dropdown
+        // Show as dropdown - with dynamic visibility of options
         $('#cart-show-as').off('change.cart').on('change.cart', function() {
-            updateCartConfig('showAs', $(this).val());
+            const showAs = $(this).val();
+            updateCartConfig('showAs', showAs);
+            
+            // Toggle visibility of specific options based on showAs value
+            if (showAs === 'page') {
+                $('#drawer-specific-options').hide();
+                $('#page-specific-options').show();
+            } else if (showAs === 'drawer') {
+                $('#drawer-specific-options').show();
+                $('#page-specific-options').hide();
+            } else if (showAs === 'drawer-and-page') {
+                $('#drawer-specific-options').show();
+                $('#page-specific-options').show();
+            }
+            
+            // Re-render preview to show/hide drawer
+            renderPreview();
         });
         
         // Show progress bar toggle - with conditional field visibility
@@ -10308,6 +10645,41 @@ $(document).ready(async function() {
             } else {
                 $icon.text('expand_more');
             }
+        });
+        
+        // Page-specific event listeners
+        // Width dropdown
+        $('#cart-page-width').off('change.cart').on('change.cart', function() {
+            updateCartConfig('width', $(this).val());
+            renderPreview();
+        });
+        
+        // Top padding range
+        $('#cart-page-top-padding').off('input.cart').on('input.cart', function() {
+            const value = $(this).val();
+            $('#cart-page-top-padding-value').text(value + 'px');
+            updateCartConfig('topPadding', parseInt(value));
+            renderPreview();
+        });
+        
+        // Bottom padding range
+        $('#cart-page-bottom-padding').off('input.cart').on('input.cart', function() {
+            const value = $(this).val();
+            $('#cart-page-bottom-padding-value').text(value + 'px');
+            updateCartConfig('bottomPadding', parseInt(value));
+            renderPreview();
+        });
+        
+        // Add side paddings toggle
+        $('#cart-page-add-side-paddings').off('change.cart').on('change.cart', function() {
+            updateCartConfig('addSidePaddings', $(this).is(':checked'));
+            renderPreview();
+        });
+        
+        // Checkout button text
+        $('#cart-page-checkout-button-text').off('input.cart').on('input.cart', function() {
+            updateCartConfig('checkoutButtonText', $(this).val());
+            renderPreview();
         });
     }
     
@@ -10780,13 +11152,13 @@ $(document).ready(async function() {
                             <i class="material-icons" style="font-size: 16px;">shopping_cart</i>
                             <span class="subsection-text" data-i18n="sections.cart">Carrito</span>
                             <div class="subsection-actions">
-                                <button class="action-icon visibility-toggle ${currentSectionsConfig.cart?.isHidden ? 'is-hidden' : ''}" data-section="cart" title="Toggle visibility">
+                                <button class="action-icon visibility-toggle" data-section="cart" title="Toggle visibility">
                                     <i class="material-icons icon-visible">visibility</i>
                                     <i class="material-icons icon-hidden">visibility_off</i>
                                 </button>
                             </div>
                         </div>
-                        ${renderTemplateSections()}
+                        <!-- No other template sections for cart page -->
                         <!-- No add section button for cart page - cart should only have cart section -->
                     </div>
                 </div>
@@ -14535,12 +14907,8 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
             // Handle cart click
             else if (blockType === 'cart') {
                 console.log('[DEBUG] Cart section clicked, opening settings');
-                // Check if we're on cart page
-                if (currentPageId === 'cart') {
-                    switchSidebarView('cartPageSettings');
-                } else {
-                    switchSidebarView('cartSettings');
-                }
+                // Always open cartSettings which has the drawer/page options
+                switchSidebarView('cartSettings');
             }
             // Handle footer block click
             else if (blockType === 'footer-block') {
@@ -28211,6 +28579,61 @@ window.addToCart = function(productId) {
 };
 
 // Update cart drawer content
+// Function to handle checkout button click
+window.handleCheckoutClick = function() {
+    // Check if we're in the editor (parent window exists)
+    if (window.parent && window.parent !== window) {
+        // In editor - open in new tab to not lose work
+        window.open('/checkout', '_blank');
+    } else {
+        // In real site - direct redirect
+        window.location.href = '/checkout';
+    }
+};
+
+// Helper function to render drawer buttons based on showAs setting
+function renderDrawerButtons(drawerId, trans) {
+    // Get cart configuration
+    const cartConfig = currentSectionsConfig.cart || {};
+    const showAs = cartConfig.showAs || 'drawer';
+    
+    console.log('[CART] Rendering drawer buttons for showAs:', showAs);
+    
+    let buttonsHtml = '';
+    
+    if (showAs === 'drawer') {
+        // Only checkout button
+        buttonsHtml = `
+            <button onclick="handleCheckoutClick()" 
+                    style="width: 100%; padding: 12px; background-color: #121212; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; margin-bottom: 8px;">
+                ${trans['cart.checkout'] || 'Checkout'}
+            </button>
+        `;
+    } else if (showAs === 'drawer-and-page') {
+        // Both view cart and checkout buttons
+        buttonsHtml = `
+            <button onclick="window.location.href='/cart'" 
+                    style="width: 100%; padding: 12px; background-color: transparent; color: #121212; border: 1px solid #121212; border-radius: 4px; cursor: pointer; font-size: 14px; margin-bottom: 8px;">
+                ${trans['cart.viewCart'] || 'View cart'}
+            </button>
+            <button onclick="handleCheckoutClick()" 
+                    style="width: 100%; padding: 12px; background-color: #121212; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; margin-bottom: 8px;">
+                ${trans['cart.checkout'] || 'Checkout'}
+            </button>
+        `;
+    }
+    
+    // Always add continue shopping button
+    buttonsHtml += `
+        <button onclick="if(window.parent && window.parent.closeCartDrawer) { window.parent.closeCartDrawer('${drawerId}'); }" 
+                style="width: 100%; padding: 12px; background-color: transparent; color: #121212; border: 1px solid #121212; border-radius: 4px; cursor: pointer; font-size: 14px;">
+            ${trans['cart.continue.shopping'] || 'Continue shopping'}
+        </button>
+    `;
+    
+    return buttonsHtml;
+}
+
 function updateCartDrawerContent(drawerId) {
     console.log('[CART] Updating drawer content for:', drawerId);
     
@@ -28294,13 +28717,7 @@ function updateCartDrawerContent(drawerId) {
                     <span style="font-size: 16px; font-weight: 500;">${trans['cart.subtotal'] || 'Subtotal'}</span>
                     <span style="font-size: 16px; font-weight: 500;">$${formatPrice(subtotal)}</span>
                 </div>
-                <button style="width: 100%; padding: 12px; background-color: #121212; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; margin-bottom: 8px;">
-                    ${trans['cart.checkout'] || 'Checkout'}
-                </button>
-                <button onclick="if(window.parent && window.parent.closeCartDrawer) { window.parent.closeCartDrawer('${drawerId}'); }" 
-                        style="width: 100%; padding: 12px; background-color: transparent; color: #121212; border: 1px solid #121212; border-radius: 4px; cursor: pointer; font-size: 14px;">
-                    ${trans['cart.continue.shopping'] || 'Continue shopping'}
-                </button>
+                ${renderDrawerButtons(drawerId, trans)}
             </div>
         `;
     }
@@ -28331,8 +28748,8 @@ window.updateCartQuantity = function(productId, newQuantity) {
     }
 };
 
-// Remove from cart
-window.removeFromCart = function(productId) {
+// Remove from cart - COMENTADO: Usando la versión mejorada arriba
+/* window.removeFromCart = function(productId) {
     console.log('[CART] Removing product:', productId);
     cartItems = cartItems.filter(item => item.id !== productId);
     saveCart();
@@ -28348,7 +28765,7 @@ window.removeFromCart = function(productId) {
     }
     
     updateCartIconCount();
-};
+}; */
 
 // Update cart icon count
 function updateCartIconCount() {
