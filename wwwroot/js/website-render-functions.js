@@ -2691,7 +2691,8 @@ function renderCartPage(config = {}) {
         bottomPadding: config.bottomPadding || config.config?.bottomPadding || 96,
         width: config.width || config.config?.width || 'small',
         addSidePaddings: config.addSidePaddings || config.config?.addSidePaddings || false,
-        checkoutButtonText: config.checkoutButtonText || config.config?.checkoutButtonText || (currentLanguage === 'es' ? 'Proceder al pago' : 'Proceed to checkout')
+        checkoutButtonText: config.checkoutButtonText || config.config?.checkoutButtonText || (currentLanguage === 'es' ? 'Proceder al pago' : 'Proceed to checkout'),
+        showOrderNotes: config.showOrderNotes !== undefined ? config.showOrderNotes : (config.config?.showOrderNotes !== undefined ? config.config.showOrderNotes : true)
     };
     
     console.log('[CART-V2] Items del carrito:', settings.cartItems);
@@ -2730,7 +2731,7 @@ function renderCartPage(config = {}) {
         subtotal += itemTotal;
         
         itemsHtml += `
-            <tr style="border-bottom: 1px solid ${colors.border || '#e0e0e0'};">
+            <tr data-product-id="${item.id || index}" style="border-bottom: 1px solid ${colors.border || '#e0e0e0'};">
                 <td style="padding: 20px 0;">
                     <div style="display: flex; align-items: center; gap: 16px;">
                         <img src="${item.image || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAiIGhlaWdodD0iODAiIGZpbGw9IiNmMGYwZjAiPjxyZWN0IHdpZHRoPSI4MCIgaGVpZ2h0PSI4MCIgZmlsbD0iI2YwZjBmMCIvPjwvc3ZnPg=='}" 
@@ -2817,11 +2818,39 @@ function renderCartPage(config = {}) {
                     </table>
                     
                     <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid ${colors.border || '#e0e0e0'};">
+                        ${settings.showOrderNotes ? `
+                            <div style="margin-bottom: 30px;">
+                                <label style="display: block; margin-bottom: 8px; font-size: 14px; font-weight: 500; color: ${colors.text};">
+                                    ${currentLanguage === 'es' ? 'Notas del pedido' : 'Order notes'}
+                                </label>
+                                <textarea 
+                                    id="cart-order-notes"
+                                    placeholder="${currentLanguage === 'es' ? 'Instrucciones especiales para tu pedido' : 'Special instructions for your order'}"
+                                    style="
+                                        width: 100%;
+                                        min-height: 100px;
+                                        padding: 12px;
+                                        border: 1px solid ${colors.border || '#e0e0e0'};
+                                        border-radius: 4px;
+                                        font-size: 14px;
+                                        font-family: inherit;
+                                        color: ${colors.text};
+                                        background-color: ${colors.background};
+                                        resize: vertical;
+                                        outline: none;
+                                        transition: border-color 0.2s ease;
+                                    "
+                                    onfocus="this.style.borderColor='${colors.text}'"
+                                    onblur="this.style.borderColor='${colors.border || '#e0e0e0'}'"
+                                ></textarea>
+                            </div>
+                        ` : ''}
+                        
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                             <span style="font-size: 18px; font-weight: 500; color: ${colors.text};">Total</span>
                             <span id="cart-subtotal" style="font-size: 18px; font-weight: 500; color: ${colors.text};">${formatCurrency(subtotal)}</span>
                         </div>
-                        <button onclick="if(window.parent && window.parent.handleCheckoutClick) { window.parent.handleCheckoutClick(); } else { window.location.href='/checkout'; }" style="
+                        <button onclick="event.preventDefault(); event.stopPropagation(); if(window.parent && window.parent !== window && window.parent.handleCheckoutClick) { window.parent.handleCheckoutClick(); } else { window.location.href='/checkout'; } return false;" style="
                             width: 100%;
                             padding: 16px;
                             background-color: ${solidButtonBg};
@@ -2830,9 +2859,11 @@ function renderCartPage(config = {}) {
                             border-radius: 4px;
                             font-size: 16px;
                             font-weight: 500;
-                            cursor: not-allowed;
+                            cursor: pointer;
                             transition: all 0.2s ease;
-                        ">
+                        "
+                        onmouseover="this.style.opacity='0.9'"
+                        onmouseout="this.style.opacity='1'">
                             ${settings.checkoutButtonText}
                         </button>
                     </div>

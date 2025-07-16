@@ -1551,6 +1551,9 @@
                 // Get cart configuration for showAs
                 const cartConfig = currentSectionsConfig.cart || {};
                 const showAs = cartConfig.showAs || 'drawer';
+                const drawerCheckoutText = cartConfig.drawerCheckoutButtonText || trans['cart.checkout'] || 'Checkout';
+                const drawerViewCartText = cartConfig.drawerViewCartButtonText || trans['cart.viewCart'] || 'View cart';
+                const drawerContinueShoppingText = cartConfig.drawerContinueShoppingText || trans['cart.continue.shopping'] || 'Continue shopping';
                 
                 let buttonsHtml = '';
                 
@@ -1559,7 +1562,7 @@
                     buttonsHtml = `
                         <button onclick="window.location.href='/checkout'" 
                                 style="width: 100%; padding: 12px; background-color: #121212; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; margin-bottom: 8px;">
-                            ${trans['cart.checkout'] || 'Checkout'}
+                            ${drawerCheckoutText}
                         </button>
                     `;
                 } else if (showAs === 'drawer-and-page') {
@@ -1567,11 +1570,11 @@
                     buttonsHtml = `
                         <button onclick="window.location.href='/cart'" 
                                 style="width: 100%; padding: 12px; background-color: transparent; color: #121212; border: 1px solid #121212; border-radius: 4px; cursor: pointer; font-size: 14px; margin-bottom: 8px;">
-                            ${trans['cart.viewCart'] || 'View cart'}
+                            ${drawerViewCartText}
                         </button>
                         <button onclick="window.location.href='/checkout'" 
                                 style="width: 100%; padding: 12px; background-color: #121212; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; margin-bottom: 8px;">
-                            ${trans['cart.checkout'] || 'Checkout'}
+                            ${drawerCheckoutText}
                         </button>
                     `;
                 }
@@ -1580,7 +1583,7 @@
                 buttonsHtml += `
                     <button onclick="window.closeCartDrawer('${drawerId}')" 
                             style="width: 100%; padding: 12px; background-color: transparent; color: #121212; border: 1px solid #121212; border-radius: 4px; cursor: pointer; font-size: 14px;">
-                        ${trans['cart.continue.shopping'] || 'Continue shopping'}
+                        ${drawerContinueShoppingText}
                     </button>
                 `;
                 
@@ -1821,6 +1824,126 @@
             }
         };
         
+        // Update cart quantity
+        window.updateCartQty = function(productId, change) {
+            console.log('[CART] Updating quantity for product:', productId, 'change:', change);
+            
+            loadCart();
+            const itemIndex = cartItems.findIndex(item => item.id === productId);
+            
+            if (itemIndex !== -1) {
+                const item = cartItems[itemIndex];
+                item.quantity += change;
+                
+                // Remove item if quantity reaches 0
+                if (item.quantity <= 0) {
+                    cartItems = cartItems.filter(i => i.id !== productId);
+                    
+                    // If on cart page, remove the row from DOM
+                    if (window.location.pathname === '/cart') {
+                        const row = document.querySelector(`tr[data-product-id="${productId}"]`);
+                        if (row) {
+                            row.remove();
+                        }
+                    }
+                } else {
+                    // Update quantity display in DOM
+                    const qtyElement = document.getElementById(`cart-qty-${productId}`);
+                    if (qtyElement) {
+                        qtyElement.textContent = item.quantity;
+                    }
+                    
+                    // Update item total price
+                    const itemTotalElements = document.querySelectorAll(`tr[data-product-id="${productId}"] .item-total`);
+                    itemTotalElements.forEach(el => {
+                        const total = item.price * item.quantity;
+                        el.textContent = new Intl.NumberFormat(currentLanguage === 'es' ? 'es-ES' : 'en-US', {
+                            style: 'currency',
+                            currency: 'USD'
+                        }).format(total);
+                    });
+                }
+                
+                saveCart();
+                
+                // Update cart subtotal
+                if (window.location.pathname === '/cart') {
+                    updateCartPageTotals();
+                }
+                
+                // Update drawer content if open
+                const drawers = document.querySelectorAll('.cart-drawer');
+                if (drawers.length > 0) {
+                    updateCartDrawerContent(drawers[0].id);
+                }
+                
+                // Update cart icon count
+                updateCartIconCount();
+            }
+        };
+        
+        // Update cart page totals
+        window.updateCartPageTotals = function() {
+            let subtotal = 0;
+            cartItems.forEach(item => {
+                subtotal += item.price * item.quantity;
+            });
+            
+            const subtotalElement = document.getElementById('cart-subtotal');
+            if (subtotalElement) {
+                subtotalElement.textContent = new Intl.NumberFormat(currentLanguage === 'es' ? 'es-ES' : 'en-US', {
+                    style: 'currency',
+                    currency: 'USD'
+                }).format(subtotal);
+            }
+            
+            // Check if cart is empty and show empty message
+            if (cartItems.length === 0) {
+                const cartTable = document.querySelector('.section-wrapper[data-section-id="cart"] table');
+                const emptyMessage = document.querySelector('.section-wrapper[data-section-id="cart"] .empty-cart-message');
+                
+                if (cartTable && !emptyMessage) {
+                    // Replace table with empty cart message
+                    const containerDiv = cartTable.closest('div[style*="margin: 0 auto"]');
+                    if (containerDiv) {
+                        containerDiv.innerHTML = `
+                            <h1 style="text-align: center; margin-bottom: 40px; font-size: 36px; font-weight: 400;">
+                                ${currentLanguage === 'es' ? 'Carrito' : 'Cart'}
+                            </h1>
+                            <div class="empty-cart-message" style="text-align: center; padding: 60px 20px;">
+                                <div style="margin-bottom: 24px;">
+                                    <span class="material-symbols-outlined" style="font-size: 72px; opacity: 0.3;">
+                                        shopping_cart
+                                    </span>
+                                </div>
+                                <h2 style="font-size: 24px; margin-bottom: 16px;">
+                                    ${currentLanguage === 'es' ? 'Tu carrito está vacío' : 'Your cart is empty'}
+                                </h2>
+                                <p style="font-size: 16px; opacity: 0.7; margin-bottom: 32px;">
+                                    ${currentLanguage === 'es' ? 'Agrega productos desde la página de inicio' : 'Add products from the home page'}
+                                </p>
+                                <button style="
+                                    padding: 12px 32px;
+                                    background-color: #000;
+                                    color: #fff;
+                                    border: none;
+                                    border-radius: 4px;
+                                    font-size: 16px;
+                                    font-weight: 500;
+                                    cursor: pointer;
+                                    transition: all 0.2s ease;
+                                " onclick="window.location.href='/'"
+                                onmouseover="this.style.transform='scale(0.98)'"
+                                onmouseout="this.style.transform='scale(1)'">
+                                    ${currentLanguage === 'es' ? 'Continuar comprando' : 'Continue shopping'}
+                                </button>
+                            </div>
+                        `;
+                    }
+                }
+            }
+        };
+        
         // Remove from cart
         window.removeFromCart = function(productId) {
             console.log('[CART] Removing product:', productId);
@@ -1828,6 +1951,15 @@
             loadCart();
             cartItems = cartItems.filter(item => item.id !== productId);
             saveCart();
+            
+            // If on cart page, remove the row from DOM
+            if (window.location.pathname === '/cart') {
+                const row = document.querySelector(`tr[data-product-id="${productId}"]`);
+                if (row) {
+                    row.remove();
+                }
+                updateCartPageTotals();
+            }
             
             // Update drawer content
             const drawers = document.querySelectorAll('.cart-drawer');

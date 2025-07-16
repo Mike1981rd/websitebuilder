@@ -600,3 +600,127 @@ El sistema ahora replica completamente el comportamiento de Shopify para el carr
 ✅ No se crearon archivos de migración
 ✅ Se documentó completamente la implementación
 ✅ Se mantuvo la compatibilidad con el código existente
+
+---
+
+## Problema: Botón de Pagar en Checkout No Toma los Colores del Color Scheme
+
+### Descripción del Problema
+El botón "Pagar ahora" en la página de checkout (/checkout) no estaba tomando los colores del solid button del color scheme seleccionado en la configuración del carrito. Mientras que los botones en la página del carrito sí mostraban los colores correctos, el botón de checkout siempre mostraba los colores por defecto.
+
+### Síntomas Observados
+1. El botón de checkout en la página del carrito mostraba correctamente los colores del scheme seleccionado
+2. El botón "Pagar ahora" en /checkout siempre mostraba colores por defecto (#e91e63)
+3. Los cambios de color scheme en la configuración del cart no se reflejaban en checkout
+
+### Causa Raíz
+El problema tenía múltiples causas:
+
+1. **Ubicación incorrecta de búsqueda**: El CheckoutController buscaba el colorScheme del cart solo en `GlobalThemeSettingsJson.cart.colorScheme`, pero esta configuración se guarda realmente en `PagesConfigJson.cart.sectionsConfig.cart.colorScheme`
+
+2. **Diferencia con el frontend**: El JavaScript del website builder tiene acceso directo a `currentSectionsConfig.cart` mientras que el backend necesita navegar por la estructura JSON completa
+
+3. **Falta de fallbacks**: No había lógica de respaldo para buscar en múltiples ubicaciones posibles
+
+### Solución Implementada
+
+#### Modificaciones en CheckoutController.cs
+**Archivo**: `/Controllers/CheckoutController.cs`
+**Líneas modificadas**: 55-171
+
+**Cambios principales**:
+
+1. **Búsqueda en múltiples ubicaciones** (líneas 55-108):
+```csharp
+// Try 1: Direct cart settings in global theme
+if (themeSettings.TryGetProperty("cart", out JsonElement cartSettings) &&
+    cartSettings.TryGetProperty("colorScheme", out JsonElement colorScheme))
+{
+    schemeName = colorScheme.GetString() ?? "scheme1";
+    foundScheme = true;
+}
+
+// Try 2: Check in pages config (DONDE REALMENTE SE GUARDA)
+if (!foundScheme && website.PagesConfigJson != null)
+{
+    var pagesConfig = JsonSerializer.Deserialize<JsonElement>(website.PagesConfigJson);
+    if (pagesConfig.TryGetProperty("cart", out JsonElement cartPage) &&
+        cartPage.TryGetProperty("sectionsConfig", out JsonElement sectionsConfig) &&
+        sectionsConfig.TryGetProperty("cart", out JsonElement cartSection) &&
+        cartSection.TryGetProperty("colorScheme", out JsonElement pageColorScheme))
+    {
+        schemeName = pageColorScheme.GetString() ?? "scheme1";
+        foundScheme = true;
+    }
+}
+```
+
+2. **Valores por defecto para cada scheme** (líneas 146-170):
+```csharp
+switch (schemeName)
+{
+    case "scheme2":
+        ViewBag.SolidButtonColor = "#666666";
+        ViewBag.SolidButtonTextColor = "#FFFFFF";
+        break;
+    case "scheme3":
+        ViewBag.SolidButtonColor = "#FFFFFF";
+        ViewBag.SolidButtonTextColor = "#121212";
+        break;
+    // ... más schemes
+}
+```
+
+3. **Debugging mejorado** (líneas 65, 81, 101, 117, 123):
+```csharp
+Console.WriteLine($"[CHECKOUT] Found cart color scheme in pages config: {schemeName}");
+Console.WriteLine($"[CHECKOUT] Found solid-button: {ViewBag.SolidButtonColor}");
+```
+
+### Comparación con el Frontend
+
+**Frontend (website-render-functions.js líneas 2701-2706)**:
+```javascript
+// Obtener colores del esquema
+const colors = getColorSchemeValues(settings.colorScheme);
+// Obtener colores del botón sólido
+const solidButtonBg = (colors && colors['solid-button']) ? colors['solid-button'] : '#121212';
+const solidButtonText = (colors && colors['solid-button-text']) ? colors['solid-button-text'] : '#FFFFFF';
+```
+
+El frontend tiene acceso directo a la función `getColorSchemeValues()` y al objeto `currentSectionsConfig`, mientras que el backend debe navegar por la estructura JSON serializada.
+
+### Otros Cambios Realizados
+
+1. **Cursor pointer en botón de checkout del carrito**:
+   - **Archivo**: `/wwwroot/js/website-render-functions.js`
+   - **Línea**: 2862 - Cambió de `cursor: not-allowed` a `cursor: pointer`
+   - **Líneas**: 2865-2866 - Agregado efecto hover con opacidad
+
+2. **Order Notes en página del carrito**:
+   - **Archivo**: `/wwwroot/js/website-render-functions.js`
+   - **Líneas**: 2695 - Agregada configuración `showOrderNotes`
+   - **Líneas**: 2820-2846 - Implementado campo de textarea condicional
+
+3. **Actualización dinámica de cantidades sin recargar**:
+   - **Archivo**: `/Views/WebsiteBuilder/Preview.cshtml`
+   - **Líneas**: 1825-1880 - Implementada función `updateCartQty`
+   - **Líneas**: 1883-1942 - Implementada función `updateCartPageTotals`
+   - **Líneas**: 1945-1968 - Actualizada función `removeFromCart`
+
+### Resultado
+Ahora el botón "Pagar ahora" en la página de checkout:
+- Toma correctamente los colores del solid button del color scheme seleccionado
+- Se actualiza cuando se cambia el color scheme en la configuración del cart
+- Mantiene consistencia visual con los botones de la página del carrito
+
+### Lecciones Aprendidas
+1. **Estructura de datos**: Es crucial entender dónde se guardan realmente las configuraciones en el JSON
+2. **Diferencias Frontend/Backend**: El acceso a datos es diferente entre JavaScript y C#
+3. **Fallbacks robustos**: Siempre implementar múltiples estrategias de búsqueda
+4. **Debugging**: Los logs detallados son esenciales para diagnosticar problemas de este tipo
+
+## Confirmación de cumplimiento de reglas críticas:
+✅ No se crearon archivos de migración
+✅ Se documentó completamente la implementación
+✅ Se mantuvo la compatibilidad con el código existente

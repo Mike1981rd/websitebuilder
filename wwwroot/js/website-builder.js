@@ -10053,7 +10053,8 @@ $(document).ready(async function() {
             addSidePaddings: false,
             topPadding: 96,
             bottomPadding: 96,
-            checkoutButtonText: currentLang === 'es' ? 'Proceder al pago' : 'Proceed to checkout'
+            checkoutButtonText: currentLang === 'es' ? 'Proceder al pago' : 'Proceed to checkout',
+            drawerCheckoutButtonText: currentLang === 'es' ? 'Finalizar compra' : 'Checkout'
         };
         
         // Initialize cart config if it doesn't exist
@@ -10266,7 +10267,8 @@ $(document).ready(async function() {
             topPadding: 96,
             bottomPadding: 96,
             addSidePaddings: false,
-            checkoutButtonText: currentLang === 'es' ? 'Proceder al pago' : 'Proceed to checkout'
+            checkoutButtonText: currentLang === 'es' ? 'Proceder al pago' : 'Proceed to checkout',
+            drawerCheckoutButtonText: currentLang === 'es' ? 'Finalizar compra' : 'Checkout'
         };
         
         // Initialize cart config if it doesn't exist
@@ -10419,6 +10421,42 @@ $(document).ready(async function() {
                                         <input type="checkbox" class="shopify-toggle" id="cart-darken-image-bg" ${settings.darkenImageBackground ? 'checked' : ''}>
                                         <label for="cart-darken-image-bg" class="toggle-slider"></label>
                                     </label>
+                                </div>
+                                
+                                <!-- Drawer checkout button text -->
+                                <div class="form-group" style="margin-top: 20px;">
+                                    <label style="font-size: 13px; font-weight: 500; margin-bottom: 8px; color: #5c5e60; display: block;" 
+                                           data-i18n="cart.settings.drawerCheckoutButtonText">${currentLang === 'es' ? 'Texto del botón de checkout del cajón' : 'Drawer checkout button text'}</label>
+                                    <input type="text" 
+                                           id="cart-drawer-checkout-button-text" 
+                                           value="${settings.drawerCheckoutButtonText || (currentLang === 'es' ? 'Finalizar compra' : 'Checkout')}"
+                                           placeholder="${currentLang === 'es' ? 'Finalizar compra' : 'Checkout'}"
+                                           style="width: 100%; padding: 8px 12px; border: 1px solid #e0e0e0; border-radius: 4px; font-size: 13px;">
+                                </div>
+                                
+                                <!-- Additional fields for drawer-and-page option -->
+                                <div id="drawer-and-page-options" style="${settings.showAs === 'drawer-and-page' ? '' : 'display: none;'}">
+                                    <!-- View cart button text -->
+                                    <div class="form-group" style="margin-top: 20px;">
+                                        <label style="font-size: 13px; font-weight: 500; margin-bottom: 8px; color: #5c5e60; display: block;" 
+                                               data-i18n="cart.settings.drawerViewCartButtonText">${currentLang === 'es' ? 'Texto del botón ver carrito' : 'View cart button text'}</label>
+                                        <input type="text" 
+                                               id="cart-drawer-view-cart-button-text" 
+                                               value="${settings.drawerViewCartButtonText || (currentLang === 'es' ? 'Ver carrito' : 'View cart')}"
+                                               placeholder="${currentLang === 'es' ? 'Ver carrito' : 'View cart'}"
+                                               style="width: 100%; padding: 8px 12px; border: 1px solid #e0e0e0; border-radius: 4px; font-size: 13px;">
+                                    </div>
+                                    
+                                    <!-- Continue shopping button text -->
+                                    <div class="form-group" style="margin-top: 20px;">
+                                        <label style="font-size: 13px; font-weight: 500; margin-bottom: 8px; color: #5c5e60; display: block;" 
+                                               data-i18n="cart.settings.drawerContinueShoppingText">${currentLang === 'es' ? 'Texto del botón seguir comprando' : 'Continue shopping button text'}</label>
+                                        <input type="text" 
+                                               id="cart-drawer-continue-shopping-text" 
+                                               value="${settings.drawerContinueShoppingText || (currentLang === 'es' ? 'Seguir comprando' : 'Continue shopping')}"
+                                               placeholder="${currentLang === 'es' ? 'Seguir comprando' : 'Continue shopping'}"
+                                               style="width: 100%; padding: 8px 12px; border: 1px solid #e0e0e0; border-radius: 4px; font-size: 13px;">
+                                    </div>
                                 </div>
                                 
                                 <!-- Edge rounding -->
@@ -10585,12 +10623,15 @@ $(document).ready(async function() {
             if (showAs === 'page') {
                 $('#drawer-specific-options').hide();
                 $('#page-specific-options').show();
+                $('#drawer-and-page-options').hide();
             } else if (showAs === 'drawer') {
                 $('#drawer-specific-options').show();
                 $('#page-specific-options').hide();
+                $('#drawer-and-page-options').hide();
             } else if (showAs === 'drawer-and-page') {
                 $('#drawer-specific-options').show();
                 $('#page-specific-options').show();
+                $('#drawer-and-page-options').show();
             }
             
             // Re-render preview to show/hide drawer
@@ -10625,6 +10666,21 @@ $(document).ready(async function() {
         // Darken image background toggle
         $('#cart-darken-image-bg').off('change.cart').on('change.cart', function() {
             updateCartConfig('darkenImageBackground', $(this).is(':checked'));
+        });
+        
+        // Drawer checkout button text
+        $('#cart-drawer-checkout-button-text').off('input.cart').on('input.cart', function() {
+            updateCartConfig('drawerCheckoutButtonText', $(this).val());
+        });
+        
+        // View cart button text
+        $('#cart-drawer-view-cart-button-text').off('input.cart').on('input.cart', function() {
+            updateCartConfig('drawerViewCartButtonText', $(this).val());
+        });
+        
+        // Continue shopping button text
+        $('#cart-drawer-continue-shopping-text').off('input.cart').on('input.cart', function() {
+            updateCartConfig('drawerContinueShoppingText', $(this).val());
         });
         
         // Edge rounding dropdown
@@ -28581,14 +28637,40 @@ window.addToCart = function(productId) {
 // Update cart drawer content
 // Function to handle checkout button click
 window.handleCheckoutClick = function() {
-    // Check if we're in the editor (parent window exists)
-    if (window.parent && window.parent !== window) {
-        // In editor - open in new tab to not lose work
+    console.log('[CHECKOUT] handleCheckoutClick called');
+    
+    // Always redirect directly to checkout
+    window.location.href = '/checkout';
+    
+    // Prevent any default behavior
+    return false;
+};
+
+// Function to redirect iframe to checkout
+window.redirectIframeToCheckout = function() {
+    console.log('[CHECKOUT] Simulating checkout in editor');
+    
+    // In the editor context, show a message or open in new tab
+    const userChoice = confirm('¿Deseas ver la página de checkout? Se abrirá en una nueva pestaña para no perder tu trabajo en el editor.');
+    
+    if (userChoice) {
         window.open('/checkout', '_blank');
-    } else {
-        // In real site - direct redirect
-        window.location.href = '/checkout';
     }
+    
+    // Close the drawer after action
+    const previewIframe = document.getElementById('preview-iframe');
+    if (previewIframe && previewIframe.contentWindow) {
+        const iframeDoc = previewIframe.contentDocument;
+        const drawers = iframeDoc.querySelectorAll('.cart-drawer');
+        drawers.forEach(drawer => {
+            const drawerId = drawer.id;
+            if (previewIframe.contentWindow.closeCartDrawer) {
+                previewIframe.contentWindow.closeCartDrawer(drawerId);
+            }
+        });
+    }
+    
+    return false;
 };
 
 // Helper function to render drawer buttons based on showAs setting
@@ -28596,29 +28678,32 @@ function renderDrawerButtons(drawerId, trans) {
     // Get cart configuration
     const cartConfig = currentSectionsConfig.cart || {};
     const showAs = cartConfig.showAs || 'drawer';
+    const drawerCheckoutText = cartConfig.drawerCheckoutButtonText || trans['cart.checkout'] || 'Checkout';
+    const drawerViewCartText = cartConfig.drawerViewCartButtonText || trans['cart.viewCart'] || 'View cart';
+    const drawerContinueShoppingText = cartConfig.drawerContinueShoppingText || trans['cart.continue.shopping'] || 'Continue shopping';
     
     console.log('[CART] Rendering drawer buttons for showAs:', showAs);
     
     let buttonsHtml = '';
     
     if (showAs === 'drawer') {
-        // Only checkout button
+        // Only checkout button - redirect in iframe context
         buttonsHtml = `
-            <button onclick="handleCheckoutClick()" 
+            <button onclick="window.parent.redirectIframeToCheckout()" 
                     style="width: 100%; padding: 12px; background-color: #121212; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; margin-bottom: 8px;">
-                ${trans['cart.checkout'] || 'Checkout'}
+                ${drawerCheckoutText}
             </button>
         `;
     } else if (showAs === 'drawer-and-page') {
         // Both view cart and checkout buttons
         buttonsHtml = `
-            <button onclick="window.location.href='/cart'" 
+            <button onclick="if(window.parent && window.parent !== window && window.parent.switchToPage) { window.parent.switchToPage('cart'); } else { window.location.href='/cart'; }" 
                     style="width: 100%; padding: 12px; background-color: transparent; color: #121212; border: 1px solid #121212; border-radius: 4px; cursor: pointer; font-size: 14px; margin-bottom: 8px;">
-                ${trans['cart.viewCart'] || 'View cart'}
+                ${drawerViewCartText}
             </button>
-            <button onclick="handleCheckoutClick()" 
+            <button onclick="window.parent.redirectIframeToCheckout()" 
                     style="width: 100%; padding: 12px; background-color: #121212; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; margin-bottom: 8px;">
-                ${trans['cart.checkout'] || 'Checkout'}
+                ${drawerCheckoutText}
             </button>
         `;
     }
@@ -28627,7 +28712,7 @@ function renderDrawerButtons(drawerId, trans) {
     buttonsHtml += `
         <button onclick="if(window.parent && window.parent.closeCartDrawer) { window.parent.closeCartDrawer('${drawerId}'); }" 
                 style="width: 100%; padding: 12px; background-color: transparent; color: #121212; border: 1px solid #121212; border-radius: 4px; cursor: pointer; font-size: 14px;">
-            ${trans['cart.continue.shopping'] || 'Continue shopping'}
+            ${drawerContinueShoppingText}
         </button>
     `;
     

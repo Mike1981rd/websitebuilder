@@ -653,12 +653,6 @@ C:\Users\hp\Documents\Visual Studio 2022\Projects\Hotel23\obj\Debug\net8.0\scope
 C:\Users\hp\Documents\Visual Studio 2022\Projects\Hotel23\obj\Debug\net8.0\staticwebassets.build.json
 C:\Users\hp\Documents\Visual Studio 2022\Projects\Hotel23\obj\Debug\net8.0\staticwebassets.development.json
 C:\Users\hp\Documents\Visual Studio 2022\Projects\Hotel23\obj\Debug\net8.0\staticwebassets.build.endpoints.json
-C:\Users\hp\Documents\Visual Studio 2022\Projects\Hotel23\obj\Debug\net8.0\staticwebassets\msbuild.Hotel.Microsoft.AspNetCore.StaticWebAssets.props
-C:\Users\hp\Documents\Visual Studio 2022\Projects\Hotel23\obj\Debug\net8.0\staticwebassets\msbuild.Hotel.Microsoft.AspNetCore.StaticWebAssetEndpoints.props
-C:\Users\hp\Documents\Visual Studio 2022\Projects\Hotel23\obj\Debug\net8.0\staticwebassets\msbuild.build.Hotel.props
-C:\Users\hp\Documents\Visual Studio 2022\Projects\Hotel23\obj\Debug\net8.0\staticwebassets\msbuild.buildMultiTargeting.Hotel.props
-C:\Users\hp\Documents\Visual Studio 2022\Projects\Hotel23\obj\Debug\net8.0\staticwebassets\msbuild.buildTransitive.Hotel.props
-C:\Users\hp\Documents\Visual Studio 2022\Projects\Hotel23\obj\Debug\net8.0\staticwebassets.pack.json
 C:\Users\hp\Documents\Visual Studio 2022\Projects\Hotel23\obj\Debug\net8.0\Hotel.csproj.Up2Date
 C:\Users\hp\Documents\Visual Studio 2022\Projects\Hotel23\obj\Debug\net8.0\Hotel.dll
 C:\Users\hp\Documents\Visual Studio 2022\Projects\Hotel23\obj\Debug\net8.0\refint\Hotel.dll
@@ -666,3 +660,8 @@ C:\Users\hp\Documents\Visual Studio 2022\Projects\Hotel23\obj\Debug\net8.0\Hotel
 C:\Users\hp\Documents\Visual Studio 2022\Projects\Hotel23\obj\Debug\net8.0\Hotel.genruntimeconfig.cache
 C:\Users\hp\Documents\Visual Studio 2022\Projects\Hotel23\obj\Debug\net8.0\ref\Hotel.dll
 C:\Users\hp\Documents\Visual Studio 2022\Projects\Hotel23\obj\Debug\net8.0\staticwebassets.upToDateCheck.txt
+C:\Users\hp\Documents\Visual Studio 2022\Projects\Hotel23\obj\Debug\net8.0\rpswa.dswa.cache.json
+C:\Users\hp\Documents\Visual Studio 2022\Projects\Hotel23\obj\Debug\net8.0\rjimswa.dswa.cache.json
+C:\Users\hp\Documents\Visual Studio 2022\Projects\Hotel23\obj\Debug\net8.0\rjsmrazor.dswa.cache.json
+C:\Users\hp\Documents\Visual Studio 2022\Projects\Hotel23\obj\Debug\net8.0\rjsmcshtml.dswa.cache.json
+C:\Users\hp\Documents\Visual Studio 2022\Projects\Hotel23\obj\Debug\net8.0\staticwebassets.build.json.cache
