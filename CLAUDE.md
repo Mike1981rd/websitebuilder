@@ -18,6 +18,20 @@ ESTAS REGLAS SON OBLIGATORIAS Y DEBEN SEGUIRSE SIEMPRE:
 
 3. AL FINAL DE CADA RESPUESTA:
    - SIEMPRE incluir una sección que confirme el cumplimiento de estas reglas críticas
+
+4. CAMBIOS NO SOLICITADOS - CRÍTICO:
+   - NUNCA refactorizar código a menos que se solicite explícitamente
+   - NUNCA hacer cambios más allá de lo específicamente pedido
+   - Si se pide implementar X, implementar SOLO X con cambios mínimos
+   - NO asumir que "mejorar" el código es útil sin conocer el contexto completo
+   - NO cambiar estructura de código funcionando aunque parezca "mejorable"
+   - Ejemplo: Si se pide "agregar drag & drop", agregar SOLO esa funcionalidad sin tocar la estructura existente
+   
+   CASO REAL (18/07/2025): Se pidió implementar drag & drop para Product Container. En lugar de solo agregar los drag handles y sortable, se intentó refactorizar toda la estructura creando métodos separados, lo que rompió completamente el módulo funcionando. El código original usaba if/else simples y funcionaba perfectamente. La refactorización no solicitada causó:
+   - Error: "Cannot read properties of undefined (reading 'renderSettings')"
+   - La página de producto dejó de mostrar contenido (solo header y footer)
+   - La vista de configuración se volvió inaccesible
+   - Se perdieron horas arreglando el problema creado
 </critical-rules>
 
 ## Reglas Importantes
@@ -315,6 +329,12 @@ if (!previewFrame) {
 - **Backend**: Sin validación de campos (flexibilidad máxima)
 
 ## Lecciones Críticas - Evitar Problemas Comunes
+
+### CAMBIOS NO SOLICITADOS (CRÍTICO)
+1. **NUNCA refactorizar sin solicitud explícita**: Si el código funciona, NO tocarlo más allá de lo pedido
+2. **Implementar SOLO lo solicitado**: Si piden feature X, agregar X con cambios mínimos
+3. **No asumir contexto**: Sin conocer todas las dependencias, los cambios "mejoras" pueden romper todo
+4. **Caso real**: Drag & drop de Product Container (18/07/2025) - Se rompió todo el módulo por refactorización no solicitada
 
 ### Formularios Dinámicos
 1. **Event Listeners**: Usar `data-field` no `name`. Escuchar `input`, `change`, `blur`

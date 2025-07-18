@@ -192,12 +192,32 @@ window.WebsiteBuilderModules.ProductContainer = {
             console.log('[PRODUCT-CONTAINER] Starting Phase 3 - Rendering additional sections');
             console.log('[PRODUCT-CONTAINER] Config sections:', config.sections);
             
-            // Sort sections by order
-            const sortedSections = Object.entries(config.sections || {})
-                .filter(([key, section]) => key !== 'productInfo' && section.enabled)
-                .sort((a, b) => (a[1].order || 999) - (b[1].order || 999));
+            // Use saved order or default order (excluding productInfo as it's rendered separately)
+            const defaultOrder = [
+                'imageWithText',
+                'gallery', 
+                'testimonials',
+                'faq',
+                'productTabs',
+                'relatedProducts'
+            ];
             
-            console.log('[PRODUCT-CONTAINER] Sorted sections to render:', sortedSections.map(s => s[0]));
+            // If we have a saved sectionOrder, filter out productInfo from it
+            const sectionOrder = config.sectionOrder ? 
+                config.sectionOrder.filter(key => key !== 'productInfo') : 
+                defaultOrder;
+            
+            console.log('[PRODUCT-CONTAINER] Using section order:', sectionOrder);
+            
+            // Filter and order sections based on saved order
+            const sortedSections = sectionOrder
+                .filter(sectionKey => {
+                    const section = config.sections?.[sectionKey];
+                    return section && section.enabled;
+                })
+                .map(sectionKey => [sectionKey, config.sections[sectionKey]]);
+            
+            console.log('[PRODUCT-CONTAINER] Sections ordered by saved order:', sortedSections.map(s => s[0]));
             
             for (const [sectionKey, section] of sortedSections) {
                 console.log(`[PRODUCT-CONTAINER] Attempting to render section: ${sectionKey}`);
@@ -1236,7 +1256,7 @@ window.WebsiteBuilderModules.ProductContainer = {
     
     // Render sections management UI
     renderSectionsManagement: function(config, currentLang) {
-        let html = '';
+        let html = '<div id="product-container-sections" style="position: relative;">';
         const sections = config.sections || {};
         
         console.log('[PRODUCT-CONTAINER] renderSectionsManagement - config:', config);
@@ -1255,15 +1275,22 @@ window.WebsiteBuilderModules.ProductContainer = {
             console.log('[PRODUCT-CONTAINER] blockOrder:', blockOrder);
             
             html += `
-                <div class="section-management" style="margin-bottom: 20px; border: 1px solid #e3e3e3; border-radius: 4px; overflow: hidden;">
+                <div class="section-management" data-section-key="productInfo" style="margin-bottom: 20px; border: 1px solid #e3e3e3; border-radius: 4px; overflow: hidden;">
                     <div class="section-header" style="padding: 12px 15px; background: #f8f8f8; display: flex; align-items: center; justify-content: space-between;">
                         <div style="display: flex; align-items: center;">
+                            <i class="material-icons section-drag-handle" style="font-size: 18px; color: #666; margin-right: 12px; cursor: move;">drag_indicator</i>
                             <span style="width: 8px; height: 8px; border-radius: 50%; background: ${sections.productInfo.enabled ? '#4caf50' : '#ccc'}; margin-right: 10px;"></span>
                             <span style="font-size: 13px; font-weight: 500;">Product Info</span>
                         </div>
-                        <button class="btn btn-sm" id="product-info-settings-btn" style="background: transparent; border: 1px solid #e3e3e3; padding: 4px 8px; border-radius: 4px; font-size: 12px; cursor: pointer;">
-                            <i class="material-icons" style="font-size: 16px;">settings</i>
-                        </button>
+                        <div style="display: flex; gap: 5px;">
+                            <button class="visibility-toggle section-visibility-toggle ${!sections.productInfo.enabled ? 'is-hidden' : ''}" data-section="productInfo" style="background: none; border: none; cursor: pointer; padding: 4px;">
+                                <i class="material-icons icon-visible" style="font-size: 18px; ${sections.productInfo.enabled ? '' : 'display: none;'}">visibility</i>
+                                <i class="material-icons icon-hidden" style="font-size: 18px; ${sections.productInfo.enabled ? 'display: none;' : ''}">visibility_off</i>
+                            </button>
+                            <button id="product-info-settings-btn" style="background: none; border: none; cursor: pointer; padding: 4px;" title="Configuración de Product Info">
+                                <i class="material-icons" style="font-size: 18px; color: #5c6068;">settings</i>
+                            </button>
+                        </div>
                     </div>
                     
                     <!-- Product Info Blocks -->
@@ -1326,15 +1353,22 @@ window.WebsiteBuilderModules.ProductContainer = {
         if (sections.imageWithText) {
             const blocks = sections.imageWithText.config?.blocks || [];
             html += `
-                <div class="section-management" style="margin-bottom: 20px; border: 1px solid #e3e3e3; border-radius: 4px; overflow: hidden;">
+                <div class="section-management" data-section-key="imageWithText" style="margin-bottom: 20px; border: 1px solid #e3e3e3; border-radius: 4px; overflow: hidden;">
                     <div class="section-header" data-section-type="imageWithText" style="padding: 12px 15px; background: #f8f8f8; display: flex; align-items: center; justify-content: space-between; cursor: pointer;">
                         <div style="display: flex; align-items: center;">
+                            <i class="material-icons section-drag-handle" style="font-size: 18px; color: #666; margin-right: 12px; cursor: move;">drag_indicator</i>
                             <span style="width: 8px; height: 8px; border-radius: 50%; background: ${sections.imageWithText.enabled ? '#4caf50' : '#ccc'}; margin-right: 10px;"></span>
                             <span style="font-size: 13px; font-weight: 500;">Image with Text</span>
                         </div>
-                        <button class="btn btn-sm" id="product-image-text-add-btn" style="background: transparent; border: 1px solid #e3e3e3; padding: 4px 8px; border-radius: 4px; font-size: 12px; cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; justify-content: center;">
-                            <i class="material-icons" style="font-size: 18px; color: #5c6068;">add</i>
-                        </button>
+                        <div style="display: flex; gap: 5px;">
+                            <button class="visibility-toggle section-visibility-toggle ${!sections.imageWithText.enabled ? 'is-hidden' : ''}" data-section="imageWithText" style="background: none; border: none; cursor: pointer; padding: 4px;">
+                                <i class="material-icons icon-visible" style="font-size: 18px; ${sections.imageWithText.enabled ? '' : 'display: none;'}">visibility</i>
+                                <i class="material-icons icon-hidden" style="font-size: 18px; ${sections.imageWithText.enabled ? 'display: none;' : ''}">visibility_off</i>
+                            </button>
+                            <button class="btn btn-sm" id="product-image-text-add-btn" style="background: transparent; border: 1px solid #e3e3e3; padding: 4px 8px; border-radius: 4px; font-size: 12px; cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; justify-content: center;">
+                                <i class="material-icons" style="font-size: 18px; color: #5c6068;">add</i>
+                            </button>
+                        </div>
                     </div>
                     ${blocks.length > 0 ? `
                         <div class="section-items" style="padding: 10px;">
@@ -1364,15 +1398,22 @@ window.WebsiteBuilderModules.ProductContainer = {
             const images = sections.gallery.config?.images || [];
             console.log('[PRODUCT-CONTAINER] Gallery images:', images);
             html += `
-                <div class="section-management" style="margin-bottom: 20px; border: 1px solid #e3e3e3; border-radius: 4px; overflow: hidden;">
+                <div class="section-management" data-section-key="gallery" style="margin-bottom: 20px; border: 1px solid #e3e3e3; border-radius: 4px; overflow: hidden;">
                     <div class="section-header" data-section-type="gallery" style="padding: 12px 15px; background: #f8f8f8; display: flex; align-items: center; justify-content: space-between; cursor: pointer;">
                         <div style="display: flex; align-items: center;">
+                            <i class="material-icons section-drag-handle" style="font-size: 18px; color: #666; margin-right: 12px; cursor: move;">drag_indicator</i>
                             <span style="width: 8px; height: 8px; border-radius: 50%; background: ${sections.gallery.enabled ? '#4caf50' : '#ccc'}; margin-right: 10px;"></span>
                             <span style="font-size: 13px; font-weight: 500;">Gallery</span>
                         </div>
-                        <button class="btn btn-sm" id="product-gallery-add-btn" style="background: transparent; border: 1px solid #e3e3e3; padding: 4px 8px; border-radius: 4px; font-size: 12px; cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; justify-content: center;">
-                            <i class="material-icons" style="font-size: 18px; color: #5c6068;">add</i>
-                        </button>
+                        <div style="display: flex; gap: 5px;">
+                            <button class="visibility-toggle section-visibility-toggle ${!sections.gallery.enabled ? 'is-hidden' : ''}" data-section="gallery" style="background: none; border: none; cursor: pointer; padding: 4px;">
+                                <i class="material-icons icon-visible" style="font-size: 18px; ${sections.gallery.enabled ? '' : 'display: none;'}">visibility</i>
+                                <i class="material-icons icon-hidden" style="font-size: 18px; ${sections.gallery.enabled ? 'display: none;' : ''}">visibility_off</i>
+                            </button>
+                            <button class="btn btn-sm" id="product-gallery-add-btn" style="background: transparent; border: 1px solid #e3e3e3; padding: 4px 8px; border-radius: 4px; font-size: 12px; cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; justify-content: center;">
+                                <i class="material-icons" style="font-size: 18px; color: #5c6068;">add</i>
+                            </button>
+                        </div>
                     </div>
                     ${images.length > 0 ? `
                         <div class="section-items" style="padding: 10px;">
@@ -1401,15 +1442,22 @@ window.WebsiteBuilderModules.ProductContainer = {
         if (sections.testimonials) {
             const testimonials = sections.testimonials.config?.testimonials || [];
             html += `
-                <div class="section-management" style="margin-bottom: 20px; border: 1px solid #e3e3e3; border-radius: 4px; overflow: hidden;">
+                <div class="section-management" data-section-key="testimonials" style="margin-bottom: 20px; border: 1px solid #e3e3e3; border-radius: 4px; overflow: hidden;">
                     <div class="section-header" data-section-type="testimonials" style="padding: 12px 15px; background: #f8f8f8; display: flex; align-items: center; justify-content: space-between; cursor: pointer;">
                         <div style="display: flex; align-items: center;">
+                            <i class="material-icons section-drag-handle" style="font-size: 18px; color: #666; margin-right: 12px; cursor: move;">drag_indicator</i>
                             <span style="width: 8px; height: 8px; border-radius: 50%; background: ${sections.testimonials.enabled ? '#4caf50' : '#ccc'}; margin-right: 10px;"></span>
                             <span style="font-size: 13px; font-weight: 500;">Testimonials</span>
                         </div>
-                        <button class="btn btn-sm" id="product-testimonials-add-btn" style="background: transparent; border: 1px solid #e3e3e3; padding: 4px 8px; border-radius: 4px; font-size: 12px; cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; justify-content: center;">
-                            <i class="material-icons" style="font-size: 18px; color: #5c6068;">add</i>
-                        </button>
+                        <div style="display: flex; gap: 5px;">
+                            <button class="visibility-toggle section-visibility-toggle ${!sections.testimonials.enabled ? 'is-hidden' : ''}" data-section="testimonials" style="background: none; border: none; cursor: pointer; padding: 4px;">
+                                <i class="material-icons icon-visible" style="font-size: 18px; ${sections.testimonials.enabled ? '' : 'display: none;'}">visibility</i>
+                                <i class="material-icons icon-hidden" style="font-size: 18px; ${sections.testimonials.enabled ? 'display: none;' : ''}">visibility_off</i>
+                            </button>
+                            <button class="btn btn-sm" id="product-testimonials-add-btn" style="background: transparent; border: 1px solid #e3e3e3; padding: 4px 8px; border-radius: 4px; font-size: 12px; cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; justify-content: center;">
+                                <i class="material-icons" style="font-size: 18px; color: #5c6068;">add</i>
+                            </button>
+                        </div>
                     </div>
                     ${testimonials.length > 0 ? `
                         <div class="section-items" style="padding: 10px;">
@@ -1438,15 +1486,22 @@ window.WebsiteBuilderModules.ProductContainer = {
         if (sections.faq) {
             const items = sections.faq.config?.items || [];
             html += `
-                <div class="section-management" style="margin-bottom: 20px; border: 1px solid #e3e3e3; border-radius: 4px; overflow: hidden;">
+                <div class="section-management" data-section-key="faq" style="margin-bottom: 20px; border: 1px solid #e3e3e3; border-radius: 4px; overflow: hidden;">
                     <div class="section-header" data-section-type="faq" style="padding: 12px 15px; background: #f8f8f8; display: flex; align-items: center; justify-content: space-between; cursor: pointer;">
                         <div style="display: flex; align-items: center;">
+                            <i class="material-icons section-drag-handle" style="font-size: 18px; color: #666; margin-right: 12px; cursor: move;">drag_indicator</i>
                             <span style="width: 8px; height: 8px; border-radius: 50%; background: ${sections.faq.enabled ? '#4caf50' : '#ccc'}; margin-right: 10px;"></span>
                             <span style="font-size: 13px; font-weight: 500;">FAQ</span>
                         </div>
-                        <button class="btn btn-sm" id="product-faq-add-btn" style="background: transparent; border: 1px solid #e3e3e3; padding: 4px 8px; border-radius: 4px; font-size: 12px; cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; justify-content: center;">
-                            <i class="material-icons" style="font-size: 18px; color: #5c6068;">add</i>
-                        </button>
+                        <div style="display: flex; gap: 5px;">
+                            <button class="visibility-toggle section-visibility-toggle ${!sections.faq.enabled ? 'is-hidden' : ''}" data-section="faq" style="background: none; border: none; cursor: pointer; padding: 4px;">
+                                <i class="material-icons icon-visible" style="font-size: 18px; ${sections.faq.enabled ? '' : 'display: none;'}">visibility</i>
+                                <i class="material-icons icon-hidden" style="font-size: 18px; ${sections.faq.enabled ? 'display: none;' : ''}">visibility_off</i>
+                            </button>
+                            <button class="btn btn-sm" id="product-faq-add-btn" style="background: transparent; border: 1px solid #e3e3e3; padding: 4px 8px; border-radius: 4px; font-size: 12px; cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; justify-content: center;">
+                                <i class="material-icons" style="font-size: 18px; color: #5c6068;">add</i>
+                            </button>
+                        </div>
                     </div>
                     ${items.length > 0 ? `
                         <div class="section-items" style="padding: 10px;">
@@ -1471,6 +1526,45 @@ window.WebsiteBuilderModules.ProductContainer = {
             `;
         }
         
+        // Product Tabs Section (Información del Producto)
+        if (sections.productTabs) {
+            html += `
+                <div class="section-management" data-section-key="productTabs" style="margin-bottom: 20px; border: 1px solid #e3e3e3; border-radius: 4px; overflow: hidden;">
+                    <div class="section-header" style="padding: 12px 15px; background: #f8f8f8; display: flex; align-items: center; justify-content: space-between;">
+                        <div style="display: flex; align-items: center;">
+                            <i class="material-icons section-drag-handle" style="font-size: 18px; color: #666; margin-right: 12px; cursor: move;">drag_indicator</i>
+                            <span style="width: 8px; height: 8px; border-radius: 50%; background: ${sections.productTabs.enabled ? '#4caf50' : '#ccc'}; margin-right: 10px;"></span>
+                            <span style="font-size: 13px; font-weight: 500;">Información del Producto</span>
+                        </div>
+                        <button class="visibility-toggle section-visibility-toggle ${!sections.productTabs.enabled ? 'is-hidden' : ''}" data-section="productTabs" style="background: none; border: none; cursor: pointer; padding: 4px;">
+                            <i class="material-icons icon-visible" style="font-size: 18px; ${sections.productTabs.enabled ? '' : 'display: none;'}">visibility</i>
+                            <i class="material-icons icon-hidden" style="font-size: 18px; ${sections.productTabs.enabled ? 'display: none;' : ''}">visibility_off</i>
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+        
+        // Related Products Section
+        if (sections.relatedProducts) {
+            html += `
+                <div class="section-management" data-section-key="relatedProducts" style="margin-bottom: 20px; border: 1px solid #e3e3e3; border-radius: 4px; overflow: hidden;">
+                    <div class="section-header" style="padding: 12px 15px; background: #f8f8f8; display: flex; align-items: center; justify-content: space-between;">
+                        <div style="display: flex; align-items: center;">
+                            <i class="material-icons section-drag-handle" style="font-size: 18px; color: #666; margin-right: 12px; cursor: move;">drag_indicator</i>
+                            <span style="width: 8px; height: 8px; border-radius: 50%; background: ${sections.relatedProducts.enabled ? '#4caf50' : '#ccc'}; margin-right: 10px;"></span>
+                            <span style="font-size: 13px; font-weight: 500;">Productos Relacionados</span>
+                        </div>
+                        <button class="visibility-toggle section-visibility-toggle ${!sections.relatedProducts.enabled ? 'is-hidden' : ''}" data-section="relatedProducts" style="background: none; border: none; cursor: pointer; padding: 4px;">
+                            <i class="material-icons icon-visible" style="font-size: 18px; ${sections.relatedProducts.enabled ? '' : 'display: none;'}">visibility</i>
+                            <i class="material-icons icon-hidden" style="font-size: 18px; ${sections.relatedProducts.enabled ? 'display: none;' : ''}">visibility_off</i>
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+        
+        html += '</div>'; // Close product-container-sections
         return html;
     },
     
@@ -1679,6 +1773,68 @@ window.WebsiteBuilderModules.ProductContainer = {
                 });
             }
         }
+        
+        // Initialize sortable for main sections
+        setTimeout(() => {
+            const $sectionsContainer = $('#product-container-sections');
+            
+            // Destroy existing sortable if any
+            if ($sectionsContainer.hasClass('ui-sortable')) {
+                console.log('[PRODUCT-CONTAINER] Destroying existing sortable for sections');
+                $sectionsContainer.sortable('destroy');
+            }
+            
+            // Create new sortable for sections
+            if ($sectionsContainer.length > 0) {
+                console.log('[PRODUCT-CONTAINER] Creating new sortable instance for sections');
+                $sectionsContainer.sortable({
+                    items: '.section-management',
+                    handle: '.section-drag-handle',
+                    axis: 'y',
+                    tolerance: 'pointer',
+                    placeholder: 'section-placeholder',
+                    forcePlaceholderSize: true,
+                    helper: 'clone',
+                    containment: 'parent',
+                    start: function(event, ui) {
+                        // Create placeholder with height
+                        ui.placeholder.height(ui.helper.outerHeight());
+                        // Add dragging class
+                        ui.item.addClass('dragging');
+                    },
+                    stop: function(event, ui) {
+                        // Remove dragging class
+                        ui.item.removeClass('dragging');
+                    },
+                    update: function(event, ui) {
+                        // Get new order
+                        const newOrder = [];
+                        $('#product-container-sections .section-management').each(function() {
+                            const sectionKey = $(this).data('section-key');
+                            if (sectionKey) {
+                                newOrder.push(sectionKey);
+                            }
+                        });
+                        
+                        console.log('[PRODUCT-CONTAINER] New section order:', newOrder);
+                        
+                        // Update config with new order
+                        const productContainerConfig = window.currentSectionsConfig['product-container'];
+                        if (productContainerConfig) {
+                            if (!productContainerConfig.sectionOrder) {
+                                productContainerConfig.sectionOrder = [];
+                            }
+                            productContainerConfig.sectionOrder = newOrder;
+                            
+                            window.hasPendingPageStructureChanges = true;
+                            window.updateSaveButtonState();
+                            window.renderPreview();
+                        }
+                    }
+                });
+                console.log('[PRODUCT-CONTAINER] Sortable initialized successfully for sections');
+            }
+        }, 150);
         
         // Color scheme change
         $('#product-container-color-scheme').on('change', function() {
@@ -2211,6 +2367,34 @@ window.WebsiteBuilderModules.ProductContainer = {
             if (item) {
                 item.isHidden = !item.isHidden;
                 $button.toggleClass('is-hidden');
+                hasPendingPageStructureChanges = true;
+                updateSaveButtonState();
+                renderPreview();
+            }
+        });
+        
+        // Handler for section visibility toggle (productInfo and relatedProducts)
+        $(document).off('click', '.section-visibility-toggle').on('click', '.section-visibility-toggle', function(e) {
+            e.stopPropagation();
+            const section = $(this).data('section');
+            const $button = $(this);
+            
+            const sections = currentSectionsConfig['product-container'].sections || {};
+            
+            if (sections[section]) {
+                sections[section].enabled = !sections[section].enabled;
+                
+                // Update visual state
+                const isEnabled = sections[section].enabled;
+                $button.find('.icon-visible').css('display', isEnabled ? '' : 'none');
+                $button.find('.icon-hidden').css('display', isEnabled ? 'none' : '');
+                
+                // Update the indicator dot
+                const $indicator = $button.closest('.section-header').find('span[style*="background"]').first();
+                if ($indicator.length) {
+                    $indicator.css('background', isEnabled ? '#4caf50' : '#ccc');
+                }
+                
                 hasPendingPageStructureChanges = true;
                 updateSaveButtonState();
                 renderPreview();

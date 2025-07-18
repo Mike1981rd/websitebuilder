@@ -539,6 +539,81 @@ currentSectionsConfig.productContainer = {
 
 #### FASE 4: Panel de Configuración con Gestión Completa de Contenido ✅ ACTUALIZADA
 
+##### 🔴 PROBLEMA CRÍTICO RESUELTO: Estado del ícono del ojo (toggle de visibilidad) después de guardar
+
+**Fecha de resolución**: 18 de Julio 2025
+
+**Problema Identificado**:
+Después de guardar cambios y recargar la vista del Product Container, los íconos del ojo (toggles de visibilidad) no mostraban el estado visual correcto. Las secciones se ocultaban/mostraban correctamente en el preview, pero el ícono no aparecía "tachado" cuando la sección estaba deshabilitada.
+
+**Síntomas específicos**:
+1. ✅ La funcionalidad trabajaba correctamente - las secciones se ocultaban/mostraban
+2. ❌ El ícono del ojo no reflejaba visualmente el estado después de guardar
+3. ❌ Se necesitaban dos clicks para cambiar el estado (problema documentado en FLUJO-REAL-MODULOS.md)
+
+**Causa raíz**:
+El HTML del toggle de visibilidad no estaba agregando la clase CSS `is-hidden` al botón cuando `enabled` era false. Solo se controlaba la visibilidad de los íconos individuales con estilos inline `display: none`, pero no se aplicaba la clase al botón contenedor.
+
+**Diferencia con otros módulos**:
+- Otros módulos usan `isHidden: true/false`
+- Product Container usa `enabled: true/false` (lógica inversa)
+- Se necesitaba aplicar `is-hidden` cuando `enabled` es false
+
+**Solución implementada**:
+
+1. **Para secciones principales (Product Info, Product Tabs, Related Products)**:
+```javascript
+// ANTES - Solo controlaba visibilidad de íconos individuales:
+<button class="visibility-toggle section-visibility-toggle" data-section="productInfo">
+    <i class="material-icons icon-visible" style="${sections.productInfo.enabled ? '' : 'display: none;'}">visibility</i>
+    <i class="material-icons icon-hidden" style="${sections.productInfo.enabled ? 'display: none;' : ''}">visibility_off</i>
+</button>
+
+// DESPUÉS - Agrega clase is-hidden al botón cuando enabled es false:
+<button class="visibility-toggle section-visibility-toggle ${!sections.productInfo.enabled ? 'is-hidden' : ''}" data-section="productInfo">
+    <i class="material-icons icon-visible" style="${sections.productInfo.enabled ? '' : 'display: none;'}">visibility</i>
+    <i class="material-icons icon-hidden" style="${sections.productInfo.enabled ? 'display: none;' : ''}">visibility_off</i>
+</button>
+```
+
+2. **Archivos modificados**:
+   - `/wwwroot/js/website-builder/modules/product-container.js`:
+     - Línea 1264: Product Info toggle
+     - Línea 1484: Product Tabs toggle  
+     - Línea 1502: Related Products toggle
+
+3. **Elementos ya correctos**:
+   - Los bloques individuales de Product Info (vendor, title, price, etc.)
+   - Los items de Gallery, Testimonials, FAQ
+   - Estos ya tenían la clase `is-hidden` aplicada correctamente
+
+**Por qué funciona esta solución**:
+1. La clase `is-hidden` es detectada por el CSS global del website builder
+2. El CSS aplica los estilos visuales correctos (ícono tachado) cuando está presente
+3. Al recargar la vista, el HTML ya incluye la clase basada en el estado guardado
+4. No se necesita sincronización adicional post-guardado
+
+**Relación con syncVisibilityToggleStates()**:
+A diferencia de otros módulos que necesitan agregar casos a `syncVisibilityToggleStates()`, Product Container no lo requiere porque:
+1. La vista se regenera completamente con `renderSectionsManagement()`
+2. El HTML generado ya incluye el estado correcto
+3. No hay elementos residuales del DOM que necesiten sincronización
+
+**Testing de la solución**:
+1. Ocultar una sección (click en ícono del ojo)
+2. Guardar cambios
+3. La vista se recarga automáticamente
+4. El ícono debe aparecer tachado inmediatamente
+5. No se requieren dos clicks para cambiar el estado
+
+**Lecciones aprendidas**:
+1. Siempre aplicar TANTO la clase CSS como los estilos inline
+2. Considerar la lógica inversa cuando se usa `enabled` vs `isHidden`
+3. El HTML generado debe incluir todas las clases de estado desde el inicio
+4. Revisar implementaciones existentes (como items individuales) para mantener consistencia
+
+#### FASE 4: Panel de Configuración con Gestión Completa de Contenido ✅ ACTUALIZADA
+
 **Objetivo**: Implementar gestión completa de contenido para cada sub-sección del Product Container, replicando exactamente la UX de homepage
 
 **Arquitectura de Interacción**:
@@ -1222,6 +1297,129 @@ sections.imageWithText.config.blocks.filter(b => {
 
 ### Estado Actual de la Fase 4
 - ✅ Botones (+) visibles y con estilo moderno
+
+## FASE 6: Implementación de Drag & Drop para Secciones Principales - COMPLETADA ✅
+
+### Fecha de implementación: 18 de Julio 2025
+
+#### Contexto
+El módulo Product Container ya tenía drag & drop funcionando para los bloques internos de Product Info. Se necesitaba implementar la misma funcionalidad para las secciones principales (Product Info, Image with Text, Gallery, Testimonials, FAQ, Product Tabs, Related Products).
+
+#### Características implementadas
+
+1. **Iconos de arrastre (drag handles)**:
+   - Se agregó el icono `drag_indicator` de Material Icons a todas las secciones
+   - Posicionado estéticamente siguiendo el mismo patrón que los bloques de Product Info
+   ```javascript
+   <i class="material-icons section-drag-handle" style="font-size: 18px; color: #666; margin-right: 12px; cursor: move;">drag_indicator</i>
+   ```
+
+2. **Atributos para identificación**:
+   - Se agregó `data-section-key` a cada contenedor de sección para identificación única
+   - Necesario para el reordenamiento y persistencia del orden
+
+3. **jQuery UI Sortable**:
+   ```javascript
+   $('#product-container-sections').sortable({
+       items: '.section-management',
+       handle: '.section-drag-handle',
+       axis: 'y',
+       tolerance: 'pointer',
+       placeholder: 'section-placeholder',
+       forcePlaceholderSize: true,
+       helper: 'clone',
+       containment: 'parent',
+       update: function(event, ui) {
+           // Actualizar orden en configuración
+           const newOrder = [];
+           $('#product-container-sections .section-management').each(function() {
+               const sectionKey = $(this).data('section-key');
+               if (sectionKey) {
+                   newOrder.push(sectionKey);
+               }
+           });
+           
+           // Guardar nuevo orden
+           window.currentSectionsConfig['product-container'].sectionOrder = newOrder;
+           window.hasPendingPageStructureChanges = true;
+           window.updateSaveButtonState();
+           window.renderPreview();
+       }
+   });
+   ```
+
+4. **Estilos CSS para drag & drop**:
+   ```css
+   /* Product Container Sections - Drag & Drop Styles */
+   .section-management {
+       transition: all 0.2s ease;
+   }
+
+   .section-management.ui-sortable-helper {
+       opacity: 0.9;
+       box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+       z-index: 1000;
+   }
+
+   .section-placeholder {
+       background: #f1f2f3 !important;
+       border: 2px dashed #c9cccf !important;
+       border-radius: 4px;
+       opacity: 0.5;
+       margin-bottom: 20px !important;
+       height: 60px !important;
+   }
+
+   .dark-mode .section-placeholder {
+       background: #404040 !important;
+       border-color: #616161 !important;
+   }
+
+   .section-management.dragging {
+       opacity: 0.5;
+   }
+   ```
+
+5. **Persistencia del orden**:
+   - El orden se guarda en `currentSectionsConfig['product-container'].sectionOrder`
+   - El preview respeta el orden guardado al renderizar
+   - El panel lateral también respeta el orden al mostrar las secciones
+
+#### Problemas encontrados durante la implementación
+
+1. **Error de módulo no definido**:
+   - **Síntoma**: TypeError: Cannot read properties of undefined (reading 'renderSettings')
+   - **Causa**: Intento de refactorización incompleta que rompió la estructura del módulo
+   - **Solución**: Se revirtieron los cambios problemáticos manteniendo la estructura original
+
+2. **Referencias incorrectas**:
+   - **Síntoma**: Variables `section` no definidas en el código
+   - **Causa**: Al intentar crear métodos separados, se perdieron las referencias correctas
+   - **Solución**: Se mantuvieron las referencias originales a `sections.nombreSeccion`
+
+#### Ubicación del código
+
+1. **Inicialización del sortable**: 
+   - Archivo: `/wwwroot/js/website-builder/modules/product-container.js`
+   - Función: `initializeSettingsHandlers` (líneas ~1770-1830)
+
+2. **Renderizado con orden personalizado**:
+   - Función: `render` (líneas ~195-220)
+   - Usa `config.sectionOrder` si existe, sino usa orden por defecto
+
+3. **Estilos CSS**:
+   - Archivo: `/wwwroot/css/website-builder.css`
+   - Líneas: ~3879-3906
+
+#### Resultado final
+- ✅ Las secciones se pueden reordenar arrastrándolas por el icono
+- ✅ Visual feedback durante el arrastre (placeholder punteado)
+- ✅ El orden se persiste al guardar
+- ✅ El preview se actualiza automáticamente
+- ✅ Compatible con el sistema existente de guardado
+
+### NOTA IMPORTANTE
+Durante la implementación se intentó hacer una refactorización mayor del código que causó problemas. La lección aprendida es que cuando se pide una característica específica (drag & drop), se debe implementar con cambios mínimos sin intentar refactorizar toda la estructura del código.
 - ✅ Agregar bloques funciona con un solo clic
 - ✅ Eliminar bloques funciona con una sola confirmación
 - ✅ No hay interferencia entre event handlers

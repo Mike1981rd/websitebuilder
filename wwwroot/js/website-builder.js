@@ -7877,6 +7877,12 @@ $(document).ready(async function() {
             // If config doesn't exist or is incomplete, use default
             if (!config || !config.sections || !config.sections.productInfo || !config.sections.productInfo.config || !config.sections.productInfo.config.blocks) {
                 console.log('[DEBUG] Product container config is incomplete, merging with defaults');
+                // Check if module exists before getting default config
+                if (!window.WebsiteBuilderModules || !window.WebsiteBuilderModules.ProductContainer) {
+                    console.error('[DEBUG] ProductContainer module not loaded');
+                    dynamicContentArea.innerHTML = '<div style="padding: 20px; text-align: center;">Error: Product Container module not loaded</div>';
+                    return;
+                }
                 const defaultConfig = window.WebsiteBuilderModules.ProductContainer.getDefaultConfig();
                 
                 if (!config) {
@@ -7908,6 +7914,13 @@ $(document).ready(async function() {
                 // Update currentSectionsConfig with the complete config
                 currentSectionsConfig['product-container'] = config;
                 console.log('[DEBUG] Updated product-container config:', config);
+            }
+            
+            // Check if module is loaded
+            if (!window.WebsiteBuilderModules || !window.WebsiteBuilderModules.ProductContainer) {
+                console.error('[DEBUG] ProductContainer module not loaded');
+                dynamicContentArea.innerHTML = '<div style="padding: 20px; text-align: center;">Error: Product Container module not loaded</div>';
+                return;
             }
             
             dynamicContentArea.innerHTML = window.WebsiteBuilderModules.ProductContainer.renderSettings(config);

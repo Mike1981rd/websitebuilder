@@ -3876,6 +3876,35 @@
     transition: all 0.2s ease;
 }
 
+/* Product Container Sections - Drag & Drop Styles */
+.section-management {
+    transition: all 0.2s ease;
+}
+
+.section-management.ui-sortable-helper {
+    opacity: 0.9;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    z-index: 1000;
+}
+
+.section-placeholder {
+    background: #f1f2f3 !important;
+    border: 2px dashed #c9cccf !important;
+    border-radius: 4px;
+    opacity: 0.5;
+    margin-bottom: 20px !important;
+    height: 60px !important;
+}
+
+.dark-mode .section-placeholder {
+    background: #404040 !important;
+    border-color: #616161 !important;
+}
+
+.section-management.dragging {
+    opacity: 0.5;
+}
+
 .dark-mode .product-info-block {
     background: #303030;
     border-color: #616161;
