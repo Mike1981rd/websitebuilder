@@ -2,6 +2,7 @@
 window.WebsiteBuilderModules = window.WebsiteBuilderModules || {};
 window.WebsiteBuilderModules.ImageWithText = {
     render: function(config) {
+        console.log('[IMAGE-WITH-TEXT] Render called with config:', config);
         if (!config || config.isHidden) return '';
         
         // Obtener configuraciones globales
@@ -19,6 +20,11 @@ window.WebsiteBuilderModules.ImageWithText = {
         // Renderizar bloques hijos
         // Collect all visible blocks/images
         const visibleBlocks = [];
+        console.log('[IMAGE-WITH-TEXT] Checking blocks:', config.blocks);
+        console.log('[IMAGE-WITH-TEXT] Block order:', config.blockOrder);
+        console.log('[IMAGE-WITH-TEXT] Type of blocks:', typeof config.blocks);
+        console.log('[IMAGE-WITH-TEXT] Is blocks an array?', Array.isArray(config.blocks));
+        
         if (config.blocks && config.blockOrder) {
             config.blockOrder.forEach(blockId => {
                 const block = config.blocks[blockId];
@@ -28,12 +34,16 @@ window.WebsiteBuilderModules.ImageWithText = {
             });
         }
         
+        console.log('[IMAGE-WITH-TEXT] Visible blocks count:', visibleBlocks.length);
+        
         // Render the section with content on one side and images on the other
         let sectionHtml = '';
         if (visibleBlocks.length > 0 || config.image) {
+            console.log('[IMAGE-WITH-TEXT] Rendering with blocks');
             sectionHtml = window.WebsiteBuilderModules.ImageWithText.renderSectionLayout(config, visibleBlocks, schemeColors, uniqueId);
         } else {
             // Default content when no images
+            console.log('[IMAGE-WITH-TEXT] Rendering default content (no blocks)');
             sectionHtml = window.WebsiteBuilderModules.ImageWithText.renderContent(config, uniqueId);
         }
         

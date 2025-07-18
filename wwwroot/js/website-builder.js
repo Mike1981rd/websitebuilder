@@ -7872,6 +7872,48 @@ $(document).ready(async function() {
         } else if (viewName === 'productContainerSettings') {
             // Product Container settings view
             console.log('[DEBUG] Rendering product container settings');
+            
+            // SYNC: If we're returning from Image with Text settings, sync the data back
+            console.log('[PRODUCT-CONTAINER] Checking if returning from settings. ReturnData:', window.productContainerReturnData);
+            console.log('[PRODUCT-CONTAINER] currentSectionsConfig.imageWithText exists:', !!currentSectionsConfig.imageWithText);
+            
+            if (window.productContainerReturnData && window.productContainerReturnData.fromView === 'productContainer') {
+                console.log('[PRODUCT-CONTAINER] ✓ Returning from Product Container context, syncing data back');
+                
+                if (currentSectionsConfig.imageWithText) {
+                    console.log('[PRODUCT-CONTAINER] Image with Text data to sync:', currentSectionsConfig.imageWithText);
+                    
+                    if (!currentSectionsConfig['product-container']) {
+                        currentSectionsConfig['product-container'] = { sections: {} };
+                    }
+                    if (!currentSectionsConfig['product-container'].sections) {
+                        currentSectionsConfig['product-container'].sections = {};
+                    }
+                    if (!currentSectionsConfig['product-container'].sections.imageWithText) {
+                        currentSectionsConfig['product-container'].sections.imageWithText = { enabled: true, config: {} };
+                    }
+                    
+                    // Copy the entire config back
+                    currentSectionsConfig['product-container'].sections.imageWithText.config = currentSectionsConfig.imageWithText;
+                    console.log('[PRODUCT-CONTAINER] ✓ Config synced back to Product Container:', currentSectionsConfig['product-container'].sections.imageWithText.config);
+                    
+                    // Clear the return data flag
+                    window.productContainerReturnData = null;
+                    
+                    // Mark as having changes and trigger preview update
+                    hasPendingPageStructureChanges = true;
+                    updateSaveButtonState();
+                    
+                    // Force preview update
+                    setTimeout(() => {
+                        console.log('[PRODUCT-CONTAINER] Triggering preview update after sync');
+                        renderPreview();
+                    }, 100);
+                } else {
+                    console.error('[PRODUCT-CONTAINER] No imageWithText config found to sync back!');
+                }
+            }
+            
             let config = currentSectionsConfig['product-container'];
             
             // If config doesn't exist or is incomplete, use default

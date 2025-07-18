@@ -1594,9 +1594,9 @@ case 'gallery':
 
 ### Estado Actual
 - ✅ Image with Text completamente funcional (sección y bloques hijos)
+- ✅ Drag & Drop de secciones principales (Fase 6 completada)
 - ⏳ Product Info pendiente (configuración completa sin selector de producto)
 - ⏳ Gallery, Testimonials, FAQ pendientes (seguir mismo patrón)
-- ⏳ Drag & Drop (Fase 5)
 
 ### Próximos Pasos
 1. **CRÍTICO**: Implementar Product Info con todas las configuraciones de featured-product
@@ -1625,3 +1625,175 @@ currentSectionsConfig['product-container'].productInfo = {
     // ... todas las demás configuraciones
 }
 ```
+
+## 🔴 SOLUCIÓN CRÍTICA: Image with Text no muestra cambios de configuración - RESUELTO ✅
+
+### Fecha de resolución: 18 de Julio 2025
+
+### Problema Identificado
+Las configuraciones de Image with Text dentro de Product Container no se reflejaban en el preview. La sección aparecía vacía (solo estructura) sin importar qué cambios se hicieran en la configuración.
+
+### Causa Raíz - Incompatibilidad de Estructura de Datos
+
+**Product Container guardaba los bloques como array**:
+```javascript
+// Estructura que Product Container estaba creando
+sections.imageWithText.config = {
+    blocks: [
+        {id: 'block1', title: 'Título', description: 'Texto', isHidden: false},
+        {id: 'block2', title: 'Otro', description: 'Más texto', isHidden: false}
+    ]
+}
+```
+
+**Image with Text esperaba bloques como objeto con array de orden**:
+```javascript
+// Estructura que Image with Text necesita
+config = {
+    blocks: {
+        'block1': {id: 'block1', title: 'Título', description: 'Texto', isHidden: false},
+        'block2': {id: 'block2', title: 'Otro', description: 'Más texto', isHidden: false}
+    },
+    blockOrder: ['block1', 'block2']
+}
+```
+
+### Por qué ocurría el problema
+
+1. **En el módulo Image with Text** (`image-with-text.js`):
+   ```javascript
+   // Línea ~45-50
+   const visibleBlocks = blockOrder.filter(blockId => {
+       const block = config.blocks[blockId]; // ← Esperaba objeto
+       return block && !block.isHidden;
+   });
+   
+   // Si config.blocks era array, block siempre era undefined
+   // Resultado: 0 bloques visibles → renderiza contenido por defecto
+   ```
+
+2. **Product Info funcionaba** porque usa la misma estructura array/objeto que Product Container esperaba
+
+3. **La sincronización de datos no era el problema** - los datos sí llegaban, pero en formato incompatible
+
+### Solución Implementada
+
+#### 1. Actualizar Add Block Handler (líneas 1862-1892)
+```javascript
+// ANTES - Creaba array
+if (!sections.imageWithText.config.blocks) {
+    sections.imageWithText.config.blocks = [];
+}
+sections.imageWithText.config.blocks.push({...});
+
+// DESPUÉS - Crea objeto y mantiene blockOrder
+if (!sections.imageWithText.config.blocks) {
+    sections.imageWithText.config.blocks = {};
+    sections.imageWithText.config.blockOrder = [];
+}
+sections.imageWithText.config.blocks[blockId] = {...};
+sections.imageWithText.config.blockOrder.push(blockId);
+```
+
+#### 2. Actualizar Delete Handler (líneas 2517-2528)
+```javascript
+// ANTES - Filter en array
+sections.imageWithText.config.blocks = blocks.filter(b => b.id !== itemId);
+
+// DESPUÉS - Delete de objeto y actualizar blockOrder
+delete sections.imageWithText.config.blocks[itemId];
+sections.imageWithText.config.blockOrder = sections.imageWithText.config.blockOrder.filter(id => id !== itemId);
+```
+
+#### 3. Actualizar Toggle Visibility (líneas 2452-2457)
+```javascript
+// ANTES - Find en array
+const block = blocks.find(b => b.id === itemId);
+
+// DESPUÉS - Acceso directo por key
+const block = sections.imageWithText.config.blocks[itemId];
+```
+
+#### 4. Actualizar Render Settings View (líneas 1362-1369)
+```javascript
+// Convertir objeto a array para mostrar en UI
+const blocksArray = blockOrder.map(blockId => blocks[blockId]).filter(Boolean);
+```
+
+#### 5. Agregar Migración Automática (líneas 914-933)
+```javascript
+// Detectar y migrar datos antiguos en formato array
+if (Array.isArray(config.blocks)) {
+    const blocksObj = {};
+    const blockOrder = [];
+    
+    config.blocks.forEach(block => {
+        if (block && block.id) {
+            blocksObj[block.id] = block;
+            blockOrder.push(block.id);
+        }
+    });
+    
+    config.blocks = blocksObj;
+    config.blockOrder = blockOrder;
+}
+```
+
+### Archivos Modificados
+
+1. **`/wwwroot/js/website-builder/modules/product-container.js`**:
+   - Líneas 914-933: Migración automática en renderSection
+   - Líneas 1362-1369: Conversión objeto→array para UI
+   - Líneas 1862-1892: Add block handler actualizado
+   - Líneas 2156, 2391: Find operations actualizadas
+   - Líneas 2452-2457: Toggle visibility actualizado
+   - Líneas 2517-2528: Delete handler actualizado
+
+2. **`/wwwroot/js/website-builder/modules/image-with-text.js`**:
+   - Solo se agregaron logs de debug (no cambios funcionales)
+
+### Testing y Verificación
+
+Para verificar que la solución funciona:
+
+1. **Crear nuevo bloque**:
+   - Click en (+) en Image with Text
+   - Verificar en consola: `[PRODUCT-CONTAINER] Added new Image with Text block`
+   - El bloque debe aparecer inmediatamente en el preview
+
+2. **Modificar configuración**:
+   - Cambiar título, descripción, color scheme
+   - Los cambios deben reflejarse inmediatamente
+
+3. **Eliminar bloque**:
+   - Click en 🗑️
+   - Confirmar eliminación
+   - El bloque debe desaparecer del preview
+
+4. **Datos existentes**:
+   - Si había datos en formato array, se migran automáticamente
+   - Verificar en consola: `[PRODUCT-CONTAINER] Migrated array format to object format`
+
+### Lecciones Aprendidas
+
+1. **Siempre verificar la estructura de datos esperada** por los módulos reutilizados
+2. **Los logs de debug son esenciales** para diagnosticar problemas de renderizado
+3. **La migración automática** es importante para no romper datos existentes
+4. **Product Info funcionaba** porque fue diseñado específicamente para Product Container
+5. **Image with Text no funcionaba** porque esperaba la estructura estándar del homepage
+
+### Patrón para Otras Secciones
+
+Al implementar Gallery, Testimonials, FAQ, verificar:
+1. ¿Qué estructura de datos espera el módulo?
+2. ¿Cómo guarda Product Container esos datos?
+3. ¿Necesita conversión o adaptación?
+4. ¿Necesita migración de datos existentes?
+
+### Resultado Final
+
+✅ Image with Text ahora funciona perfectamente en Product Container
+✅ Los cambios de configuración se reflejan inmediatamente
+✅ No interfiere con Image with Text del homepage
+✅ Datos existentes se migran automáticamente
+✅ La solución es no invasiva - no modifica el módulo original

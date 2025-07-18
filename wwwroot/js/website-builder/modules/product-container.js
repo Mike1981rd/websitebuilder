@@ -892,6 +892,13 @@ window.WebsiteBuilderModules.ProductContainer = {
         console.log('[PRODUCT-CONTAINER] Section config:', section);
         console.log('[PRODUCT-CONTAINER] Available modules:', Object.keys(window.WebsiteBuilderModules || {}));
         
+        // Detect correct context for modules (iframe or parent window)
+        const modules = window.WebsiteBuilderModules || 
+                       (window.parent && window.parent !== window && window.parent.WebsiteBuilderModules) || 
+                       {};
+        console.log('[PRODUCT-CONTAINER] Using modules from:', window.WebsiteBuilderModules ? 'current window' : 'parent window');
+        console.log('[PRODUCT-CONTAINER] Available modules in context:', Object.keys(modules));
+        
         try {
             // Prepare config for the section
             let sectionConfig = section.config || {};
@@ -903,22 +910,46 @@ window.WebsiteBuilderModules.ProductContainer = {
             
             switch(sectionKey) {
                 case 'imageWithText':
-                    if (window.WebsiteBuilderModules?.ImageWithText?.render) {
-                        // Adapt config to match image-with-text module expectations
+                    if (modules.ImageWithText?.render) {
+                        // Migration: Convert array format to object format if needed
+                        if (Array.isArray(sectionConfig.blocks)) {
+                            console.log('[PRODUCT-CONTAINER] Migrating blocks from array to object format');
+                            const blocksArray = sectionConfig.blocks;
+                            sectionConfig.blocks = {};
+                            sectionConfig.blockOrder = [];
+                            
+                            blocksArray.forEach((block) => {
+                                if (block && block.id) {
+                                    sectionConfig.blocks[block.id] = block;
+                                    sectionConfig.blockOrder.push(block.id);
+                                }
+                            });
+                            
+                            // Update the stored config with migrated data
+                            if (section.config) {
+                                section.config.blocks = sectionConfig.blocks;
+                                section.config.blockOrder = sectionConfig.blockOrder;
+                            }
+                        }
+                        
+                        // Pass config directly - it already has the correct structure (blocks, blockOrder, etc)
+                        console.log('[PRODUCT-CONTAINER] Image with Text section:', section);
+                        console.log('[PRODUCT-CONTAINER] Image with Text sectionConfig:', sectionConfig);
+                        console.log('[PRODUCT-CONTAINER] Does sectionConfig have blocks?', !!sectionConfig.blocks);
+                        console.log('[PRODUCT-CONTAINER] Number of blocks:', Object.keys(sectionConfig.blocks || {}).length);
+                        
                         const imageWithTextConfig = {
                             ...sectionConfig,
-                            image: sectionConfig.imageUrl,
-                            content: sectionConfig.description,
-                            buttonLabel: sectionConfig.buttonText,
-                            // Pass the color scheme
-                            colorScheme: section.config.colorScheme === 'inherit' ? null : section.config.colorScheme
+                            colorScheme: section.config.colorScheme === 'inherit' ? null : section.config.colorScheme,
+                            isHidden: false // Force visible since we're already checking enabled
                         };
-                        return window.WebsiteBuilderModules.ImageWithText.render(imageWithTextConfig);
+                        console.log('[PRODUCT-CONTAINER] Final config being passed:', imageWithTextConfig);
+                        return modules.ImageWithText.render(imageWithTextConfig);
                     }
                     break;
                     
                 case 'multicolumn':
-                    if (window.WebsiteBuilderModules?.Multicolumn?.render) {
+                    if (modules.Multicolumn?.render) {
                         // Adapt config to match multicolumn module expectations
                         // The multicolumn module expects columns as an object, not array
                         const columnsObj = {};
@@ -944,12 +975,12 @@ window.WebsiteBuilderModules.ProductContainer = {
                             }
                         };
                         console.log('[PRODUCT-CONTAINER] Multicolumn config prepared:', multicolumnConfig);
-                        return window.WebsiteBuilderModules.Multicolumn.render(multicolumnConfig);
+                        return modules.Multicolumn.render(multicolumnConfig);
                     }
                     break;
                     
                 case 'gallery':
-                    if (window.WebsiteBuilderModules?.Gallery?.render) {
+                    if (modules.Gallery?.render) {
                         // Adapt config to match gallery module expectations
                         const galleryConfig = {
                             ...sectionConfig,
@@ -960,12 +991,12 @@ window.WebsiteBuilderModules.ProductContainer = {
                             // Pass the color scheme
                             colorScheme: section.config.colorScheme === 'inherit' ? null : section.config.colorScheme
                         };
-                        return window.WebsiteBuilderModules.Gallery.render(galleryConfig);
+                        return modules.Gallery.render(galleryConfig);
                     }
                     break;
                     
                 case 'testimonials':
-                    if (window.WebsiteBuilderModules?.Testimonials?.render) {
+                    if (modules.Testimonials?.render) {
                         // Adapt config to match testimonials module expectations
                         const testimonialsConfig = {
                             ...sectionConfig,
@@ -983,7 +1014,7 @@ window.WebsiteBuilderModules.ProductContainer = {
                             // Pass the color scheme
                             colorScheme: section.config.colorScheme === 'inherit' ? null : section.config.colorScheme
                         };
-                        return window.WebsiteBuilderModules.Testimonials.render(testimonialsConfig);
+                        return modules.Testimonials.render(testimonialsConfig);
                     }
                     break;
                     
@@ -1351,7 +1382,12 @@ window.WebsiteBuilderModules.ProductContainer = {
         
         // Image with Text Section
         if (sections.imageWithText) {
-            const blocks = sections.imageWithText.config?.blocks || [];
+            const blocksConfig = sections.imageWithText.config || {};
+            const blockOrder = blocksConfig.blockOrder || [];
+            const blocksObj = blocksConfig.blocks || {};
+            
+            // Convert blocks object to array for rendering
+            const blocks = blockOrder.map(blockId => blocksObj[blockId]).filter(block => block);
             html += `
                 <div class="section-management" data-section-key="imageWithText" style="margin-bottom: 20px; border: 1px solid #e3e3e3; border-radius: 4px; overflow: hidden;">
                     <div class="section-header" data-section-type="imageWithText" style="padding: 12px 15px; background: #f8f8f8; display: flex; align-items: center; justify-content: space-between; cursor: pointer;">
@@ -1854,16 +1890,20 @@ window.WebsiteBuilderModules.ProductContainer = {
             const sections = currentSectionsConfig['product-container'].sections || {};
             
             if (!sections.imageWithText) {
-                sections.imageWithText = { enabled: true, config: { blocks: [] } };
+                sections.imageWithText = { enabled: true, config: { blocks: {}, blockOrder: [] } };
             }
             if (!sections.imageWithText.config) {
-                sections.imageWithText.config = { blocks: [] };
+                sections.imageWithText.config = { blocks: {}, blockOrder: [] };
             }
             if (!sections.imageWithText.config.blocks) {
-                sections.imageWithText.config.blocks = [];
+                sections.imageWithText.config.blocks = {};
+            }
+            if (!sections.imageWithText.config.blockOrder) {
+                sections.imageWithText.config.blockOrder = [];
             }
             
-            sections.imageWithText.config.blocks.push({
+            // Add block to the blocks object
+            sections.imageWithText.config.blocks[blockId] = {
                 id: blockId,
                 imageUrl: '/placeholder-image.jpg',
                 title: 'Nuevo bloque',
@@ -1872,7 +1912,10 @@ window.WebsiteBuilderModules.ProductContainer = {
                 buttonUrl: '#',
                 imagePosition: 'left',
                 isHidden: false
-            });
+            };
+            
+            // Add to blockOrder array
+            sections.imageWithText.config.blockOrder.push(blockId);
             
             hasPendingPageStructureChanges = true;
             updateSaveButtonState();
@@ -2026,6 +2069,21 @@ window.WebsiteBuilderModules.ProductContainer = {
                         returnTo: 'productContainerSettings'
                     };
                     console.log('[PRODUCT-CONTAINER] Setting productContainerReturnData:', window.productContainerReturnData);
+                    
+                    // SYNC: Copy Product Container's Image with Text config to the expected location
+                    const productContainerIwtConfig = currentSectionsConfig['product-container']?.sections?.imageWithText?.config;
+                    console.log('[PRODUCT-CONTAINER] Syncing Image with Text config before navigation');
+                    console.log('[PRODUCT-CONTAINER] Product Container config:', productContainerIwtConfig);
+                    console.log('[PRODUCT-CONTAINER] Current imageWithText config:', currentSectionsConfig.imageWithText);
+                    
+                    // ALWAYS sync, even if imageWithText already exists from homepage
+                    if (productContainerIwtConfig) {
+                        currentSectionsConfig.imageWithText = productContainerIwtConfig;
+                        console.log('[PRODUCT-CONTAINER] Config synced to currentSectionsConfig.imageWithText');
+                    } else {
+                        console.error('[PRODUCT-CONTAINER] No Image with Text config found in Product Container!');
+                    }
+                    
                     // Open Image with Text settings
                     window.switchSidebarView('imageWithTextSettings');
                     break;
@@ -2116,7 +2174,7 @@ window.WebsiteBuilderModules.ProductContainer = {
             switch(itemType) {
                 case 'iwt-block':
                 case 'image-text-block':
-                    item = sections.imageWithText?.config?.blocks?.find(b => b.id === itemId);
+                    item = sections.imageWithText?.config?.blocks?.[itemId];
                     itemName = 'Bloque';
                     // Open Image with Text block configuration view
                     if (item) {
@@ -2351,7 +2409,7 @@ window.WebsiteBuilderModules.ProductContainer = {
             
             switch(itemType) {
                 case 'image-text-block':
-                    item = sections.imageWithText?.config?.blocks?.find(b => b.id === itemId);
+                    item = sections.imageWithText?.config?.blocks?.[itemId];
                     break;
                 case 'gallery-image':
                     item = sections.gallery?.config?.images?.find(i => i.id === itemId);
@@ -2414,14 +2472,9 @@ window.WebsiteBuilderModules.ProductContainer = {
             switch(itemType) {
                 case 'iwt-block':
                 case 'image-text-block':
-                    if (sections.imageWithText?.config?.blocks) {
-                        const block = sections.imageWithText.config.blocks.find((b, index) => 
-                            String(b.id || index) === String(itemId)
-                        );
-                        if (block) {
-                            block.isHidden = !block.isHidden;
-                            found = true;
-                        }
+                    if (sections.imageWithText?.config?.blocks?.[itemId]) {
+                        sections.imageWithText.config.blocks[itemId].isHidden = !sections.imageWithText.config.blocks[itemId].isHidden;
+                        found = true;
                     }
                     break;
                 case 'gallery-image':
@@ -2479,11 +2532,15 @@ window.WebsiteBuilderModules.ProductContainer = {
                 switch(itemType) {
                     case 'iwt-block':
                     case 'image-text-block':
-                        if (sections.imageWithText?.config?.blocks) {
-                            sections.imageWithText.config.blocks = sections.imageWithText.config.blocks.filter(b => {
-                                // Compare both as strings to avoid type mismatch
-                                return String(b.id) !== String(itemId);
-                            });
+                        if (sections.imageWithText?.config) {
+                            // Delete from blocks object
+                            if (sections.imageWithText.config.blocks) {
+                                delete sections.imageWithText.config.blocks[itemId];
+                            }
+                            // Remove from blockOrder array
+                            if (sections.imageWithText.config.blockOrder) {
+                                sections.imageWithText.config.blockOrder = sections.imageWithText.config.blockOrder.filter(id => id !== itemId);
+                            }
                         }
                         break;
                     case 'gallery-image':
