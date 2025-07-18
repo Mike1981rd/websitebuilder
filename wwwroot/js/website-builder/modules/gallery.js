@@ -926,6 +926,17 @@ window.WebsiteBuilderModules.Gallery = {
         }
     },
     
+    // Helper function to sync gallery config changes with product container
+    syncGalleryConfigToProductContainer: function(field, value) {
+        if (window.productContainerReturnData && window.productContainerReturnData.fromView === 'productContainer') {
+            const productContainer = window.currentSectionsConfig['product-container'];
+            if (productContainer?.sections?.gallery?.config) {
+                productContainer.sections.gallery.config[field] = value;
+                console.log('[GALLERY] Synced gallery config to product container:', field, value);
+            }
+        }
+    },
+    
     attachEventListeners: function() {
         console.log('[GALLERY] Attaching event listeners...');
         
@@ -1154,6 +1165,9 @@ window.WebsiteBuilderModules.Gallery = {
             
             window.currentSectionsConfig.gallery = galleryConfig;
             
+            // Sync with product container if needed
+            window.WebsiteBuilderModules.Gallery.syncGalleryConfigToProductContainer(field, galleryConfig[field]);
+            
             // Use window functions to ensure proper scope
             if (window.setHasPendingPageStructureChanges) {
                 window.setHasPendingPageStructureChanges(true);
@@ -1186,6 +1200,9 @@ window.WebsiteBuilderModules.Gallery = {
             }
             
             window.currentSectionsConfig.gallery = galleryConfig;
+            
+            // Sync with product container if needed
+            window.WebsiteBuilderModules.Gallery.syncGalleryConfigToProductContainer(field, value);
             
             // Mark as having pending changes
             if (window.setHasPendingPageStructureChanges) {
@@ -1220,6 +1237,9 @@ window.WebsiteBuilderModules.Gallery = {
             }
             
             window.currentSectionsConfig.gallery = galleryConfig;
+            
+            // Sync with product container if needed
+            window.WebsiteBuilderModules.Gallery.syncGalleryConfigToProductContainer(field, value);
             
             // Mark as having pending changes
             if (window.setHasPendingPageStructureChanges) {
@@ -1286,6 +1306,9 @@ window.WebsiteBuilderModules.Gallery = {
             
             window.currentSectionsConfig.gallery = galleryConfig;
             
+            // Sync with product container if needed
+            window.WebsiteBuilderModules.Gallery.syncGalleryConfigToProductContainer(field, value);
+            
             if (window.setHasPendingPageStructureChanges) {
                 window.setHasPendingPageStructureChanges(true);
             } else {
@@ -1317,6 +1340,9 @@ window.WebsiteBuilderModules.Gallery = {
             
             window.currentSectionsConfig.gallery = galleryConfig;
             
+            // Sync with product container if needed
+            window.WebsiteBuilderModules.Gallery.syncGalleryConfigToProductContainer(field, value);
+            
             if (window.setHasPendingPageStructureChanges) {
                 window.setHasPendingPageStructureChanges(true);
             } else {
@@ -1347,6 +1373,9 @@ window.WebsiteBuilderModules.Gallery = {
             galleryConfig[field] = value;
             
             window.currentSectionsConfig.gallery = galleryConfig;
+            
+            // Sync with product container if needed
+            window.WebsiteBuilderModules.Gallery.syncGalleryConfigToProductContainer(field, value);
             
             if (window.setHasPendingPageStructureChanges) {
                 window.setHasPendingPageStructureChanges(true);
@@ -1391,6 +1420,9 @@ window.WebsiteBuilderModules.Gallery = {
             galleryConfig[field] = $(this).is(':checked');
             
             window.currentSectionsConfig.gallery = galleryConfig;
+            
+            // Sync with product container if needed
+            window.WebsiteBuilderModules.Gallery.syncGalleryConfigToProductContainer(field, galleryConfig[field]);
             
             if (window.setHasPendingPageStructureChanges) {
                 window.setHasPendingPageStructureChanges(true);

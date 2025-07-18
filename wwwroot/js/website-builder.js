@@ -29090,6 +29090,44 @@ window.moduleViewHandler = function(viewName, data) {
     console.log('[MODULE LOADER] Checking view:', viewName);
     console.log('[MODULE LOADER] Registered modules:', Object.keys(window.registeredModules));
     
+    // Special case for accordionItemSettings
+    if (viewName === 'accordionItemSettings') {
+        console.log('[MODULE LOADER] Handling accordion item settings');
+        const accordionModule = window.registeredModules['accordion'] || window.WebsiteBuilderModules?.Accordion;
+        if (accordionModule && accordionModule.renderItemSettings) {
+            // Update sidebar view tracking
+            previousSidebarView = currentSidebarView;
+            currentSidebarView = viewName;
+            
+            try {
+                const itemId = data?.itemId || window.currentAccordionItemId;
+                const html = accordionModule.renderItemSettings(itemId);
+                $('#sidebar-dynamic-content').html(html);
+                
+                if (accordionModule.attachItemEventListeners) {
+                    setTimeout(() => {
+                        accordionModule.attachItemEventListeners(itemId);
+                    }, 0);
+                } else if (accordionModule.attachEventListeners) {
+                    setTimeout(() => {
+                        accordionModule.attachEventListeners();
+                    }, 0);
+                }
+                
+                // Apply translations if available
+                if (typeof applyTranslations === 'function') {
+                    setTimeout(applyTranslations, 0);
+                }
+                
+                console.log(`[MODULE LOADER] Successfully loaded accordion item view`);
+                return true;
+            } catch (error) {
+                console.error(`[MODULE LOADER] Error rendering accordion item:`, error);
+                return false;
+            }
+        }
+    }
+    
     // Check if this is a module view
     for (const moduleName in window.registeredModules) {
         if (viewName === `${moduleName}Settings`) {

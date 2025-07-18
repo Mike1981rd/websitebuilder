@@ -86,7 +86,8 @@ window.WebsiteBuilderModules.ProductContainer = {
                         title: 'Galería del Producto',
                         layout: 'grid',
                         imagesPerRow: 3,
-                        images: [],
+                        images: {},  // Object structure like Gallery expects
+                        imageOrder: [],  // Array for ordering
                         colorScheme: 'inherit'
                     }
                 },
@@ -96,7 +97,8 @@ window.WebsiteBuilderModules.ProductContainer = {
                     config: {
                         title: 'Lo que dicen nuestros clientes',
                         layout: 'slider',
-                        testimonials: [],
+                        testimonials: {},  // Object structure like Testimonials expects
+                        testimonialsOrder: [],  // Array for ordering
                         colorScheme: 'inherit'
                     }
                 },
@@ -981,39 +983,185 @@ window.WebsiteBuilderModules.ProductContainer = {
                     
                 case 'gallery':
                     if (modules.Gallery?.render) {
+                        console.log('[PRODUCT-CONTAINER] Rendering Gallery section');
+                        console.log('[PRODUCT-CONTAINER] Gallery sectionConfig before migration:', sectionConfig);
+                        
+                        // Migration: Convert array format to object format if needed
+                        if (Array.isArray(sectionConfig.images)) {
+                            console.log('[PRODUCT-CONTAINER] Migrating Gallery images from array to object format');
+                            const imagesArray = sectionConfig.images;
+                            sectionConfig.images = {};
+                            sectionConfig.imageOrder = [];
+                            
+                            imagesArray.forEach((image) => {
+                                if (image && image.id) {
+                                    // Convert field names: url -> src, caption -> alt
+                                    const convertedImage = {
+                                        id: image.id,
+                                        src: image.url || image.src || '',
+                                        alt: image.caption || image.alt || '',
+                                        link: image.link || '',
+                                        icon: image.icon || 'none',
+                                        isHidden: image.isHidden || false,
+                                        videoSrc: image.videoSrc || ''
+                                    };
+                                    sectionConfig.images[image.id] = convertedImage;
+                                    sectionConfig.imageOrder.push(image.id);
+                                }
+                            });
+                            
+                            // Update the stored config with migrated data
+                            if (section.config) {
+                                section.config.images = sectionConfig.images;
+                                section.config.imageOrder = sectionConfig.imageOrder;
+                            }
+                            console.log('[PRODUCT-CONTAINER] Gallery migrated to object format with imageOrder');
+                        }
+                        
+                        // Ensure imageOrder exists even if images is already object format
+                        if (!sectionConfig.imageOrder && sectionConfig.images && typeof sectionConfig.images === 'object') {
+                            sectionConfig.imageOrder = Object.keys(sectionConfig.images);
+                        }
+                        
+                        console.log('[PRODUCT-CONTAINER] Gallery config after migration:', sectionConfig);
+                        console.log('[PRODUCT-CONTAINER] Number of images:', sectionConfig.imageOrder ? sectionConfig.imageOrder.length : 0);
+                        
                         // Adapt config to match gallery module expectations
                         const galleryConfig = {
-                            ...sectionConfig,
-                            title: sectionConfig.title,
+                            ...sectionConfig,  // Include all the section config
+                            title: sectionConfig.title || 'Galería del producto',
                             layout: sectionConfig.layout || 'grid',
                             imagesPerRow: sectionConfig.imagesPerRow || 3,
-                            images: sectionConfig.images || [],
-                            // Pass the color scheme
-                            colorScheme: section.config.colorScheme === 'inherit' ? null : section.config.colorScheme
+                            images: sectionConfig.images || {},
+                            imageOrder: sectionConfig.imageOrder || [],
+                            // Pass the color scheme at the top level, as Gallery expects
+                            colorScheme: section.config.colorScheme === 'inherit' ? schemeColors : section.config.colorScheme,
+                            // Include other Gallery-specific fields with defaults
+                            width: sectionConfig.width || 'page',
+                            desktopLayout: sectionConfig.desktopLayout || 'grid',
+                            mobileLayout: sectionConfig.mobileLayout || 'carousel',
+                            heading: sectionConfig.heading || 'Gallery',
+                            body: sectionConfig.body || 'Show your products, collections, and social media photos or tell about recent events.',
+                            headingSize: sectionConfig.headingSize || 'h5',
+                            bodySize: sectionConfig.bodySize || 'body3',
+                            contentAlignment: sectionConfig.contentAlignment || 'center',
+                            imageRatio: sectionConfig.imageRatio || 1,
+                            desktopCardsPerRow: sectionConfig.desktopCardsPerRow || 5,
+                            desktopSpaceBetweenCards: sectionConfig.desktopSpaceBetweenCards || 16,
+                            mobileSpaceBetweenCards: sectionConfig.mobileSpaceBetweenCards || 16,
+                            showArrowsOnHover: sectionConfig.showArrowsOnHover !== undefined ? sectionConfig.showArrowsOnHover : true,
+                            buttonLabel: sectionConfig.buttonLabel || '',
+                            buttonLink: sectionConfig.buttonLink || '',
+                            buttonStyle: sectionConfig.buttonStyle || 'solid',
+                            autoplayMode: sectionConfig.autoplayMode || 'none',
+                            autoplaySpeed: sectionConfig.autoplaySpeed || 3,
+                            addSidePaddings: sectionConfig.addSidePaddings !== undefined ? sectionConfig.addSidePaddings : true,
+                            topPadding: sectionConfig.topPadding || 64,
+                            bottomPadding: sectionConfig.bottomPadding || 8
                         };
+                        console.log('[PRODUCT-CONTAINER] Final Gallery config being passed:', galleryConfig);
                         return modules.Gallery.render(galleryConfig);
                     }
                     break;
                     
                 case 'testimonials':
                     if (modules.Testimonials?.render) {
+                        console.log('[PRODUCT-CONTAINER] Rendering Testimonials section');
+                        console.log('[PRODUCT-CONTAINER] Testimonials sectionConfig before migration:', sectionConfig);
+                        
+                        // Migration: Convert array format to object format if needed
+                        if (Array.isArray(sectionConfig.testimonials)) {
+                            console.log('[PRODUCT-CONTAINER] Migrating Testimonials from array to object format');
+                            const testimonialsArray = sectionConfig.testimonials;
+                            sectionConfig.testimonials = {};
+                            sectionConfig.testimonialsOrder = [];
+                            
+                            testimonialsArray.forEach((testimonial, index) => {
+                                const testimonialId = testimonial.id || `testimonial-${Date.now()}-${index}`;
+                                // Convert field names to match what Testimonials module expects
+                                const convertedTestimonial = {
+                                    id: testimonialId,
+                                    author: testimonial.author || testimonial.name || '',
+                                    content: testimonial.content || testimonial.text || '',
+                                    rating: testimonial.rating || 5,
+                                    authorInfo: testimonial.authorInfo || testimonial.position || testimonial.date || '',
+                                    avatar: testimonial.avatar || '',
+                                    isHidden: testimonial.isHidden || false
+                                };
+                                sectionConfig.testimonials[testimonialId] = convertedTestimonial;
+                                sectionConfig.testimonialsOrder.push(testimonialId);
+                            });
+                            
+                            // Update the stored config with migrated data
+                            if (section.config) {
+                                section.config.testimonials = sectionConfig.testimonials;
+                                section.config.testimonialsOrder = sectionConfig.testimonialsOrder;
+                            }
+                            console.log('[PRODUCT-CONTAINER] Testimonials migrated to object format with testimonialsOrder');
+                        }
+                        
+                        // Ensure testimonialsOrder exists even if testimonials is already object format
+                        if (!sectionConfig.testimonialsOrder && sectionConfig.testimonials && typeof sectionConfig.testimonials === 'object') {
+                            sectionConfig.testimonialsOrder = Object.keys(sectionConfig.testimonials);
+                        }
+                        
+                        console.log('[PRODUCT-CONTAINER] Testimonials config after migration:', sectionConfig);
+                        console.log('[PRODUCT-CONTAINER] Number of testimonials:', sectionConfig.testimonialsOrder ? sectionConfig.testimonialsOrder.length : 0);
+                        
+                        // Helper to convert heading size format (h1-h8) to number (0-7)
+                        const convertHeadingSize = (size) => {
+                            if (typeof size === 'number') return size;
+                            const match = size?.match(/h(\d)/);
+                            return match ? parseInt(match[1]) - 1 : 2; // Default to h3 (index 2)
+                        };
+                        
+                        // Helper to convert body size format (body1-body7) to number (0-6)
+                        const convertBodySize = (size) => {
+                            if (typeof size === 'number') return size;
+                            const match = size?.match(/body(\d)/);
+                            return match ? parseInt(match[1]) - 1 : 2; // Default to body3 (index 2)
+                        };
+                        
                         // Adapt config to match testimonials module expectations
                         const testimonialsConfig = {
-                            ...sectionConfig,
-                            title: sectionConfig.title,
+                            // Testimonials expects 'heading' not 'title'
+                            heading: sectionConfig.title || sectionConfig.heading || 'Lo que dicen nuestros clientes',
+                            body: sectionConfig.body || '',
                             layout: sectionConfig.layout || 'slider',
-                            items: sectionConfig.testimonials?.map((testimonial, index) => ({
-                                id: `testimonial-${index}`,
-                                author: testimonial.name,
-                                content: testimonial.text,
-                                position: testimonial.date,
-                                rating: testimonial.rating,
-                                isHidden: false
-                            })) || [],
-                            itemOrder: sectionConfig.testimonials?.map((_, index) => `testimonial-${index}`) || [],
-                            // Pass the color scheme
-                            colorScheme: section.config.colorScheme === 'inherit' ? null : section.config.colorScheme
+                            testimonials: sectionConfig.testimonials || {},
+                            testimonialsOrder: sectionConfig.testimonialsOrder || [],
+                            // Pass the color scheme correctly
+                            colorScheme: section.config.colorScheme === 'inherit' ? schemeColors : section.config.colorScheme,
+                            // Pass all testimonials-specific config fields
+                            width: sectionConfig.width || 'container',
+                            colorBackground: sectionConfig.colorBackground !== false,
+                            showRating: sectionConfig.showRating !== false,
+                            ratingStarsColor: sectionConfig.ratingStarsColor || '#F49A13',
+                            subheading: sectionConfig.subheading || '',
+                            // Convert size formats to numbers
+                            headingSize: convertHeadingSize(sectionConfig.headingSize || 'h3'),
+                            subheadingSize: convertBodySize(sectionConfig.subheadingSize || 'body5'),
+                            bodySize: convertBodySize(sectionConfig.bodySize || 'body2'),
+                            desktopContentAlignment: sectionConfig.desktopContentAlignment || 'center',
+                            mobileContentAlignment: sectionConfig.mobileContentAlignment || 'center',
+                            desktopCardsPerRow: sectionConfig.desktopCardsPerRow || 1,
+                            showArrows: sectionConfig.showArrows !== false,
+                            showDots: sectionConfig.showDots !== false,
+                            autoplayMode: sectionConfig.autoplayMode || 'none',
+                            autoplaySpeed: sectionConfig.autoplaySpeed || 5,
+                            addSidePaddings: sectionConfig.addSidePaddings !== false,
+                            topPadding: sectionConfig.topPadding || 64,
+                            bottomPadding: sectionConfig.bottomPadding || 64,
+                            linkLabel: sectionConfig.linkLabel || '',
+                            linkUrl: sectionConfig.linkUrl || '',
+                            // Card size and desktop layout fields that were missing
+                            cardSize: sectionConfig.cardSize || 'medium',
+                            desktopLayout: sectionConfig.desktopLayout || 'bottom-carousel',
+                            desktopSpaceBetweenCards: sectionConfig.desktopSpaceBetweenCards || 16,
+                            colorTestimonials: sectionConfig.colorTestimonials || false,
+                            mobileLayout: sectionConfig.mobileLayout || 'slideshow'
                         };
+                        console.log('[PRODUCT-CONTAINER] Final Testimonials config being passed:', testimonialsConfig);
                         return modules.Testimonials.render(testimonialsConfig);
                     }
                     break;
@@ -1050,14 +1198,65 @@ window.WebsiteBuilderModules.ProductContainer = {
                     
                 case 'faq':
                     if (window.WebsiteBuilderModules?.Accordion?.render) {
+                        // Migration: Convert array format to object format if needed
+                        if (Array.isArray(sectionConfig.items)) {
+                            console.log('[PRODUCT-CONTAINER] Migrating FAQ items from array to object format');
+                            const itemsArray = sectionConfig.items;
+                            sectionConfig.items = {};
+                            sectionConfig.itemOrder = [];
+                            
+                            itemsArray.forEach((item) => {
+                                if (item && item.id) {
+                                    sectionConfig.items[item.id] = item;
+                                    sectionConfig.itemOrder.push(item.id);
+                                }
+                            });
+                            
+                            // Mark changes to persist migration
+                            hasPendingPageStructureChanges = true;
+                            updateSaveButtonState();
+                        }
+                        
+                        // Ensure itemOrder exists
+                        if (!sectionConfig.itemOrder && sectionConfig.items) {
+                            sectionConfig.itemOrder = Object.keys(sectionConfig.items);
+                        }
+                        
                         // Use accordion module for FAQ
                         const faqConfig = {
-                            title: sectionConfig.title,
+                            // Accordion expects 'heading' not 'title'
+                            heading: sectionConfig.title || sectionConfig.heading || 'Preguntas Frecuentes',
+                            body: sectionConfig.body || '',
                             items: sectionConfig.items || {},
                             itemOrder: sectionConfig.itemOrder || [],
-                            colorScheme: section.config.colorScheme === 'inherit' ? null : section.config.colorScheme,
-                            toggleStyle: 'plus-minus'
+                            colorScheme: section.config.colorScheme === 'inherit' ? schemeColors : section.config.colorScheme,
+                            // Pass all accordion-specific config fields
+                            toggleStyle: sectionConfig.toggleStyle || 'plus-minus',
+                            width: sectionConfig.width || 'small',
+                            colorBackground: sectionConfig.colorBackground !== false,
+                            colorTabs: sectionConfig.colorTabs || 'none',
+                            layout: sectionConfig.layout || 'tabs-at-the-bottom',
+                            expandFirstTab: sectionConfig.expandFirstTab || false,
+                            buttonLabel: sectionConfig.buttonLabel || '',
+                            buttonLink: sectionConfig.buttonLink || '',
+                            buttonStyle: sectionConfig.buttonStyle || 'solid',
+                            addSidePaddings: sectionConfig.addSidePaddings !== false,
+                            topPadding: sectionConfig.topPadding || 96,
+                            bottomPadding: sectionConfig.bottomPadding || 96,
+                            headingSize: sectionConfig.headingSize || 3,
+                            bodySize: sectionConfig.bodySize || 3,
+                            contentAlignment: sectionConfig.contentAlignment || 'left',
+                            desktopItemsDirection: sectionConfig.desktopItemsDirection || 'vertical',
+                            desktopItemsPerRow: sectionConfig.desktopItemsPerRow || 1,
+                            desktopGapBetweenItems: sectionConfig.desktopGapBetweenItems || 16,
+                            addDividerLines: sectionConfig.addDividerLines !== false,
+                            dividerLineStyle: sectionConfig.dividerLineStyle || 'solid',
+                            addImageOrIcon: sectionConfig.addImageOrIcon || false,
+                            imageSize: sectionConfig.imageSize || 100,
+                            imageShape: sectionConfig.imageShape || 'square',
+                            contentOnHover: sectionConfig.contentOnHover || false
                         };
+                        console.log('[PRODUCT-CONTAINER] Final FAQ config being passed:', faqConfig);
                         return window.WebsiteBuilderModules.Accordion.render(faqConfig);
                     } else {
                         // Fallback simple FAQ
@@ -1431,8 +1630,25 @@ window.WebsiteBuilderModules.ProductContainer = {
         
         // Gallery Section
         if (sections.gallery) {
-            const images = sections.gallery.config?.images || [];
-            console.log('[PRODUCT-CONTAINER] Gallery images:', images);
+            // Convert images object to array for display, using imageOrder if available
+            const imageOrder = sections.gallery.config?.imageOrder || [];
+            const imagesObj = sections.gallery.config?.images || {};
+            let imagesArray = [];
+            
+            if (imageOrder.length > 0) {
+                // Use imageOrder to maintain correct order
+                imagesArray = imageOrder.map(imageId => imagesObj[imageId]).filter(Boolean);
+            } else if (typeof imagesObj === 'object' && !Array.isArray(imagesObj)) {
+                // Fallback if no imageOrder exists
+                imagesArray = Object.values(imagesObj);
+            } else if (Array.isArray(imagesObj)) {
+                // Legacy array format
+                imagesArray = imagesObj;
+            }
+            
+            console.log('[PRODUCT-CONTAINER] Gallery images for display:', imagesArray);
+            console.log('[PRODUCT-CONTAINER] Gallery imageOrder:', imageOrder);
+            
             html += `
                 <div class="section-management" data-section-key="gallery" style="margin-bottom: 20px; border: 1px solid #e3e3e3; border-radius: 4px; overflow: hidden;">
                     <div class="section-header" data-section-type="gallery" style="padding: 12px 15px; background: #f8f8f8; display: flex; align-items: center; justify-content: space-between; cursor: pointer;">
@@ -1451,18 +1667,18 @@ window.WebsiteBuilderModules.ProductContainer = {
                             </button>
                         </div>
                     </div>
-                    ${images.length > 0 ? `
+                    ${imagesArray.length > 0 ? `
                         <div class="section-items" style="padding: 10px;">
-                            ${images.map((img, index) => `
+                            ${imagesArray.map((img, index) => `
                                 <div class="item-row" style="display: flex; align-items: center; justify-content: space-between; padding: 8px 10px; background: #fff; border: 1px solid #e3e3e3; border-radius: 4px; margin-bottom: 8px; cursor: pointer;"
-                                     data-item-type="gallery-image" data-item-id="${img.id || index}">
-                                    <span style="font-size: 13px;">${img.caption || `Imagen ${index + 1}`}</span>
+                                     data-item-type="gallery-image" data-item-id="${img.id}">
+                                    <span style="font-size: 13px;">${img.alt || img.caption || `Imagen ${index + 1}`}</span>
                                     <div style="display: flex; gap: 5px;">
-                                        <button class="visibility-toggle ${img.isHidden ? 'is-hidden' : ''}" data-item-type="gallery-image" data-item-id="${img.id || index}" style="background: none; border: none; cursor: pointer; padding: 4px;">
+                                        <button class="visibility-toggle ${img.isHidden ? 'is-hidden' : ''}" data-item-type="gallery-image" data-item-id="${img.id}" style="background: none; border: none; cursor: pointer; padding: 4px;">
                                             <i class="material-icons icon-visible" style="font-size: 18px;">visibility</i>
                                             <i class="material-icons icon-hidden" style="font-size: 18px;">visibility_off</i>
                                         </button>
-                                        <button class="delete-item-btn" data-item-type="gallery-image" data-item-id="${img.id || index}" style="background: none; border: none; cursor: pointer; padding: 4px;">
+                                        <button class="delete-item-btn" data-item-type="gallery-image" data-item-id="${img.id}" style="background: none; border: none; cursor: pointer; padding: 4px;">
                                             <i class="material-icons" style="font-size: 18px; color: #dc3545;">delete</i>
                                         </button>
                                     </div>
@@ -1476,7 +1692,25 @@ window.WebsiteBuilderModules.ProductContainer = {
         
         // Testimonials Section
         if (sections.testimonials) {
-            const testimonials = sections.testimonials.config?.testimonials || [];
+            // Convert testimonials object to array for display, using testimonialsOrder if available
+            const testimonialsOrder = sections.testimonials.config?.testimonialsOrder || [];
+            const testimonialsObj = sections.testimonials.config?.testimonials || {};
+            let testimonialsArray = [];
+            
+            if (testimonialsOrder.length > 0) {
+                // Use testimonialsOrder to maintain correct order
+                testimonialsArray = testimonialsOrder.map(testimonialId => testimonialsObj[testimonialId]).filter(Boolean);
+            } else if (typeof testimonialsObj === 'object' && !Array.isArray(testimonialsObj)) {
+                // Fallback if no testimonialsOrder exists
+                testimonialsArray = Object.values(testimonialsObj);
+            } else if (Array.isArray(testimonialsObj)) {
+                // Legacy array format
+                testimonialsArray = testimonialsObj;
+            }
+            
+            console.log('[PRODUCT-CONTAINER] Testimonials for display:', testimonialsArray);
+            console.log('[PRODUCT-CONTAINER] Testimonials testimonialsOrder:', testimonialsOrder);
+            
             html += `
                 <div class="section-management" data-section-key="testimonials" style="margin-bottom: 20px; border: 1px solid #e3e3e3; border-radius: 4px; overflow: hidden;">
                     <div class="section-header" data-section-type="testimonials" style="padding: 12px 15px; background: #f8f8f8; display: flex; align-items: center; justify-content: space-between; cursor: pointer;">
@@ -1495,18 +1729,18 @@ window.WebsiteBuilderModules.ProductContainer = {
                             </button>
                         </div>
                     </div>
-                    ${testimonials.length > 0 ? `
+                    ${testimonialsArray.length > 0 ? `
                         <div class="section-items" style="padding: 10px;">
-                            ${testimonials.map((testimonial, index) => `
+                            ${testimonialsArray.map((testimonial, index) => `
                                 <div class="item-row" style="display: flex; align-items: center; justify-content: space-between; padding: 8px 10px; background: #fff; border: 1px solid #e3e3e3; border-radius: 4px; margin-bottom: 8px; cursor: pointer;"
-                                     data-item-type="testimonial" data-item-id="${testimonial.id || index}">
-                                    <span style="font-size: 13px;">${testimonial.name || `Testimonio ${index + 1}`}</span>
+                                     data-item-type="testimonial" data-item-id="${testimonial.id}">
+                                    <span style="font-size: 13px;">${testimonial.author || testimonial.name || `Testimonio ${index + 1}`}</span>
                                     <div style="display: flex; gap: 5px;">
-                                        <button class="visibility-toggle ${testimonial.isHidden ? 'is-hidden' : ''}" data-item-type="testimonial" data-item-id="${testimonial.id || index}" style="background: none; border: none; cursor: pointer; padding: 4px;">
+                                        <button class="visibility-toggle ${testimonial.isHidden ? 'is-hidden' : ''}" data-item-type="testimonial" data-item-id="${testimonial.id}" style="background: none; border: none; cursor: pointer; padding: 4px;">
                                             <i class="material-icons icon-visible" style="font-size: 18px;">visibility</i>
                                             <i class="material-icons icon-hidden" style="font-size: 18px;">visibility_off</i>
                                         </button>
-                                        <button class="delete-item-btn" data-item-type="testimonial" data-item-id="${testimonial.id || index}" style="background: none; border: none; cursor: pointer; padding: 4px;">
+                                        <button class="delete-item-btn" data-item-type="testimonial" data-item-id="${testimonial.id}" style="background: none; border: none; cursor: pointer; padding: 4px;">
                                             <i class="material-icons" style="font-size: 18px; color: #dc3545;">delete</i>
                                         </button>
                                     </div>
@@ -1520,7 +1754,8 @@ window.WebsiteBuilderModules.ProductContainer = {
         
         // FAQ Section
         if (sections.faq) {
-            const items = sections.faq.config?.items || [];
+            const itemsObj = sections.faq.config?.items || {};
+            const itemOrder = sections.faq.config?.itemOrder || [];
             html += `
                 <div class="section-management" data-section-key="faq" style="margin-bottom: 20px; border: 1px solid #e3e3e3; border-radius: 4px; overflow: hidden;">
                     <div class="section-header" data-section-type="faq" style="padding: 12px 15px; background: #f8f8f8; display: flex; align-items: center; justify-content: space-between; cursor: pointer;">
@@ -1539,23 +1774,27 @@ window.WebsiteBuilderModules.ProductContainer = {
                             </button>
                         </div>
                     </div>
-                    ${items.length > 0 ? `
+                    ${itemOrder.length > 0 ? `
                         <div class="section-items" style="padding: 10px;">
-                            ${items.map((item, index) => `
+                            ${itemOrder.map((itemId, index) => {
+                                const item = itemsObj[itemId];
+                                if (!item) return '';
+                                return `
                                 <div class="item-row" style="display: flex; align-items: center; justify-content: space-between; padding: 8px 10px; background: #fff; border: 1px solid #e3e3e3; border-radius: 4px; margin-bottom: 8px; cursor: pointer;"
-                                     data-item-type="faq-item" data-item-id="${item.id || index}">
+                                     data-item-type="faq-item" data-item-id="${item.id}">
                                     <span style="font-size: 13px;">${item.question || `Pregunta ${index + 1}`}</span>
                                     <div style="display: flex; gap: 5px;">
-                                        <button class="visibility-toggle ${item.isHidden ? 'is-hidden' : ''}" data-item-type="faq-item" data-item-id="${item.id || index}" style="background: none; border: none; cursor: pointer; padding: 4px;">
+                                        <button class="visibility-toggle ${item.isHidden ? 'is-hidden' : ''}" data-item-type="faq-item" data-item-id="${item.id}" style="background: none; border: none; cursor: pointer; padding: 4px;">
                                             <i class="material-icons icon-visible" style="font-size: 18px;">visibility</i>
                                             <i class="material-icons icon-hidden" style="font-size: 18px;">visibility_off</i>
                                         </button>
-                                        <button class="delete-item-btn" data-item-type="faq-item" data-item-id="${item.id || index}" style="background: none; border: none; cursor: pointer; padding: 4px;">
+                                        <button class="delete-item-btn" data-item-type="faq-item" data-item-id="${item.id}" style="background: none; border: none; cursor: pointer; padding: 4px;">
                                             <i class="material-icons" style="font-size: 18px; color: #dc3545;">delete</i>
                                         </button>
                                     </div>
                                 </div>
-                            `).join('')}
+                                `;
+                            }).join('')}
                         </div>
                     ` : ''}
                 </div>
@@ -1934,22 +2173,35 @@ window.WebsiteBuilderModules.ProductContainer = {
             const sections = currentSectionsConfig['product-container'].sections || {};
             
             if (!sections.gallery) {
-                sections.gallery = { enabled: true, config: { images: [] } };
+                sections.gallery = { enabled: true, config: { images: {}, imageOrder: [] } };
             }
             if (!sections.gallery.config) {
-                sections.gallery.config = { images: [] };
+                sections.gallery.config = { images: {}, imageOrder: [] };
             }
             if (!sections.gallery.config.images) {
-                sections.gallery.config.images = [];
+                sections.gallery.config.images = {};
+                sections.gallery.config.imageOrder = [];
             }
             
-            sections.gallery.config.images.push({
+            // Add image using object structure like Gallery module expects
+            sections.gallery.config.images[imageId] = {
                 id: imageId,
-                url: '/placeholder-image.jpg',
-                caption: 'Nueva imagen',
-                altText: '',
-                isHidden: false
-            });
+                src: '/placeholder-image.jpg',  // Gallery uses 'src' not 'url'
+                alt: 'Nueva imagen',  // Gallery uses 'alt' not 'caption'
+                link: '',
+                icon: 'none',
+                isHidden: false,
+                videoSrc: ''
+            };
+            
+            // Add to imageOrder array
+            if (!sections.gallery.config.imageOrder) {
+                sections.gallery.config.imageOrder = [];
+            }
+            sections.gallery.config.imageOrder.push(imageId);
+            
+            console.log('[PRODUCT-CONTAINER] Added new Gallery image:', imageId);
+            console.log('[PRODUCT-CONTAINER] Gallery config after add:', sections.gallery.config);
             
             hasPendingPageStructureChanges = true;
             updateSaveButtonState();
@@ -1972,23 +2224,35 @@ window.WebsiteBuilderModules.ProductContainer = {
             const sections = currentSectionsConfig['product-container'].sections || {};
             
             if (!sections.testimonials) {
-                sections.testimonials = { enabled: true, config: { testimonials: [] } };
+                sections.testimonials = { enabled: true, config: { testimonials: {}, testimonialsOrder: [] } };
             }
             if (!sections.testimonials.config) {
-                sections.testimonials.config = { testimonials: [] };
+                sections.testimonials.config = { testimonials: {}, testimonialsOrder: [] };
             }
             if (!sections.testimonials.config.testimonials) {
-                sections.testimonials.config.testimonials = [];
+                sections.testimonials.config.testimonials = {};
+                sections.testimonials.config.testimonialsOrder = [];
             }
             
-            sections.testimonials.config.testimonials.push({
+            // Add testimonial using object structure like Testimonials module expects
+            sections.testimonials.config.testimonials[testimonialId] = {
                 id: testimonialId,
                 author: 'Nuevo testimonio',
-                text: 'Texto del testimonio',
+                content: 'Texto del testimonio',  // Testimonials uses 'content' not 'text'
                 rating: 5,
-                position: 'Cliente',
+                authorInfo: 'Cliente',  // Testimonials uses 'authorInfo' not 'position'
+                avatar: '',
                 isHidden: false
-            });
+            };
+            
+            // Add to testimonialsOrder array
+            if (!sections.testimonials.config.testimonialsOrder) {
+                sections.testimonials.config.testimonialsOrder = [];
+            }
+            sections.testimonials.config.testimonialsOrder.push(testimonialId);
+            
+            console.log('[PRODUCT-CONTAINER] Added new Testimonial:', testimonialId);
+            console.log('[PRODUCT-CONTAINER] Testimonials config after add:', sections.testimonials.config);
             
             hasPendingPageStructureChanges = true;
             updateSaveButtonState();
@@ -2094,6 +2358,50 @@ window.WebsiteBuilderModules.ProductContainer = {
                         fromView: 'productContainer',
                         returnTo: 'productContainerSettings'
                     };
+                    
+                    // SYNC: Copy Product Container's Gallery config to the expected location
+                    const productContainerGalleryConfig = currentSectionsConfig['product-container']?.sections?.gallery?.config;
+                    console.log('[PRODUCT-CONTAINER] Syncing Gallery config before navigation');
+                    console.log('[PRODUCT-CONTAINER] Product Container gallery config:', productContainerGalleryConfig);
+                    console.log('[PRODUCT-CONTAINER] Current gallery config:', currentSectionsConfig.gallery);
+                    
+                    // ALWAYS sync, even if gallery already exists from homepage
+                    if (productContainerGalleryConfig) {
+                        // Ensure we have a proper Gallery config structure with all necessary fields
+                        currentSectionsConfig.gallery = {
+                            ...productContainerGalleryConfig,
+                            // Ensure color scheme is passed correctly
+                            colorScheme: section.config.colorScheme === 'inherit' ? 
+                                (currentSectionsConfig['product-container']?.colorScheme || 'scheme1') : 
+                                section.config.colorScheme,
+                            // Add default values for any missing fields
+                            width: productContainerGalleryConfig.width || 'page',
+                            desktopLayout: productContainerGalleryConfig.desktopLayout || 'grid',
+                            mobileLayout: productContainerGalleryConfig.mobileLayout || 'carousel',
+                            heading: productContainerGalleryConfig.heading || 'Gallery',
+                            body: productContainerGalleryConfig.body || 'Show your products, collections, and social media photos or tell about recent events.',
+                            headingSize: productContainerGalleryConfig.headingSize || 'h5',
+                            bodySize: productContainerGalleryConfig.bodySize || 'body3',
+                            contentAlignment: productContainerGalleryConfig.contentAlignment || 'center',
+                            imageRatio: productContainerGalleryConfig.imageRatio || 1,
+                            desktopCardsPerRow: productContainerGalleryConfig.desktopCardsPerRow || 5,
+                            desktopSpaceBetweenCards: productContainerGalleryConfig.desktopSpaceBetweenCards || 16,
+                            mobileSpaceBetweenCards: productContainerGalleryConfig.mobileSpaceBetweenCards || 16,
+                            showArrowsOnHover: productContainerGalleryConfig.showArrowsOnHover !== undefined ? productContainerGalleryConfig.showArrowsOnHover : true,
+                            buttonLabel: productContainerGalleryConfig.buttonLabel || '',
+                            buttonLink: productContainerGalleryConfig.buttonLink || '',
+                            buttonStyle: productContainerGalleryConfig.buttonStyle || 'solid',
+                            autoplayMode: productContainerGalleryConfig.autoplayMode || 'none',
+                            autoplaySpeed: productContainerGalleryConfig.autoplaySpeed || 3,
+                            addSidePaddings: productContainerGalleryConfig.addSidePaddings !== undefined ? productContainerGalleryConfig.addSidePaddings : true,
+                            topPadding: productContainerGalleryConfig.topPadding || 64,
+                            bottomPadding: productContainerGalleryConfig.bottomPadding || 8
+                        };
+                        console.log('[PRODUCT-CONTAINER] Config synced to currentSectionsConfig.gallery');
+                    } else {
+                        console.error('[PRODUCT-CONTAINER] No Gallery config found in Product Container!');
+                    }
+                    
                     // Open Gallery settings
                     window.switchSidebarView('gallerySettings');
                     break;
@@ -2104,6 +2412,26 @@ window.WebsiteBuilderModules.ProductContainer = {
                         fromView: 'productContainer',
                         returnTo: 'productContainerSettings'
                     };
+                    
+                    // SYNC: Copy Product Container's Testimonials config to the expected location
+                    const productContainerTestimonialsConfig = currentSectionsConfig['product-container']?.sections?.testimonials?.config;
+                    console.log('[PRODUCT-CONTAINER] Syncing Testimonials config before navigation');
+                    console.log('[PRODUCT-CONTAINER] Product Container config:', productContainerTestimonialsConfig);
+                    console.log('[PRODUCT-CONTAINER] Current testimonials config:', currentSectionsConfig.testimonials);
+                    
+                    if (productContainerTestimonialsConfig) {
+                        // Ensure currentSectionsConfig.testimonials exists
+                        if (!currentSectionsConfig.testimonials) {
+                            currentSectionsConfig.testimonials = {};
+                        }
+                        
+                        // Copy all config properties
+                        Object.assign(currentSectionsConfig.testimonials, productContainerTestimonialsConfig);
+                        console.log('[PRODUCT-CONTAINER] Config synced to currentSectionsConfig.testimonials');
+                    } else {
+                        console.error('[PRODUCT-CONTAINER] No Testimonials config found in Product Container!');
+                    }
+                    
                     // Open Testimonials settings
                     window.switchSidebarView('testimonialsSettings');
                     break;
@@ -2114,6 +2442,17 @@ window.WebsiteBuilderModules.ProductContainer = {
                         fromView: 'productContainer',
                         returnTo: 'productContainerSettings'
                     };
+                    
+                    // Sync FAQ config to accordion section for the settings view
+                    const productContainerFaqConfig = currentSectionsConfig['product-container']?.sections?.faq?.config || {};
+                    if (!currentSectionsConfig.accordion) {
+                        currentSectionsConfig.accordion = {};
+                    }
+                    
+                    // Copy all FAQ config to accordion structure
+                    Object.assign(currentSectionsConfig.accordion, productContainerFaqConfig);
+                    console.log('[PRODUCT-CONTAINER] Synced FAQ config to accordion:', currentSectionsConfig.accordion);
+                    
                     // Open FAQ/Accordion settings
                     window.switchSidebarView('accordionSettings');
                     break;
@@ -2126,21 +2465,26 @@ window.WebsiteBuilderModules.ProductContainer = {
             const sections = currentSectionsConfig['product-container'].sections || {};
             
             if (!sections.faq) {
-                sections.faq = { enabled: true, config: { items: [] } };
+                sections.faq = { enabled: true, config: { items: {}, itemOrder: [] } };
             }
             if (!sections.faq.config) {
-                sections.faq.config = { items: [] };
+                sections.faq.config = { items: {}, itemOrder: [] };
             }
             if (!sections.faq.config.items) {
-                sections.faq.config.items = [];
+                sections.faq.config.items = {};
+            }
+            if (!sections.faq.config.itemOrder) {
+                sections.faq.config.itemOrder = [];
             }
             
-            sections.faq.config.items.push({
+            // Add new FAQ item in object format
+            sections.faq.config.items[faqId] = {
                 id: faqId,
                 question: 'Nueva pregunta',
                 answer: 'Respuesta a la pregunta',
                 isHidden: false
-            });
+            };
+            sections.faq.config.itemOrder.push(faqId);
             
             hasPendingPageStructureChanges = true;
             updateSaveButtonState();
@@ -2200,12 +2544,12 @@ window.WebsiteBuilderModules.ProductContainer = {
                     break;
                 case 'gallery-image':
                     // Navigate to gallery image settings instead of inline editing
-                    const galleryImages = sections.gallery?.config?.images || [];
-                    const galleryImage = galleryImages.find(i => String(i.id) === String(itemId));
+                    const galleryImagesObj = sections.gallery?.config?.images || {};
+                    const galleryImage = galleryImagesObj[itemId];
                     
                     console.log('[PRODUCT-CONTAINER] Gallery image navigation:', {
                         itemId,
-                        galleryImages,
+                        galleryImagesObj,
                         galleryImage,
                         found: !!galleryImage
                     });
@@ -2220,14 +2564,13 @@ window.WebsiteBuilderModules.ProductContainer = {
                         // Ensure gallery config exists in currentSectionsConfig
                         if (!currentSectionsConfig.gallery) {
                             currentSectionsConfig.gallery = {
-                                images: {}
+                                images: {},
+                                imageOrder: []
                             };
                         }
                         
-                        // Copy all images to the expected structure
-                        galleryImages.forEach(img => {
-                            currentSectionsConfig.gallery.images[img.id] = img;
-                        });
+                        // Copy image to the expected structure
+                        currentSectionsConfig.gallery.images[itemId] = galleryImage;
                         
                         // Navigate to gallery image settings
                         window.switchSidebarView('galleryImageSettings', { imageId: itemId });
@@ -2237,12 +2580,12 @@ window.WebsiteBuilderModules.ProductContainer = {
                 case 'testimonial':
                 case 'testimonial-item':
                     // Navigate to testimonial child settings instead of inline editing
-                    const testimonialArray = sections.testimonials?.config?.testimonials || [];
-                    const testimonialItem = testimonialArray.find(t => String(t.id) === String(itemId));
+                    const testimonialsObj = sections.testimonials?.config?.testimonials || {};
+                    const testimonialItem = testimonialsObj[itemId];
                     
                     console.log('[PRODUCT-CONTAINER] Testimonial navigation:', {
                         itemId,
-                        testimonialArray,
+                        testimonialsObj,
                         testimonialItem,
                         found: !!testimonialItem
                     });
@@ -2262,13 +2605,24 @@ window.WebsiteBuilderModules.ProductContainer = {
                             };
                         }
                         
-                        // Copy all testimonials to the expected structure
-                        testimonialArray.forEach(t => {
-                            currentSectionsConfig.testimonials.testimonials[t.id] = t;
-                            if (!currentSectionsConfig.testimonials.testimonialsOrder.includes(t.id)) {
-                                currentSectionsConfig.testimonials.testimonialsOrder.push(t.id);
-                            }
-                        });
+                        // Ensure nested structure exists
+                        if (!currentSectionsConfig.testimonials.testimonials) {
+                            currentSectionsConfig.testimonials.testimonials = {};
+                        }
+                        if (!currentSectionsConfig.testimonials.testimonialsOrder) {
+                            currentSectionsConfig.testimonials.testimonialsOrder = [];
+                        }
+                        
+                        // Copy testimonial to the expected structure
+                        currentSectionsConfig.testimonials.testimonials[itemId] = testimonialItem;
+                        
+                        // Ensure testimonialsOrder exists and includes this ID
+                        if (!currentSectionsConfig.testimonials.testimonialsOrder) {
+                            currentSectionsConfig.testimonials.testimonialsOrder = [];
+                        }
+                        if (!currentSectionsConfig.testimonials.testimonialsOrder.includes(itemId)) {
+                            currentSectionsConfig.testimonials.testimonialsOrder.push(itemId);
+                        }
                         
                         // Set the current testimonial ID and navigate to child settings
                         window.currentTestimonialId = itemId;
@@ -2278,12 +2632,12 @@ window.WebsiteBuilderModules.ProductContainer = {
                     break;
                 case 'faq-item':
                     // Navigate to accordion item settings instead of inline editing
-                    const faqItems = sections.faq?.config?.items || [];
-                    const faqItem = faqItems.find(i => String(i.id) === String(itemId));
+                    const faqItemsObj = sections.faq?.config?.items || {};
+                    const faqItem = faqItemsObj[itemId];
                     
                     console.log('[PRODUCT-CONTAINER] FAQ item navigation:', {
                         itemId,
-                        faqItems,
+                        faqItemsObj,
                         faqItem,
                         found: !!faqItem
                     });
@@ -2302,16 +2656,22 @@ window.WebsiteBuilderModules.ProductContainer = {
                                 itemOrder: []
                             };
                         }
+                        if (!currentSectionsConfig.accordion.items) {
+                            currentSectionsConfig.accordion.items = {};
+                        }
+                        if (!currentSectionsConfig.accordion.itemOrder) {
+                            currentSectionsConfig.accordion.itemOrder = [];
+                        }
                         
-                        // Copy all FAQ items to the expected accordion structure
-                        faqItems.forEach(item => {
-                            currentSectionsConfig.accordion.items[item.id] = item;
-                            if (!currentSectionsConfig.accordion.itemOrder.includes(item.id)) {
-                                currentSectionsConfig.accordion.itemOrder.push(item.id);
-                            }
-                        });
+                        // Copy faq item to accordion structure
+                        currentSectionsConfig.accordion.items[itemId] = faqItem;
                         
-                        // Set the current accordion item ID and navigate to item settings
+                        // Ensure itemOrder includes this ID
+                        if (!currentSectionsConfig.accordion.itemOrder.includes(itemId)) {
+                            currentSectionsConfig.accordion.itemOrder.push(itemId);
+                        }
+                        
+                        // Set the current item ID and navigate to accordion item settings
                         window.currentAccordionItemId = itemId;
                         window.switchSidebarView('accordionItemSettings', { itemId: itemId });
                         return;
@@ -2412,10 +2772,10 @@ window.WebsiteBuilderModules.ProductContainer = {
                     item = sections.imageWithText?.config?.blocks?.[itemId];
                     break;
                 case 'gallery-image':
-                    item = sections.gallery?.config?.images?.find(i => i.id === itemId);
+                    item = sections.gallery?.config?.images?.[itemId];
                     break;
                 case 'testimonial-item':
-                    item = sections.testimonials?.config?.testimonials?.find(t => t.id === itemId);
+                    item = sections.testimonials?.config?.testimonials?.[itemId];
                     break;
                 case 'faq-item':
                     item = sections.faq?.config?.items?.find(i => i.id === itemId);
@@ -2478,25 +2838,15 @@ window.WebsiteBuilderModules.ProductContainer = {
                     }
                     break;
                 case 'gallery-image':
-                    if (sections.gallery?.config?.images) {
-                        const img = sections.gallery.config.images.find((i, index) => 
-                            String(i.id || index) === String(itemId)
-                        );
-                        if (img) {
-                            img.isHidden = !img.isHidden;
-                            found = true;
-                        }
+                    if (sections.gallery?.config?.images?.[itemId]) {
+                        sections.gallery.config.images[itemId].isHidden = !sections.gallery.config.images[itemId].isHidden;
+                        found = true;
                     }
                     break;
                 case 'testimonial':
-                    if (sections.testimonials?.config?.testimonials) {
-                        const testimonial = sections.testimonials.config.testimonials.find((t, index) => 
-                            String(t.id || index) === String(itemId)
-                        );
-                        if (testimonial) {
-                            testimonial.isHidden = !testimonial.isHidden;
-                            found = true;
-                        }
+                    if (sections.testimonials?.config?.testimonials?.[itemId]) {
+                        sections.testimonials.config.testimonials[itemId].isHidden = !sections.testimonials.config.testimonials[itemId].isHidden;
+                        found = true;
                     }
                     break;
                 case 'faq-item':
@@ -2545,18 +2895,22 @@ window.WebsiteBuilderModules.ProductContainer = {
                         break;
                     case 'gallery-image':
                         if (sections.gallery?.config?.images) {
-                            sections.gallery.config.images = sections.gallery.config.images.filter((img, index) => {
-                                // Compare both id and index position
-                                return String(img.id || index) !== String(itemId);
-                            });
+                            // Delete from images object
+                            delete sections.gallery.config.images[itemId];
+                            // Remove from imageOrder array
+                            if (sections.gallery.config.imageOrder) {
+                                sections.gallery.config.imageOrder = sections.gallery.config.imageOrder.filter(id => id !== itemId);
+                            }
                         }
                         break;
                     case 'testimonial':
                         if (sections.testimonials?.config?.testimonials) {
-                            sections.testimonials.config.testimonials = sections.testimonials.config.testimonials.filter((t, index) => {
-                                // Compare both id and index position
-                                return String(t.id || index) !== String(itemId);
-                            });
+                            // Delete from testimonials object
+                            delete sections.testimonials.config.testimonials[itemId];
+                            // Remove from testimonialsOrder array
+                            if (sections.testimonials.config.testimonialsOrder) {
+                                sections.testimonials.config.testimonialsOrder = sections.testimonials.config.testimonialsOrder.filter(id => id !== itemId);
+                            }
                         }
                         break;
                     case 'faq-item':

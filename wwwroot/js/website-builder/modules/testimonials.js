@@ -315,12 +315,22 @@ window.WebsiteBuilderModules.Testimonials = {
     renderSettings: function(config) {
         console.log('[TESTIMONIALS] Rendering settings with config:', config);
         
+        // Check if we're coming from product container
+        let actualConfig = config;
+        if (window.productContainerReturnData && window.productContainerReturnData.fromView === 'productContainer') {
+            const productContainer = window.currentSectionsConfig['product-container'];
+            if (productContainer?.sections?.testimonials?.config) {
+                actualConfig = productContainer.sections.testimonials.config;
+                console.log('[TESTIMONIALS] Using config from product container:', actualConfig);
+            }
+        }
+        
         // Initialize if config is null/undefined
-        if (!config) {
+        if (!actualConfig) {
             console.log('[TESTIMONIALS] Config is null/undefined, using defaults');
         }
         
-        const configData = config || {
+        const configData = actualConfig || {
             colorScheme: 'scheme3',
             colorBackground: false,
             colorTestimonials: false,
@@ -987,16 +997,52 @@ window.WebsiteBuilderModules.Testimonials = {
         `;
     },
     
+    // Helper function to sync testimonials config changes with product container
+    syncTestimonialsConfigToProductContainer: function(field, value) {
+        if (window.productContainerReturnData && window.productContainerReturnData.fromView === 'productContainer') {
+            const productContainer = window.currentSectionsConfig['product-container'];
+            if (productContainer?.sections?.testimonials?.config) {
+                productContainer.sections.testimonials.config[field] = value;
+                console.log('[TESTIMONIALS] Synced testimonials config to product container:', field, value);
+            }
+        }
+    },
+
+    // Helper function to sync entire testimonials array with product container
+    syncTestimonialsArrayToProductContainer: function(testimonialsArray) {
+        if (window.productContainerReturnData && window.productContainerReturnData.fromView === 'productContainer') {
+            const productContainer = window.currentSectionsConfig['product-container'];
+            if (productContainer?.sections?.testimonials?.config) {
+                productContainer.sections.testimonials.config.testimonials = testimonialsArray;
+                console.log('[TESTIMONIALS] Synced testimonials array to product container');
+            }
+        }
+    },
+
     // Attach event listeners after rendering settings
     attachEventListeners: function() {
         console.log('[TESTIMONIALS] Attaching event listeners');
         
         // Helper function to update config
         const updateConfig = (key, value) => {
-            if (!window.currentSectionsConfig.testimonials) {
-                window.currentSectionsConfig.testimonials = {};
+            // Check if we're working with product container
+            if (window.productContainerReturnData && window.productContainerReturnData.fromView === 'productContainer') {
+                const productContainer = window.currentSectionsConfig['product-container'];
+                if (!productContainer.sections.testimonials) {
+                    productContainer.sections.testimonials = { config: {} };
+                }
+                if (!productContainer.sections.testimonials.config) {
+                    productContainer.sections.testimonials.config = {};
+                }
+                productContainer.sections.testimonials.config[key] = value;
+                console.log('[TESTIMONIALS] Updated product container testimonials config:', key, value);
+            } else {
+                // Normal testimonials section update
+                if (!window.currentSectionsConfig.testimonials) {
+                    window.currentSectionsConfig.testimonials = {};
+                }
+                window.currentSectionsConfig.testimonials[key] = value;
             }
-            window.currentSectionsConfig.testimonials[key] = value;
             
             window.setHasPendingPageStructureChanges(true);
             window.updateSaveButtonState();
@@ -1317,8 +1363,17 @@ window.WebsiteBuilderModules.Testimonials = {
             const $testimonialItem = $(this).closest('.testimonial-item-settings');
             const testimonialId = $testimonialItem.data('testimonial-id');
             
-            if (testimonialId && window.currentSectionsConfig.testimonials.testimonials[testimonialId]) {
-                const testimonial = window.currentSectionsConfig.testimonials.testimonials[testimonialId];
+            // Get testimonials config based on context
+            let testimonialsConfig;
+            if (window.productContainerReturnData && window.productContainerReturnData.fromView === 'productContainer') {
+                const productContainer = window.currentSectionsConfig['product-container'];
+                testimonialsConfig = productContainer?.sections?.testimonials?.config;
+            } else {
+                testimonialsConfig = window.currentSectionsConfig.testimonials;
+            }
+            
+            if (testimonialId && testimonialsConfig?.testimonials?.[testimonialId]) {
+                const testimonial = testimonialsConfig.testimonials[testimonialId];
                 
                 if ($(this).hasClass('testimonial-author')) {
                     testimonial.author = $(this).val();
@@ -1342,8 +1397,17 @@ window.WebsiteBuilderModules.Testimonials = {
             const $testimonialItem = $(this).closest('.testimonial-item-settings');
             const testimonialId = $testimonialItem.data('testimonial-id');
             
-            if (testimonialId && window.currentSectionsConfig.testimonials.testimonials[testimonialId]) {
-                window.currentSectionsConfig.testimonials.testimonials[testimonialId].rating = rating;
+            // Get testimonials config based on context
+            let testimonialsConfig;
+            if (window.productContainerReturnData && window.productContainerReturnData.fromView === 'productContainer') {
+                const productContainer = window.currentSectionsConfig['product-container'];
+                testimonialsConfig = productContainer?.sections?.testimonials?.config;
+            } else {
+                testimonialsConfig = window.currentSectionsConfig.testimonials;
+            }
+            
+            if (testimonialId && testimonialsConfig?.testimonials?.[testimonialId]) {
+                testimonialsConfig.testimonials[testimonialId].rating = rating;
                 
                 // Update stars UI
                 $(this).parent().find('.star-icon').each(function(index) {
@@ -1394,8 +1458,15 @@ window.WebsiteBuilderModules.Testimonials = {
             $button.find('.icon-visible').removeAttr('style');
             $button.find('.icon-hidden').removeAttr('style');
             
-            // Actualizar modelo
-            window.currentSectionsConfig.testimonials.isHidden = newHiddenState;
+            // Update model based on context
+            if (window.productContainerReturnData && window.productContainerReturnData.fromView === 'productContainer') {
+                const productContainer = window.currentSectionsConfig['product-container'];
+                if (productContainer?.sections?.testimonials?.config) {
+                    productContainer.sections.testimonials.config.isHidden = newHiddenState;
+                }
+            } else {
+                window.currentSectionsConfig.testimonials.isHidden = newHiddenState;
+            }
             
             // Actualizar preview inmediatamente
             window.setHasPendingPageStructureChanges(true);
@@ -1431,11 +1502,18 @@ window.WebsiteBuilderModules.Testimonials = {
             $button.find('.icon-visible').removeAttr('style');
             $button.find('.icon-hidden').removeAttr('style');
             
-            // Actualizar modelo del hijo
-            if (window.currentSectionsConfig.testimonials && 
-                window.currentSectionsConfig.testimonials.testimonials && 
-                window.currentSectionsConfig.testimonials.testimonials[childId]) {
-                window.currentSectionsConfig.testimonials.testimonials[childId].isHidden = newHiddenState;
+            // Get testimonials config based on context
+            let testimonialsConfig;
+            if (window.productContainerReturnData && window.productContainerReturnData.fromView === 'productContainer') {
+                const productContainer = window.currentSectionsConfig['product-container'];
+                testimonialsConfig = productContainer?.sections?.testimonials?.config;
+            } else {
+                testimonialsConfig = window.currentSectionsConfig.testimonials;
+            }
+            
+            // Update child model
+            if (testimonialsConfig?.testimonials?.[childId]) {
+                testimonialsConfig.testimonials[childId].isHidden = newHiddenState;
             }
             
             window.setHasPendingPageStructureChanges(true);
@@ -1495,20 +1573,41 @@ window.WebsiteBuilderModules.Testimonials = {
     addTestimonial: function() {
         console.log('[TESTIMONIALS] Adding new testimonial');
         
+        // Get testimonials config based on context
+        let testimonialsConfig;
+        if (window.productContainerReturnData && window.productContainerReturnData.fromView === 'productContainer') {
+            const productContainer = window.currentSectionsConfig['product-container'];
+            if (!productContainer.sections.testimonials) {
+                productContainer.sections.testimonials = { config: {} };
+            }
+            if (!productContainer.sections.testimonials.config) {
+                productContainer.sections.testimonials.config = {};
+            }
+            testimonialsConfig = productContainer.sections.testimonials.config;
+        } else {
+            if (!window.currentSectionsConfig.testimonials) {
+                window.currentSectionsConfig.testimonials = {
+                    isHidden: false,
+                    testimonials: {},
+                    testimonialsOrder: []
+                };
+            }
+            testimonialsConfig = window.currentSectionsConfig.testimonials;
+        }
+        
         // Initialize structure if needed
-        if (!window.currentSectionsConfig.testimonials) {
-            window.currentSectionsConfig.testimonials = {
-                isHidden: false,
-                testimonials: {},
-                testimonialsOrder: []
-            };
+        if (!testimonialsConfig.testimonials) {
+            testimonialsConfig.testimonials = {};
+        }
+        if (!testimonialsConfig.testimonialsOrder) {
+            testimonialsConfig.testimonialsOrder = [];
         }
         
         // Generate unique ID
         const testimonialId = 'testimonial_' + Date.now();
         
         // Create new testimonial
-        window.currentSectionsConfig.testimonials.testimonials[testimonialId] = {
+        testimonialsConfig.testimonials[testimonialId] = {
             id: testimonialId,
             author: 'New Author',
             content: 'Your testimonial content here...',
@@ -1516,7 +1615,7 @@ window.WebsiteBuilderModules.Testimonials = {
         };
         
         // Add to order
-        window.currentSectionsConfig.testimonials.testimonialsOrder.push(testimonialId);
+        testimonialsConfig.testimonialsOrder.push(testimonialId);
         
         // Mark as changed and refresh
         window.setHasPendingPageStructureChanges(true);
@@ -1533,8 +1632,17 @@ window.WebsiteBuilderModules.Testimonials = {
         
         // Helper function to update testimonial
         const updateTestimonial = (key, value) => {
-            if (window.currentSectionsConfig.testimonials?.testimonials?.[testimonialId]) {
-                window.currentSectionsConfig.testimonials.testimonials[testimonialId][key] = value;
+            // Get testimonials config based on context
+            let testimonialsConfig;
+            if (window.productContainerReturnData && window.productContainerReturnData.fromView === 'productContainer') {
+                const productContainer = window.currentSectionsConfig['product-container'];
+                testimonialsConfig = productContainer?.sections?.testimonials?.config;
+            } else {
+                testimonialsConfig = window.currentSectionsConfig.testimonials;
+            }
+            
+            if (testimonialsConfig?.testimonials?.[testimonialId]) {
+                testimonialsConfig.testimonials[testimonialId][key] = value;
                 
                 window.setHasPendingPageStructureChanges(true);
                 window.updateSaveButtonState();

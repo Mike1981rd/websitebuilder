@@ -399,6 +399,168 @@ Esta implementación permite agregar páginas de producto completas y flexibles 
 ✅ Arquitectura extensible
 ✅ Completamente no invasivo
 
+## FIXES CRÍTICOS IMPLEMENTADOS (18/07/2025)
+
+### Problema Principal: Módulos en Product Container no reflejaban cambios en el editor
+
+#### Context del Problema
+Los módulos (Gallery, Image with Text, Testimonials, Accordion/FAQ) cuando se usaban dentro de Product Container:
+- Los cambios de configuración no se mostraban en el preview
+- Los datos se guardaban pero la estructura era incorrecta
+- Había desconexión entre Product Container y los módulos individuales
+
+#### Patrón del Problema Identificado
+Product Container almacenaba datos de manera diferente a como los módulos esperaban:
+- **Product Container**: Usaba arrays simples o estructuras planas
+- **Módulos**: Esperaban objetos con arrays de orden separados
+
+#### Solución General Implementada
+
+##### 1. Migración de Estructuras de Datos
+Para cada módulo afectado, se implementó migración automática:
+
+```javascript
+// Ejemplo: Gallery
+if (Array.isArray(sectionConfig.images)) {
+    // Migrar de array a objeto + imageOrder
+    const imagesArray = sectionConfig.images;
+    sectionConfig.images = {};
+    sectionConfig.imageOrder = [];
+    
+    imagesArray.forEach((image) => {
+        if (image && image.id) {
+            sectionConfig.images[image.id] = image;
+            sectionConfig.imageOrder.push(image.id);
+        }
+    });
+}
+```
+
+##### 2. Sincronización Bidireccional
+Se crearon métodos de sincronización en cada módulo:
+
+```javascript
+// En gallery.js
+syncGalleryConfigToProductContainer: function(field, value) {
+    if (window.productContainerReturnData?.fromView === 'productContainer') {
+        const productContainer = window.currentSectionsConfig['product-container'];
+        if (productContainer?.sections?.gallery?.config) {
+            productContainer.sections.gallery.config[field] = value;
+        }
+    }
+}
+```
+
+##### 3. Mapeo de Campos
+Algunos módulos esperaban nombres de campos diferentes:
+
+```javascript
+// Testimonials esperaba 'heading' no 'title'
+heading: sectionConfig.title || sectionConfig.heading || 'Lo que dicen nuestros clientes',
+
+// Gallery esperaba 'src' no 'url'
+src: image.url || image.src || '',
+alt: image.caption || image.alt || ''
+```
+
+### Fixes Específicos por Módulo
+
+#### Image with Text
+**Problema**: Cambios en configuración no se reflejaban en preview
+**Solución**: 
+- Agregado método `syncImageWithTextBlockToProductContainer` en image-with-text.js
+- Actualizado updateBlock para sincronizar con Product Container
+- Documentado en producttemplate.md líneas 600-672
+
+#### Gallery
+**Problemas**:
+1. Estructura de datos incompatible (array vs objeto)
+2. Error en homepage: `this.syncGalleryConfigToProductContainer is not a function`
+
+**Soluciones**:
+- Migración automática de array a objeto con imageOrder
+- Corregido `this.` por `window.WebsiteBuilderModules.Gallery.` (línea 1169 gallery.js)
+- Mapeo de campos: url→src, caption→alt
+
+#### Testimonials
+**Problemas**:
+1. Estructura de datos incompatible
+2. No mostraba stars, headings, body text
+3. Card size y desktop layout no funcionaban
+
+**Soluciones**:
+- Migración a estructura objeto + testimonialsOrder
+- Mapeo de campos: title→heading
+- Conversión de tamaños: 'h3'→2, 'body2'→1
+- Agregados campos faltantes: cardSize, desktopLayout
+
+#### Accordion/FAQ
+**Problemas**:
+1. Vista quedaba cargando al hacer click en item hijo
+2. Configuración del padre no escuchaba cambios
+3. Heading y body no se mostraban al recargar vista
+
+**Soluciones**:
+- Corregido nombre de vista: accordionChildSettings → accordionItemSettings
+- Agregado caso especial en moduleViewHandler para accordionItemSettings
+- Sincronización de datos antes de abrir vista
+- Mapeo heading/title para compatibilidad
+
+### Patrones de Código Reutilizables
+
+#### 1. Detección de Contexto
+```javascript
+if (window.productContainerReturnData?.fromView === 'productContainer') {
+    // Lógica específica para Product Container
+} else {
+    // Lógica normal del módulo
+}
+```
+
+#### 2. Estructura de Sincronización
+```javascript
+// En attachEventListeners del módulo
+const updateConfig = (key, value) => {
+    if (window.productContainerReturnData?.fromView === 'productContainer') {
+        // Actualizar en Product Container
+        const productContainer = window.currentSectionsConfig['product-container'];
+        productContainer.sections.[moduleName].config[key] = value;
+    } else {
+        // Actualizar normalmente
+        window.currentSectionsConfig.[moduleName][key] = value;
+    }
+    
+    window.setHasPendingPageStructureChanges(true);
+    window.updateSaveButtonState();
+    window.renderPreview();
+};
+```
+
+#### 3. Migración de Datos
+```javascript
+// Convertir array a objeto con orden
+if (Array.isArray(config.items)) {
+    const itemsArray = config.items;
+    config.items = {};
+    config.itemOrder = [];
+    
+    itemsArray.forEach(item => {
+        if (item?.id) {
+            config.items[item.id] = item;
+            config.itemOrder.push(item.id);
+        }
+    });
+}
+```
+
+### Lecciones Aprendidas
+
+1. **NUNCA asumir estructura de datos**: Siempre verificar qué espera el módulo
+2. **Sincronización es clave**: Los cambios deben reflejarse en ambas direcciones
+3. **Mapeo de campos**: Diferentes contextos pueden usar diferentes nombres
+4. **Logs son esenciales**: Agregar console.log para debug durante desarrollo
+5. **Test en ambos contextos**: Probar módulo tanto en homepage como en Product Container
+
 ## REGISTRO DE IMPLEMENTACIÓN Y CONVERSACIONES
 
 ### Contexto Original

@@ -414,27 +414,104 @@ window.WebsiteBuilderModules.Accordion = {
         `;
     },
     
+    // Helper function to sync accordion config changes with product container
+    syncAccordionConfigToProductContainer: function(field, value) {
+        if (window.productContainerReturnData && window.productContainerReturnData.fromView === 'productContainer') {
+            const productContainer = window.currentSectionsConfig['product-container'];
+            if (productContainer?.sections?.faq?.config) {
+                productContainer.sections.faq.config[field] = value;
+                console.log('[ACCORDION] Synced accordion config to product container:', field, value);
+            }
+        }
+    },
+
+    // Helper function to sync entire accordion items with product container
+    syncAccordionItemsToProductContainer: function(items, itemOrder) {
+        if (window.productContainerReturnData && window.productContainerReturnData.fromView === 'productContainer') {
+            const productContainer = window.currentSectionsConfig['product-container'];
+            if (productContainer?.sections?.faq?.config) {
+                productContainer.sections.faq.config.items = items;
+                productContainer.sections.faq.config.itemOrder = itemOrder;
+                console.log('[ACCORDION] Synced accordion items to product container');
+            }
+        }
+    },
+    
     renderSettings: function(config) {
-        const configData = config || {
-            colorScheme: 'scheme5',
-            colorBackground: false,
-            colorTabs: 'categories',
-            width: 'extra-small',
-            layout: 'tabs-at-the-bottom',
-            expandFirstTab: false,
-            heading: 'Preguntas Frecuentes',
-            body: '',
-            headingSize: 3,
-            bodySize: 3,
-            buttonLabel: '',
-            buttonLink: '',
-            buttonStyle: 'solid',
-            addSidePaddings: false,
-            topPadding: 96,
-            bottomPadding: 96,
-            items: {},
-            itemOrder: []
-        };
+        let configData;
+        
+        // Check if we're coming from product container
+        if (window.productContainerReturnData && window.productContainerReturnData.fromView === 'productContainer') {
+            // First try to get from currentSectionsConfig.accordion (synced data)
+            // Then fallback to product container
+            const syncedConfig = window.currentSectionsConfig?.accordion || {};
+            const productContainer = window.currentSectionsConfig['product-container'];
+            const faqConfig = productContainer?.sections?.faq?.config || {};
+            
+            // Merge both sources, prioritizing product container data
+            const mergedConfig = { ...syncedConfig, ...faqConfig };
+            
+            configData = {
+                colorScheme: mergedConfig.colorScheme || 'scheme5',
+                colorBackground: mergedConfig.colorBackground !== undefined ? mergedConfig.colorBackground : false,
+                colorTabs: mergedConfig.colorTabs || 'categories',
+                width: mergedConfig.width || 'extra-small',
+                layout: mergedConfig.layout || 'tabs-at-the-bottom',
+                expandFirstTab: mergedConfig.expandFirstTab || false,
+                heading: mergedConfig.heading || mergedConfig.title || 'Preguntas Frecuentes',
+                body: mergedConfig.body || '',
+                headingSize: mergedConfig.headingSize || 3,
+                bodySize: mergedConfig.bodySize || 3,
+                buttonLabel: mergedConfig.buttonLabel || '',
+                buttonLink: mergedConfig.buttonLink || '',
+                buttonStyle: mergedConfig.buttonStyle || 'solid',
+                addSidePaddings: mergedConfig.addSidePaddings !== undefined ? mergedConfig.addSidePaddings : false,
+                topPadding: mergedConfig.topPadding || 96,
+                bottomPadding: mergedConfig.bottomPadding || 96,
+                items: mergedConfig.items || {},
+                itemOrder: mergedConfig.itemOrder || [],
+                // Additional accordion-specific fields
+                toggleStyle: mergedConfig.toggleStyle || 'plus-minus',
+                contentAlignment: mergedConfig.contentAlignment || 'left',
+                desktopItemsDirection: mergedConfig.desktopItemsDirection || 'vertical',
+                desktopItemsPerRow: mergedConfig.desktopItemsPerRow || 1,
+                desktopGapBetweenItems: mergedConfig.desktopGapBetweenItems || 16,
+                addDividerLines: mergedConfig.addDividerLines !== undefined ? mergedConfig.addDividerLines : true,
+                dividerLineStyle: mergedConfig.dividerLineStyle || 'solid',
+                addImageOrIcon: mergedConfig.addImageOrIcon || false,
+                imageSize: mergedConfig.imageSize || 100,
+                imageShape: mergedConfig.imageShape || 'square',
+                contentOnHover: mergedConfig.contentOnHover || false
+            };
+            
+            console.log('[ACCORDION] Loading config from product container:', configData);
+            console.log('[ACCORDION] Body content:', configData.body);
+            console.log('[ACCORDION] Heading content:', configData.heading);
+            console.log('[ACCORDION] Synced config:', syncedConfig);
+            console.log('[ACCORDION] FAQ config:', faqConfig);
+        } else {
+            // Use provided config or default
+            configData = config || window.currentSectionsConfig?.accordion || {
+                colorScheme: 'scheme5',
+                colorBackground: false,
+                colorTabs: 'categories',
+                width: 'extra-small',
+                layout: 'tabs-at-the-bottom',
+                expandFirstTab: false,
+                heading: 'Preguntas Frecuentes',
+                body: '',
+                headingSize: 3,
+                bodySize: 3,
+                buttonLabel: '',
+                buttonLink: '',
+                buttonStyle: 'solid',
+                addSidePaddings: false,
+                topPadding: 96,
+                bottomPadding: 96,
+                items: {},
+                itemOrder: []
+            };
+        }
         
         // Merge with existing config
         if (config) {
@@ -588,7 +665,7 @@ window.WebsiteBuilderModules.Accordion = {
             <!-- Heading -->
             <div class="settings-field">
                 <label data-i18n="accordion.heading">Heading</label>
-                <input type="text" class="shopify-input" id="accordion-heading" value="${config.heading || 'Preguntas Frecuentes'}" placeholder="Preguntas Frecuentes">
+                <input type="text" class="shopify-input" id="accordion-heading" value="${config.heading || config.title || 'Preguntas Frecuentes'}" placeholder="Preguntas Frecuentes">
             </div>
             
             <!-- Body (Rich text) -->
@@ -802,7 +879,20 @@ window.WebsiteBuilderModules.Accordion = {
     },
     
     renderItemSettings: function(itemId) {
-        const item = window.currentSectionsConfig?.accordion?.items?.[itemId];
+        let item;
+        
+        // Check if we're coming from product container
+        if (window.productContainerReturnData && window.productContainerReturnData.fromView === 'productContainer') {
+            // Get FAQ item from product container
+            const productContainer = window.currentSectionsConfig['product-container'];
+            item = productContainer?.sections?.faq?.config?.items?.[itemId];
+            console.log('[ACCORDION] Getting item from product container:', itemId, item);
+        } else {
+            // Get from regular accordion section
+            item = window.currentSectionsConfig?.accordion?.items?.[itemId];
+            console.log('[ACCORDION] Getting item from accordion section:', itemId, item);
+        }
+        
         if (!item) {
             console.error('[ACCORDION] Item not found:', itemId);
             return '<div>Error: Item not found</div>';
@@ -974,25 +1064,30 @@ window.WebsiteBuilderModules.Accordion = {
         
         // Helper function to update item
         const updateItem = (key, value) => {
-            if (window.currentSectionsConfig.accordion?.items?.[itemId]) {
-                window.currentSectionsConfig.accordion.items[itemId][key] = value;
-                
-                // If coming from product container, also update the FAQ items in product container structure
-                if (window.productContainerReturnData && window.productContainerReturnData.fromView === 'productContainer') {
-                    const productContainer = window.currentSectionsConfig['product-container'];
-                    if (productContainer?.sections?.faq?.config?.items) {
-                        const faqItem = productContainer.sections.faq.config.items.find(item => String(item.id) === String(itemId));
-                        if (faqItem) {
-                            faqItem[key] = value;
-                            console.log('[ACCORDION] Synced FAQ item update to product container:', itemId, key, value);
-                        }
-                    }
+            // Check if we're coming from product container
+            if (window.productContainerReturnData && window.productContainerReturnData.fromView === 'productContainer') {
+                const productContainer = window.currentSectionsConfig['product-container'];
+                if (productContainer?.sections?.faq?.config?.items?.[itemId]) {
+                    productContainer.sections.faq.config.items[itemId][key] = value;
+                    console.log('[ACCORDION] Updated FAQ item in product container:', itemId, key, value);
+                    
+                    // Also sync to accordion module using the sync function
+                    window.WebsiteBuilderModules.Accordion.syncAccordionItemsToProductContainer(
+                        productContainer.sections.faq.config.items,
+                        productContainer.sections.faq.config.itemOrder
+                    );
                 }
-                
-                window.setHasPendingPageStructureChanges(true);
-                window.updateSaveButtonState();
-                window.renderPreview();
+            } else {
+                // Regular accordion section update
+                if (window.currentSectionsConfig.accordion?.items?.[itemId]) {
+                    window.currentSectionsConfig.accordion.items[itemId][key] = value;
+                    console.log('[ACCORDION] Updated accordion item:', itemId, key, value);
+                }
             }
+            
+            window.setHasPendingPageStructureChanges(true);
+            window.updateSaveButtonState();
+            window.renderPreview();
         };
         
         // Heading/Question
@@ -1244,12 +1339,31 @@ window.WebsiteBuilderModules.Accordion = {
         
         // Helper function to update config
         const updateConfig = (key, value) => {
-            if (window.currentSectionsConfig.accordion) {
+            // Check if we're working with product container
+            if (window.productContainerReturnData && window.productContainerReturnData.fromView === 'productContainer') {
+                const productContainer = window.currentSectionsConfig['product-container'];
+                if (!productContainer.sections.faq) {
+                    productContainer.sections.faq = { config: {} };
+                }
+                if (!productContainer.sections.faq.config) {
+                    productContainer.sections.faq.config = {};
+                }
+                productContainer.sections.faq.config[key] = value;
+                console.log('[ACCORDION] Updated product container FAQ config:', key, value);
+                
+                // Also sync to accordion module
+                window.WebsiteBuilderModules.Accordion.syncAccordionConfigToProductContainer(key, value);
+            } else {
+                // Normal accordion section update
+                if (!window.currentSectionsConfig.accordion) {
+                    window.currentSectionsConfig.accordion = {};
+                }
                 window.currentSectionsConfig.accordion[key] = value;
-                window.setHasPendingPageStructureChanges(true);
-                window.updateSaveButtonState();
-                window.renderPreview();
             }
+            
+            window.setHasPendingPageStructureChanges(true);
+            window.updateSaveButtonState();
+            window.renderPreview();
         };
         
         // Color scheme change
@@ -1289,7 +1403,12 @@ window.WebsiteBuilderModules.Accordion = {
         
         // Heading
         $('#accordion-heading').off('input').on('input', function() {
-            updateConfig('heading', $(this).val());
+            const value = $(this).val();
+            updateConfig('heading', value);
+            // Also update title for Product Container compatibility
+            if (window.productContainerReturnData && window.productContainerReturnData.fromView === 'productContainer') {
+                updateConfig('title', value);
+            }
         });
         
         // Body (Rich text)
