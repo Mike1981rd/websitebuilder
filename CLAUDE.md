@@ -10,7 +10,13 @@ ESTAS REGLAS SON OBLIGATORIAS Y DEBEN SEGUIRSE SIEMPRE:
    - Si necesitas una migración, responde EXACTAMENTE así:
      "Nombre de migración: [NombreMigración]"
 
-2. AL FINAL DE CADA RESPUESTA:
+2. CONFIRMACIÓN DE IMPLEMENTACIÓN:
+   - NUNCA afirmar que algo está "implementado correctamente" o "funcionando"
+   - SIEMPRE indicar que los cambios están listos para que el usuario los pruebe
+   - Usar frases como: "Los cambios están listos para probar" o "He realizado los ajustes, por favor verifica"
+   - SOLO confirmar el éxito después de que el usuario confirme que funciona
+
+3. AL FINAL DE CADA RESPUESTA:
    - SIEMPRE incluir una sección que confirme el cumplimiento de estas reglas críticas
 </critical-rules>
 

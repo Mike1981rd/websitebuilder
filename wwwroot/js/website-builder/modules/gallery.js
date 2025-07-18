@@ -336,7 +336,7 @@ window.WebsiteBuilderModules.Gallery = {
         return `
             <div style="display: flex; flex-direction: column; height: 100%; position: relative; overflow: hidden;">
                 <div class="sidebar-view-header" style="position: relative; z-index: 10;">
-                    <button class="back-to-sections-btn">
+                    <button class="back-to-sections-btn" onclick="if(window.productContainerReturnData && window.productContainerReturnData.returnTo) { window.switchSidebarView(window.productContainerReturnData.returnTo); window.productContainerReturnData = null; } else { window.switchSidebarView('blockList'); }">
                         <i class="material-icons">arrow_back</i>
                     </button>
                     <h3 data-i18n="sections.gallery">Gallery</h3>
@@ -677,7 +677,7 @@ window.WebsiteBuilderModules.Gallery = {
         return `
             <div style="display: flex; flex-direction: column; height: 100%; position: relative; overflow: hidden;">
                 <div class="sidebar-view-header" style="position: relative; z-index: 10;">
-                    <button class="back-to-sections-btn">
+                    <button class="back-to-sections-btn" onclick="if(window.productContainerReturnData && window.productContainerReturnData.returnTo) { window.switchSidebarView(window.productContainerReturnData.returnTo); window.productContainerReturnData = null; } else { window.switchSidebarView('gallerySettings'); }">
                         <i class="material-icons">arrow_back</i>
                     </button>
                     <h3 data-i18n="gallery.image.title">Image</h3>
@@ -749,6 +749,40 @@ window.WebsiteBuilderModules.Gallery = {
     attachImageEventListeners: function(imageId) {
         console.log('[GALLERY] Attaching image event listeners for:', imageId);
         
+        // Helper function to update image data and sync with product container
+        const updateImageData = (key, value) => {
+            const galleryConfig = window.currentSectionsConfig.gallery || {};
+            if (galleryConfig.images && galleryConfig.images[imageId]) {
+                galleryConfig.images[imageId][key] = value;
+                
+                // If coming from product container, also update the gallery images in product container structure
+                if (window.productContainerReturnData && window.productContainerReturnData.fromView === 'productContainer') {
+                    const productContainer = window.currentSectionsConfig['product-container'];
+                    if (productContainer?.sections?.gallery?.config?.images) {
+                        const galleryImage = productContainer.sections.gallery.config.images.find(img => String(img.id) === String(imageId));
+                        if (galleryImage) {
+                            galleryImage[key] = value;
+                            console.log('[GALLERY] Synced gallery image update to product container:', imageId, key, value);
+                        }
+                    }
+                }
+                
+                if (window.setHasPendingPageStructureChanges) {
+                    window.setHasPendingPageStructureChanges(true);
+                } else {
+                    window.hasPendingPageStructureChanges = true;
+                }
+                
+                if (window.updateSaveButtonState) {
+                    window.updateSaveButtonState();
+                }
+                
+                if (window.renderPreview) {
+                    window.renderPreview();
+                }
+            }
+        };
+        
         // Add translations for image settings
         if (!window.translations) window.translations = { es: {}, en: {} };
         
@@ -793,9 +827,15 @@ window.WebsiteBuilderModules.Gallery = {
         window.translations.en['gallery.icon.note'] = 'Without a link the icon disappears';
         
         // Back button - CRÍTICO: Debe regresar al panel lateral, no a gallery settings
-        $('.back-to-sections-btn').off('click').on('click', function() {
-            window.switchSidebarView('blockList');
-        });
+        // Comentado porque el onclick inline en el botón ya maneja esto correctamente
+        // $('.back-to-sections-btn').off('click').on('click', function() {
+        //     if (window.productContainerReturnData && window.productContainerReturnData.returnTo) {
+        //         window.switchSidebarView(window.productContainerReturnData.returnTo);
+        //         window.productContainerReturnData = null;
+        //     } else {
+        //         window.switchSidebarView('blockList');
+        //     }
+        // });
         
         // Image upload
         $('.image-upload-area').off('click').on('click', function() {
@@ -807,31 +847,15 @@ window.WebsiteBuilderModules.Gallery = {
             if (file) {
                 const reader = new FileReader();
                 reader.onload = function(e) {
-                    const galleryConfig = window.currentSectionsConfig.gallery || {};
-                    if (galleryConfig.images && galleryConfig.images[imageId]) {
-                        galleryConfig.images[imageId].src = e.target.result;
-                        
-                        // Update preview
-                        const $uploadArea = $('.image-upload-area');
-                        $uploadArea.find('img').remove();
-                        $uploadArea.find('i').remove();
-                        const $paragraphs = $uploadArea.find('p');
-                        $paragraphs.first().before(`<img src="${e.target.result}" alt="" style="max-width: 100%; max-height: 200px; margin-bottom: 10px;">`);
-                        
-                        if (window.setHasPendingPageStructureChanges) {
-                            window.setHasPendingPageStructureChanges(true);
-                        } else {
-                            window.hasPendingPageStructureChanges = true;
-                        }
-                        
-                        if (window.updateSaveButtonState) {
-                            window.updateSaveButtonState();
-                        }
-                        
-                        if (window.renderPreview) {
-                            window.renderPreview();
-                        }
-                    }
+                    // Update image source
+                    updateImageData('src', e.target.result);
+                    
+                    // Update preview UI
+                    const $uploadArea = $('.image-upload-area');
+                    $uploadArea.find('img').remove();
+                    $uploadArea.find('i').remove();
+                    const $paragraphs = $uploadArea.find('p');
+                    $paragraphs.first().before(`<img src="${e.target.result}" alt="" style="max-width: 100%; max-height: 200px; margin-bottom: 10px;">`);
                 };
                 reader.readAsDataURL(file);
             }
@@ -849,33 +873,17 @@ window.WebsiteBuilderModules.Gallery = {
             if (file) {
                 const reader = new FileReader();
                 reader.onload = function(e) {
-                    const galleryConfig = window.currentSectionsConfig.gallery || {};
-                    if (galleryConfig.images && galleryConfig.images[imageId]) {
-                        galleryConfig.images[imageId].videoSrc = e.target.result;
-                        
-                        // Update preview
-                        const $uploadArea = $('.video-upload-area');
-                        $uploadArea.html(`
-                            <video src="${e.target.result}" style="max-width: 100%; max-height: 150px;" controls></video>
-                            <button class="remove-video-btn" data-image-id="${imageId}" style="position: absolute; top: 5px; right: 5px; background: rgba(0,0,0,0.7); color: white; border: none; border-radius: 50%; width: 30px; height: 30px; cursor: pointer;">
-                                <i class="material-icons" style="font-size: 16px;">close</i>
-                            </button>
-                        `);
-                        
-                        if (window.setHasPendingPageStructureChanges) {
-                            window.setHasPendingPageStructureChanges(true);
-                        } else {
-                            window.hasPendingPageStructureChanges = true;
-                        }
-                        
-                        if (window.updateSaveButtonState) {
-                            window.updateSaveButtonState();
-                        }
-                        
-                        if (window.renderPreview) {
-                            window.renderPreview();
-                        }
-                    }
+                    // Update video source
+                    updateImageData('videoSrc', e.target.result);
+                    
+                    // Update preview UI
+                    const $uploadArea = $('.video-upload-area');
+                    $uploadArea.html(`
+                        <video src="${e.target.result}" style="max-width: 100%; max-height: 150px;" controls></video>
+                        <button class="remove-video-btn" data-image-id="${imageId}" style="position: absolute; top: 5px; right: 5px; background: rgba(0,0,0,0.7); color: white; border: none; border-radius: 50%; width: 30px; height: 30px; cursor: pointer;">
+                            <i class="material-icons" style="font-size: 16px;">close</i>
+                        </button>
+                    `);
                 };
                 reader.readAsDataURL(file);
             }
@@ -886,97 +894,30 @@ window.WebsiteBuilderModules.Gallery = {
             e.preventDefault();
             e.stopPropagation();
             
-            const galleryConfig = window.currentSectionsConfig.gallery || {};
-            if (galleryConfig.images && galleryConfig.images[imageId]) {
-                delete galleryConfig.images[imageId].videoSrc;
-                
-                // Update preview
-                const $uploadArea = $('.video-upload-area');
-                $uploadArea.html(`
-                    <i class="material-icons" style="font-size: 36px; color: #999;">videocam</i>
-                    <p style="margin: 10px 0 0 0; font-size: 13px; color: #5c5e60;">Seleccionar video</p>
-                `);
-                
-                if (window.setHasPendingPageStructureChanges) {
-                    window.setHasPendingPageStructureChanges(true);
-                } else {
-                    window.hasPendingPageStructureChanges = true;
-                }
-                
-                if (window.updateSaveButtonState) {
-                    window.updateSaveButtonState();
-                }
-                
-                if (window.renderPreview) {
-                    window.renderPreview();
-                }
-            }
+            // Remove video source
+            updateImageData('videoSrc', '');
+            
+            // Update preview UI
+            const $uploadArea = $('.video-upload-area');
+            $uploadArea.html(`
+                <i class="material-icons" style="font-size: 36px; color: #999;">videocam</i>
+                <p style="margin: 10px 0 0 0; font-size: 13px; color: #5c5e60;">Seleccionar video</p>
+            `);
         });
         
         // Alt text input
         $(document).off('input.gallery-image-alt').on('input.gallery-image-alt', `#gallery-image-alt-${imageId}`, function() {
-            const galleryConfig = window.currentSectionsConfig.gallery || {};
-            if (galleryConfig.images && galleryConfig.images[imageId]) {
-                galleryConfig.images[imageId].alt = $(this).val();
-                
-                if (window.setHasPendingPageStructureChanges) {
-                    window.setHasPendingPageStructureChanges(true);
-                } else {
-                    window.hasPendingPageStructureChanges = true;
-                }
-                
-                if (window.updateSaveButtonState) {
-                    window.updateSaveButtonState();
-                }
-                
-                if (window.renderPreview) {
-                    window.renderPreview();
-                }
-            }
+            updateImageData('alt', $(this).val());
         });
         
         // Link input
         $(document).off('input.gallery-image-link').on('input.gallery-image-link', `#gallery-image-link-${imageId}`, function() {
-            const galleryConfig = window.currentSectionsConfig.gallery || {};
-            if (galleryConfig.images && galleryConfig.images[imageId]) {
-                galleryConfig.images[imageId].link = $(this).val();
-                
-                if (window.setHasPendingPageStructureChanges) {
-                    window.setHasPendingPageStructureChanges(true);
-                } else {
-                    window.hasPendingPageStructureChanges = true;
-                }
-                
-                if (window.updateSaveButtonState) {
-                    window.updateSaveButtonState();
-                }
-                
-                if (window.renderPreview) {
-                    window.renderPreview();
-                }
-            }
+            updateImageData('link', $(this).val());
         });
         
         // Icon select
         $(document).off('change.gallery-image-icon').on('change.gallery-image-icon', `#gallery-image-icon-${imageId}`, function() {
-            const galleryConfig = window.currentSectionsConfig.gallery || {};
-            if (galleryConfig.images && galleryConfig.images[imageId]) {
-                galleryConfig.images[imageId].icon = $(this).val();
-                
-                if (window.setHasPendingPageStructureChanges) {
-                    window.setHasPendingPageStructureChanges(true);
-                } else {
-                    window.hasPendingPageStructureChanges = true;
-                }
-                
-                if (window.updateSaveButtonState) {
-                    window.updateSaveButtonState();
-                }
-                
-                if (window.renderPreview) {
-                    window.renderPreview();
-                }
-            }
+            updateImageData('icon', $(this).val());
         });
         
         // Apply translations
@@ -1054,9 +995,15 @@ window.WebsiteBuilderModules.Gallery = {
         window.translations.en['gallery.bottomPadding'] = 'Bottom padding';
         
         // CRÍTICO: Navegación correcta
-        $('.back-to-sections-btn').off('click').on('click', function() {
-            window.switchSidebarView('blockList');
-        });
+        // Comentado porque el onclick inline en el botón ya maneja esto correctamente
+        // $('.back-to-sections-btn').off('click').on('click', function() {
+        //     if (window.productContainerReturnData && window.productContainerReturnData.returnTo) {
+        //         window.switchSidebarView(window.productContainerReturnData.returnTo);
+        //         window.productContainerReturnData = null;
+        //     } else {
+        //         window.switchSidebarView('blockList');
+        //     }
+        // });
         
         // Handle click on gallery images in sidebar
         $(document).off('click.gallery-image-settings').on('click.gallery-image-settings', '.gallery-image-item', function(e) {

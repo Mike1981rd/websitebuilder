@@ -360,7 +360,7 @@ window.WebsiteBuilderModules.Testimonials = {
         return `
             <div style="display: flex; flex-direction: column; height: 100%; position: relative; overflow: hidden;">
                 <div class="sidebar-view-header" style="position: relative; z-index: 10;">
-                    <button class="back-to-sections-btn">
+                    <button class="back-to-sections-btn" onclick="if(window.productContainerReturnData && window.productContainerReturnData.returnTo) { window.switchSidebarView(window.productContainerReturnData.returnTo); window.productContainerReturnData = null; } else { window.switchSidebarView('blockList'); }">
                         <i class="material-icons">arrow_back</i>
                     </button>
                     <h3 data-i18n="testimonials.settings.title">Testimonials</h3>
@@ -1542,9 +1542,16 @@ window.WebsiteBuilderModules.Testimonials = {
             }
         };
         
-        // Back button - CRÍTICO según documentación punto 3.3.1
+        // Back button - handle navigation based on context
         $('.back-to-sections-btn').off('click').on('click', function() {
-            window.switchSidebarView('blockList');
+            if (window.productContainerReturnData && window.productContainerReturnData.returnTo) {
+                // Return to product container settings if coming from there
+                window.switchSidebarView(window.productContainerReturnData.returnTo);
+                window.productContainerReturnData = null;
+            } else {
+                // Default: return to testimonials settings
+                window.switchSidebarView('testimonialsSettings');
+            }
         });
         
         // Section menu

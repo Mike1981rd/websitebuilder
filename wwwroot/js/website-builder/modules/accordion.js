@@ -468,7 +468,7 @@ window.WebsiteBuilderModules.Accordion = {
             
             <div style="display: flex; flex-direction: column; height: 100%; position: relative; overflow: hidden;">
                 <div class="sidebar-view-header" style="position: relative; z-index: 10;">
-                    <button class="back-to-sections-btn">
+                    <button class="back-to-sections-btn" onclick="if(window.productContainerReturnData && window.productContainerReturnData.returnTo) { window.switchSidebarView(window.productContainerReturnData.returnTo); window.productContainerReturnData = null; } else { window.switchSidebarView('blockList'); }">
                         <i class="material-icons">arrow_back</i>
                     </button>
                     <h3>Accordion</h3>
@@ -811,7 +811,7 @@ window.WebsiteBuilderModules.Accordion = {
         return `
             <div style="display: flex; flex-direction: column; height: 100%; position: relative; overflow: hidden;">
                 <div class="sidebar-view-header" style="position: relative; z-index: 10;">
-                    <button class="back-to-sections-btn">
+                    <button class="back-to-sections-btn" onclick="if(window.productContainerReturnData && window.productContainerReturnData.returnTo) { window.switchSidebarView(window.productContainerReturnData.returnTo); window.productContainerReturnData = null; } else { window.switchSidebarView('accordionSettings'); }">
                         <i class="material-icons">arrow_back</i>
                     </button>
                     <h3>Content tab</h3>
@@ -962,14 +962,33 @@ window.WebsiteBuilderModules.Accordion = {
     
     attachItemEventListeners: function(itemId) {
         // Back button
-        $('.back-to-sections-btn').off('click').on('click', function() {
-            window.switchSidebarView('blockList', window.getUpdatedPageData());
-        });
+        // Comentado porque el onclick inline en el botón ya maneja esto correctamente
+        // $('.back-to-sections-btn').off('click').on('click', function() {
+        //     if (window.productContainerReturnData && window.productContainerReturnData.returnTo) {
+        //         window.switchSidebarView(window.productContainerReturnData.returnTo);
+        //         window.productContainerReturnData = null;
+        //     } else {
+        //         window.switchSidebarView('blockList', window.getUpdatedPageData());
+        //     }
+        // });
         
         // Helper function to update item
         const updateItem = (key, value) => {
             if (window.currentSectionsConfig.accordion?.items?.[itemId]) {
                 window.currentSectionsConfig.accordion.items[itemId][key] = value;
+                
+                // If coming from product container, also update the FAQ items in product container structure
+                if (window.productContainerReturnData && window.productContainerReturnData.fromView === 'productContainer') {
+                    const productContainer = window.currentSectionsConfig['product-container'];
+                    if (productContainer?.sections?.faq?.config?.items) {
+                        const faqItem = productContainer.sections.faq.config.items.find(item => String(item.id) === String(itemId));
+                        if (faqItem) {
+                            faqItem[key] = value;
+                            console.log('[ACCORDION] Synced FAQ item update to product container:', itemId, key, value);
+                        }
+                    }
+                }
+                
                 window.setHasPendingPageStructureChanges(true);
                 window.updateSaveButtonState();
                 window.renderPreview();
@@ -1213,9 +1232,15 @@ window.WebsiteBuilderModules.Accordion = {
     
     attachEventListeners: function() {
         // Back button
-        $('.back-to-sections-btn').off('click').on('click', function() {
-            window.switchSidebarView('blockList', window.getUpdatedPageData());
-        });
+        // Comentado porque el onclick inline en el botón ya maneja esto correctamente
+        // $('.back-to-sections-btn').off('click').on('click', function() {
+        //     if (window.productContainerReturnData && window.productContainerReturnData.returnTo) {
+        //         window.switchSidebarView(window.productContainerReturnData.returnTo);
+        //         window.productContainerReturnData = null;
+        //     } else {
+        //         window.switchSidebarView('blockList', window.getUpdatedPageData());
+        //     }
+        // });
         
         // Helper function to update config
         const updateConfig = (key, value) => {

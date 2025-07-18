@@ -336,6 +336,27 @@ namespace Hotel.Controllers
                             ""bottomPadding"": 96
                         }
                     }
+                },
+                ""product"": {
+                    ""id"": ""product"",
+                    ""title"": ""Producto"",
+                    ""type"": ""product"",
+                    ""sectionOrder"": [""announcement"", ""header"", ""product-container"", ""footer""],
+                    ""sectionsConfig"": {
+                        ""product-container"": {
+                            ""id"": ""product-container"",
+                            ""type"": ""product-container"",
+                            ""isHidden"": false,
+                            ""colorScheme"": ""scheme1"",
+                            ""width"": ""large"",
+                            ""sections"": {
+                                ""productInfo"": {
+                                    ""enabled"": true,
+                                    ""order"": 1
+                                }
+                            }
+                        }
+                    }
                 }
             }";
         }

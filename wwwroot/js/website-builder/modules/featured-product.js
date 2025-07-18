@@ -352,7 +352,21 @@ window.WebsiteBuilderModules.FeaturedProduct = {
                     break;
                     
                 case 'title':
-                    html += `<h1 class="product-title">${product?.name || 'Nombre del producto'}</h1>`;
+                    const titleConfig = block;
+                    const titleSize = titleConfig.headingSize || 'medium';
+                    
+                    // Map heading sizes to font sizes (same as Product Container)
+                    const titleSizeMap = {
+                        'extra-small': '20px',
+                        'small': '24px', 
+                        'medium': '32px',
+                        'large': '40px',
+                        'extra-large': '48px',
+                        'double-extra-large': '56px'
+                    };
+                    
+                    const titleFontSize = titleSizeMap[titleSize] || '32px';
+                    html += `<h1 class="product-title" style="font-size: ${titleFontSize}; font-weight: 600; margin: 0 0 15px 0;">${product?.name || 'Nombre del producto'}</h1>`;
                     break;
                     
                 case 'price':
@@ -718,6 +732,10 @@ window.WebsiteBuilderModules.FeaturedProduct = {
     renderSettings: function(config) {
         const configData = config || {};
         
+        // Check if we're in Product Container context
+        const isProductContainerContext = window.productContainerReturnData && 
+                                        window.productContainerReturnData.fromView === 'productContainer';
+        
         // Default values
         const defaults = {
             colorScheme: 'scheme1',
@@ -727,7 +745,7 @@ window.WebsiteBuilderModules.FeaturedProduct = {
             desktopLayout: 'thumbnails-left',
             desktopSpaceBetween: 12,
             desktopThumbnailSize: 72,
-            mobileLayout: 'thumbnails-right',
+            mobileLayout: 'thumbnails-left',
             imageRatio: 'portrait-3-4-fill',
             showOnlySelectedVariant: false,
             enableImageZoom: true,
@@ -746,13 +764,25 @@ window.WebsiteBuilderModules.FeaturedProduct = {
             }
         });
         
+        // Fix any existing thumbnails-right configurations
+        if (configData.desktopLayout === 'thumbnails-right') {
+            configData.desktopLayout = 'thumbnails-left';
+        }
+        if (configData.mobileLayout === 'thumbnails-right') {
+            configData.mobileLayout = 'thumbnails-left';
+        }
+        
         return `
             <div style="display: flex; flex-direction: column; height: 100%; position: relative; overflow: hidden;">
                 <div class="sidebar-view-header" style="position: relative; z-index: 10;">
-                    <button class="back-to-sections-btn">
+                    <button class="back-to-sections-btn" onclick="${isProductContainerContext ? 
+                        `window.switchSidebarView('${window.productContainerReturnData.returnTo}'); window.productContainerReturnData = null;` : 
+                        `window.switchSidebarView('blockList')`}">
                         <i class="material-icons">arrow_back</i>
                     </button>
-                    <h3 data-i18n="featuredProduct.settings.title">Featured product</h3>
+                    <h3 data-i18n="${isProductContainerContext ? 'productContainer.productInfo.title' : 'featuredProduct.settings.title'}">
+                        ${isProductContainerContext ? 'Product Info Settings' : 'Featured product'}
+                    </h3>
                 </div>
                 
                 <div style="padding: 20px; overflow-y: auto; overflow-x: hidden; flex: 1; height: calc(100% - 60px); box-sizing: border-box;">
@@ -783,18 +813,20 @@ window.WebsiteBuilderModules.FeaturedProduct = {
                         </select>
                     </div>
                     
-                    <!-- Product Section -->
-                    <div class="settings-group">
-                        <h4 style="font-size: 13px; font-weight: 500; margin-bottom: 12px; color: #5c5e60;" data-i18n="featuredProduct.product.title">Product</h4>
-                        
-                        <div class="form-group">
-                            <label data-i18n="featuredProduct.product.label">Product</label>
-                            <button id="featuredProduct-selectProduct" class="browser-default" style="width: 100%; padding: 10px; text-align: left; display: flex; justify-content: space-between; align-items: center;">
-                                <span>${configData.selectedProduct ? configData.selectedProduct.name : 'Seleccionar'}</span>
-                                <i class="material-icons">edit</i>
-                            </button>
+                    <!-- Product Section - Only show if not in Product Container context -->
+                    ${!isProductContainerContext ? `
+                        <div class="settings-group">
+                            <h4 style="font-size: 13px; font-weight: 500; margin-bottom: 12px; color: #5c5e60;" data-i18n="featuredProduct.product.title">Product</h4>
+                            
+                            <div class="form-group">
+                                <label data-i18n="featuredProduct.product.label">Product</label>
+                                <button id="featuredProduct-selectProduct" class="browser-default" style="width: 100%; padding: 10px; text-align: left; display: flex; justify-content: space-between; align-items: center;">
+                                    <span>${configData.selectedProduct ? configData.selectedProduct.name : 'Seleccionar'}</span>
+                                    <i class="material-icons">edit</i>
+                                </button>
+                            </div>
                         </div>
-                    </div>
+                    ` : ''}
                     
                     <!-- Media Section -->
                     <div class="settings-group">
@@ -808,7 +840,9 @@ window.WebsiteBuilderModules.FeaturedProduct = {
                             <label for="featuredProduct-desktopLayout" data-i18n="featuredProduct.media.desktopLayout">Desktop layout</label>
                             <select id="featuredProduct-desktopLayout" class="browser-default">
                                 <option value="thumbnails-left" ${configData.desktopLayout === 'thumbnails-left' ? 'selected' : ''} data-i18n="featuredProduct.options.thumbnailsLeft">${this.getTranslation('featuredProduct.options.thumbnailsLeft', 'Thumbnails left')}</option>
+                                <!-- Temporarily hidden due to layout issues
                                 <option value="thumbnails-right" ${configData.desktopLayout === 'thumbnails-right' ? 'selected' : ''}>Thumbnails right</option>
+                                -->
                                 <option value="thumbnails-bottom" ${configData.desktopLayout === 'thumbnails-bottom' ? 'selected' : ''} data-i18n="featuredProduct.options.thumbnailsBottom">${this.getTranslation('featuredProduct.options.thumbnailsBottom', 'Thumbnails bottom')}</option>
                             </select>
                         </div>
@@ -838,7 +872,9 @@ window.WebsiteBuilderModules.FeaturedProduct = {
                             <label for="featuredProduct-mobileLayout" data-i18n="featuredProduct.media.mobileLayout">Mobile layout</label>
                             <select id="featuredProduct-mobileLayout" class="browser-default">
                                 <option value="thumbnails-left" ${configData.mobileLayout === 'thumbnails-left' ? 'selected' : ''} data-i18n="featuredProduct.options.thumbnailsLeft">${this.getTranslation('featuredProduct.options.thumbnailsLeft', 'Thumbnails left')}</option>
+                                <!-- Temporarily hidden due to layout issues
                                 <option value="thumbnails-right" ${configData.mobileLayout === 'thumbnails-right' ? 'selected' : ''}>Thumbnails right</option>
+                                -->
                                 <option value="thumbnails-bottom" ${configData.mobileLayout === 'thumbnails-bottom' ? 'selected' : ''} data-i18n="featuredProduct.options.thumbnailsBottom">${this.getTranslation('featuredProduct.options.thumbnailsBottom', 'Thumbnails bottom')}</option>
                                 <option value="1-column-stack" ${configData.mobileLayout === '1-column-stack' ? 'selected' : ''}>1 column stack</option>
                                 <option value="2-column-stack" ${configData.mobileLayout === '2-column-stack' ? 'selected' : ''}>2 column stack</option>
@@ -970,21 +1006,63 @@ window.WebsiteBuilderModules.FeaturedProduct = {
     attachEventListeners: function() {
         console.log('[FeaturedProduct] Attaching event listeners');
         
+        // Helper function to get the correct config object based on context
+        const getConfigObject = () => {
+            console.log('[FeaturedProduct] Getting config object, productContainerReturnData:', window.productContainerReturnData);
+            
+            if (window.productContainerReturnData && window.productContainerReturnData.fromView === 'productContainer') {
+                // We're in Product Container context
+                console.log('[FeaturedProduct] In Product Container context');
+                if (!currentSectionsConfig['product-container']) {
+                    currentSectionsConfig['product-container'] = { sections: { productInfo: { config: {} } } };
+                }
+                if (!currentSectionsConfig['product-container'].sections) {
+                    currentSectionsConfig['product-container'].sections = { productInfo: { config: {} } };
+                }
+                if (!currentSectionsConfig['product-container'].sections.productInfo) {
+                    currentSectionsConfig['product-container'].sections.productInfo = { config: {} };
+                }
+                if (!currentSectionsConfig['product-container'].sections.productInfo.config) {
+                    currentSectionsConfig['product-container'].sections.productInfo.config = {};
+                }
+                const config = currentSectionsConfig['product-container'].sections.productInfo.config;
+                console.log('[FeaturedProduct] Returning Product Container config:', config);
+                return config;
+            } else {
+                // Normal homepage context
+                console.log('[FeaturedProduct] In Homepage context');
+                if (!currentSectionsConfig.featuredProduct) {
+                    currentSectionsConfig.featuredProduct = {};
+                }
+                return currentSectionsConfig.featuredProduct;
+            }
+        };
+        
         // Apply translations
         setTimeout(applyTranslations, 0);
         
         // Back button
         $('.back-to-sections-btn').off('click.featuredProduct').on('click.featuredProduct', function() {
-            window.switchSidebarView('blockList');
+            if (window.productContainerReturnData && window.productContainerReturnData.returnTo) {
+                // Copy back the configuration to product container before leaving
+                if (window.productContainerReturnData.fromView === 'productContainer') {
+                    const tempConfig = currentSectionsConfig.featuredProduct || {};
+                    currentSectionsConfig['product-container'].sections.productInfo.config = { ...tempConfig };
+                }
+                
+                const returnTo = window.productContainerReturnData.returnTo;
+                window.productContainerReturnData = null;
+                window.switchSidebarView(returnTo);
+            } else {
+                window.switchSidebarView('blockList');
+            }
         });
         
         // Color scheme
         $('#featuredProduct-colorScheme').off('change.featuredProduct').on('change.featuredProduct', function() {
             const value = $(this).val();
-            if (!currentSectionsConfig.featuredProduct) {
-                currentSectionsConfig.featuredProduct = {};
-            }
-            currentSectionsConfig.featuredProduct.colorScheme = value;
+            const config = getConfigObject();
+            config.colorScheme = value;
             hasPendingPageStructureChanges = true;
             updateSaveButtonState();
             renderPreview();
@@ -993,7 +1071,8 @@ window.WebsiteBuilderModules.FeaturedProduct = {
         // Width
         $('#featuredProduct-width').off('change.featuredProduct').on('change.featuredProduct', function() {
             const value = $(this).val();
-            currentSectionsConfig.featuredProduct.width = value;
+            const config = getConfigObject();
+            config.width = value;
             hasPendingPageStructureChanges = true;
             updateSaveButtonState();
             renderPreview();
@@ -1013,7 +1092,13 @@ window.WebsiteBuilderModules.FeaturedProduct = {
         // Desktop layout
         $('#featuredProduct-desktopLayout').off('change.featuredProduct').on('change.featuredProduct', function() {
             const value = $(this).val();
-            currentSectionsConfig.featuredProduct.desktopLayout = value;
+            const config = getConfigObject();
+            config.desktopLayout = value;
+            
+            console.log('[FeaturedProduct] Desktop layout changed to:', value);
+            console.log('[FeaturedProduct] Config after change:', config);
+            console.log('[FeaturedProduct] Full currentSectionsConfig:', currentSectionsConfig);
+            
             hasPendingPageStructureChanges = true;
             updateSaveButtonState();
             renderPreview();
@@ -1044,7 +1129,8 @@ window.WebsiteBuilderModules.FeaturedProduct = {
         $('#featuredProduct-thumbnailSize').off('input.featuredProduct').on('input.featuredProduct', function() {
             const value = $(this).val();
             $('#featuredProduct-thumbnailSizeValue').val(value);
-            currentSectionsConfig.featuredProduct.desktopThumbnailSize = parseInt(value);
+            const config = getConfigObject();
+            config.desktopThumbnailSize = parseInt(value);
             hasPendingPageStructureChanges = true;
             updateSaveButtonState();
         });
@@ -1052,7 +1138,8 @@ window.WebsiteBuilderModules.FeaturedProduct = {
         $('#featuredProduct-thumbnailSizeValue').off('input.featuredProduct').on('input.featuredProduct', function() {
             const value = $(this).val();
             $('#featuredProduct-thumbnailSize').val(value);
-            currentSectionsConfig.featuredProduct.desktopThumbnailSize = parseInt(value);
+            const config = getConfigObject();
+            config.desktopThumbnailSize = parseInt(value);
             hasPendingPageStructureChanges = true;
             updateSaveButtonState();
         });
@@ -1073,7 +1160,8 @@ window.WebsiteBuilderModules.FeaturedProduct = {
         // Image ratio
         $('#featuredProduct-imageRatio').off('change.featuredProduct').on('change.featuredProduct', function() {
             const value = $(this).val();
-            currentSectionsConfig.featuredProduct.imageRatio = value;
+            const config = getConfigObject();
+            config.imageRatio = value;
             hasPendingPageStructureChanges = true;
             updateSaveButtonState();
             renderPreview();
@@ -1090,7 +1178,8 @@ window.WebsiteBuilderModules.FeaturedProduct = {
         
         $('#featuredProduct-enableImageZoom').off('change.featuredProduct').on('change.featuredProduct', function() {
             const isChecked = $(this).is(':checked');
-            currentSectionsConfig.featuredProduct.enableImageZoom = isChecked;
+            const config = getConfigObject();
+            config.enableImageZoom = isChecked;
             hasPendingPageStructureChanges = true;
             updateSaveButtonState();
             renderPreview();
@@ -1622,31 +1711,57 @@ window.WebsiteBuilderModules.FeaturedProduct = {
         // Apply translations
         setTimeout(applyTranslations, 0);
         
-        // Back button - regresa al panel lateral principal (blockList)
+        // Back button - check for Product Container context
         $('.back-to-sections-btn').off('click.description').on('click.description', function() {
-            window.switchSidebarView('blockList');
+            if (window.productContainerReturnData && window.productContainerReturnData.returnTo) {
+                // Copy configuration back to product container
+                if (window.currentSectionsConfig.featuredProduct?.blocks?.description) {
+                    const descConfig = window.currentSectionsConfig.featuredProduct.blocks.description;
+                    if (!window.currentSectionsConfig['product-container'].sections.productInfo.config.blocks) {
+                        window.currentSectionsConfig['product-container'].sections.productInfo.config.blocks = {};
+                    }
+                    window.currentSectionsConfig['product-container'].sections.productInfo.config.blocks.description = descConfig;
+                }
+                
+                const returnTo = window.productContainerReturnData.returnTo;
+                window.productContainerReturnData = null;
+                window.switchSidebarView(returnTo);
+            } else {
+                window.switchSidebarView('blockList');
+            }
         });
         
         // Helper function para actualizar configuración de description
         const updateDescriptionConfig = (key, value) => {
             console.log('[DESCRIPTION] Updating config:', key, '=', value);
             
-            if (!window.currentSectionsConfig.featuredProduct) {
-                window.currentSectionsConfig.featuredProduct = {};
+            // Check if we're in Product Container context
+            if (window.productContainerReturnData && window.productContainerReturnData.fromView === 'productContainer') {
+                // Update in Product Container
+                const productContainerConfig = window.currentSectionsConfig['product-container'];
+                if (productContainerConfig?.sections?.productInfo?.config?.blocks?.description) {
+                    productContainerConfig.sections.productInfo.config.blocks.description[key] = value;
+                    console.log('[DESCRIPTION] Updated Product Container config:', productContainerConfig.sections.productInfo.config.blocks.description);
+                }
+            } else {
+                // Update in Featured Product (original behavior)
+                if (!window.currentSectionsConfig.featuredProduct) {
+                    window.currentSectionsConfig.featuredProduct = {};
+                }
+                if (!window.currentSectionsConfig.featuredProduct.blocks) {
+                    window.currentSectionsConfig.featuredProduct.blocks = {};
+                }
+                if (!window.currentSectionsConfig.featuredProduct.blocks.description) {
+                    window.currentSectionsConfig.featuredProduct.blocks.description = {
+                        type: 'description',
+                        isHidden: false
+                    };
+                }
+                
+                window.currentSectionsConfig.featuredProduct.blocks.description[key] = value;
+                
+                console.log('[DESCRIPTION] Updated Featured Product config:', window.currentSectionsConfig.featuredProduct.blocks.description);
             }
-            if (!window.currentSectionsConfig.featuredProduct.blocks) {
-                window.currentSectionsConfig.featuredProduct.blocks = {};
-            }
-            if (!window.currentSectionsConfig.featuredProduct.blocks.description) {
-                window.currentSectionsConfig.featuredProduct.blocks.description = {
-                    type: 'description',
-                    isHidden: false
-                };
-            }
-            
-            window.currentSectionsConfig.featuredProduct.blocks.description[key] = value;
-            
-            console.log('[DESCRIPTION] Updated config:', window.currentSectionsConfig.featuredProduct.blocks.description);
             
             window.setHasPendingPageStructureChanges(true);
             window.updateSaveButtonState();
@@ -1858,9 +1973,24 @@ window.WebsiteBuilderModules.FeaturedProduct = {
         // Apply translations
         setTimeout(applyTranslations, 0);
         
-        // Back button - regresa al panel lateral principal (blockList)
+        // Back button - check for Product Container context
         $('.back-to-sections-btn').off('click.buybuttons').on('click.buybuttons', function() {
-            window.switchSidebarView('blockList');
+            if (window.productContainerReturnData && window.productContainerReturnData.returnTo) {
+                // Copy configuration back to product container
+                if (window.currentSectionsConfig.featuredProduct?.blocks?.['buy-buttons']) {
+                    const buyConfig = window.currentSectionsConfig.featuredProduct.blocks['buy-buttons'];
+                    if (!window.currentSectionsConfig['product-container'].sections.productInfo.config.blocks) {
+                        window.currentSectionsConfig['product-container'].sections.productInfo.config.blocks = {};
+                    }
+                    window.currentSectionsConfig['product-container'].sections.productInfo.config.blocks['buy-buttons'] = buyConfig;
+                }
+                
+                const returnTo = window.productContainerReturnData.returnTo;
+                window.productContainerReturnData = null;
+                window.switchSidebarView(returnTo);
+            } else {
+                window.switchSidebarView('blockList');
+            }
         });
         
         // Helper function para actualizar configuración de buy buttons
@@ -2025,9 +2155,24 @@ window.WebsiteBuilderModules.FeaturedProduct = {
         // Apply translations
         setTimeout(applyTranslations, 0);
         
-        // Back button - regresa al panel lateral principal (blockList)
+        // Back button - check for Product Container context
         $('.back-to-sections-btn').off('click.price').on('click.price', function() {
-            window.switchSidebarView('blockList');
+            if (window.productContainerReturnData && window.productContainerReturnData.returnTo) {
+                // Copy configuration back to product container
+                if (window.currentSectionsConfig.featuredProduct?.blocks?.price) {
+                    const priceConfig = window.currentSectionsConfig.featuredProduct.blocks.price;
+                    if (!window.currentSectionsConfig['product-container'].sections.productInfo.config.blocks) {
+                        window.currentSectionsConfig['product-container'].sections.productInfo.config.blocks = {};
+                    }
+                    window.currentSectionsConfig['product-container'].sections.productInfo.config.blocks.price = priceConfig;
+                }
+                
+                const returnTo = window.productContainerReturnData.returnTo;
+                window.productContainerReturnData = null;
+                window.switchSidebarView(returnTo);
+            } else {
+                window.switchSidebarView('blockList');
+            }
         });
         
         // Helper function para actualizar configuración de price
@@ -2225,9 +2370,24 @@ window.WebsiteBuilderModules.FeaturedProduct = {
         // Apply translations
         setTimeout(applyTranslations, 0);
         
-        // Back button - regresa al panel lateral principal (blockList)
+        // Back button - check for Product Container context
         $('.back-to-sections-btn').off('click.inventory').on('click.inventory', function() {
-            window.switchSidebarView('blockList');
+            if (window.productContainerReturnData && window.productContainerReturnData.returnTo) {
+                // Copy configuration back to product container
+                if (window.currentSectionsConfig.featuredProduct?.blocks?.['inventory-status']) {
+                    const inventoryConfig = window.currentSectionsConfig.featuredProduct.blocks['inventory-status'];
+                    if (!window.currentSectionsConfig['product-container'].sections.productInfo.config.blocks) {
+                        window.currentSectionsConfig['product-container'].sections.productInfo.config.blocks = {};
+                    }
+                    window.currentSectionsConfig['product-container'].sections.productInfo.config.blocks['inventory-status'] = inventoryConfig;
+                }
+                
+                const returnTo = window.productContainerReturnData.returnTo;
+                window.productContainerReturnData = null;
+                window.switchSidebarView(returnTo);
+            } else {
+                window.switchSidebarView('blockList');
+            }
         });
         
         // Helper function para actualizar configuración de inventory status
@@ -2354,18 +2514,12 @@ window.WebsiteBuilderModules.FeaturedProduct = {
                                data-i18n="featuredProduct.title.headingSize">Heading size</label>
                         <select class="shopify-select" id="title-heading-size" 
                                 style="width: 100%; padding: 8px 12px; border: 1px solid #e0e0e0; border-radius: 4px; background: white;">
-                            <option value="h1" ${config.headingSize === 'h1' ? 'selected' : ''} 
-                                    data-i18n="featuredProduct.title.heading1">Heading 1</option>
-                            <option value="h2" ${config.headingSize === 'h2' || !config.headingSize ? 'selected' : ''} 
-                                    data-i18n="featuredProduct.title.heading2">Heading 2</option>
-                            <option value="h3" ${config.headingSize === 'h3' ? 'selected' : ''} 
-                                    data-i18n="featuredProduct.title.heading3">Heading 3</option>
-                            <option value="h4" ${config.headingSize === 'h4' ? 'selected' : ''} 
-                                    data-i18n="featuredProduct.title.heading4">Heading 4</option>
-                            <option value="h5" ${config.headingSize === 'h5' ? 'selected' : ''} 
-                                    data-i18n="featuredProduct.title.heading5">Heading 5</option>
-                            <option value="h6" ${config.headingSize === 'h6' ? 'selected' : ''} 
-                                    data-i18n="featuredProduct.title.heading6">Heading 6</option>
+                            <option value="extra-small" ${config.headingSize === 'extra-small' ? 'selected' : ''}>Extra small (20px)</option>
+                            <option value="small" ${config.headingSize === 'small' ? 'selected' : ''}>Small (24px)</option>
+                            <option value="medium" ${config.headingSize === 'medium' || !config.headingSize ? 'selected' : ''}>Medium (32px)</option>
+                            <option value="large" ${config.headingSize === 'large' ? 'selected' : ''}>Large (40px)</option>
+                            <option value="extra-large" ${config.headingSize === 'extra-large' ? 'selected' : ''}>Extra large (48px)</option>
+                            <option value="double-extra-large" ${config.headingSize === 'double-extra-large' ? 'selected' : ''}>Double extra large (56px)</option>
                         </select>
                     </div>
                     
@@ -2378,27 +2532,52 @@ window.WebsiteBuilderModules.FeaturedProduct = {
         // Apply translations
         setTimeout(applyTranslations, 0);
         
-        // Back button - regresa al panel lateral principal (blockList)
+        // Back button - check for Product Container context
         $('.back-to-sections-btn').off('click.title').on('click.title', function() {
-            window.switchSidebarView('blockList');
+            if (window.productContainerReturnData && window.productContainerReturnData.returnTo) {
+                // Copy configuration back to product container
+                if (window.currentSectionsConfig.featuredProduct?.blocks?.title) {
+                    const titleConfig = window.currentSectionsConfig.featuredProduct.blocks.title;
+                    if (!window.currentSectionsConfig['product-container'].sections.productInfo.config.blocks) {
+                        window.currentSectionsConfig['product-container'].sections.productInfo.config.blocks = {};
+                    }
+                    window.currentSectionsConfig['product-container'].sections.productInfo.config.blocks.title = titleConfig;
+                }
+                
+                const returnTo = window.productContainerReturnData.returnTo;
+                window.productContainerReturnData = null;
+                window.switchSidebarView(returnTo);
+            } else {
+                window.switchSidebarView('blockList');
+            }
         });
         
         // Helper function para actualizar configuración de title
         const updateTitleConfig = (key, value) => {
-            if (!window.currentSectionsConfig.featuredProduct) {
-                window.currentSectionsConfig.featuredProduct = {};
+            // Check if we're in Product Container context
+            if (window.productContainerReturnData && window.productContainerReturnData.fromView === 'productContainer') {
+                // Update in Product Container
+                const productContainerConfig = window.currentSectionsConfig['product-container'];
+                if (productContainerConfig?.sections?.productInfo?.config?.blocks?.title) {
+                    productContainerConfig.sections.productInfo.config.blocks.title[key] = value;
+                }
+            } else {
+                // Update in Featured Product (original behavior)
+                if (!window.currentSectionsConfig.featuredProduct) {
+                    window.currentSectionsConfig.featuredProduct = {};
+                }
+                if (!window.currentSectionsConfig.featuredProduct.blocks) {
+                    window.currentSectionsConfig.featuredProduct.blocks = {};
+                }
+                if (!window.currentSectionsConfig.featuredProduct.blocks.title) {
+                    window.currentSectionsConfig.featuredProduct.blocks.title = {
+                        type: 'title',
+                        isHidden: false
+                    };
+                }
+                
+                window.currentSectionsConfig.featuredProduct.blocks.title[key] = value;
             }
-            if (!window.currentSectionsConfig.featuredProduct.blocks) {
-                window.currentSectionsConfig.featuredProduct.blocks = {};
-            }
-            if (!window.currentSectionsConfig.featuredProduct.blocks.title) {
-                window.currentSectionsConfig.featuredProduct.blocks.title = {
-                    type: 'title',
-                    isHidden: false
-                };
-            }
-            
-            window.currentSectionsConfig.featuredProduct.blocks.title[key] = value;
             
             // IMPORTANTE: Usar la función setter correcta
             window.setHasPendingPageStructureChanges(true);
@@ -2678,9 +2857,24 @@ window.WebsiteBuilderModules.FeaturedProduct = {
         // Apply translations
         setTimeout(applyTranslations, 0);
         
-        // Back button - regresa al panel lateral principal (blockList)
+        // Back button - check for Product Container context
         $('.back-to-sections-btn').off('click.variant').on('click.variant', function() {
-            window.switchSidebarView('blockList');
+            if (window.productContainerReturnData && window.productContainerReturnData.returnTo) {
+                // Copy configuration back to product container
+                if (window.currentSectionsConfig.featuredProduct?.blocks?.['variant-picker']) {
+                    const variantConfig = window.currentSectionsConfig.featuredProduct.blocks['variant-picker'];
+                    if (!window.currentSectionsConfig['product-container'].sections.productInfo.config.blocks) {
+                        window.currentSectionsConfig['product-container'].sections.productInfo.config.blocks = {};
+                    }
+                    window.currentSectionsConfig['product-container'].sections.productInfo.config.blocks['variant-picker'] = variantConfig;
+                }
+                
+                const returnTo = window.productContainerReturnData.returnTo;
+                window.productContainerReturnData = null;
+                window.switchSidebarView(returnTo);
+            } else {
+                window.switchSidebarView('blockList');
+            }
         });
         
         // Helper function para actualizar configuración de variant picker

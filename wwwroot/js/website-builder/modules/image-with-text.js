@@ -1060,7 +1060,7 @@ window.WebsiteBuilderModules.ImageWithText = {
         return `
             <div style="display: flex; flex-direction: column; height: 100%; position: relative; overflow: hidden;">
                 <div class="sidebar-view-header" style="position: relative; z-index: 10;">
-                    <button class="back-to-sections-btn" onclick="window.switchSidebarView('blockList')">
+                    <button class="back-to-sections-btn">
                         <i class="material-icons">arrow_back</i>
                     </button>
                     <h3 data-i18n="imageWithText.settings.title">Images with text</h3>
@@ -1617,6 +1617,18 @@ window.WebsiteBuilderModules.ImageWithText = {
         // El sortable ahora se inicializa desde website-builder.js como multicolumn
         console.log('[IMAGE-WITH-TEXT] attachEventListeners called');
         
+        // Back button handler for main settings view
+        $('.back-to-sections-btn').off('click.mainview').on('click.mainview', function() {
+            console.log('[IWT] Back button clicked, productContainerReturnData:', window.productContainerReturnData);
+            if (window.productContainerReturnData && window.productContainerReturnData.returnTo) {
+                const returnTo = window.productContainerReturnData.returnTo;
+                window.productContainerReturnData = null;
+                window.switchSidebarView(returnTo);
+            } else {
+                window.switchSidebarView('blockList');
+            }
+        });
+        
         const updateConfig = (key, value) => {
             if (!currentSectionsConfig.imageWithText) {
                 currentSectionsConfig.imageWithText = {};
@@ -1868,9 +1880,16 @@ window.WebsiteBuilderModules.ImageWithText = {
     },
     
     attachBlockEventListeners: function(blockId) {
-        // Back button handler - return to sidebar panel
-        $('.back-to-sections-btn').off('click').on('click', function() {
-            window.switchSidebarView('blockList');
+        // Back button handler - return to appropriate view
+        $('.back-to-sections-btn').off('click.blockview').on('click.blockview', function() {
+            if (window.productContainerReturnData && window.productContainerReturnData.returnTo) {
+                // Return to Product Container Settings
+                window.switchSidebarView(window.productContainerReturnData.returnTo);
+                window.productContainerReturnData = null;
+            } else {
+                // Default behavior - go to Image with Text settings
+                window.switchSidebarView('imageWithTextSettings');
+            }
         });
         
         const updateBlock = (key, value) => {
