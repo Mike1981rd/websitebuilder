@@ -21,12 +21,19 @@ namespace Hotel.Controllers
         }
 
         // Vista de preview completa en nueva pestaña
-        public IActionResult Preview(string page = null)
+        public IActionResult Preview(string page = null, string handle = null)
         {
             // Check if this is being accessed via /cart route
             if (Request.Path.Value?.Equals("/cart", StringComparison.OrdinalIgnoreCase) == true)
             {
                 page = "cart";
+            }
+            
+            // Check if this is being accessed via /products/{handle} route
+            if (!string.IsNullOrEmpty(handle) || Request.Path.Value?.StartsWith("/products/", StringComparison.OrdinalIgnoreCase) == true)
+            {
+                page = "product";
+                ViewBag.ProductHandle = handle;
             }
             
             // Pass the page parameter to the view

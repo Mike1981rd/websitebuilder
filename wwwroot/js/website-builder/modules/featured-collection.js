@@ -5,6 +5,8 @@ window.WebsiteBuilderModules.FeaturedCollection = {
     // Data properties
     selectedProducts: [],
     selectedCollections: [],
+    allProducts: null,
+    productDataCache: {},
     
     // Renderizar el módulo en el preview
     render: function(config) {
@@ -61,6 +63,9 @@ window.WebsiteBuilderModules.FeaturedCollection = {
         
         console.log('[FEATURED COLLECTION] Settings extracted:', settings);
         console.log('[FEATURED COLLECTION] Color scheme value:', settings.colorScheme);
+        console.log('[FEATURED COLLECTION] Products array:', settings.products);
+        console.log('[FEATURED COLLECTION] Product names:', settings.productNames);
+        console.log('[FEATURED COLLECTION] Product handles:', settings.productHandles);
         
         const schemeColors = window.getColorSchemeValues ? window.getColorSchemeValues(settings.colorScheme || 'scheme1') : {
             background: '#ffffff',
@@ -79,6 +84,20 @@ window.WebsiteBuilderModules.FeaturedCollection = {
         if (hasProducts) {
             // IMPORTANTE: Pasar el ID de la instancia a la función de renderizado
             settings.id = config.id;
+            
+            // FIX: Si no hay handles pero hay productos, intentar cargarlos
+            if (!settings.productHandles && settings.products && window.WebsiteBuilderModules.FeaturedCollection.allProducts) {
+                console.log('[FEATURED COLLECTION] No handles found, attempting to load from products cache');
+                settings.productHandles = [];
+                settings.products.forEach((productId, index) => {
+                    const product = window.WebsiteBuilderModules.FeaturedCollection.allProducts.find(p => (p.Id || p.id) === productId);
+                    if (product && (product.Handle || product.handle)) {
+                        settings.productHandles[index] = product.Handle || product.handle;
+                    }
+                });
+                console.log('[FEATURED COLLECTION] Handles loaded:', settings.productHandles);
+            }
+            
             return window.WebsiteBuilderModules.FeaturedCollection.renderProductsView(settings, schemeColors);
         } else if (hasCollections || collectionId) {
             // IMPORTANTE: Pasar el ID de la instancia a la función de renderizado
@@ -418,7 +437,8 @@ window.WebsiteBuilderModules.FeaturedCollection = {
                                                 ...settings,
                                                 productNames: settings.collectionProducts.map(p => p.name),
                                                 productImages: settings.collectionProducts.map(p => p.image),
-                                                productPrices: settings.collectionProducts.map(p => p.price)
+                                                productPrices: settings.collectionProducts.map(p => p.price),
+                                                productHandles: settings.collectionProducts.map(p => p.handle)
                                             };
                                             return window.WebsiteBuilderModules.FeaturedCollection.renderProductCard(product.id, index, productSettings, schemeColors, cardWidth);
                                         }).join('') 
@@ -447,7 +467,8 @@ window.WebsiteBuilderModules.FeaturedCollection = {
                                         ...settings,
                                         productNames: settings.collectionProducts.map(p => p.name),
                                         productImages: settings.collectionProducts.map(p => p.image),
-                                        productPrices: settings.collectionProducts.map(p => p.price)
+                                        productPrices: settings.collectionProducts.map(p => p.price),
+                                        productHandles: settings.collectionProducts.map(p => p.handle)
                                     };
                                     return window.WebsiteBuilderModules.FeaturedCollection.renderProductCard(product.id, index, productSettings, schemeColors, cardWidth);
                                 }).join('') 
@@ -532,6 +553,19 @@ window.WebsiteBuilderModules.FeaturedCollection = {
         const productName = settings.productNames && settings.productNames[index] ? settings.productNames[index] : `Product ${index + 1}`;
         const productImage = settings.productImages && settings.productImages[index] ? settings.productImages[index] : null;
         const productVendor = settings.productVendors && settings.productVendors[index] ? settings.productVendors[index] : null;
+        let productHandle = settings.productHandles && settings.productHandles[index] ? settings.productHandles[index] : null;
+        
+        // Si no tenemos handle y tenemos productId, intentar obtenerlo del cache
+        if (!productHandle && productId && window.WebsiteBuilderModules.FeaturedCollection.productDataCache) {
+            const cachedProduct = window.WebsiteBuilderModules.FeaturedCollection.productDataCache[productId];
+            if (cachedProduct && (cachedProduct.Handle || cachedProduct.handle)) {
+                productHandle = cachedProduct.Handle || cachedProduct.handle;
+                console.log('[FEATURED-COLLECTION] Got handle from cache:', productHandle);
+            }
+        }
+        
+        // Debug productHandles array
+        console.log('[FEATURED-COLLECTION] Product handles array:', settings.productHandles);
         const productPrice = settings.productPrices && settings.productPrices[index] ? 
             (typeof settings.productPrices[index] === 'number' ? settings.productPrices[index] : parseFloat(settings.productPrices[index])) : 
             0;
@@ -623,8 +657,37 @@ window.WebsiteBuilderModules.FeaturedCollection = {
                 break;
         }
         
+        // Detectar si estamos en el editor o en el preview real
+        const isEditor = window.parent !== window;
+        const productUrl = productHandle ? `/products/${productHandle}` : '#';
+        
+        // Verificar contexto
+        console.log('[FEATURED-COLLECTION] Context check:', {
+            windowParent: window.parent,
+            window: window,
+            isEditor: isEditor,
+            parentEqualsWindow: window.parent === window
+        });
+        
+        // Debug logs
+        console.log('[FEATURED-COLLECTION] Card debug:', {
+            productId: productId,
+            productName: productName,
+            productHandle: productHandle,
+            isEditor: isEditor,
+            productUrl: productUrl,
+            index: index
+        });
+        
+        // Si estamos en el preview real y tenemos handle, agregar link
+        const shouldAddLink = !isEditor && productHandle;
+        
+        // Más logs para depuración
+        console.log('[FEATURED-COLLECTION] shouldAddLink:', shouldAddLink);
+        
         return `
             <div class="product-card" id="${cardId}" style="position: relative;">
+                ${shouldAddLink ? `<a href="${productUrl}" style="text-decoration: none; color: inherit; display: block;">` : ''}
                 <div class="product-image-wrapper" style="position: relative; overflow: hidden; border-radius: 8px; ${imageRatio}">
                     ${productImage ? `
                         <img src="${productImage}" alt="${productName}" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover;">
@@ -702,6 +765,7 @@ window.WebsiteBuilderModules.FeaturedCollection = {
                         box-shadow: 0 4px 12px rgba(0,0,0,0.15);
                     }
                 </style>
+                ${shouldAddLink ? `</a>` : ''}
             </div>
         `;
     },
@@ -2587,6 +2651,7 @@ window.WebsiteBuilderModules.FeaturedCollection = {
         targetConfig.config.productPrices = this.selectedProducts.map(p => parseFloat(p.price) || 0);
         targetConfig.config.productVendors = this.selectedProducts.map(p => p.vendor || '');
         targetConfig.config.productComparePrices = this.selectedProducts.map(p => p.compareAtPrice ? parseFloat(p.compareAtPrice) : null);
+        targetConfig.config.productHandles = this.selectedProducts.map(p => p.handle || '');
         
         // Actualizar UI
         if (this.selectedProducts.length > 0) {
@@ -2792,6 +2857,7 @@ window.WebsiteBuilderModules.FeaturedCollection = {
             targetConfig.config.productPrices = this.selectedProducts.map(p => parseFloat(p.price) || 0);
             targetConfig.config.productVendors = this.selectedProducts.map(p => p.vendor || '');
             targetConfig.config.productComparePrices = this.selectedProducts.map(p => p.compareAtPrice ? parseFloat(p.compareAtPrice) : null);
+            targetConfig.config.productHandles = this.selectedProducts.map(p => p.handle || '');
         } else {
             // Limpiar selección
             delete targetConfig.config.products;
@@ -3066,8 +3132,51 @@ window.WebsiteBuilderModules.FeaturedCollection = {
                    '.' + buttonClass + ':hover { opacity: 0.85; }' +
                    '</style>';
         }
+    },
+    
+    // Función para inicializar los datos de productos en el preview
+    initializeProductData: function() {
+        console.log('[FEATURED COLLECTION] Initializing product data...');
+        
+        // Detectar si estamos en el preview real
+        const isEditor = window.parent !== window;
+        if (isEditor) {
+            console.log('[FEATURED COLLECTION] In editor mode, skipping product data init');
+            return;
+        }
+        
+        // Cargar todos los productos disponibles
+        $.ajax({
+            url: '/api/builder/products',
+            method: 'GET',
+            success: (products) => {
+                console.log('[FEATURED COLLECTION] Products loaded:', products.length);
+                window.WebsiteBuilderModules.FeaturedCollection.allProducts = products;
+                
+                // Crear cache de productos por ID
+                window.WebsiteBuilderModules.FeaturedCollection.productDataCache = {};
+                products.forEach(product => {
+                    // Los productos pueden venir con Id o id dependiendo del endpoint
+                    const productId = product.Id || product.id;
+                    window.WebsiteBuilderModules.FeaturedCollection.productDataCache[productId] = product;
+                });
+                
+                console.log('[FEATURED COLLECTION] Product data cache initialized');
+            },
+            error: (xhr, status, error) => {
+                console.error('[FEATURED COLLECTION] Error loading products:', error);
+            }
+        });
     }
 };
+
+// Inicializar datos de productos cuando se carga el módulo en el preview
+$(document).ready(function() {
+    // Solo inicializar si estamos en el preview real
+    if (window.parent === window) {
+        window.WebsiteBuilderModules.FeaturedCollection.initializeProductData();
+    }
+});
 
 // Make module globally accessible
 console.log('[FEATURED COLLECTION MODULE] Module loaded successfully');

@@ -721,6 +721,7 @@ namespace Hotel.Controllers
                     {
                         p.Id,
                         name = p.Title, // Usar Title y mapearlo a name para el frontend
+                        p.Handle,
                         p.Description,
                         p.Price,
                         p.CompareAtPrice,
@@ -763,6 +764,84 @@ namespace Hotel.Controllers
             {
                 _logger.LogError(ex, "Error al obtener productos para Website Builder");
                 return Json(new List<object>());
+            }
+        }
+
+        // GET: api/builder/products/by-handle/{handle}
+        [HttpGet]
+        [Route("api/builder/products/by-handle/{handle}")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetProductByHandle(string handle)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(handle))
+                {
+                    return NotFound();
+                }
+
+                var product = await _context.Products
+                    .Where(p => p.Handle == handle && p.Status == "active")
+                    .Include(p => p.Images.OrderBy(i => i.Position))
+                    .Include(p => p.Videos.OrderBy(v => v.Position))
+                    .Include(p => p.Variants.OrderBy(v => v.Position))
+                    .Select(p => new
+                    {
+                        p.Id,
+                        p.Title,
+                        p.Handle,
+                        p.Description,
+                        p.Price,
+                        p.CompareAtPrice,
+                        p.Vendor,
+                        p.ProductType,
+                        p.Tags,
+                        p.SKU,
+                        p.Barcode,
+                        p.Quantity,
+                        p.RequiresShipping,
+                        p.Weight,
+                        p.WeightUnit,
+                        Images = p.Images.Select(i => new
+                        {
+                            i.Id,
+                            i.ImageUrl,
+                            i.AltText,
+                            i.Position
+                        }),
+                        Videos = p.Videos.Select(v => new
+                        {
+                            v.Id,
+                            v.VideoUrl,
+                            v.ThumbnailUrl,
+                            v.Position
+                        }),
+                        Variants = p.Variants.Select(v => new
+                        {
+                            v.Id,
+                            v.Title,
+                            v.Price,
+                            v.CompareAtPrice,
+                            v.SKU,
+                            v.Option1,
+                            v.Option2,
+                            v.Option3,
+                            v.Quantity
+                        })
+                    })
+                    .FirstOrDefaultAsync();
+
+                if (product == null)
+                {
+                    return NotFound();
+                }
+
+                return Json(product);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al obtener producto por handle para Website Builder");
+                return StatusCode(500, "Error al obtener el producto");
             }
         }
 

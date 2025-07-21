@@ -1,4 +1,5 @@
 // Product Container Module for Website Builder
+console.log('[PRODUCT-CONTAINER] Module loading...');
 window.WebsiteBuilderModules = window.WebsiteBuilderModules || {};
 
 window.WebsiteBuilderModules.ProductContainer = {
@@ -155,6 +156,25 @@ window.WebsiteBuilderModules.ProductContainer = {
         console.log('[PRODUCT-CONTAINER] Render called with config:', config);
         
         if (!config || config.isHidden) return '';
+        
+        // Check if we have a product handle passed in config (from Preview.cshtml)
+        if (config.productHandle && !this.currentProduct) {
+            console.log('[PRODUCT-CONTAINER] Product handle found in config:', config.productHandle);
+            // Load the product synchronously if possible, or schedule async load
+            this.loadProductByHandle(config.productHandle).then(product => {
+                if (product) {
+                    console.log('[PRODUCT-CONTAINER] Product loaded from config handle:', product.name);
+                    this.currentProduct = product;
+                    // Re-render the section
+                    if (typeof renderPreviewContent === 'function') {
+                        console.log('[PRODUCT-CONTAINER] Re-rendering preview content with loaded product');
+                        renderPreviewContent();
+                    }
+                }
+            }).catch(error => {
+                console.error('[PRODUCT-CONTAINER] Error loading product from config handle:', error);
+            });
+        }
         
         const uniqueId = 'product-container-' + Date.now();
         
@@ -1389,7 +1409,53 @@ window.WebsiteBuilderModules.ProductContainer = {
         console.log('[PRODUCT-CONTAINER] Initializing module');
         console.log('[PRODUCT-CONTAINER] Current page:', window.currentPageId);
         
-        // Load products in background
+        // Check if we have a product handle from the URL (in preview real)
+        const productHandle = this.getProductHandleFromUrl();
+        
+        if (productHandle) {
+            console.log('[PRODUCT-CONTAINER] Product handle detected from URL:', productHandle);
+            // Load specific product by handle
+            this.loadProductByHandle(productHandle).then(product => {
+                if (product) {
+                    console.log('[PRODUCT-CONTAINER] Product loaded by handle:', product.name);
+                    this.currentProduct = product;
+                    // Re-render preview if we're on product page
+                    if (window.currentPageId === 'product' && typeof renderPreview === 'function') {
+                        console.log('[PRODUCT-CONTAINER] Re-rendering preview with specific product');
+                        renderPreview();
+                    }
+                }
+            }).catch(error => {
+                console.error('[PRODUCT-CONTAINER] Error loading product by handle:', error);
+                // Fall back to first product
+                this.loadFirstProduct();
+            });
+        } else {
+            // Load products in background (editor mode)
+            this.loadFirstProduct();
+        }
+    },
+    
+    // Get product handle from URL
+    getProductHandleFromUrl: function() {
+        // Check if we're in preview real (not in editor iframe)
+        const isEditor = window.parent !== window;
+        if (isEditor) {
+            return null; // In editor, don't use URL
+        }
+        
+        // Check URL path for /products/{handle}
+        const path = window.location.pathname;
+        const productPathMatch = path.match(/^\/products\/([^\/]+)$/);
+        if (productPathMatch) {
+            return productPathMatch[1];
+        }
+        
+        return null;
+    },
+    
+    // Load first product (for editor)
+    loadFirstProduct: function() {
         this.loadProducts().then(products => {
             console.log('[PRODUCT-CONTAINER] Products loaded successfully:', products);
             if (products && products.length > 0) {
@@ -1405,6 +1471,39 @@ window.WebsiteBuilderModules.ProductContainer = {
         }).catch(error => {
             console.error('[PRODUCT-CONTAINER] Error loading products:', error);
             console.log('[PRODUCT-CONTAINER] Using demo product due to error');
+        });
+    },
+    
+    // Load product by handle
+    loadProductByHandle: function(handle) {
+        return new Promise((resolve, reject) => {
+            $.ajax({
+                url: `/api/builder/products/by-handle/${handle}`,
+                method: 'GET',
+                success: (product) => {
+                    console.log('[PRODUCT-CONTAINER] Product loaded by handle:', product);
+                    // Transform to match our expected format
+                    const transformedProduct = {
+                        id: product.id,
+                        name: product.title,
+                        handle: product.handle,
+                        description: product.description,
+                        price: product.price,
+                        compareAtPrice: product.compareAtPrice,
+                        vendor: product.vendor,
+                        images: product.images?.map(img => ({
+                            id: img.id,
+                            url: img.imageUrl,
+                            altText: img.altText
+                        })) || []
+                    };
+                    resolve(transformedProduct);
+                },
+                error: (xhr, status, error) => {
+                    console.error('[PRODUCT-CONTAINER] Error loading product by handle:', error);
+                    reject(error);
+                }
+            });
         });
     },
     
@@ -3299,3 +3398,16 @@ if (window.registerWebsiteBuilderModule) {
 } else {
     console.warn('[PRODUCT-CONTAINER] Module registration system not available');
 }
+
+// Confirm module is loaded
+console.log('[PRODUCT-CONTAINER] Module loaded successfully');
+console.log('[PRODUCT-CONTAINER] Module available at:', window.WebsiteBuilderModules.ProductContainer);
+
+// Initialize module if we're in preview
+$(document).ready(function() {
+    // Check if we're in preview mode (not in editor)
+    if (window.location.pathname.includes('/products/') || window.currentPageId === 'product') {
+        console.log('[PRODUCT-CONTAINER] Initializing module for preview');
+        window.WebsiteBuilderModules.ProductContainer.initialize();
+    }
+});

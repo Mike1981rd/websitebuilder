@@ -103,6 +103,11 @@ app.MapControllerRoute(
     pattern: "cart",
     defaults: new { controller = "WebsiteBuilder", action = "Preview" });
 
+app.MapControllerRoute(
+    name: "product",
+    pattern: "products/{handle}",
+    defaults: new { controller = "WebsiteBuilder", action = "Preview" });
+
 // Map API controllers
 app.MapControllers();
 

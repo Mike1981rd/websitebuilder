@@ -20,6 +20,21 @@ window.WebsiteBuilderModules.FeaturedProduct = {
     render: function(config) {
         if (!config || config.isHidden) return '';
         
+        // Si el producto no tiene handle pero tiene ID, intentar cargarlo
+        if (config.selectedProduct && config.selectedProduct.id && !config.selectedProduct.handle) {
+            console.log('[FEATURED-PRODUCT] Product missing handle, attempting to fetch...');
+            window.WebsiteBuilderModules.FeaturedProduct.fetchProductHandle(config.selectedProduct.id).then(handle => {
+                if (handle) {
+                    config.selectedProduct.handle = handle;
+                    console.log('[FEATURED-PRODUCT] Handle fetched successfully:', handle);
+                    // Re-render the preview to apply the link
+                    if (typeof window.renderPreviewContent === 'function') {
+                        window.renderPreviewContent();
+                    }
+                }
+            });
+        }
+        
         const uniqueId = 'featured-product-' + Date.now();
         const schemeColors = getColorSchemeValues(config.colorScheme || 'scheme1');
         
@@ -218,9 +233,11 @@ window.WebsiteBuilderModules.FeaturedProduct = {
                 
                 <!-- Main Image -->
                 <div class="product-main-image" style="${mainImageStyle}">
-                    <div style="border-radius: 8px; overflow: hidden; ${this.getImageRatioStyle(config.imageRatio)}">
-                        <img class="main-product-image" data-product-images='${JSON.stringify(product.images)}' src="${mainImage.url}" alt="${mainImage.altText || product.name}" style="width: 100%; height: 100%; ${this.getImageFitStyle(config.imageRatio)}">
-                    </div>
+                    ${this.wrapWithLink(product, `
+                        <div style="border-radius: 8px; overflow: hidden; ${this.getImageRatioStyle(config.imageRatio)}">
+                            <img class="main-product-image" data-product-images='${JSON.stringify(product.images)}' src="${mainImage.url}" alt="${mainImage.altText || product.name}" style="width: 100%; height: 100%; ${this.getImageFitStyle(config.imageRatio)}; cursor: pointer;">
+                        </div>
+                    `)}
                 </div>
             </div>
         `;
@@ -294,8 +311,36 @@ window.WebsiteBuilderModules.FeaturedProduct = {
         return 'object-fit: cover;';
     },
     
+    // Helper function to wrap content with link in preview real
+    wrapWithLink: function(product, content) {
+        // Check if we're in editor or preview real
+        const isEditor = window.parent !== window;
+        
+        console.log('[FEATURED-PRODUCT] wrapWithLink called:', {
+            isEditor: isEditor,
+            hasProduct: !!product,
+            productHandle: product?.handle,
+            windowParent: window.parent,
+            window: window,
+            parentEqualsWindow: window.parent === window
+        });
+        
+        // Only add link in preview real and if product has handle
+        if (!isEditor && product && product.handle) {
+            const productUrl = `/products/${product.handle}`;
+            console.log('[FEATURED-PRODUCT] Creating link to:', productUrl);
+            return `<a href="${productUrl}" style="text-decoration: none; color: inherit; display: block;">${content}</a>`;
+        }
+        
+        console.log('[FEATURED-PRODUCT] Not adding link - conditions not met');
+        return content;
+    },
+    
     renderProductInfo: function(config, schemeColors) {
         const product = config.selectedProduct;
+        
+        console.log('[FEATURED-PRODUCT] renderProductInfo - product:', product);
+        console.log('[FEATURED-PRODUCT] renderProductInfo - product handle:', product?.handle);
         
         // Get typography settings - intentar obtener de diferentes fuentes
         let globalThemeSettings = null;
@@ -366,7 +411,9 @@ window.WebsiteBuilderModules.FeaturedProduct = {
                     };
                     
                     const titleFontSize = titleSizeMap[titleSize] || '32px';
-                    html += `<h1 class="product-title" style="font-size: ${titleFontSize}; font-weight: 600; margin: 0 0 15px 0;">${product?.name || 'Nombre del producto'}</h1>`;
+                    const titleContent = product?.name || 'Nombre del producto';
+                    const titleHtml = `<h1 class="product-title" style="font-size: ${titleFontSize}; font-weight: 600; margin: 0 0 15px 0;">${titleContent}</h1>`;
+                    html += window.WebsiteBuilderModules.FeaturedProduct.wrapWithLink(product, titleHtml);
                     break;
                     
                 case 'price':
@@ -1422,6 +1469,7 @@ window.WebsiteBuilderModules.FeaturedProduct = {
         currentSectionsConfig.featuredProduct.selectedProduct = {
             id: product.id,
             name: product.name,
+            handle: product.handle || product.Handle, // Agregar handle
             price: product.price,
             compareAtPrice: product.compareAtPrice,
             vendor: product.vendor,
@@ -1466,6 +1514,7 @@ window.WebsiteBuilderModules.FeaturedProduct = {
                     currentSectionsConfig.featuredProduct.selectedProduct = {
                         id: product.id,
                         name: product.name,
+                        handle: product.handle || product.Handle, // Agregar handle
                         price: product.price,
                         compareAtPrice: product.compareAtPrice,
                         vendor: product.vendor,
@@ -2978,6 +3027,32 @@ window.WebsiteBuilderModules.FeaturedProduct = {
             e.preventDefault();
             // TODO: Mostrar menú de opciones adicionales
             console.log('Show variant picker menu');
+        });
+    },
+    
+    // Function to fetch product handle by ID
+    fetchProductHandle: function(productId) {
+        console.log('[FEATURED-PRODUCT] Fetching handle for product ID:', productId);
+        return new Promise((resolve, reject) => {
+            // Fetch all products and find the specific one
+            $.ajax({
+                url: '/api/builder/products',
+                method: 'GET',
+                success: (products) => {
+                    const product = products.find(p => p.id === productId);
+                    if (product && product.handle) {
+                        console.log('[FEATURED-PRODUCT] Handle fetched:', product.handle);
+                        resolve(product.handle);
+                    } else {
+                        console.warn('[FEATURED-PRODUCT] Product found but no handle:', product);
+                        resolve(null);
+                    }
+                },
+                error: (xhr, status, error) => {
+                    console.error('[FEATURED-PRODUCT] Error fetching product handle:', error);
+                    resolve(null);
+                }
+            });
         });
     }
 };

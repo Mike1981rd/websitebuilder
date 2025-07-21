@@ -212,11 +212,13 @@
     <script src="~/js/website-builder/modules/footer.js?v=@DateTime.Now.Ticks"></script>
     <script src="~/js/website-builder/modules/featured-product.js?v=@DateTime.Now.Ticks"></script>
     <script src="~/js/website-builder/modules/featured-collection.js?v=@DateTime.Now.Ticks"></script>
+    <script src="~/js/website-builder/modules/product-container.js?v=@DateTime.Now.Ticks"></script>
     
     <script>
         // Verificar que los módulos se cargaron correctamente
         console.log('[PREVIEW] Modules loaded check:');
         console.log('- Multicolumn:', window.WebsiteBuilderModules?.Multicolumn ? 'Loaded' : 'Not loaded');
+        console.log('- ProductContainer:', window.WebsiteBuilderModules?.ProductContainer ? 'Loaded' : 'Not loaded');
         console.log('- ImageWithText:', window.WebsiteBuilderModules?.ImageWithText ? 'Loaded' : 'Not loaded');
     </script>
     
@@ -233,6 +235,7 @@
         // Get page parameter from URL or ViewBag
         const urlParams = new URLSearchParams(window.location.search);
         const viewBagPage = '@ViewBag.Page';
+        const viewBagProductHandle = '@ViewBag.ProductHandle';
         const currentPageId = urlParams.get('page') || (viewBagPage && viewBagPage !== '' ? viewBagPage : 'home');
         
         console.log('[PREVIEW] Debug page detection:', {
@@ -447,6 +450,61 @@
                                 }
                             };
                             console.log('[PREVIEW] Cart page config set:', currentSectionsConfig);
+                        } else if (currentPageId === 'product') {
+                            // Special handling for product page
+                            console.log('[PREVIEW] Loading product page configuration');
+                            console.log('[PREVIEW] ViewBag.ProductHandle:', viewBagProductHandle);
+                            console.log('[PREVIEW] Current sectionsConfig before product page load:', currentSectionsConfig);
+                            
+                            // Keep existing header and footer configurations
+                            const existingHeader = currentSectionsConfig.header || {};
+                            const existingFooter = currentSectionsConfig.footer || {};
+                            const existingProductContainer = currentSectionsConfig.productContainer || {};
+                            
+                            // Check if we have a product template page saved
+                            if (pagesData['product']) {
+                                console.log('[PREVIEW] Found product page in pagesData');
+                                const pageConfig = pagesData['product'];
+                                console.log('[PREVIEW] Product page config:', pageConfig);
+                                console.log('[PREVIEW] Product page sectionsConfig:', pageConfig.sectionsConfig);
+                                console.log('[PREVIEW] Product page sectionOrder:', pageConfig.sectionOrder);
+                                
+                                currentSectionsConfig = {
+                                    ...currentSectionsConfig,
+                                    ...pageConfig.sectionsConfig,
+                                    sectionOrder: pageConfig.sectionOrder || []
+                                };
+                                
+                                // Look for product container in different possible keys
+                                const productContainerKey = Object.keys(currentSectionsConfig).find(key => 
+                                    key.includes('product-container') || key === 'productContainer'
+                                );
+                                
+                                console.log('[PREVIEW] Product container key found:', productContainerKey);
+                                
+                                // Pass the product handle to product container
+                                if (productContainerKey && currentSectionsConfig[productContainerKey]) {
+                                    currentSectionsConfig[productContainerKey].productHandle = viewBagProductHandle;
+                                    console.log('[PREVIEW] Set product handle on config key:', productContainerKey);
+                                }
+                            } else {
+                                console.log('[PREVIEW] No product page found, using default configuration');
+                                // Product page should show header, product container, and footer
+                                currentSectionsConfig = {
+                                    ...currentSectionsConfig,
+                                    sectionOrder: ['header', 'product-container', 'footer'],
+                                    header: existingHeader,
+                                    footer: existingFooter,
+                                    productContainer: {
+                                        ...existingProductContainer,
+                                        isHidden: false,
+                                        colorScheme: existingProductContainer.colorScheme || 'scheme1',
+                                        productHandle: viewBagProductHandle // Pass the handle from URL
+                                    }
+                                };
+                            }
+                            console.log('[PREVIEW] Product page config set:', currentSectionsConfig);
+                            console.log('[PREVIEW] Product handle:', viewBagProductHandle);
                         } else if (pagesData.home && pagesData.home.sectionsConfig) {
                             // Fallback to home page if requested page doesn't exist
                             currentSectionsConfig = {
@@ -904,6 +962,49 @@
                                                 <i class="material-icons" style="font-size: 48px; margin-bottom: 16px;">text_fields</i>
                                                 <h3>Rich Text</h3>
                                                 <p>Module is loading...</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                `;
+                            }
+                        }
+                    } else if (sectionId === 'product-container') {
+                        console.log('[PREVIEW] Processing product container section');
+                        // Try different possible keys for product container config
+                        let productContainerConfig = currentSectionsConfig.productContainer || 
+                                                    currentSectionsConfig['product-container'] ||
+                                                    currentSectionsConfig.productcontainer;
+                        
+                        // If not found, check if we have any section with product-container in its ID
+                        if (!productContainerConfig) {
+                            for (const key in currentSectionsConfig) {
+                                if (key.includes('product-container')) {
+                                    productContainerConfig = currentSectionsConfig[key];
+                                    console.log('[PREVIEW] Found product container config with key:', key);
+                                    break;
+                                }
+                            }
+                        }
+                        
+                        console.log('[PREVIEW] Product container config:', productContainerConfig);
+                        console.log('[PREVIEW] Module available?', window.WebsiteBuilderModules?.ProductContainer?.render ? 'Yes' : 'No');
+                        
+                        if (productContainerConfig && !productContainerConfig.isHidden) {
+                            // Use the module's render function if available
+                            if (window.WebsiteBuilderModules && window.WebsiteBuilderModules.ProductContainer && window.WebsiteBuilderModules.ProductContainer.render) {
+                                console.log('[PREVIEW] Rendering product container with module');
+                                const renderedHtml = window.WebsiteBuilderModules.ProductContainer.render(productContainerConfig);
+                                console.log('[PREVIEW] Rendered HTML length:', renderedHtml.length);
+                                finalHtml += renderedHtml;
+                            } else {
+                                console.log('[PREVIEW] Product Container module not available');
+                                // Fallback if module is not loaded
+                                finalHtml += `
+                                    <div class="section-wrapper product-container-section" style="padding: 40px 0; background: #f5f5f5;">
+                                        <div class="container" style="max-width: 1200px; margin: 0 auto; padding: 0 20px;">
+                                            <div style="text-align: center; color: #666;">
+                                                <i class="material-icons" style="font-size: 48px; margin-bottom: 16px;">inventory_2</i>
+                                                <p>Product Container module not loaded</p>
                                             </div>
                                         </div>
                                     </div>
