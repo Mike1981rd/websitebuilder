@@ -539,6 +539,55 @@ if (config.savedData && !config.savedData.requiredField) {
 }
 ```
 
+## Implementación de Botones Buy Now - Navegación Directa a Checkout
+
+### Fecha de implementación: 21 de Julio de 2025
+
+### Objetivo
+Hacer que todos los botones "Buy Now" o "Comprar ahora" en el sistema naveguen directamente a la página de checkout, igual que el botón del Drawer Cart.
+
+### 1. Product Container - IMPLEMENTADO ✅
+
+**Archivo**: `/wwwroot/js/website-builder/modules/product-container.js`
+
+#### Cambios realizados:
+Se agregó el atributo `onclick` a los botones Buy Now tanto para estilo outline como solid.
+
+**Línea 3294 (outline button)**:
+```javascript
+onclick="event.preventDefault(); event.stopPropagation(); if(window.parent && window.parent !== window) { window.parent.location.href='/checkout'; } else { window.location.href='/checkout'; }"
+```
+
+**Línea 3309 (solid button)**:
+```javascript
+onclick="event.preventDefault(); event.stopPropagation(); if(window.parent && window.parent !== window) { window.parent.location.href='/checkout'; } else { window.location.href='/checkout'; }"
+```
+
+#### Explicación del código:
+- `event.preventDefault()`: Previene comportamiento por defecto del botón
+- `event.stopPropagation()`: Evita que el evento burbujee a elementos padres
+- `if(window.parent && window.parent !== window)`: Detecta si estamos en un iframe
+  - Si es iframe: `window.parent.location.href='/checkout'` (navega el parent)
+  - Si no es iframe: `window.location.href='/checkout'` (navega directamente)
+
+#### Patrón reutilizado:
+Este es el mismo patrón que usa el Drawer Cart en:
+- `/wwwroot/js/website-render-functions.js` línea 2853
+- `/wwwroot/js/website-builder.js` línea 29324
+
+### 2. Featured Product - PENDIENTE
+
+**Archivo a modificar**: `/wwwroot/js/website-builder/modules/featured-product.js`
+
+### 3. Featured Collection - PENDIENTE
+
+**Archivo a modificar**: `/wwwroot/js/website-builder/modules/featured-collection.js`
+
+### Notas importantes:
+1. Se implementó SOLO en Product Container siguiendo el principio de cambios incrementales
+2. Se usó exactamente el mismo patrón que el Drawer Cart para mantener consistencia
+3. El manejo del contexto iframe vs no-iframe asegura que funcione en todos los escenarios
+
 ## Conclusión
 
 La implementación del preview real para productos requirió coordinar múltiples componentes:
@@ -548,5 +597,6 @@ La implementación del preview real para productos requirió coordinar múltiple
 - Paso de datos entre componentes
 - Manejo de diferentes contextos (editor vs preview)
 - **Manejo de datos legacy y actualizaciones dinámicas**
+- **Implementación de navegación directa a checkout desde botones Buy Now**
 
 Esta documentación servirá como guía para implementar funcionalidades similares en el futuro, evitando los mismos problemas y aplicando las soluciones probadas.

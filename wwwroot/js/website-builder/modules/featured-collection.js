@@ -3108,6 +3108,7 @@ window.WebsiteBuilderModules.FeaturedCollection = {
         
         if (isOutline) {
             return '<button class="' + buttonClass + '" ' +
+                   'onclick="event.preventDefault(); event.stopPropagation(); if(window.parent && window.parent !== window) { window.parent.location.href=\'/checkout\'; } else { window.location.href=\'/checkout\'; }" ' +
                    'style="width: 100%; margin-top: 12px; padding: 10px 16px; border-radius: 4px; ' +
                    'font-size: 14px; font-family: ' + fontFamily + '; font-weight: 500; cursor: pointer; ' +
                    'transition: all 0.2s ease; background: transparent; ' +
@@ -3122,6 +3123,7 @@ window.WebsiteBuilderModules.FeaturedCollection = {
                    '</style>';
         } else {
             return '<button class="' + buttonClass + '" ' +
+                   'onclick="event.preventDefault(); event.stopPropagation(); if(window.parent && window.parent !== window) { window.parent.location.href=\'/checkout\'; } else { window.location.href=\'/checkout\'; }" ' +
                    'style="width: 100%; margin-top: 12px; padding: 10px 16px; border-radius: 4px; ' +
                    'font-size: 14px; font-family: ' + fontFamily + '; font-weight: 500; cursor: pointer; ' +
                    'transition: all 0.2s ease; background: ' + solidButtonBg + '; ' +
