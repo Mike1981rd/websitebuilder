@@ -3027,6 +3027,34 @@ function renderPreview() {
                             console.error('[PREVIEW] No product container render function available!');
                         }
                     }
+                } else if (sectionId === 'collections') {
+                    // Collections list page
+                    const config = pageData.sectionsConfig?.collections || {};
+                    console.log('[PREVIEW] Collections section config:', config);
+                    
+                    if (!config.isHidden) {
+                        if (window.renderCollectionsPage) {
+                            finalHtml += window.renderCollectionsPage(config);
+                        } else if (iframeWindow.renderCollectionsPage) {
+                            finalHtml += iframeWindow.renderCollectionsPage(config);
+                        } else {
+                            console.error('[PREVIEW] renderCollectionsPage function not found');
+                        }
+                    }
+                } else if (sectionId === 'collection') {
+                    // Individual collection page (products list)
+                    const config = pageData.sectionsConfig?.collection || {};
+                    console.log('[PREVIEW] Collection section config:', config);
+                    
+                    if (!config.isHidden && config.handle) {
+                        if (window.renderCollectionPage) {
+                            finalHtml += window.renderCollectionPage(config);
+                        } else if (iframeWindow.renderCollectionPage) {
+                            finalHtml += iframeWindow.renderCollectionPage(config);
+                        } else {
+                            console.error('[PREVIEW] renderCollectionPage function not found');
+                        }
+                    }
                 } else if (sectionId === 'cart') {
                     // Cart section for cart page
                     const config = pageData.sectionsConfig?.cart || {
@@ -3190,6 +3218,26 @@ function renderPreview() {
     setTimeout(() => {
         updateCartIconCount();
     }, 100);
+    
+    // Load collections data if on collections page
+    if (currentPageId === 'collections') {
+        setTimeout(() => {
+            if (iframeWindow.loadCollectionsData) {
+                console.log('[PREVIEW] Loading collections data');
+                iframeWindow.loadCollectionsData();
+            }
+        }, 100);
+    }
+    
+    // Load collection products data if on individual collection page
+    if (currentPageId === 'collection' && pageData.sectionsConfig?.collection?.handle) {
+        setTimeout(() => {
+            if (iframeWindow.loadCollectionProductsData) {
+                console.log('[PREVIEW] Loading collection products data for handle:', pageData.sectionsConfig.collection.handle);
+                iframeWindow.loadCollectionProductsData(pageData.sectionsConfig.collection.handle);
+            }
+        }, 100);
+    }
     
     // Si estamos en cartSettings y el drawer debe abrirse automáticamente
     if (currentSidebarView === 'cartSettings' && pageData.sectionsConfig.cart) {

@@ -35,8 +35,15 @@ namespace Hotel.Controllers
                 page = "collections";
             }
             
+            // Check if this is being accessed via /collections/{handle} route
+            if (Request.Path.Value?.StartsWith("/collections/", StringComparison.OrdinalIgnoreCase) == true && !string.IsNullOrEmpty(handle))
+            {
+                page = "collection"; // singular for individual collection
+                ViewBag.CollectionHandle = handle;
+            }
+            
             // Check if this is being accessed via /products/{handle} route
-            if (!string.IsNullOrEmpty(handle) || Request.Path.Value?.StartsWith("/products/", StringComparison.OrdinalIgnoreCase) == true)
+            if (Request.Path.Value?.StartsWith("/products/", StringComparison.OrdinalIgnoreCase) == true && !string.IsNullOrEmpty(handle))
             {
                 page = "product";
                 ViewBag.ProductHandle = handle;

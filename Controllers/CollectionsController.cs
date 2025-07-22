@@ -657,6 +657,72 @@ namespace Hotel.Controllers
             }
         }
 
+        // GET: api/builder/collections/{handle}/products
+        [HttpGet]
+        [Route("api/builder/collections/{handle}/products")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetCollectionProducts(string handle)
+        {
+            try
+            {
+                // Buscar la colección por handle
+                var collection = await _context.Collections
+                    .Where(c => c.Handle == handle && c.IsActive)
+                    .FirstOrDefaultAsync();
+
+                if (collection == null)
+                {
+                    return Json(new { success = false, message = "Colección no encontrada" });
+                }
+
+                // Obtener productos de la colección
+                var products = await _context.CollectionProducts
+                    .Where(cp => cp.CollectionId == collection.Id)
+                    .Include(cp => cp.Product)
+                        .ThenInclude(p => p.Images)
+                    .Where(cp => cp.Product.Status == "active")
+                    .Select(cp => new
+                    {
+                        id = cp.Product.Id,
+                        title = cp.Product.Title,
+                        handle = cp.Product.Handle,
+                        price = cp.Product.Price,
+                        compareAtPrice = cp.Product.CompareAtPrice,
+                        imageUrl = cp.Product.Images.OrderBy(i => i.Position).FirstOrDefault() != null 
+                            ? cp.Product.Images.OrderBy(i => i.Position).First().ImageUrl 
+                            : "",
+                        vendor = cp.Product.Vendor ?? "Aurora", // Vendor por defecto
+                        rating = 5, // Por ahora hardcoded, implementar sistema de ratings después
+                        reviewCount = 0,
+                        hasDiscount = cp.Product.CompareAtPrice.HasValue && cp.Product.CompareAtPrice > cp.Product.Price,
+                        discountPercentage = cp.Product.CompareAtPrice.HasValue && cp.Product.CompareAtPrice > cp.Product.Price 
+                            ? Math.Round(((cp.Product.CompareAtPrice.Value - cp.Product.Price) / cp.Product.CompareAtPrice.Value) * 100)
+                            : 0,
+                        variantCount = 3 // Por ahora hardcoded, implementar variantes después
+                    })
+                    .ToListAsync();
+
+                return Json(new 
+                { 
+                    success = true, 
+                    collection = new 
+                    {
+                        id = collection.Id,
+                        title = collection.Title,
+                        handle = collection.Handle,
+                        description = collection.Description
+                    },
+                    products = products,
+                    totalProducts = products.Count
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al obtener productos de la colección");
+                return Json(new { success = false, message = "Error al cargar productos" });
+            }
+        }
+
         #endregion
 
         // Métodos auxiliares

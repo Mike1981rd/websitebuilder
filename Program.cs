@@ -113,6 +113,11 @@ app.MapControllerRoute(
     pattern: "collections",
     defaults: new { controller = "WebsiteBuilder", action = "Preview" });
 
+app.MapControllerRoute(
+    name: "collection",
+    pattern: "collections/{handle}",
+    defaults: new { controller = "WebsiteBuilder", action = "Preview" });
+
 // Map API controllers
 app.MapControllers();
 

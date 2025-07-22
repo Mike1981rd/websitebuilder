@@ -19,6 +19,9 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Roboto:wght@300;400;500;700&family=Open+Sans:wght@400;600;700&family=Playfair+Display:wght@400;700&family=Montserrat:wght@400;500;600;700&family=Lato:wght@400;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     
+    <!-- Website Builder CSS -->
+    <link rel="stylesheet" href="/css/website-builder.css?v=@DateTime.Now.Ticks" />
+    
     <style>
         /* Reset básico */
         * {
@@ -470,6 +473,28 @@
                                 }
                             };
                             console.log('[PREVIEW] Collections page config set:', currentSectionsConfig);
+                        } else if (currentPageId === 'collection') {
+                            // Special handling for individual collection page
+                            console.log('[PREVIEW] Loading individual collection page configuration');
+                            const collectionHandle = '@ViewBag.CollectionHandle';
+                            console.log('[PREVIEW] Collection handle:', collectionHandle);
+                            
+                            // Keep existing header and footer configurations
+                            const existingHeader = currentSectionsConfig.header || {};
+                            const existingFooter = currentSectionsConfig.footer || {};
+                            
+                            // Collection page should show header, collection products, and footer
+                            currentSectionsConfig = {
+                                ...currentSectionsConfig,
+                                sectionOrder: ['header', 'collection', 'footer'],
+                                header: existingHeader,
+                                footer: existingFooter,
+                                collection: {
+                                    isHidden: false,
+                                    handle: collectionHandle
+                                }
+                            };
+                            console.log('[PREVIEW] Collection page config set:', currentSectionsConfig);
                         } else if (currentPageId === 'product') {
                             // Special handling for product page
                             console.log('[PREVIEW] Loading product page configuration');
@@ -1167,6 +1192,30 @@
                                 `;
                             }
                         }
+                    } else if (sectionId === 'collection') {
+                        console.log('[PREVIEW] Processing individual collection section');
+                        const collectionConfig = currentSectionsConfig.collection;
+                        
+                        if (collectionConfig && !collectionConfig.isHidden) {
+                            // Render individual collection page (products list)
+                            if (window.renderCollectionPage && typeof window.renderCollectionPage === 'function') {
+                                console.log('[PREVIEW] Rendering collection with renderCollectionPage');
+                                finalHtml += window.renderCollectionPage(collectionConfig);
+                            } else {
+                                console.log('[PREVIEW] renderCollectionPage not available, using fallback');
+                                finalHtml += `
+                                    <div class="section-wrapper collection-section" style="padding: 40px 0; background: #f5f5f5;">
+                                        <div class="container" style="max-width: 1200px; margin: 0 auto; padding: 0 20px;">
+                                            <div style="text-align: center; color: #666;">
+                                                <i class="material-icons" style="font-size: 48px; margin-bottom: 16px;">inventory_2</i>
+                                                <h3>Collection Products</h3>
+                                                <p>Collection page is loading...</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                `;
+                            }
+                        }
                     } else if (sectionId === 'footer') {
                         console.log('[PREVIEW] Processing footer section in sectionOrder');
                         const footerConfig = currentSectionsConfig.footer;
@@ -1253,6 +1302,15 @@
             if (currentPageId === 'collections' && window.loadCollectionsData) {
                 console.log('[PREVIEW] Loading collections data...');
                 window.loadCollectionsData();
+            }
+            
+            // Load collection products data if on individual collection page
+            if (currentPageId === 'collection' && window.loadCollectionProductsData) {
+                const collectionHandle = currentSectionsConfig.collection?.handle;
+                if (collectionHandle) {
+                    console.log('[PREVIEW] Loading collection products data for handle:', collectionHandle);
+                    window.loadCollectionProductsData(collectionHandle);
+                }
             }
             
             // Attach accordion event listeners

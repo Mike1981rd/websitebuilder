@@ -3196,3 +3196,282 @@ function loadCollectionsData() {
 
 window.renderCollectionsPage = renderCollectionsPage;
 window.loadCollectionsData = loadCollectionsData;
+
+// ==================== COLLECTION PAGE (SINGULAR - PRODUCTS LIST) ====================
+function renderCollectionPage(config = {}) {
+    console.log('[DEBUG] renderCollectionPage called with config:', config);
+    
+    const handle = config.handle || '';
+    if (!handle) {
+        console.error('[DEBUG] No collection handle provided');
+        return '<div class="error-message">No se especificó la colección</div>';
+    }
+    
+    // HTML base de la página
+    const html = `
+        <div class="collection-products-page" data-collection-handle="${handle}">
+            <!-- Filters and Sorting Bar -->
+            <div class="collection-toolbar">
+                <div class="toolbar-container">
+                    <div class="toolbar-section toolbar-left">
+                        <button class="btn-filters" id="btn-filters">
+                            <svg class="icon-filter" width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                                <path d="M2.5 4.5h11M4.5 8h7M6.5 11.5h3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                            </svg>
+                            <span>${translations[currentLanguage]['filters'] || 'Filtros'}</span>
+                        </button>
+                    </div>
+                    
+                    <div class="toolbar-section toolbar-center">
+                        <label for="sort-select" class="sort-label">${translations[currentLanguage]['sort'] || 'Ordenar'}:</label>
+                        <select id="sort-select" class="sort-select">
+                            <option value="alphabetically-az">${translations[currentLanguage]['alphabetically_az'] || 'Alfabéticamente, A-Z'}</option>
+                            <option value="alphabetically-za">${translations[currentLanguage]['alphabetically_za'] || 'Alfabéticamente, Z-A'}</option>
+                            <option value="price-low-high">${translations[currentLanguage]['price_low_high'] || 'Precio: menor a mayor'}</option>
+                            <option value="price-high-low">${translations[currentLanguage]['price_high_low'] || 'Precio: mayor a menor'}</option>
+                            <option value="date-new-old">${translations[currentLanguage]['date_new_old'] || 'Fecha: nuevo a antiguo'}</option>
+                            <option value="date-old-new">${translations[currentLanguage]['date_old_new'] || 'Fecha: antiguo a nuevo'}</option>
+                        </select>
+                    </div>
+                    
+                    <div class="toolbar-section toolbar-right">
+                        <span class="product-count" id="product-count">0 ${translations[currentLanguage]['results'] || 'Resultados'}</span>
+                        <div class="view-options">
+                            <button class="view-btn" data-columns="2" title="2 columnas">
+                                <svg width="16" height="16" viewBox="0 0 16 16">
+                                    <rect x="1" y="1" width="6" height="6" fill="currentColor"/>
+                                    <rect x="9" y="1" width="6" height="6" fill="currentColor"/>
+                                    <rect x="1" y="9" width="6" height="6" fill="currentColor"/>
+                                    <rect x="9" y="9" width="6" height="6" fill="currentColor"/>
+                                </svg>
+                            </button>
+                            <button class="view-btn" data-columns="3" title="3 columnas">
+                                <svg width="16" height="16" viewBox="0 0 16 16">
+                                    <rect x="1" y="1" width="4" height="4" fill="currentColor"/>
+                                    <rect x="6" y="1" width="4" height="4" fill="currentColor"/>
+                                    <rect x="11" y="1" width="4" height="4" fill="currentColor"/>
+                                    <rect x="1" y="6" width="4" height="4" fill="currentColor"/>
+                                    <rect x="6" y="6" width="4" height="4" fill="currentColor"/>
+                                    <rect x="11" y="6" width="4" height="4" fill="currentColor"/>
+                                    <rect x="1" y="11" width="4" height="4" fill="currentColor"/>
+                                    <rect x="6" y="11" width="4" height="4" fill="currentColor"/>
+                                    <rect x="11" y="11" width="4" height="4" fill="currentColor"/>
+                                </svg>
+                            </button>
+                            <button class="view-btn active" data-columns="4" title="4 columnas">
+                                <svg width="16" height="16" viewBox="0 0 16 16">
+                                    <rect x="0.5" y="0.5" width="3" height="3" fill="currentColor"/>
+                                    <rect x="4.5" y="0.5" width="3" height="3" fill="currentColor"/>
+                                    <rect x="8.5" y="0.5" width="3" height="3" fill="currentColor"/>
+                                    <rect x="12.5" y="0.5" width="3" height="3" fill="currentColor"/>
+                                    <rect x="0.5" y="4.5" width="3" height="3" fill="currentColor"/>
+                                    <rect x="4.5" y="4.5" width="3" height="3" fill="currentColor"/>
+                                    <rect x="8.5" y="4.5" width="3" height="3" fill="currentColor"/>
+                                    <rect x="12.5" y="4.5" width="3" height="3" fill="currentColor"/>
+                                    <rect x="0.5" y="8.5" width="3" height="3" fill="currentColor"/>
+                                    <rect x="4.5" y="8.5" width="3" height="3" fill="currentColor"/>
+                                    <rect x="8.5" y="8.5" width="3" height="3" fill="currentColor"/>
+                                    <rect x="12.5" y="8.5" width="3" height="3" fill="currentColor"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Promotional Badge -->
+            <div class="promotional-section">
+                <span class="promo-badge">${translations[currentLanguage]['offer'] || 'Oferta'}</span>
+            </div>
+            
+            <!-- Products Grid -->
+            <div class="products-container">
+                <div class="products-grid" id="products-grid" data-columns="4">
+                    <div class="loading-state">
+                        <div class="loading-spinner"></div>
+                        <p>${translations[currentLanguage]['loading_products'] || 'Cargando productos...'}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    console.log('[DEBUG] Returning collection products HTML');
+    return html;
+}
+
+// Función para cargar los datos de productos de la colección
+function loadCollectionProductsData(handle) {
+    console.log('[DEBUG] loadCollectionProductsData called with handle:', handle);
+    
+    if (!handle) {
+        console.error('[DEBUG] No handle provided to loadCollectionProductsData');
+        return;
+    }
+    
+    // Hacer petición al API
+    $.ajax({
+        url: `/api/builder/collections/${handle}/products`,
+        method: 'GET',
+        success: function(response) {
+            console.log('[DEBUG] API response:', response);
+            
+            if (response.success && response.collection) {
+                // Actualizar header de la colección
+                const header = document.getElementById('collection-header');
+                if (header) {
+                    const titleEl = header.querySelector('.collection-title');
+                    const descEl = header.querySelector('.collection-description');
+                    
+                    if (titleEl) titleEl.textContent = response.collection.title || 'Colección';
+                    if (descEl && response.collection.description) {
+                        descEl.textContent = response.collection.description;
+                        descEl.style.display = 'block';
+                    }
+                }
+                
+                // Actualizar contador de productos
+                const countEl = document.getElementById('product-count');
+                if (countEl) {
+                    countEl.textContent = `${response.totalProducts || 0} ${translations[currentLanguage]['results'] || 'Resultados'}`;
+                }
+                
+                // Renderizar productos
+                const grid = document.getElementById('products-grid');
+                if (!grid) {
+                    console.error('[DEBUG] Products grid not found');
+                    return;
+                }
+                
+                if (!response.products || response.products.length === 0) {
+                    grid.innerHTML = `
+                        <div class="products-empty">
+                            <p>${translations[currentLanguage]['no_products'] || 'No hay productos en esta colección'}</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                // Renderizar grid de productos
+                let productsHtml = response.products.map(product => {
+                    console.log('[DEBUG] Rendering product:', product);
+                    
+                    // Calcular precio con descuento
+                    const hasDiscount = product.hasDiscount;
+                    const discountPercentage = Math.round(product.discountPercentage || 0);
+                    
+                    // Formatear precios
+                    const formatPrice = (price) => {
+                        return new Intl.NumberFormat('es-DO', {
+                            style: 'currency',
+                            currency: 'USD',
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                        }).format(price);
+                    };
+                    
+                    // Generar estrellas
+                    const starsHtml = Array(5).fill(0).map((_, i) => 
+                        `<svg class="star-icon ${i < product.rating ? 'filled' : ''}" width="12" height="12" viewBox="0 0 12 12">
+                            <path d="M6 0.5L7.635 4.195L11.5 4.635L8.575 7.385L9.27 11.5L6 9.445L2.73 11.5L3.425 7.385L0.5 4.635L4.365 4.195L6 0.5Z" fill="currentColor"/>
+                        </svg>`
+                    ).join('');
+                    
+                    return `
+                        <div class="product-card">
+                            <a href="/products/${product.handle}" class="product-card-link">
+                                <div class="product-image-container">
+                                    ${hasDiscount && discountPercentage > 0 
+                                        ? `<span class="discount-badge">-${discountPercentage}%</span>` 
+                                        : ''
+                                    }
+                                    <div class="product-image-wrapper">
+                                        ${product.imageUrl 
+                                            ? `<img src="${product.imageUrl}" alt="${product.title}" class="product-image" loading="lazy">`
+                                            : `<div class="product-image-placeholder">
+                                                    <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+                                                        <rect width="48" height="48" fill="#F5F5F5"/>
+                                                        <path d="M28 21L22 27L16 21" stroke="#CCCCCC" stroke-width="2"/>
+                                                        <circle cx="32" cy="16" r="3" fill="#CCCCCC"/>
+                                                        <rect x="8" y="8" width="32" height="32" stroke="#CCCCCC" stroke-width="2"/>
+                                                    </svg>
+                                               </div>`
+                                        }
+                                    </div>
+                                </div>
+                                <div class="product-details">
+                                    <h3 class="product-title">${product.title || 'Sin título'}</h3>
+                                    <p class="product-vendor">${product.vendor || 'Aurora'}</p>
+                                    <div class="product-rating">
+                                        ${starsHtml}
+                                    </div>
+                                    <div class="product-pricing">
+                                        ${hasDiscount && product.compareAtPrice 
+                                            ? `<span class="price-original">${formatPrice(product.compareAtPrice)}</span>` 
+                                            : ''
+                                        }
+                                        <span class="price-sale">${formatPrice(product.price)}</span>
+                                    </div>
+                                    ${product.variantCount && product.variantCount > 1 
+                                        ? `<p class="product-options">${product.variantCount} Colors</p>` 
+                                        : ''
+                                    }
+                                </div>
+                            </a>
+                        </div>
+                    `;
+                }).join('');
+                
+                grid.innerHTML = productsHtml;
+                
+                // Agregar event listeners para cambio de vista
+                attachViewOptionsListeners();
+            } else {
+                console.error('[DEBUG] Error en respuesta:', response.message);
+                const grid = document.getElementById('products-grid');
+                if (grid) {
+                    grid.innerHTML = `
+                        <div class="products-error">
+                            <p>${response.message || 'Error al cargar productos'}</p>
+                        </div>
+                    `;
+                }
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('[DEBUG] AJAX error:', error);
+            const grid = document.getElementById('products-grid');
+            if (grid) {
+                grid.innerHTML = `
+                    <div class="products-error">
+                        <p>${translations[currentLanguage]['error_loading_products'] || 'Error al cargar productos'}</p>
+                    </div>
+                `;
+            }
+        }
+    });
+}
+
+// Función para manejar cambios de vista (columnas)
+function attachViewOptionsListeners() {
+    const viewBtns = document.querySelectorAll('.view-btn');
+    const grid = document.getElementById('products-grid');
+    
+    viewBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const columns = this.getAttribute('data-columns');
+            
+            // Actualizar clase activa
+            viewBtns.forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            
+            // Actualizar columnas del grid
+            if (grid) {
+                grid.setAttribute('data-columns', columns);
+            }
+        });
+    });
+}
+
+window.renderCollectionPage = renderCollectionPage;
+window.loadCollectionProductsData = loadCollectionProductsData;
