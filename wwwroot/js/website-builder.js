@@ -27,7 +27,9 @@ window.removeFromCart = function(productId) {
     try {
         // Eliminar de localStorage
         let cartItems = JSON.parse(localStorage.getItem('websiteBuilderCart') || '[]');
-        const itemIndex = cartItems.findIndex(item => item.id === productId);
+        // Convertir productId a string para comparación consistente
+        const productIdStr = String(productId);
+        const itemIndex = cartItems.findIndex(item => String(item.id) === productIdStr);
         
         if (itemIndex !== -1) {
             cartItems.splice(itemIndex, 1);
@@ -90,7 +92,9 @@ window.updateCartQty = function(productId, delta) {
             // Si la cantidad es 0, eliminar el producto sin confirmación
             // Eliminar de localStorage
             let cartItems = JSON.parse(localStorage.getItem('websiteBuilderCart') || '[]');
-            const itemIndex = cartItems.findIndex(item => item.id === productId);
+            // Convertir productId a string para comparación consistente
+            const productIdStr = String(productId);
+            const itemIndex = cartItems.findIndex(item => String(item.id) === productIdStr);
             if (itemIndex !== -1) {
                 cartItems.splice(itemIndex, 1);
             }
@@ -149,8 +153,9 @@ window.updateCartQty = function(productId, delta) {
             console.log('[CART-GLOBAL] Buscando producto con ID:', productId);
             console.log('[CART-GLOBAL] IDs en el carrito:', cartItems.map(item => item.id));
             
-            // Buscar el item por ID
-            const itemIndex = cartItems.findIndex(item => item.id === productId);
+            // Buscar el item por ID - Convertir a string para comparación consistente
+            const productIdStr = String(productId);
+            const itemIndex = cartItems.findIndex(item => String(item.id) === productIdStr);
             
             if (itemIndex !== -1) {
                 cartItems[itemIndex].quantity = newQty;
@@ -29497,7 +29502,9 @@ window.updateCartQuantity = function(productId, newQuantity) {
         return;
     }
     
-    const itemIndex = cartItems.findIndex(item => item.id === productId);
+    // Convertir productId a string para comparación consistente
+    const productIdStr = String(productId);
+    const itemIndex = cartItems.findIndex(item => String(item.id) === productIdStr);
     if (itemIndex > -1) {
         cartItems[itemIndex].quantity = newQuantity;
         saveCart();

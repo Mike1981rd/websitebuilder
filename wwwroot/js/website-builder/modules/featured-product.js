@@ -608,7 +608,7 @@ window.WebsiteBuilderModules.FeaturedProduct = {
                                 <span style="position: relative; z-index: 1;">Agregar al carrito</span>
                             </button>
                             ${showDynamicCheckout ? `
-                                <button class="buy-now-btn" style="font-family: ${bodyFont}; display: block; width: auto; min-width: 280px; padding: 18px 40px; background: ${dynamicCheckoutButton.background}; color: ${dynamicCheckoutButton.text}; border: ${dynamicCheckoutButton.border !== 'none' ? `2px solid ${dynamicCheckoutButton.border}` : 'none'}; border-radius: 4px; font-size: 16px; font-weight: 500; cursor: pointer; transition: all 0.2s; position: relative; overflow: hidden;">
+                                <button class="buy-now-btn" onclick="event.preventDefault(); event.stopPropagation(); if(window.parent && window.parent !== window) { window.parent.location.href='/checkout'; } else { window.location.href='/checkout'; }" style="font-family: ${bodyFont}; display: block; width: auto; min-width: 280px; padding: 18px 40px; background: ${dynamicCheckoutButton.background}; color: ${dynamicCheckoutButton.text}; border: ${dynamicCheckoutButton.border !== 'none' ? `2px solid ${dynamicCheckoutButton.border}` : 'none'}; border-radius: 4px; font-size: 16px; font-weight: 500; cursor: pointer; transition: all 0.2s; position: relative; overflow: hidden;">
                                     <span style="position: relative; z-index: 1;">Comprar ahora</span>
                                 </button>
                             ` : ''}

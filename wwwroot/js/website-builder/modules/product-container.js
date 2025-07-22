@@ -3291,6 +3291,7 @@ window.WebsiteBuilderModules.ProductContainer = {
             return `
                 <button class="buy-now-button buy-now-outline-${uniqueId}" 
                         data-product-id="${product.id || 'demo-product'}"
+                        onclick="event.preventDefault(); event.stopPropagation(); if(window.parent && window.parent !== window) { window.parent.location.href='/checkout'; } else { window.location.href='/checkout'; }"
                         style="font-family: ${bodyFont}; width: 100%; padding: 14px 24px; background-color: transparent; color: ${outlineButtonText}; border: 1px solid ${outlineButtonBorder}; border-radius: 4px; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s;">
                     ${buttonText}
                 </button>
@@ -3305,6 +3306,7 @@ window.WebsiteBuilderModules.ProductContainer = {
             return `
                 <button class="buy-now-button buy-now-solid-${uniqueId}" 
                         data-product-id="${product.id || 'demo-product'}"
+                        onclick="event.preventDefault(); event.stopPropagation(); if(window.parent && window.parent !== window) { window.parent.location.href='/checkout'; } else { window.location.href='/checkout'; }"
                         style="font-family: ${bodyFont}; width: 100%; padding: 14px 24px; background-color: ${solidButtonBg}; color: ${solidButtonText}; border: none; border-radius: 4px; font-size: 14px; font-weight: 500; cursor: pointer; transition: opacity 0.2s;">
                     ${buttonText}
                 </button>
