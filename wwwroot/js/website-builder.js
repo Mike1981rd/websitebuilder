@@ -3572,6 +3572,9 @@ function renderPreview() {
     // Attach dropdown menu event listeners
     attachDropdownMenuListeners(previewDoc);
     
+    // Attach submenu click handlers to prevent propagation
+    attachSubmenuClickHandlers(previewDoc);
+    
     // Attach accordion toggle listeners
     attachAccordionToggleListeners(previewDoc);
     
@@ -4619,6 +4622,59 @@ function attachDrawerMenuCollapsers(doc) {
                 submenuContainer.style.display = isOpen ? 'none' : 'block';
                 icon.textContent = isOpen ? 'expand_more' : 'expand_less';
             }
+        });
+    });
+}
+
+// Function to attach submenu click handlers
+function attachSubmenuClickHandlers(previewDoc) {
+    // Find all submenu items within dropdowns (desktop menu)
+    const submenuItems = previewDoc.querySelectorAll('.menu-dropdown-content a');
+    console.log('[DEBUG] Found desktop submenu items:', submenuItems.length);
+    
+    // Also find drawer submenu items (mobile menu)
+    const drawerSubmenuItems = previewDoc.querySelectorAll('.drawer-dropdown-submenu-item');
+    console.log('[DEBUG] Found drawer submenu items:', drawerSubmenuItems.length);
+    
+    // Combine both selections
+    const allSubmenuItems = [...submenuItems, ...drawerSubmenuItems];
+    
+    allSubmenuItems.forEach(item => {
+        item.addEventListener('click', function(e) {
+            // Stop propagation to prevent parent's preventDefault
+            e.stopPropagation();
+            console.log('[DEBUG] Submenu item clicked, navigating to:', this.href);
+            
+            // Check if we're in the website builder editor context
+            const href = this.getAttribute('href');
+            if (href && window.parent && window.parent !== window) {
+                // We're in the iframe, check if this is a special route
+                if (href === '/collections' || href === '/cart' || href.startsWith('/products/')) {
+                    e.preventDefault();
+                    console.log('[DEBUG] Special route detected, handling navigation');
+                    
+                    // Navigate the parent window's iframe to the full preview URL
+                    const previewIframe = window.parent.document.getElementById('preview-iframe');
+                    if (previewIframe) {
+                        // Use the Preview action with the appropriate page parameter
+                        let previewUrl = '/WebsiteBuilder/Preview';
+                        if (href === '/collections') {
+                            previewUrl += '?page=collections';
+                        } else if (href === '/cart') {
+                            previewUrl += '?page=cart';
+                        } else if (href.startsWith('/products/')) {
+                            const handle = href.replace('/products/', '');
+                            previewUrl += `?page=product&handle=${handle}`;
+                        }
+                        
+                        console.log('[DEBUG] Navigating iframe to:', previewUrl);
+                        previewIframe.src = previewUrl;
+                    }
+                    return;
+                }
+            }
+            
+            // For other links, let the navigation happen naturally
         });
     });
 }
@@ -28076,34 +28132,116 @@ document.head.appendChild(style);
         }
     });
     
-    // Link suggestions handlers - Updated to include submenu inputs
-    $(document).on('focus', '#new-item-url-create, #new-item-url-edit, .submenu-url-input', function() {
+    // Function to create link suggestions dropdown HTML
+    function createLinkSuggestionsDropdown(dropdownId) {
+        return `
+            <div class="link-suggestions-dropdown" id="${dropdownId}" style="display: none;">
+                <div class="link-category">
+                    <h4 data-i18n="menus.linkSuggestions.onlineStore">Tienda online</h4>
+                    <ul>
+                        <li data-url="/"><i class="material-icons">home</i><span data-i18n="menus.linkSuggestions.homePage">Página de inicio</span></li>
+                        <li data-url="/search"><i class="material-icons">search</i><span data-i18n="menus.linkSuggestions.search">Búsqueda</span></li>
+                        <li data-url="/collections" class="has-submenu">
+                            <i class="material-icons">collections</i>
+                            <span data-i18n="menus.linkSuggestions.collections">Colecciones</span>
+                            <i class="material-icons submenu-arrow">chevron_right</i>
+                        </li>
+                        <li data-url="/products" class="has-submenu">
+                            <i class="material-icons">inventory_2</i>
+                            <span data-i18n="menus.linkSuggestions.products">Productos</span>
+                            <i class="material-icons submenu-arrow">chevron_right</i>
+                        </li>
+                        <li data-url="/pages" class="has-submenu">
+                            <i class="material-icons">description</i>
+                            <span data-i18n="menus.linkSuggestions.pages">Páginas</span>
+                            <i class="material-icons submenu-arrow">chevron_right</i>
+                        </li>
+                        <li data-url="/blogs" class="has-submenu">
+                            <i class="material-icons">article</i>
+                            <span data-i18n="menus.linkSuggestions.blogs">Blogs</span>
+                            <i class="material-icons submenu-arrow">chevron_right</i>
+                        </li>
+                        <li data-url="/blog/news" class="has-submenu">
+                            <i class="material-icons">article</i>
+                            <span data-i18n="menus.linkSuggestions.blogPosts">Artículos del blog</span>
+                            <i class="material-icons submenu-arrow">chevron_right</i>
+                        </li>
+                        <li data-url="/policies" class="has-submenu">
+                            <i class="material-icons">gavel</i>
+                            <span data-i18n="menus.linkSuggestions.policies">Políticas</span>
+                            <i class="material-icons submenu-arrow">chevron_right</i>
+                        </li>
+                    </ul>
+                </div>
+                <div class="link-category">
+                    <h4 data-i18n="menus.linkSuggestions.customerAccount">Cuentas de cliente</h4>
+                    <ul>
+                        <li data-url="/account/orders"><i class="material-icons">receipt_long</i><span data-i18n="menus.linkSuggestions.orders">Pedidos</span></li>
+                        <li data-url="/account/profile"><i class="material-icons">person</i><span data-i18n="menus.linkSuggestions.profile">Perfil</span></li>
+                        <li data-url="/account/settings"><i class="material-icons">settings</i><span data-i18n="menus.linkSuggestions.settings">Configuración</span></li>
+                        <li data-url="/apps" class="has-submenu">
+                            <i class="material-icons">apps</i>
+                            <span data-i18n="menus.linkSuggestions.apps">Apps</span>
+                            <i class="material-icons submenu-arrow">chevron_right</i>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        `;
+    }
+    
+    // Link suggestions handlers - Updated to include submenu inputs and inline edit
+    $(document).on('focus', '#new-item-url-create, #new-item-url-edit, .submenu-url-input, .edit-item-url', function() {
         let dropdownId;
         if ($(this).hasClass('submenu-url-input')) {
             // For submenu inputs, get the parent ID from the input ID
             const inputId = $(this).attr('id');
             const parentId = inputId.replace('submenu-url-', '');
             dropdownId = `link-suggestions-submenu-${parentId}`;
+        } else if ($(this).hasClass('edit-item-url')) {
+            // For inline edit, create dropdown if it doesn't exist
+            const itemId = $(this).closest('.inline-edit-form').data('item-id');
+            dropdownId = `link-suggestions-inline-${itemId}`;
+            
+            // Check if dropdown exists, if not create it
+            if ($('#' + dropdownId).length === 0) {
+                const dropdownHtml = createLinkSuggestionsDropdown(dropdownId);
+                $(this).parent().css('position', 'relative').append(dropdownHtml);
+            }
         } else {
             dropdownId = $(this).attr('id') === 'new-item-url-create' ? 'link-suggestions-create' : 'link-suggestions-edit';
         }
-        $('#' + dropdownId).fadeIn(200);
+        const $dropdown = $('#' + dropdownId);
+        // Clear any previous keep-open flag
+        $dropdown.data('keep-open', false);
+        $dropdown.fadeIn(200);
     });
     
-    $(document).on('blur', '#new-item-url-create, #new-item-url-edit, .submenu-url-input', function() {
+    $(document).on('blur', '#new-item-url-create, #new-item-url-edit, .submenu-url-input, .edit-item-url', function() {
+        const $input = $(this);
         let dropdownId;
         if ($(this).hasClass('submenu-url-input')) {
             // For submenu inputs, get the parent ID from the input ID
             const inputId = $(this).attr('id');
             const parentId = inputId.replace('submenu-url-', '');
             dropdownId = `link-suggestions-submenu-${parentId}`;
+        } else if ($(this).hasClass('edit-item-url')) {
+            // For inline edit
+            const itemId = $(this).closest('.inline-edit-form').data('item-id');
+            dropdownId = `link-suggestions-inline-${itemId}`;
         } else {
             dropdownId = $(this).attr('id') === 'new-item-url-create' ? 'link-suggestions-create' : 'link-suggestions-edit';
         }
+        
+        const $dropdown = $('#' + dropdownId);
+        
         // Delay to allow click on dropdown items
         setTimeout(() => {
-            $('#' + dropdownId).fadeOut(200);
-        }, 200);
+            // Check if mouse is over the dropdown or if we should keep it open
+            if (!$dropdown.data('mouse-over') && !$dropdown.data('keep-open')) {
+                $dropdown.fadeOut(200);
+            }
+        }, 300);
     });
     
     // Handle link suggestion click - Updated to support submenu dropdowns
@@ -28112,21 +28250,170 @@ document.head.appendChild(style);
         const $dropdown = $(this).closest('.link-suggestions-dropdown');
         const dropdownId = $dropdown.attr('id');
         
-        let inputId;
+        let $input;
         if (dropdownId.startsWith('link-suggestions-submenu-')) {
             // Extract parent ID from dropdown ID
             const parentId = dropdownId.replace('link-suggestions-submenu-', '');
-            inputId = `submenu-url-${parentId}`;
+            $input = $(`#submenu-url-${parentId}`);
+        } else if (dropdownId.startsWith('link-suggestions-inline-')) {
+            // For inline edit dropdowns
+            $input = $dropdown.parent().find('.edit-item-url');
         } else {
-            inputId = dropdownId === 'link-suggestions-create' ? 'new-item-url-create' : 'new-item-url-edit';
+            const inputId = dropdownId === 'link-suggestions-create' ? 'new-item-url-create' : 'new-item-url-edit';
+            $input = $('#' + inputId);
         }
         
-        $('#' + inputId).val(url);
+        if ($input.length) {
+            $input.val(url);
+        }
+        // Clear the keep-open flag before hiding
+        $dropdown.data('keep-open', false);
         $dropdown.fadeOut(200);
     });
     
-    // Handle search/filter in link input - Updated to include submenu inputs
-    $(document).on('input', '#new-item-url-create, #new-item-url-edit, .submenu-url-input', function() {
+    // Keep dropdown open when mouse is over it
+    $(document).on('mouseenter', '.link-suggestions-dropdown', function() {
+        $(this).data('mouse-over', true);
+    });
+    
+    $(document).on('mouseleave', '.link-suggestions-dropdown', function() {
+        const $dropdown = $(this);
+        $dropdown.data('mouse-over', false);
+        
+        // Find associated input and check if it has focus
+        const dropdownId = $dropdown.attr('id');
+        let $input;
+        
+        if (dropdownId.startsWith('link-suggestions-submenu-')) {
+            const parentId = dropdownId.replace('link-suggestions-submenu-', '');
+            $input = $(`#submenu-url-${parentId}`);
+        } else if (dropdownId.startsWith('link-suggestions-inline-')) {
+            $input = $dropdown.parent().find('.edit-item-url');
+        } else {
+            const inputId = dropdownId === 'link-suggestions-create' ? 'new-item-url-create' : 'new-item-url-edit';
+            $input = $('#' + inputId);
+        }
+        
+        // If input doesn't have focus and we're not keeping it open, hide dropdown
+        if ($input.length && !$input.is(':focus')) {
+            setTimeout(() => {
+                if (!$dropdown.data('mouse-over') && !$dropdown.data('keep-open')) {
+                    $dropdown.fadeOut(200);
+                }
+            }, 200);
+        }
+    });
+    
+    // Handle click on items with submenu (Collections, Products, etc.)
+    $(document).on('click', '.link-suggestions-dropdown li.has-submenu', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        const $item = $(this);
+        const $dropdown = $item.closest('.link-suggestions-dropdown');
+        const url = $item.data('url');
+        
+        // Keep dropdown open during submenu interaction
+        $dropdown.data('keep-open', true);
+        
+        // Check if this is the collections item
+        if (url === '/collections') {
+            console.log('[DEBUG] Collections item clicked');
+            // Check if submenu already exists
+            let $submenu = $item.find('.link-submenu');
+            console.log('[DEBUG] Submenu exists:', $submenu.length > 0);
+            
+            if ($submenu.length === 0) {
+                console.log('[DEBUG] Creating new submenu');
+                // Create submenu structure
+                const submenuHtml = `
+                    <ul class="link-submenu" style="display: none;">
+                        <li data-url="/collections">
+                            <i class="material-icons">collections</i>
+                            <span>Todas las colecciones</span>
+                        </li>
+                        <li class="submenu-loading">
+                            <i class="material-icons rotating">sync</i>
+                            <span>Cargando colecciones...</span>
+                        </li>
+                    </ul>
+                `;
+                
+                $item.append(submenuHtml);
+                $submenu = $item.find('.link-submenu');
+                console.log('[DEBUG] Submenu created:', $submenu.length);
+                
+                // Load collections from API
+                $.ajax({
+                    url: '/api/builder/collections',
+                    method: 'GET',
+                    success: function(collections) {
+                        console.log('[DEBUG] Collections API response:', collections);
+                        // Remove loading indicator
+                        $submenu.find('.submenu-loading').remove();
+                        
+                        // Add individual collections
+                        if (collections && collections.length > 0) {
+                            collections.forEach(function(collection) {
+                                const collectionHtml = `
+                                    <li data-url="/collections/${collection.handle}">
+                                        <i class="material-icons">label</i>
+                                        <span>${collection.name}</span>
+                                    </li>
+                                `;
+                                $submenu.append(collectionHtml);
+                            });
+                            console.log('[DEBUG] Added', collections.length, 'collections to submenu');
+                        } else {
+                            $submenu.append('<li class="no-items"><span>No hay colecciones</span></li>');
+                        }
+                        
+                        // Add click handler for submenu items
+                        $submenu.find('li:not(.no-items)').on('click', function(e) {
+                            e.stopPropagation();
+                            const subUrl = $(this).data('url');
+                            const dropdownId = $dropdown.attr('id');
+                            
+                            let $input;
+                            if (dropdownId.startsWith('link-suggestions-submenu-')) {
+                                const parentId = dropdownId.replace('link-suggestions-submenu-', '');
+                                $input = $(`#submenu-url-${parentId}`);
+                            } else if (dropdownId.startsWith('link-suggestions-inline-')) {
+                                // For inline edit dropdowns
+                                $input = $dropdown.parent().find('.edit-item-url');
+                            } else {
+                                const inputId = dropdownId === 'link-suggestions-create' ? 'new-item-url-create' : 'new-item-url-edit';
+                                $input = $('#' + inputId);
+                            }
+                            
+                            if ($input.length) {
+                                $input.val(subUrl);
+                            }
+                            // Clear the keep-open flag before hiding
+                            $dropdown.data('keep-open', false);
+                            $dropdown.fadeOut(200);
+                        });
+                    },
+                    error: function(xhr, status, error) {
+                        console.log('[DEBUG] Collections API error:', status, error);
+                        $submenu.find('.submenu-loading').html('<span>Error al cargar colecciones</span>');
+                    }
+                });
+            }
+            
+            // Toggle submenu visibility
+            console.log('[DEBUG] About to toggle submenu, current display:', $submenu.css('display'));
+            $submenu.slideToggle(200, function() {
+                console.log('[DEBUG] Submenu toggled, new display:', $submenu.css('display'));
+            });
+            $item.toggleClass('expanded');
+            console.log('[DEBUG] Item expanded:', $item.hasClass('expanded'));
+        }
+        // TODO: Handle other submenus (Products, Pages, etc.)
+    });
+    
+    // Handle search/filter in link input - Updated to include submenu inputs and inline edit
+    $(document).on('input', '#new-item-url-create, #new-item-url-edit, .submenu-url-input, .edit-item-url', function() {
         const value = $(this).val().toLowerCase();
         let dropdownId;
         
@@ -28135,6 +28422,10 @@ document.head.appendChild(style);
             const inputId = $(this).attr('id');
             const parentId = inputId.replace('submenu-url-', '');
             dropdownId = `link-suggestions-submenu-${parentId}`;
+        } else if ($(this).hasClass('edit-item-url')) {
+            // For inline edit
+            const itemId = $(this).closest('.inline-edit-form').data('item-id');
+            dropdownId = `link-suggestions-inline-${itemId}`;
         } else {
             dropdownId = $(this).attr('id') === 'new-item-url-create' ? 'link-suggestions-create' : 'link-suggestions-edit';
         }

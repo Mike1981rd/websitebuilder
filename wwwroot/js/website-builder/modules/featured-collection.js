@@ -2101,6 +2101,14 @@ window.WebsiteBuilderModules.FeaturedCollection = {
             data: { query: query },
             success: function(response) {
                 if (response.success && response.collections) {
+                    // Debug logging
+                    console.log('[DEBUG] API Response:', response);
+                    console.log('[DEBUG] Collections array:', response.collections);
+                    if (response.collections.length > 0) {
+                        console.log('[DEBUG] First collection properties:', Object.keys(response.collections[0]));
+                        console.log('[DEBUG] First collection full object:', response.collections[0]);
+                    }
+                    
                     let html = '';
                     
                     if (response.collections.length === 0) {

@@ -7054,13 +7054,14 @@
     position: absolute;
     top: 100%;
     left: 0;
-    right: 0;
+    min-width: 400px;
     margin-top: 4px;
     background: #ffffff;
     border: 1px solid #e3e3e3;
     border-radius: 4px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    max-height: 400px;
+    max-height: 500px;
+    overflow-x: visible;
     overflow-y: auto;
     z-index: 1000;
 }
@@ -7074,6 +7075,7 @@
 .link-category {
     padding: 12px 0;
     border-bottom: 1px solid #e3e3e3;
+    overflow: visible;
 }
 
 .link-category:last-child {
@@ -7146,6 +7148,141 @@
     margin-left: auto;
     margin-right: 0;
     font-size: 18px;
+    color: #000000;
+}
+
+.dark-mode .link-category li.has-submenu .submenu-arrow {
+    color: #ffffff;
+}
+
+/* Link submenu styles */
+.link-submenu {
+    list-style: none;
+    margin: 8px -16px 0 -16px;
+    padding: 8px 0;
+    background: #ffffff;
+    border-top: 1px solid #e3e3e3;
+    position: relative;
+    z-index: 1002;
+    display: none;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.dark-mode .link-submenu {
+    background: #262626;
+    border-top-color: #404040;
+}
+
+/* Keep dropdown visible when interacting */
+.link-suggestions-dropdown:hover {
+    display: block !important;
+}
+
+/* Position dropdown properly for inline edit */
+.inline-form-field {
+    position: relative;
+}
+
+.link-submenu li {
+    padding: 8px 16px 8px 48px;
+    font-size: 13px;
+    color: #000000;
+    min-height: 32px;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+}
+
+.link-submenu li span {
+    color: #000000;
+    margin-left: 8px;
+}
+
+.dark-mode .link-submenu li {
+    color: #ffffff;
+}
+
+.dark-mode .link-submenu li span {
+    color: #ffffff;
+}
+
+.link-submenu li:hover {
+    background: #f0f0f0;
+}
+
+.link-submenu li:hover span,
+.link-submenu li:hover i {
+    color: #000000;
+}
+
+.dark-mode .link-submenu li:hover {
+    background: #333333;
+}
+
+.link-submenu li i {
+    font-size: 16px;
+    color: #000000;
+    margin-right: 8px;
+}
+
+.dark-mode .link-submenu li i {
+    color: #ffffff;
+}
+
+.link-submenu .submenu-loading {
+    color: #6d7175;
+    font-style: italic;
+}
+
+.dark-mode .link-submenu .submenu-loading {
+    color: #8c9196;
+}
+
+.link-submenu .no-items {
+    color: #6d7175;
+    font-style: italic;
+    cursor: default;
+}
+
+.dark-mode .link-submenu .no-items {
+    color: #8c9196;
+}
+
+.link-submenu .no-items:hover {
+    background: transparent;
+}
+
+/* Expanded state for has-submenu items */
+.link-category li.has-submenu.expanded .submenu-arrow {
+    transform: rotate(90deg);
+}
+
+/* Rotating icon animation */
+@keyframes rotate {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.rotating {
+    animation: rotate 1s linear infinite;
+}
+
+/* Expanded state for items with submenu */
+.link-category li.has-submenu {
+    overflow: visible;
+}
+
+.link-category li.has-submenu.expanded {
+    background: #f6f6f7;
+}
+
+.dark-mode .link-category li.has-submenu.expanded {
+    background: #404040;
 }
 
 /* Menu item in edit view */

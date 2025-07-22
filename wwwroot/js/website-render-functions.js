@@ -2902,3 +2902,297 @@ function renderCartPage(config = {}) {
         
     `;
 }
+
+// Render collections list page
+function renderCollectionsPage(config = {}) {
+    console.log('[COLLECTIONS] Rendering collections page with config:', config);
+    
+    // Get color scheme values
+    const schemeColors = getColorSchemeValues(config.colorScheme || 'scheme1');
+    
+    // Get typography settings
+    const bodyTypography = window.currentGlobalThemeSettings?.typography?.body || {
+        font: 'assistant',
+        fontSize: '16px',
+        baseSize: 1,
+        ratio: 1.2
+    };
+    
+    const fontFamily = window.getFontNameFromValueSafe ? window.getFontNameFromValueSafe(bodyTypography.font) : 'Assistant';
+    
+    return `
+        <style>
+            .collections-page {
+                background-color: #f5f5f5;
+                color: #333;
+                min-height: 400px;
+                padding: 60px 0;
+                font-family: ${fontFamily}, sans-serif;
+            }
+            
+            .collections-container {
+                max-width: 1200px;
+                margin: 0 auto;
+                padding: 0 40px;
+            }
+            
+            .collections-title {
+                text-align: left;
+                font-size: 32px;
+                font-weight: 400;
+                margin-bottom: 50px;
+                color: #1a1a1a;
+                letter-spacing: -0.5px;
+            }
+            
+            .collections-grid {
+                display: grid;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 20px;
+                margin-bottom: 60px;
+            }
+            
+            @media (max-width: 768px) {
+                .collections-grid {
+                    grid-template-columns: 1fr;
+                    gap: 20px;
+                }
+                
+                .collections-container {
+                    padding: 0 20px;
+                }
+            }
+            
+            .collection-card {
+                position: relative;
+                overflow: hidden;
+                cursor: pointer;
+                transition: transform 0.3s ease;
+                background: #ffffff;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+            }
+            
+            .collection-card:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 8px 16px rgba(0,0,0,0.12);
+            }
+            
+            .collection-card-link {
+                text-decoration: none;
+                color: inherit;
+                display: block;
+                position: relative;
+                height: 100%;
+            }
+            
+            .collection-image-wrapper {
+                position: relative;
+                width: 100%;
+                height: 300px;
+                overflow: hidden;
+            }
+            
+            .collection-image {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+                display: block;
+            }
+            
+            .collection-image-placeholder {
+                width: 100%;
+                height: 100%;
+                background: linear-gradient(45deg, #f0f0f0 25%, #e0e0e0 25%, #e0e0e0 50%, #f0f0f0 50%, #f0f0f0 75%, #e0e0e0 75%, #e0e0e0);
+                background-size: 40px 40px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: #999;
+                font-size: 60px;
+            }
+            
+            .collection-image-gradient {
+                position: absolute;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                height: 150px;
+                background: linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.3) 100%);
+                pointer-events: none;
+            }
+            
+            .collection-overlay {
+                position: absolute;
+                bottom: 30px;
+                left: 50%;
+                transform: translateX(-50%);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background: rgba(255, 255, 255, 0.9);
+                padding: 15px 30px;
+                min-width: 180px;
+            }
+            
+            .collection-name {
+                font-size: 20px;
+                font-weight: 500;
+                margin: 0;
+                text-transform: uppercase;
+                letter-spacing: 1.5px;
+                color: #1a1a1a;
+                text-align: center;
+                padding: 0 20px;
+            }
+            
+            .collection-count {
+                padding: 20px;
+                background: #ffffff;
+                text-align: center;
+                font-size: 13px;
+                color: #666;
+                margin: 0;
+                position: relative;
+            }
+            
+            .collection-count::before {
+                content: '';
+                position: absolute;
+                top: 10px;
+                left: 50%;
+                transform: translateX(-50%);
+                width: 30px;
+                height: 1px;
+                background-color: #ddd;
+            }
+            
+            .collections-loading {
+                text-align: center;
+                padding: 40px;
+                font-size: 18px;
+                color: ${schemeColors['secondary-text'] || schemeColors.text};
+            }
+            
+            .collections-empty {
+                text-align: center;
+                padding: 60px 20px;
+                color: ${schemeColors['secondary-text'] || schemeColors.text};
+            }
+            
+            .collections-empty-icon {
+                font-size: 60px;
+                margin-bottom: 20px;
+                opacity: 0.5;
+            }
+            
+            .collections-empty-text {
+                font-size: 18px;
+            }
+        </style>
+        
+        <div class="collections-page">
+            <div class="collections-container">
+                <h1 class="collections-title">Collections list</h1>
+                
+                <div id="collections-content">
+                    <div class="collections-loading">
+                        <i class="material-icons rotating">sync</i>
+                        <p>Cargando colecciones...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+    `;
+}
+
+// Function to load collections data
+function loadCollectionsData() {
+    console.log('[COLLECTIONS] Loading collections data...');
+    
+    fetch('/api/builder/collections/search')
+        .then(response => response.json())
+        .then(data => {
+            console.log('[COLLECTIONS] API response:', data);
+            console.log('[COLLECTIONS] Collections array:', data.collections);
+            if (data.collections && data.collections.length > 0) {
+                console.log('[COLLECTIONS] First collection:', data.collections[0]);
+                console.log('[COLLECTIONS] Collection properties:', Object.keys(data.collections[0]));
+                console.log('[COLLECTIONS] ProductCount value:', data.collections[0].productCount);
+            }
+            const container = document.getElementById('collections-content');
+            
+            if (!container) {
+                console.error('[COLLECTIONS] Container not found');
+                return;
+            }
+            
+            if (!data.success || !data.collections || data.collections.length === 0) {
+                container.innerHTML = `
+                    <div class="collections-empty">
+                        <div class="collections-empty-icon">
+                            <i class="material-icons">collections</i>
+                        </div>
+                        <div class="collections-empty-text">
+                            No hay colecciones disponibles
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Render collections grid
+            console.log('[COLLECTIONS] Rendering grid for', data.collections.length, 'collections');
+            
+            const gridHtml = `
+                <div class="collections-grid">
+                    ${data.collections.map((collection, index) => {
+                        console.log(`[COLLECTIONS] Rendering collection ${index}:`, collection);
+                        console.log(`[COLLECTIONS] Title: "${collection.title}", Handle: "${collection.handle}", ImageUrl: "${collection.imageUrl}"`);
+                        console.log(`[COLLECTIONS] ProductCount: ${collection.productCount}`);
+                        
+                        return `
+                        <div class="collection-card">
+                            <a href="/collections/${collection.handle || ''}" class="collection-card-link">
+                                <div class="collection-image-wrapper">
+                                    ${collection.imageUrl 
+                                        ? `<img src="${collection.imageUrl}" alt="${collection.title || ''}" class="collection-image">`
+                                        : `<div class="collection-image-placeholder">
+                                                <i class="material-icons">image</i>
+                                           </div>`
+                                    }
+                                    <div class="collection-image-gradient"></div>
+                                    <div class="collection-overlay">
+                                        <h3 class="collection-name">${collection.title || 'Sin título'}</h3>
+                                    </div>
+                                </div>
+                                <p class="collection-count">${collection.productCount !== undefined ? collection.productCount : '0'} productos</p>
+                            </a>
+                        </div>
+                        `;
+                    }).join('')}
+                </div>
+            `;
+            
+            container.innerHTML = gridHtml;
+        })
+        .catch(error => {
+            console.error('[COLLECTIONS] Error loading collections:', error);
+            const container = document.getElementById('collections-content');
+            if (container) {
+                container.innerHTML = `
+                    <div class="collections-empty">
+                        <div class="collections-empty-icon">
+                            <i class="material-icons">error_outline</i>
+                        </div>
+                        <div class="collections-empty-text">
+                            Error al cargar las colecciones
+                        </div>
+                    </div>
+                `;
+            }
+        });
+}
+
+window.renderCollectionsPage = renderCollectionsPage;
+window.loadCollectionsData = loadCollectionsData;

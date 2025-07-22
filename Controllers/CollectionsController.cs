@@ -597,6 +597,7 @@ namespace Hotel.Controllers
             try
             {
                 var collectionsQuery = _context.Collections
+                    .Include(c => c.CollectionProducts) // Incluir la relación
                     .Where(c => c.IsActive); // Solo colecciones activas
 
                 // Si hay query, filtrar
@@ -612,11 +613,11 @@ namespace Hotel.Controllers
                     .Take(20) // Limitar a 20 resultados
                     .Select(c => new
                     {
-                        c.Id,
-                        c.Title,
-                        c.Handle,
-                        c.ImageUrl,
-                        ProductCount = c.CollectionProducts.Count()
+                        id = c.Id,
+                        title = c.Title,
+                        handle = c.Handle,
+                        imageUrl = c.ImageUrl,
+                        productCount = c.CollectionProducts.Count()
                     })
                     .ToListAsync();
 
@@ -626,6 +627,33 @@ namespace Hotel.Controllers
             {
                 _logger.LogError(ex, "Error al buscar colecciones para builder");
                 return Json(new { success = false, message = "Error al buscar colecciones" });
+            }
+        }
+
+        // GET: api/builder/collections
+        [HttpGet]
+        [Route("api/builder/collections")]
+        public async Task<IActionResult> GetCollectionsForBuilder()
+        {
+            try
+            {
+                var collections = await _context.Collections
+                    .Where(c => c.IsActive)
+                    .OrderBy(c => c.Title)
+                    .Select(c => new
+                    {
+                        id = c.Id,
+                        name = c.Title,
+                        handle = c.Handle
+                    })
+                    .ToListAsync();
+
+                return Json(collections);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al obtener colecciones para builder");
+                return Json(new[] { new { id = 0, name = "Error al cargar colecciones", handle = "" } });
             }
         }
 

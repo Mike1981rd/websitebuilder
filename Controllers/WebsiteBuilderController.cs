@@ -29,6 +29,12 @@ namespace Hotel.Controllers
                 page = "cart";
             }
             
+            // Check if this is being accessed via /collections route
+            if (Request.Path.Value?.Equals("/collections", StringComparison.OrdinalIgnoreCase) == true)
+            {
+                page = "collections";
+            }
+            
             // Check if this is being accessed via /products/{handle} route
             if (!string.IsNullOrEmpty(handle) || Request.Path.Value?.StartsWith("/products/", StringComparison.OrdinalIgnoreCase) == true)
             {

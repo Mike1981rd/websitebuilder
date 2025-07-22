@@ -24,6 +24,7 @@ wwwroot\js\website-builder\modules\image-banner.js
 wwwroot\js\website-builder\modules\image-with-text.js
 wwwroot\js\website-builder\modules\multicolumn.js
 wwwroot\js\website-builder\modules\newsletter.js
+wwwroot\js\website-builder\modules\product-container.js
 wwwroot\js\website-builder\modules\richtext.js
 wwwroot\js\website-builder\modules\testimonials.js
 wwwroot\js\website-render-functions.js

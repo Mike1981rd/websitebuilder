@@ -450,6 +450,26 @@
                                 }
                             };
                             console.log('[PREVIEW] Cart page config set:', currentSectionsConfig);
+                        } else if (currentPageId === 'collections') {
+                            // Special handling for collections page
+                            console.log('[PREVIEW] Loading collections page configuration');
+                            // Keep existing header and footer configurations
+                            const existingHeader = currentSectionsConfig.header || {};
+                            const existingFooter = currentSectionsConfig.footer || {};
+                            
+                            // Collections page should show header, collections list, and footer
+                            currentSectionsConfig = {
+                                ...currentSectionsConfig,
+                                sectionOrder: ['header', 'collections', 'footer'],
+                                header: existingHeader,
+                                footer: existingFooter,
+                                collections: {
+                                    isHidden: false,
+                                    colorScheme: 'scheme1',
+                                    title: 'Colecciones'
+                                }
+                            };
+                            console.log('[PREVIEW] Collections page config set:', currentSectionsConfig);
                         } else if (currentPageId === 'product') {
                             // Special handling for product page
                             console.log('[PREVIEW] Loading product page configuration');
@@ -1123,6 +1143,30 @@
                                 `;
                             }
                         }
+                    } else if (sectionId === 'collections') {
+                        console.log('[PREVIEW] Processing collections section');
+                        const collectionsConfig = currentSectionsConfig.collections;
+                        
+                        if (collectionsConfig && !collectionsConfig.isHidden) {
+                            // Render collections page
+                            if (window.renderCollectionsPage && typeof window.renderCollectionsPage === 'function') {
+                                console.log('[PREVIEW] Rendering collections with renderCollectionsPage');
+                                finalHtml += window.renderCollectionsPage(collectionsConfig);
+                            } else {
+                                console.log('[PREVIEW] renderCollectionsPage not available, using fallback');
+                                finalHtml += `
+                                    <div class="section-wrapper collections-section" style="padding: 40px 0; background: #f5f5f5;">
+                                        <div class="container" style="max-width: 1200px; margin: 0 auto; padding: 0 20px;">
+                                            <div style="text-align: center; color: #666;">
+                                                <i class="material-icons" style="font-size: 48px; margin-bottom: 16px;">collections</i>
+                                                <h3>Collections</h3>
+                                                <p>Collections page is loading...</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                `;
+                            }
+                        }
                     } else if (sectionId === 'footer') {
                         console.log('[PREVIEW] Processing footer section in sectionOrder');
                         const footerConfig = currentSectionsConfig.footer;
@@ -1204,6 +1248,12 @@
             }
             
             previewContent.innerHTML = finalHtml;
+            
+            // Load collections data if on collections page
+            if (currentPageId === 'collections' && window.loadCollectionsData) {
+                console.log('[PREVIEW] Loading collections data...');
+                window.loadCollectionsData();
+            }
             
             // Attach accordion event listeners
             attachAccordionEventListeners();
