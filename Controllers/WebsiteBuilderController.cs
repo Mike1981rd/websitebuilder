@@ -62,6 +62,19 @@ namespace Hotel.Controllers
                 ViewBag.PolicyType = type; // Use the type parameter
             }
             
+            // Check if this is being accessed via /pages route
+            if (Request.Path.Value?.Equals("/pages", StringComparison.OrdinalIgnoreCase) == true)
+            {
+                page = "pages";
+            }
+            
+            // Check if this is being accessed via /pages/{handle} route
+            if (Request.Path.Value?.StartsWith("/pages/", StringComparison.OrdinalIgnoreCase) == true && !string.IsNullOrEmpty(handle))
+            {
+                page = "page"; // singular for individual page
+                ViewBag.PageHandle = handle;
+            }
+            
             // Pass the page parameter to the view
             ViewBag.Page = page;
             return View();

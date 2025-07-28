@@ -5087,10 +5087,8 @@ function attachCreateMenuEventListeners() {
         $('#new-menu-handle').text(handle);
     });
     
-    // Add first menu item button
-    $('#add-first-menu-item-btn').off('click').on('click', function() {
-        openAddMenuItemModal(true);
-    });
+    // Note: The add first menu item button is now handled by the global event listener
+    // for #add-first-item which shows/hides the inline form
 }
 
 // Function to generate menu handle from name
@@ -5290,7 +5288,10 @@ function openAddMenuItemModal(isFirstItem = false) {
                     </div>
                     <div class="settings-field">
                         <label data-i18n="navigation.url">${translations[currentLanguage]['navigation.url'] || 'URL'}</label>
-                        <input type="text" class="shopify-input" id="menu-item-url" placeholder="/collections/all">
+                        <div style="position: relative;">
+                            <input type="text" class="shopify-input" id="menu-item-url" placeholder="/collections/all">
+                            ${createLinkSuggestionsDropdown('add-modal-link-suggestions')}
+                        </div>
                     </div>
                     <div class="settings-field">
                         <label data-i18n="navigation.openIn">${translations[currentLanguage]['navigation.openIn'] || 'Abrir en'}</label>
@@ -13399,10 +13400,33 @@ $(document).ready(async function() {
                         
                         <div style="background: #f6f6f7; padding: 24px; border-radius: 8px;">
                             <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 16px;" data-i18n="menus.menuItems">Elementos del menú</h3>
-                            <div id="new-menu-items-container" style="min-height: 60px; margin-bottom: 16px;">
+                            <div id="create-menu-items-container" style="min-height: 60px; margin-bottom: 16px;">
                                 <!-- Menu items will be added here -->
                             </div>
-                            <button class="shopify-button" id="add-first-menu-item-btn">
+                            <div id="add-item-form-create" class="add-item-inline-form" style="display: none;">
+                                <div class="inline-form-row">
+                                    <div class="inline-form-field">
+                                        <label data-i18n="menus.itemLabel">Etiqueta</label>
+                                        <input type="text" class="menu-item-input" id="new-item-label-create" placeholder="p. ej., Quiénes somos">
+                                    </div>
+                                    <div class="inline-form-field">
+                                        <label data-i18n="menus.itemLink">Enlace</label>
+                                        <div class="link-input-wrapper">
+                                            <input type="text" class="menu-item-input" id="new-item-url-create" placeholder="Busca o pega un enlace">
+                                            <button class="link-action-btn cancel-add-item-btn" title="Cancelar">
+                                                <i class="material-symbols-outlined">delete</i>
+                                            </button>
+                                            ${createLinkSuggestionsDropdown('link-suggestions-create')}
+                                        </div>
+                                    </div>
+                                    <div class="inline-form-actions">
+                                        <button class="confirm-add-item-btn" id="confirm-add-item-create" title="Agregar">
+                                            <i class="material-symbols-outlined">check_circle</i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <button class="shopify-button" id="add-first-item">
                                 <i class="material-icons" style="vertical-align: middle; margin-right: 4px; font-size: 18px;">add_circle</i>
                                 <span data-i18n="menus.addMenuItem">Agregar elemento del menú</span>
                             </button>
@@ -28245,7 +28269,7 @@ document.head.appendChild(style);
     }
     
     // Link suggestions handlers - Updated to include submenu inputs and inline edit
-    $(document).on('focus', '#new-item-url-create, #new-item-url-edit, .submenu-url-input, .edit-item-url', function() {
+    $(document).on('focus', '#new-item-url-create, #new-item-url-edit, .submenu-url-input, .edit-item-url, #menu-item-url', function() {
         let dropdownId;
         if ($(this).hasClass('submenu-url-input')) {
             // For submenu inputs, get the parent ID from the input ID
@@ -28262,6 +28286,9 @@ document.head.appendChild(style);
                 const dropdownHtml = createLinkSuggestionsDropdown(dropdownId);
                 $(this).parent().css('position', 'relative').append(dropdownHtml);
             }
+        } else if ($(this).attr('id') === 'menu-item-url') {
+            // For add menu item modal
+            dropdownId = 'add-modal-link-suggestions';
         } else {
             dropdownId = $(this).attr('id') === 'new-item-url-create' ? 'link-suggestions-create' : 'link-suggestions-edit';
         }
@@ -28271,7 +28298,7 @@ document.head.appendChild(style);
         $dropdown.fadeIn(200);
     });
     
-    $(document).on('blur', '#new-item-url-create, #new-item-url-edit, .submenu-url-input, .edit-item-url', function() {
+    $(document).on('blur', '#new-item-url-create, #new-item-url-edit, .submenu-url-input, .edit-item-url, #menu-item-url', function() {
         const $input = $(this);
         let dropdownId;
         if ($(this).hasClass('submenu-url-input')) {
@@ -28553,8 +28580,99 @@ document.head.appendChild(style);
             });
             $item.toggleClass('expanded');
             console.log('[DEBUG] Item expanded:', $item.hasClass('expanded'));
+        } else if (url === '/pages') {
+            console.log('[DEBUG] Pages item clicked');
+            // Check if submenu already exists
+            let $submenu = $item.find('.link-submenu');
+            console.log('[DEBUG] Submenu exists:', $submenu.length > 0);
+            
+            if ($submenu.length === 0) {
+                console.log('[DEBUG] Creating new submenu for pages');
+                // Create submenu structure
+                const submenuHtml = `
+                    <ul class="link-submenu" style="display: none;">
+                        <li data-url="/pages">
+                            <i class="material-icons">article</i>
+                            <span>Todas las páginas</span>
+                        </li>
+                        <li class="submenu-loading">
+                            <i class="material-icons rotating">sync</i>
+                            <span>Cargando páginas...</span>
+                        </li>
+                    </ul>
+                `;
+                
+                $item.append(submenuHtml);
+                $submenu = $item.find('.link-submenu');
+                console.log('[DEBUG] Submenu created:', $submenu.length);
+                
+                // Load pages from API
+                $.ajax({
+                    url: '/api/builder/pages',
+                    method: 'GET',
+                    success: function(pages) {
+                        console.log('[DEBUG] Pages API response:', pages);
+                        // Remove loading indicator
+                        $submenu.find('.submenu-loading').remove();
+                        
+                        // Add individual pages
+                        if (pages && pages.length > 0) {
+                            pages.forEach(function(page) {
+                                const pageHtml = `
+                                    <li data-url="/pages/${page.handle}">
+                                        <i class="material-icons">description</i>
+                                        <span>${page.name}</span>
+                                    </li>
+                                `;
+                                $submenu.append(pageHtml);
+                            });
+                            console.log('[DEBUG] Added', pages.length, 'pages to submenu');
+                        } else {
+                            $submenu.append('<li class="no-items"><span>No hay páginas configuradas</span></li>');
+                        }
+                        
+                        // Add click handler for submenu items
+                        $submenu.find('li:not(.no-items)').on('click', function(e) {
+                            e.stopPropagation();
+                            const subUrl = $(this).data('url');
+                            const dropdownId = $dropdown.attr('id');
+                            
+                            let $input;
+                            if (dropdownId.startsWith('link-suggestions-submenu-')) {
+                                const parentId = dropdownId.replace('link-suggestions-submenu-', '');
+                                $input = $(`#submenu-url-${parentId}`);
+                            } else if (dropdownId.startsWith('link-suggestions-inline-')) {
+                                // For inline edit dropdowns
+                                $input = $dropdown.parent().find('.edit-item-url');
+                            } else {
+                                const inputId = dropdownId === 'link-suggestions-create' ? 'new-item-url-create' : 'new-item-url-edit';
+                                $input = $('#' + inputId);
+                            }
+                            
+                            if ($input.length) {
+                                $input.val(subUrl);
+                            }
+                            // Clear the keep-open flag before hiding
+                            $dropdown.data('keep-open', false);
+                            $dropdown.fadeOut(200);
+                        });
+                    },
+                    error: function(xhr, status, error) {
+                        console.log('[DEBUG] Pages API error:', status, error);
+                        $submenu.find('.submenu-loading').html('<span>Error al cargar páginas</span>');
+                    }
+                });
+            }
+            
+            // Toggle submenu visibility
+            console.log('[DEBUG] About to toggle submenu, current display:', $submenu.css('display'));
+            $submenu.slideToggle(200, function() {
+                console.log('[DEBUG] Submenu toggled, new display:', $submenu.css('display'));
+            });
+            $item.toggleClass('expanded');
+            console.log('[DEBUG] Item expanded:', $item.hasClass('expanded'));
         }
-        // TODO: Handle other submenus (Products, Pages, etc.)
+        // TODO: Handle other submenus (Products, etc.)
     });
     
     // Handle search/filter in link input - Updated to include submenu inputs and inline edit

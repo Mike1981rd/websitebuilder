@@ -3905,3 +3905,174 @@ window.loadPolicyContent = function(type) {
 
 window.renderPoliciesPage = renderPoliciesPage;
 window.renderPolicyPage = renderPolicyPage;
+
+// ==================== PAGES PAGE (ALL PAGES) ====================
+function renderPagesPage(config = {}) {
+    console.log('[DEBUG] renderPagesPage called');
+    
+    const html = `
+        <div class="pages-page">
+            <div class="pages-container">
+                <div class="pages-header">
+                    <h1>${translations[currentLanguage]['all_pages'] || 'Páginas'}</h1>
+                </div>
+                <div class="pages-grid" id="pages-grid">
+                    <div class="loading-state">
+                        ${translations[currentLanguage]['loading_pages'] || 'Cargando páginas...'}
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    console.log('[DEBUG] Returning pages HTML');
+    return html;
+}
+
+// Function to load pages data
+window.loadPagesData = function() {
+    console.log('[DEBUG] loadPagesData called');
+    
+    $.ajax({
+        url: '/api/builder/pages',
+        method: 'GET',
+        success: function(pages) {
+            console.log('[DEBUG] Pages API response:', pages);
+            const grid = document.getElementById('pages-grid');
+            if (!grid) return;
+            
+            let html = '';
+            
+            if (pages && pages.length > 0) {
+                pages.forEach(page => {
+                    html += `
+                        <div class="page-card">
+                            <a href="/pages/${page.handle}">
+                                <div class="page-icon">
+                                    <i class="material-icons">article</i>
+                                </div>
+                                <div class="page-info">
+                                    <h3>${page.name}</h3>
+                                    <p>${translations[currentLanguage]['read_more'] || 'Leer más'}</p>
+                                </div>
+                            </a>
+                        </div>
+                    `;
+                });
+            } else {
+                html = '<p class="no-pages">' + (translations[currentLanguage]['no_pages_configured'] || 'No hay páginas configuradas') + '</p>';
+            }
+            
+            grid.innerHTML = html;
+        },
+        error: function(xhr, status, error) {
+            console.error('[DEBUG] Error loading pages:', error);
+            const grid = document.getElementById('pages-grid');
+            if (grid) {
+                grid.innerHTML = '<p class="error-message">' + (translations[currentLanguage]['error_loading_pages'] || 'Error al cargar las páginas') + '</p>';
+            }
+        }
+    });
+};
+
+// ==================== PAGE PAGE (SINGULAR - PAGE CONTENT) ====================
+function renderPagePage(config = {}) {
+    console.log('[DEBUG] renderPagePage called with config:', config);
+    
+    const handle = config.handle || '';
+    if (!handle) {
+        console.error('[DEBUG] No page handle provided');
+        return '<div class="error-message">No se especificó la página</div>';
+    }
+    
+    // HTML base de la página
+    const html = `
+        <div class="page-page" data-page-handle="${handle}">
+            <div class="page-container">
+                <div class="page-header">
+                    <h1 id="page-title">${translations[currentLanguage]['loading'] || 'Cargando...'}</h1>
+                </div>
+                <div class="page-content" id="page-content">
+                    <div class="loading-state">
+                        ${translations[currentLanguage]['loading_page'] || 'Cargando página...'}
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    console.log('[DEBUG] Returning page HTML');
+    return html;
+}
+
+// Function to load individual page content
+window.loadPageContent = function(handle) {
+    console.log('[DEBUG] loadPageContent called for handle:', handle);
+    
+    $.ajax({
+        url: `/api/builder/pages/${handle}`,
+        method: 'GET',
+        success: function(response) {
+            console.log('[DEBUG] Page content API response:', response);
+            
+            if (response.success) {
+                // Update title
+                const titleElement = document.getElementById('page-title');
+                if (titleElement) {
+                    titleElement.textContent = response.title;
+                }
+                
+                // Update content
+                const contentElement = document.getElementById('page-content');
+                if (contentElement) {
+                    if (response.content) {
+                        // Si el contenido ya es HTML, no lo procesamos como párrafos
+                        if (response.content.includes('<') && response.content.includes('>')) {
+                            contentElement.innerHTML = `
+                                <div class="page-text">
+                                    ${response.content}
+                                </div>
+                            `;
+                        } else {
+                            // Convert newlines to paragraphs for plain text
+                            const formattedContent = response.content
+                                .split('\n\n')
+                                .filter(p => p.trim())
+                                .map(p => `<p>${p.trim()}</p>`)
+                                .join('');
+                            
+                            contentElement.innerHTML = `
+                                <div class="page-text">
+                                    ${formattedContent}
+                                </div>
+                            `;
+                        }
+                    } else {
+                        contentElement.innerHTML = `
+                            <p class="no-content">${translations[currentLanguage]['no_page_content'] || 'Esta página aún no tiene contenido.'}</p>
+                        `;
+                    }
+                }
+            } else {
+                const contentElement = document.getElementById('page-content');
+                if (contentElement) {
+                    contentElement.innerHTML = `
+                        <p class="error-message">${response.message || 'Error al cargar la página'}</p>
+                    `;
+                }
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('[DEBUG] Error loading page content:', error);
+            const contentElement = document.getElementById('page-content');
+            if (contentElement) {
+                contentElement.innerHTML = `
+                    <p class="error-message">${translations[currentLanguage]['error_loading_page'] || 'Error al cargar la página'}</p>
+                `;
+            }
+        }
+    });
+};
+
+window.renderPagesPage = renderPagesPage;
+window.renderPagePage = renderPagePage;

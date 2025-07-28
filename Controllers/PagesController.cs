@@ -247,6 +247,87 @@ namespace Hotel.Controllers
             return _context.Pages.Any(e => e.Id == id);
         }
 
+        // GET: api/builder/pages
+        [HttpGet]
+        [Route("api/builder/pages")]
+        [AllowAnonymous] // Permitir acceso anónimo para el Website Builder
+        public async Task<IActionResult> GetPagesForBuilder()
+        {
+            try
+            {
+                var company = await _context.Companies.FirstOrDefaultAsync();
+                if (company == null)
+                {
+                    return Json(new[] { new { id = 0, name = "Error: No hay empresa configurada", handle = "" } });
+                }
+
+                var pages = await _context.Pages
+                    .Where(p => p.CompanyId == company.Id && p.IsVisible && p.Status == PageStatus.Published)
+                    .OrderBy(p => p.DisplayOrder)
+                    .ThenBy(p => p.Title)
+                    .Select(p => new
+                    {
+                        id = p.Id,
+                        name = p.Title,
+                        handle = p.Handle
+                    })
+                    .ToListAsync();
+
+                return Json(pages);
+            }
+            catch (Exception ex)
+            {
+                var logger = HttpContext.RequestServices.GetService<ILogger<PagesController>>();
+                logger?.LogError(ex, "Error al obtener páginas para builder");
+                return Json(new[] { new { id = 0, name = "Error al cargar páginas", handle = "" } });
+            }
+        }
+
+        // GET: api/builder/pages/{handle}
+        [HttpGet]
+        [Route("api/builder/pages/{handle}")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetPageContent(string handle)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(handle))
+                {
+                    return Json(new { success = false, message = "Handle no válido" });
+                }
+
+                var company = await _context.Companies.FirstOrDefaultAsync();
+                if (company == null)
+                {
+                    return Json(new { success = false, message = "No se ha configurado la empresa" });
+                }
+
+                var page = await _context.Pages
+                    .FirstOrDefaultAsync(p => p.CompanyId == company.Id && p.Handle == handle && p.IsVisible && p.Status == PageStatus.Published);
+
+                if (page == null)
+                {
+                    return Json(new { success = false, message = "Página no encontrada" });
+                }
+
+                return Json(new
+                {
+                    success = true,
+                    handle = page.Handle,
+                    title = page.Title,
+                    content = page.Content,
+                    metaTitle = page.MetaTitle,
+                    metaDescription = page.MetaDescription
+                });
+            }
+            catch (Exception ex)
+            {
+                var logger = HttpContext.RequestServices.GetService<ILogger<PagesController>>();
+                logger?.LogError(ex, "Error al obtener contenido de página");
+                return Json(new { success = false, message = "Error al cargar la página" });
+            }
+        }
+
         // Método auxiliar para generar handle único
         private async Task<string> GenerateUniqueHandle(string title, int? excludeId = null)
         {

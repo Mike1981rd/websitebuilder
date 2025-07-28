@@ -536,6 +536,47 @@
                                 }
                             };
                             console.log('[PREVIEW] Policy page config set:', currentSectionsConfig);
+                        } else if (currentPageId === 'pages') {
+                            // Special handling for pages list page
+                            console.log('[PREVIEW] Loading pages list page configuration');
+                            // Keep existing header and footer configurations
+                            const existingHeader = currentSectionsConfig.header || {};
+                            const existingFooter = currentSectionsConfig.footer || {};
+                            
+                            // Pages list page should show header, pages list, and footer
+                            currentSectionsConfig = {
+                                ...currentSectionsConfig,
+                                sectionOrder: ['header', 'pages', 'footer'],
+                                header: existingHeader,
+                                footer: existingFooter,
+                                pages: {
+                                    isHidden: false,
+                                    colorScheme: 'scheme1'
+                                }
+                            };
+                            console.log('[PREVIEW] Pages page config set:', currentSectionsConfig);
+                        } else if (currentPageId === 'page') {
+                            // Special handling for individual page
+                            console.log('[PREVIEW] Loading individual page configuration');
+                            const pageHandle = '@ViewBag.PageHandle';
+                            console.log('[PREVIEW] Page handle:', pageHandle);
+                            
+                            // Keep existing header and footer configurations
+                            const existingHeader = currentSectionsConfig.header || {};
+                            const existingFooter = currentSectionsConfig.footer || {};
+                            
+                            // Individual page should show header, page content, and footer
+                            currentSectionsConfig = {
+                                ...currentSectionsConfig,
+                                sectionOrder: ['header', 'page', 'footer'],
+                                header: existingHeader,
+                                footer: existingFooter,
+                                page: {
+                                    isHidden: false,
+                                    handle: pageHandle
+                                }
+                            };
+                            console.log('[PREVIEW] Page config set:', currentSectionsConfig);
                         } else if (currentPageId === 'product') {
                             // Special handling for product page
                             console.log('[PREVIEW] Loading product page configuration');
@@ -1305,6 +1346,54 @@
                                 `;
                             }
                         }
+                    } else if (sectionId === 'pages') {
+                        console.log('[PREVIEW] Processing pages list section');
+                        const pagesConfig = currentSectionsConfig.pages;
+                        
+                        if (pagesConfig && !pagesConfig.isHidden) {
+                            // Render pages list page
+                            if (window.renderPagesPage && typeof window.renderPagesPage === 'function') {
+                                console.log('[PREVIEW] Rendering pages with renderPagesPage');
+                                finalHtml += window.renderPagesPage(pagesConfig);
+                            } else {
+                                console.log('[PREVIEW] renderPagesPage not available, using fallback');
+                                finalHtml += `
+                                    <div class="section-wrapper pages-section" style="padding: 40px 0; background: #f5f5f5;">
+                                        <div class="container" style="max-width: 1200px; margin: 0 auto; padding: 0 20px;">
+                                            <div style="text-align: center; color: #666;">
+                                                <i class="material-icons" style="font-size: 48px; margin-bottom: 16px;">article</i>
+                                                <h3>Páginas</h3>
+                                                <p>La página de páginas está cargando...</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                `;
+                            }
+                        }
+                    } else if (sectionId === 'page') {
+                        console.log('[PREVIEW] Processing individual page section');
+                        const pageConfig = currentSectionsConfig.page;
+                        
+                        if (pageConfig && !pageConfig.isHidden) {
+                            // Render individual page
+                            if (window.renderPagePage && typeof window.renderPagePage === 'function') {
+                                console.log('[PREVIEW] Rendering page with renderPagePage');
+                                finalHtml += window.renderPagePage(pageConfig);
+                            } else {
+                                console.log('[PREVIEW] renderPagePage not available, using fallback');
+                                finalHtml += `
+                                    <div class="section-wrapper page-section" style="padding: 40px 0; background: #f5f5f5;">
+                                        <div class="container" style="max-width: 1200px; margin: 0 auto; padding: 0 20px;">
+                                            <div style="text-align: center; color: #666;">
+                                                <i class="material-icons" style="font-size: 48px; margin-bottom: 16px;">description</i>
+                                                <h3>Página</h3>
+                                                <p>El contenido de la página está cargando...</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                `;
+                            }
+                        }
                     } else if (sectionId === 'footer') {
                         console.log('[PREVIEW] Processing footer section in sectionOrder');
                         const footerConfig = currentSectionsConfig.footer;
@@ -1414,6 +1503,21 @@
                 if (policyType) {
                     console.log('[PREVIEW] Loading policy content for type:', policyType);
                     window.loadPolicyContent(policyType);
+                }
+            }
+            
+            // Load pages data if on pages page
+            if (currentPageId === 'pages' && window.loadPagesData) {
+                console.log('[PREVIEW] Loading pages data...');
+                window.loadPagesData();
+            }
+            
+            // Load page content if on individual page
+            if (currentPageId === 'page' && window.loadPageContent) {
+                const pageHandle = currentSectionsConfig.page?.handle;
+                if (pageHandle) {
+                    console.log('[PREVIEW] Loading page content for handle:', pageHandle);
+                    window.loadPageContent(pageHandle);
                 }
             }
             
