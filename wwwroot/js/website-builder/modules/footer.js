@@ -677,28 +677,28 @@ window.WebsiteBuilderModules.Footer = {
                         display: flex;
                         gap: ${Math.max(12, Math.round(20 * scaleFactor))}px;
                     ">
-                    <a href="#" style="
+                    <a href="/policies/refund" style="
                         color: ${schemeColors.text};
                         text-decoration: none;
                         transition: opacity 0.2s;
                     " onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.7'">
                         Política de reembolso
                     </a>
-                    <a href="#" style="
+                    <a href="/policies/privacy" style="
                         color: ${schemeColors.text};
                         text-decoration: none;
                         transition: opacity 0.2s;
                     " onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.7'">
                         Política de privacidad
                     </a>
-                    <a href="#" style="
+                    <a href="/policies/terms" style="
                         color: ${schemeColors.text};
                         text-decoration: none;
                         transition: opacity 0.2s;
                     " onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.7'">
                         Términos del servicio
                     </a>
-                    <a href="#" style="
+                    <a href="/policies/shipping" style="
                         color: ${schemeColors.text};
                         text-decoration: none;
                         transition: opacity 0.2s;
