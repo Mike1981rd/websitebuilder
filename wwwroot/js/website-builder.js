@@ -28188,7 +28188,9 @@ document.head.appendChild(style);
                     <h4 data-i18n="menus.linkSuggestions.onlineStore">Tienda online</h4>
                     <ul>
                         <li data-url="/"><i class="material-icons">home</i><span data-i18n="menus.linkSuggestions.homePage">Página de inicio</span></li>
+                        <!-- OCULTO TEMPORALMENTE: Búsqueda
                         <li data-url="/search"><i class="material-icons">search</i><span data-i18n="menus.linkSuggestions.search">Búsqueda</span></li>
+                        -->
                         <li data-url="/collections" class="has-submenu">
                             <i class="material-icons">collections</i>
                             <span data-i18n="menus.linkSuggestions.collections">Colecciones</span>
@@ -28204,6 +28206,7 @@ document.head.appendChild(style);
                             <span data-i18n="menus.linkSuggestions.pages">Páginas</span>
                             <i class="material-icons submenu-arrow">chevron_right</i>
                         </li>
+                        <!-- OCULTO TEMPORALMENTE: Blogs
                         <li data-url="/blogs" class="has-submenu">
                             <i class="material-icons">article</i>
                             <span data-i18n="menus.linkSuggestions.blogs">Blogs</span>
@@ -28214,6 +28217,7 @@ document.head.appendChild(style);
                             <span data-i18n="menus.linkSuggestions.blogPosts">Artículos del blog</span>
                             <i class="material-icons submenu-arrow">chevron_right</i>
                         </li>
+                        -->
                         <li data-url="/policies" class="has-submenu">
                             <i class="material-icons">gavel</i>
                             <span data-i18n="menus.linkSuggestions.policies">Políticas</span>
@@ -28221,6 +28225,7 @@ document.head.appendChild(style);
                         </li>
                     </ul>
                 </div>
+                <!-- OCULTO TEMPORALMENTE: Toda la categoría de Cuentas de cliente
                 <div class="link-category">
                     <h4 data-i18n="menus.linkSuggestions.customerAccount">Cuentas de cliente</h4>
                     <ul>
@@ -28234,6 +28239,7 @@ document.head.appendChild(style);
                         </li>
                     </ul>
                 </div>
+                -->
             </div>
         `;
     }
@@ -28669,7 +28675,9 @@ document.head.appendChild(style);
                                         <h4 data-i18n="menus.linkSuggestions.onlineStore">Tienda online</h4>
                                         <ul>
                                             <li data-url="/"><i class="material-icons">home</i><span data-i18n="menus.linkSuggestions.homePage">Página de inicio</span></li>
+                                            <!-- OCULTO TEMPORALMENTE: Búsqueda
                                             <li data-url="/search"><i class="material-icons">search</i><span data-i18n="menus.linkSuggestions.search">Búsqueda</span></li>
+                                            -->
                                             <li data-url="/collections" class="has-submenu">
                                                 <i class="material-icons">collections</i>
                                                 <span data-i18n="menus.linkSuggestions.collections">Colecciones</span>
@@ -28685,6 +28693,7 @@ document.head.appendChild(style);
                                                 <span data-i18n="menus.linkSuggestions.pages">Páginas</span>
                                                 <i class="material-icons submenu-arrow">chevron_right</i>
                                             </li>
+                                            <!-- OCULTO TEMPORALMENTE: Blogs
                                             <li data-url="/blogs" class="has-submenu">
                                                 <i class="material-icons">article</i>
                                                 <span data-i18n="menus.linkSuggestions.blogs">Blogs</span>
@@ -28695,6 +28704,7 @@ document.head.appendChild(style);
                                                 <span data-i18n="menus.linkSuggestions.blogPosts">Artículos del blog</span>
                                                 <i class="material-icons submenu-arrow">chevron_right</i>
                                             </li>
+                                            -->
                                             <li data-url="/policies" class="has-submenu">
                                                 <i class="material-icons">gavel</i>
                                                 <span data-i18n="menus.linkSuggestions.policies">Políticas</span>
@@ -28702,6 +28712,7 @@ document.head.appendChild(style);
                                             </li>
                                         </ul>
                                     </div>
+                                    <!-- OCULTO TEMPORALMENTE: Toda la categoría de Cuentas de cliente
                                     <div class="link-category">
                                         <h4 data-i18n="menus.linkSuggestions.customerAccount">Cuentas de cliente</h4>
                                         <ul>
@@ -28715,6 +28726,7 @@ document.head.appendChild(style);
                                             </li>
                                         </ul>
                                     </div>
+                                    -->
                                 </div>
                             </div>
                         </div>
