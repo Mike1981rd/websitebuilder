@@ -118,6 +118,16 @@ app.MapControllerRoute(
     pattern: "collections/{handle}",
     defaults: new { controller = "WebsiteBuilder", action = "Preview" });
 
+app.MapControllerRoute(
+    name: "policies",
+    pattern: "policies",
+    defaults: new { controller = "WebsiteBuilder", action = "Preview" });
+
+app.MapControllerRoute(
+    name: "policy",
+    pattern: "policies/{type}",
+    defaults: new { controller = "WebsiteBuilder", action = "Preview" });
+
 // Map API controllers
 app.MapControllers();
 

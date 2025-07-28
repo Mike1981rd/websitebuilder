@@ -495,6 +495,47 @@
                                 }
                             };
                             console.log('[PREVIEW] Collection page config set:', currentSectionsConfig);
+                        } else if (currentPageId === 'policies') {
+                            // Special handling for policies list page
+                            console.log('[PREVIEW] Loading policies page configuration');
+                            // Keep existing header and footer configurations
+                            const existingHeader = currentSectionsConfig.header || {};
+                            const existingFooter = currentSectionsConfig.footer || {};
+                            
+                            // Policies page should show header, policies list, and footer
+                            currentSectionsConfig = {
+                                ...currentSectionsConfig,
+                                sectionOrder: ['header', 'policies', 'footer'],
+                                header: existingHeader,
+                                footer: existingFooter,
+                                policies: {
+                                    isHidden: false,
+                                    colorScheme: 'scheme1'
+                                }
+                            };
+                            console.log('[PREVIEW] Policies page config set:', currentSectionsConfig);
+                        } else if (currentPageId === 'policy') {
+                            // Special handling for individual policy page
+                            console.log('[PREVIEW] Loading individual policy page configuration');
+                            const policyType = '@ViewBag.PolicyType';
+                            console.log('[PREVIEW] Policy type:', policyType);
+                            
+                            // Keep existing header and footer configurations
+                            const existingHeader = currentSectionsConfig.header || {};
+                            const existingFooter = currentSectionsConfig.footer || {};
+                            
+                            // Policy page should show header, policy content, and footer
+                            currentSectionsConfig = {
+                                ...currentSectionsConfig,
+                                sectionOrder: ['header', 'policy', 'footer'],
+                                header: existingHeader,
+                                footer: existingFooter,
+                                policy: {
+                                    isHidden: false,
+                                    type: policyType
+                                }
+                            };
+                            console.log('[PREVIEW] Policy page config set:', currentSectionsConfig);
                         } else if (currentPageId === 'product') {
                             // Special handling for product page
                             console.log('[PREVIEW] Loading product page configuration');
@@ -1216,6 +1257,54 @@
                                 `;
                             }
                         }
+                    } else if (sectionId === 'policies') {
+                        console.log('[PREVIEW] Processing policies list section');
+                        const policiesConfig = currentSectionsConfig.policies;
+                        
+                        if (policiesConfig && !policiesConfig.isHidden) {
+                            // Render policies list page
+                            if (window.renderPoliciesPage && typeof window.renderPoliciesPage === 'function') {
+                                console.log('[PREVIEW] Rendering policies with renderPoliciesPage');
+                                finalHtml += window.renderPoliciesPage(policiesConfig);
+                            } else {
+                                console.log('[PREVIEW] renderPoliciesPage not available, using fallback');
+                                finalHtml += `
+                                    <div class="section-wrapper policies-section" style="padding: 40px 0; background: #f5f5f5;">
+                                        <div class="container" style="max-width: 1200px; margin: 0 auto; padding: 0 20px;">
+                                            <div style="text-align: center; color: #666;">
+                                                <i class="material-icons" style="font-size: 48px; margin-bottom: 16px;">gavel</i>
+                                                <h3>Políticas</h3>
+                                                <p>La página de políticas está cargando...</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                `;
+                            }
+                        }
+                    } else if (sectionId === 'policy') {
+                        console.log('[PREVIEW] Processing individual policy section');
+                        const policyConfig = currentSectionsConfig.policy;
+                        
+                        if (policyConfig && !policyConfig.isHidden) {
+                            // Render individual policy page
+                            if (window.renderPolicyPage && typeof window.renderPolicyPage === 'function') {
+                                console.log('[PREVIEW] Rendering policy with renderPolicyPage');
+                                finalHtml += window.renderPolicyPage(policyConfig);
+                            } else {
+                                console.log('[PREVIEW] renderPolicyPage not available, using fallback');
+                                finalHtml += `
+                                    <div class="section-wrapper policy-section" style="padding: 40px 0; background: #f5f5f5;">
+                                        <div class="container" style="max-width: 1200px; margin: 0 auto; padding: 0 20px;">
+                                            <div style="text-align: center; color: #666;">
+                                                <i class="material-icons" style="font-size: 48px; margin-bottom: 16px;">description</i>
+                                                <h3>Política</h3>
+                                                <p>El contenido de la política está cargando...</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                `;
+                            }
+                        }
                     } else if (sectionId === 'footer') {
                         console.log('[PREVIEW] Processing footer section in sectionOrder');
                         const footerConfig = currentSectionsConfig.footer;
@@ -1310,6 +1399,21 @@
                 if (collectionHandle) {
                     console.log('[PREVIEW] Loading collection products data for handle:', collectionHandle);
                     window.loadCollectionProductsData(collectionHandle);
+                }
+            }
+            
+            // Load policies data if on policies page
+            if (currentPageId === 'policies' && window.loadPoliciesData) {
+                console.log('[PREVIEW] Loading policies data...');
+                window.loadPoliciesData();
+            }
+            
+            // Load policy content if on individual policy page
+            if (currentPageId === 'policy' && window.loadPolicyContent) {
+                const policyType = currentSectionsConfig.policy?.type;
+                if (policyType) {
+                    console.log('[PREVIEW] Loading policy content for type:', policyType);
+                    window.loadPolicyContent(policyType);
                 }
             }
             

@@ -3720,3 +3720,188 @@ function attachViewOptionsListeners() {
 
 window.renderCollectionPage = renderCollectionPage;
 window.loadCollectionProductsData = loadCollectionProductsData;
+
+// ==================== POLICIES PAGE (ALL POLICIES) ====================
+function renderPoliciesPage(config = {}) {
+    console.log('[DEBUG] renderPoliciesPage called');
+    
+    const html = `
+        <div class="policies-page">
+            <div class="policies-container">
+                <div class="policies-header">
+                    <h1>${translations[currentLanguage]['all_policies'] || 'Políticas'}</h1>
+                </div>
+                <div class="policies-grid" id="policies-grid">
+                    <div class="loading-state">
+                        ${translations[currentLanguage]['loading_policies'] || 'Cargando políticas...'}
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    console.log('[DEBUG] Returning policies HTML');
+    return html;
+}
+
+// Function to load policies data
+window.loadPoliciesData = function() {
+    console.log('[DEBUG] loadPoliciesData called');
+    
+    $.ajax({
+        url: '/api/builder/policies',
+        method: 'GET',
+        success: function(policies) {
+            console.log('[DEBUG] Policies API response:', policies);
+            const grid = document.getElementById('policies-grid');
+            if (!grid) return;
+            
+            let html = '';
+            
+            // Always show "All policies" first
+            html += `
+                <div class="policy-card">
+                    <a href="/policies">
+                        <div class="policy-icon">
+                            <i class="material-icons">gavel</i>
+                        </div>
+                        <div class="policy-info">
+                            <h3>${translations[currentLanguage]['all_policies'] || 'Todas las políticas'}</h3>
+                            <p>${translations[currentLanguage]['view_all_policies'] || 'Ver todas nuestras políticas'}</p>
+                        </div>
+                    </a>
+                </div>
+            `;
+            
+            if (policies && policies.length > 0) {
+                policies.forEach(policy => {
+                    const iconMap = {
+                        'refund': 'autorenew',
+                        'privacy': 'lock',
+                        'terms': 'description',
+                        'shipping': 'local_shipping',
+                        'contact': 'contact_mail'
+                    };
+                    
+                    html += `
+                        <div class="policy-card">
+                            <a href="/policies/${policy.handle}">
+                                <div class="policy-icon">
+                                    <i class="material-icons">${iconMap[policy.handle] || 'description'}</i>
+                                </div>
+                                <div class="policy-info">
+                                    <h3>${policy.name}</h3>
+                                    <p>${translations[currentLanguage]['read_more'] || 'Leer más'}</p>
+                                </div>
+                            </a>
+                        </div>
+                    `;
+                });
+            } else {
+                html = '<p class="no-policies">' + (translations[currentLanguage]['no_policies_configured'] || 'No hay políticas configuradas') + '</p>';
+            }
+            
+            grid.innerHTML = html;
+        },
+        error: function(xhr, status, error) {
+            console.error('[DEBUG] Error loading policies:', error);
+            const grid = document.getElementById('policies-grid');
+            if (grid) {
+                grid.innerHTML = '<p class="error-message">' + (translations[currentLanguage]['error_loading_policies'] || 'Error al cargar las políticas') + '</p>';
+            }
+        }
+    });
+};
+
+// ==================== POLICY PAGE (SINGULAR - POLICY CONTENT) ====================
+function renderPolicyPage(config = {}) {
+    console.log('[DEBUG] renderPolicyPage called with config:', config);
+    
+    const type = config.type || '';
+    if (!type) {
+        console.error('[DEBUG] No policy type provided');
+        return '<div class="error-message">No se especificó el tipo de política</div>';
+    }
+    
+    // HTML base de la página
+    const html = `
+        <div class="policy-page" data-policy-type="${type}">
+            <div class="policy-container">
+                <div class="policy-header">
+                    <h1 id="policy-title">${translations[currentLanguage]['loading'] || 'Cargando...'}</h1>
+                </div>
+                <div class="policy-content" id="policy-content">
+                    <div class="loading-state">
+                        ${translations[currentLanguage]['loading_policy'] || 'Cargando política...'}
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    console.log('[DEBUG] Returning policy HTML');
+    return html;
+}
+
+// Function to load individual policy content
+window.loadPolicyContent = function(type) {
+    console.log('[DEBUG] loadPolicyContent called for type:', type);
+    
+    $.ajax({
+        url: `/api/builder/policies/${type}`,
+        method: 'GET',
+        success: function(response) {
+            console.log('[DEBUG] Policy content API response:', response);
+            
+            if (response.success) {
+                // Update title
+                const titleElement = document.getElementById('policy-title');
+                if (titleElement) {
+                    titleElement.textContent = response.title;
+                }
+                
+                // Update content
+                const contentElement = document.getElementById('policy-content');
+                if (contentElement) {
+                    if (response.content) {
+                        // Convert newlines to paragraphs for better formatting
+                        const formattedContent = response.content
+                            .split('\n\n')
+                            .filter(p => p.trim())
+                            .map(p => `<p>${p.trim()}</p>`)
+                            .join('');
+                        
+                        contentElement.innerHTML = `
+                            <div class="policy-text">
+                                ${formattedContent}
+                            </div>
+                        `;
+                    } else {
+                        contentElement.innerHTML = `
+                            <p class="no-content">${translations[currentLanguage]['no_policy_content'] || 'Esta política aún no ha sido configurada.'}</p>
+                        `;
+                    }
+                }
+            } else {
+                const contentElement = document.getElementById('policy-content');
+                if (contentElement) {
+                    contentElement.innerHTML = `
+                        <p class="error-message">${response.message || 'Error al cargar la política'}</p>
+                    `;
+                }
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('[DEBUG] Error loading policy content:', error);
+            const contentElement = document.getElementById('policy-content');
+            if (contentElement) {
+                contentElement.innerHTML = `
+                    <p class="error-message">${translations[currentLanguage]['error_loading_policy'] || 'Error al cargar la política'}</p>
+                `;
+            }
+        }
+    });
+};
+
+window.renderPoliciesPage = renderPoliciesPage;
+window.renderPolicyPage = renderPolicyPage;

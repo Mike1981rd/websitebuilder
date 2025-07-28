@@ -9517,3 +9517,158 @@
         font-size: 18px;
     }
 }
+
+/* ==================== POLICIES STYLES ==================== */
+.policies-page {
+    min-height: 400px;
+    padding: 40px 0;
+}
+
+.policies-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+.policies-header {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.policies-header h1 {
+    font-size: 32px;
+    margin: 0;
+    color: #333;
+}
+
+.policies-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 30px;
+    margin-top: 40px;
+}
+
+.policy-card {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 30px;
+    text-align: center;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.policy-card:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    transform: translateY(-2px);
+}
+
+.policy-card a {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+}
+
+.policy-icon {
+    width: 60px;
+    height: 60px;
+    margin: 0 auto 20px;
+    background: #f5f5f5;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.policy-icon i {
+    font-size: 28px;
+    color: #666;
+}
+
+.policy-info h3 {
+    font-size: 18px;
+    margin: 0 0 10px 0;
+    color: #333;
+}
+
+.policy-info p {
+    margin: 0;
+    color: #666;
+    font-size: 14px;
+}
+
+/* Individual Policy Page */
+.policy-page {
+    min-height: 400px;
+    padding: 60px 0;
+    background: #fff;
+}
+
+.policy-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+.policy-header {
+    margin-bottom: 40px;
+}
+
+.policy-header h1 {
+    font-size: 36px;
+    margin: 0;
+    color: #333;
+    line-height: 1.2;
+}
+
+.policy-content {
+    font-size: 16px;
+    line-height: 1.8;
+    color: #444;
+}
+
+.policy-text p {
+    margin-bottom: 20px;
+}
+
+.policy-text p:last-child {
+    margin-bottom: 0;
+}
+
+.no-policies,
+.no-content {
+    text-align: center;
+    color: #666;
+    padding: 40px 20px;
+    font-size: 16px;
+}
+
+.error-message {
+    text-align: center;
+    color: #d32f2f;
+    padding: 40px 20px;
+    font-size: 16px;
+}
+
+.loading-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: #666;
+    font-size: 16px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .policies-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+    
+    .policy-header h1 {
+        font-size: 28px;
+    }
+    
+    .policy-container {
+        padding: 0 15px;
+    }
+}

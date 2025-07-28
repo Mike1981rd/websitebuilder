@@ -769,3 +769,944 @@ public async Task<IActionResult> GetCollectionProducts(string handle)
 ✅ Sincronización entre controles de ordenamiento
 ✅ Diseño responsivo
 ✅ Sin elementos de marca (removidos vendor "Aurora", badges "Oferta", "3 Colors")
+
+## Implementación de Políticas - Navegación y Páginas
+
+### Resumen
+Este documento detalla la implementación completa de la funcionalidad de navegación de políticas, siguiendo el mismo patrón exitoso usado para colecciones. Permite a los usuarios asignar enlaces de políticas a elementos del menú y visualizar páginas de políticas con el diseño completo del sitio.
+
+### Archivos Modificados y Líneas de Código
+
+### 1. `/Controllers/PoliciesController.cs`
+
+#### Endpoints API para Website Builder
+**Líneas: 178-258**
+```csharp
+// GET: api/builder/policies
+[HttpGet]
+[Route("api/builder/policies")]
+[AllowAnonymous] // Permitir acceso anónimo para el Website Builder
+public async Task<IActionResult> GetPoliciesForBuilder()
+{
+    try
+    {
+        var company = await _context.Companies.FirstOrDefaultAsync();
+        if (company == null)
+        {
+            return Json(new[] { new { id = 0, name = "Error: No hay empresa configurada", handle = "" } });
+        }
+
+        var policy = await _context.Policies
+            .FirstOrDefaultAsync(p => p.CompanyId == company.Id);
+
+        var policies = new List<object>();
+
+        if (policy != null)
+        {
+            // Agregar cada política con su handle y nombre
+            if (!string.IsNullOrWhiteSpace(policy.RefundPolicyContent))
+            {
+                policies.Add(new
+                {
+                    id = "refund",
+                    name = "Política de devoluciones",
+                    handle = "refund"
+                });
+            }
+
+            if (!string.IsNullOrWhiteSpace(policy.PrivacyPolicyContent))
+            {
+                policies.Add(new
+                {
+                    id = "privacy",
+                    name = "Política de privacidad",
+                    handle = "privacy"
+                });
+            }
+
+            if (!string.IsNullOrWhiteSpace(policy.TermsOfServiceContent))
+            {
+                policies.Add(new
+                {
+                    id = "terms",
+                    name = "Términos del servicio",
+                    handle = "terms"
+                });
+            }
+
+            if (!string.IsNullOrWhiteSpace(policy.ShippingPolicyContent))
+            {
+                policies.Add(new
+                {
+                    id = "shipping",
+                    name = "Política de envío",
+                    handle = "shipping"
+                });
+            }
+
+            if (!string.IsNullOrWhiteSpace(policy.ContactInformationContent))
+            {
+                policies.Add(new
+                {
+                    id = "contact",
+                    name = "Información de contacto",
+                    handle = "contact"
+                });
+            }
+        }
+
+        return Json(policies);
+    }
+    catch (Exception ex)
+    {
+        _logger.LogError(ex, "Error al obtener políticas para builder");
+        return Json(new[] { new { id = 0, name = "Error al cargar políticas", handle = "" } });
+    }
+}
+```
+
+#### Endpoint para Contenido Individual de Política
+**Líneas: 260-312**
+```csharp
+// GET: api/builder/policies/{type}
+[HttpGet]
+[Route("api/builder/policies/{type}")]
+[AllowAnonymous]
+public async Task<IActionResult> GetPolicyContent(string type)
+{
+    try
+    {
+        // Validar que el tipo de política sea válido
+        var validTypes = new[] { "refund", "privacy", "terms", "shipping", "contact" };
+        if (!validTypes.Contains(type.ToLower()))
+        {
+            return Json(new { success = false, message = "Tipo de política no válido" });
+        }
+
+        var company = await _context.Companies.FirstOrDefaultAsync();
+        if (company == null)
+        {
+            return Json(new { success = false, message = "No se ha configurado la empresa" });
+        }
+
+        var policy = await _context.Policies
+            .FirstOrDefaultAsync(p => p.CompanyId == company.Id);
+
+        if (policy == null)
+        {
+            return Json(new { success = false, message = "No se encontraron políticas" });
+        }
+
+        string content = type.ToLower() switch
+        {
+            "refund" => policy.RefundPolicyContent,
+            "privacy" => policy.PrivacyPolicyContent,
+            "terms" => policy.TermsOfServiceContent,
+            "shipping" => policy.ShippingPolicyContent,
+            "contact" => policy.ContactInformationContent,
+            _ => ""
+        };
+
+        return Json(new
+        {
+            success = true,
+            type = type,
+            title = GetPolicyTitle(type),
+            content = content
+        });
+    }
+    catch (Exception ex)
+    {
+        _logger.LogError(ex, "Error al obtener contenido de política");
+        return Json(new { success = false, message = "Error al cargar la política" });
+    }
+}
+```
+
+### 2. `/wwwroot/js/website-builder.js`
+
+#### Handler para Políticas en el Dropdown de Links
+**Líneas: 28465-28556**
+```javascript
+} else if (url === '/policies') {
+    console.log('[DEBUG] Policies item clicked');
+    // Check if submenu already exists
+    let $submenu = $item.find('.link-submenu');
+    console.log('[DEBUG] Submenu exists:', $submenu.length > 0);
+    
+    if ($submenu.length === 0) {
+        console.log('[DEBUG] Creating new submenu for policies');
+        // Create submenu structure
+        const submenuHtml = `
+            <ul class="link-submenu" style="display: none;">
+                <li data-url="/policies">
+                    <i class="material-icons">gavel</i>
+                    <span>Todas las políticas</span>
+                </li>
+                <li class="submenu-loading">
+                    <i class="material-icons rotating">sync</i>
+                    <span>Cargando políticas...</span>
+                </li>
+            </ul>
+        `;
+        
+        $item.append(submenuHtml);
+        $submenu = $item.find('.link-submenu');
+        console.log('[DEBUG] Submenu created:', $submenu.length);
+        
+        // Load policies from API
+        $.ajax({
+            url: '/api/builder/policies',
+            method: 'GET',
+            success: function(policies) {
+                console.log('[DEBUG] Policies API response:', policies);
+                // Remove loading indicator
+                $submenu.find('.submenu-loading').remove();
+                
+                // Add individual policies
+                if (policies && policies.length > 0) {
+                    policies.forEach(function(policy) {
+                        const policyHtml = `
+                            <li data-url="/policies/${policy.handle}">
+                                <i class="material-icons">description</i>
+                                <span>${policy.name}</span>
+                            </li>
+                        `;
+                        $submenu.append(policyHtml);
+                    });
+                    console.log('[DEBUG] Added', policies.length, 'policies to submenu');
+                } else {
+                    $submenu.append('<li class="no-items"><span>No hay políticas configuradas</span></li>');
+                }
+                
+                // Add click handler for submenu items
+                $submenu.find('li:not(.no-items)').on('click', function(e) {
+                    e.stopPropagation();
+                    const subUrl = $(this).data('url');
+                    const dropdownId = $dropdown.attr('id');
+                    
+                    let $input;
+                    if (dropdownId.startsWith('link-suggestions-submenu-')) {
+                        const parentId = dropdownId.replace('link-suggestions-submenu-', '');
+                        $input = $(`#submenu-url-${parentId}`);
+                    } else if (dropdownId.startsWith('link-suggestions-inline-')) {
+                        // For inline edit dropdowns
+                        $input = $dropdown.parent().find('.edit-item-url');
+                    } else {
+                        const inputId = dropdownId === 'link-suggestions-create' ? 'new-item-url-create' : 'new-item-url-edit';
+                        $input = $('#' + inputId);
+                    }
+                    
+                    if ($input.length) {
+                        $input.val(subUrl);
+                    }
+                    // Clear the keep-open flag before hiding
+                    $dropdown.data('keep-open', false);
+                    $dropdown.fadeOut(200);
+                });
+            },
+            error: function(xhr, status, error) {
+                console.log('[DEBUG] Policies API error:', status, error);
+                $submenu.find('.submenu-loading').html('<span>Error al cargar políticas</span>');
+            }
+        });
+    }
+    
+    // Toggle submenu visibility
+    console.log('[DEBUG] About to toggle submenu, current display:', $submenu.css('display'));
+    $submenu.slideToggle(200, function() {
+        console.log('[DEBUG] Submenu toggled, new display:', $submenu.css('display'));
+    });
+    $item.toggleClass('expanded');
+    console.log('[DEBUG] Item expanded:', $item.hasClass('expanded'));
+}
+```
+
+### 3. `/Program.cs`
+
+#### Rutas para Páginas de Políticas
+**Líneas: 121-129**
+```csharp
+app.MapControllerRoute(
+    name: "policies",
+    pattern: "policies",
+    defaults: new { controller = "WebsiteBuilder", action = "Preview" });
+
+app.MapControllerRoute(
+    name: "policy",
+    pattern: "policies/{type}",
+    defaults: new { controller = "WebsiteBuilder", action = "Preview" });
+```
+
+### 4. `/Controllers/WebsiteBuilderController.cs`
+
+#### Detección de Rutas de Políticas
+**Líneas: 52-63**
+```csharp
+// Check if this is being accessed via /policies route
+if (Request.Path.Value?.Equals("/policies", StringComparison.OrdinalIgnoreCase) == true)
+{
+    page = "policies";
+}
+
+// Check if this is being accessed via /policies/{type} route
+if (Request.Path.Value?.StartsWith("/policies/", StringComparison.OrdinalIgnoreCase) == true)
+{
+    page = "policy"; // singular for individual policy
+    ViewBag.PolicyType = type; // Use the type parameter
+}
+```
+
+**NOTA IMPORTANTE**: Se agregó el parámetro `string type = null` a la firma del método `Preview` en la línea 24:
+```csharp
+public IActionResult Preview(string page = null, string handle = null, string type = null)
+```
+
+### 5. `/wwwroot/js/website-render-functions.js`
+
+#### Función para Renderizar Lista de Políticas
+**Líneas: 3724-3814**
+```javascript
+// ==================== POLICIES PAGE (ALL POLICIES) ====================
+function renderPoliciesPage(config = {}) {
+    console.log('[DEBUG] renderPoliciesPage called');
+    
+    const html = `
+        <div class="policies-page">
+            <div class="policies-container">
+                <div class="policies-header">
+                    <h1>${translations[currentLanguage]['all_policies'] || 'Políticas'}</h1>
+                </div>
+                <div class="policies-grid" id="policies-grid">
+                    <div class="loading-state">
+                        ${translations[currentLanguage]['loading_policies'] || 'Cargando políticas...'}
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    console.log('[DEBUG] Returning policies HTML');
+    return html;
+}
+
+// Function to load policies data
+window.loadPoliciesData = function() {
+    console.log('[DEBUG] loadPoliciesData called');
+    
+    $.ajax({
+        url: '/api/builder/policies',
+        method: 'GET',
+        success: function(policies) {
+            console.log('[DEBUG] Policies API response:', policies);
+            const grid = document.getElementById('policies-grid');
+            if (!grid) return;
+            
+            let html = '';
+            
+            // Always show "All policies" first
+            html += `
+                <div class="policy-card">
+                    <a href="/policies">
+                        <div class="policy-icon">
+                            <i class="material-icons">gavel</i>
+                        </div>
+                        <div class="policy-info">
+                            <h3>${translations[currentLanguage]['all_policies'] || 'Todas las políticas'}</h3>
+                            <p>${translations[currentLanguage]['view_all_policies'] || 'Ver todas nuestras políticas'}</p>
+                        </div>
+                    </a>
+                </div>
+            `;
+            
+            if (policies && policies.length > 0) {
+                policies.forEach(policy => {
+                    const iconMap = {
+                        'refund': 'autorenew',
+                        'privacy': 'lock',
+                        'terms': 'description',
+                        'shipping': 'local_shipping',
+                        'contact': 'contact_mail'
+                    };
+                    
+                    html += `
+                        <div class="policy-card">
+                            <a href="/policies/${policy.handle}">
+                                <div class="policy-icon">
+                                    <i class="material-icons">${iconMap[policy.handle] || 'description'}</i>
+                                </div>
+                                <div class="policy-info">
+                                    <h3>${policy.name}</h3>
+                                    <p>${translations[currentLanguage]['read_more'] || 'Leer más'}</p>
+                                </div>
+                            </a>
+                        </div>
+                    `;
+                });
+            } else {
+                html = '<p class="no-policies">' + (translations[currentLanguage]['no_policies_configured'] || 'No hay políticas configuradas') + '</p>';
+            }
+            
+            grid.innerHTML = html;
+        },
+        error: function(xhr, status, error) {
+            console.error('[DEBUG] Error loading policies:', error);
+            const grid = document.getElementById('policies-grid');
+            if (grid) {
+                grid.innerHTML = '<p class="error-message">' + (translations[currentLanguage]['error_loading_policies'] || 'Error al cargar las políticas') + '</p>';
+            }
+        }
+    });
+};
+```
+
+#### Función para Renderizar Política Individual
+**Líneas: 3816-3907**
+```javascript
+// ==================== POLICY PAGE (SINGULAR - POLICY CONTENT) ====================
+function renderPolicyPage(config = {}) {
+    console.log('[DEBUG] renderPolicyPage called with config:', config);
+    
+    const type = config.type || '';
+    if (!type) {
+        console.error('[DEBUG] No policy type provided');
+        return '<div class="error-message">No se especificó el tipo de política</div>';
+    }
+    
+    // HTML base de la página
+    const html = `
+        <div class="policy-page" data-policy-type="${type}">
+            <div class="policy-container">
+                <div class="policy-header">
+                    <h1 id="policy-title">${translations[currentLanguage]['loading'] || 'Cargando...'}</h1>
+                </div>
+                <div class="policy-content" id="policy-content">
+                    <div class="loading-state">
+                        ${translations[currentLanguage]['loading_policy'] || 'Cargando política...'}
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    console.log('[DEBUG] Returning policy HTML');
+    return html;
+}
+
+// Function to load individual policy content
+window.loadPolicyContent = function(type) {
+    console.log('[DEBUG] loadPolicyContent called for type:', type);
+    
+    $.ajax({
+        url: `/api/builder/policies/${type}`,
+        method: 'GET',
+        success: function(response) {
+            console.log('[DEBUG] Policy content API response:', response);
+            
+            if (response.success) {
+                // Update title
+                const titleElement = document.getElementById('policy-title');
+                if (titleElement) {
+                    titleElement.textContent = response.title;
+                }
+                
+                // Update content
+                const contentElement = document.getElementById('policy-content');
+                if (contentElement) {
+                    if (response.content) {
+                        // Convert newlines to paragraphs for better formatting
+                        const formattedContent = response.content
+                            .split('\n\n')
+                            .filter(p => p.trim())
+                            .map(p => `<p>${p.trim()}</p>`)
+                            .join('');
+                        
+                        contentElement.innerHTML = `
+                            <div class="policy-text">
+                                ${formattedContent}
+                            </div>
+                        `;
+                    } else {
+                        contentElement.innerHTML = `
+                            <p class="no-content">${translations[currentLanguage]['no_policy_content'] || 'Esta política aún no ha sido configurada.'}</p>
+                        `;
+                    }
+                }
+            } else {
+                const contentElement = document.getElementById('policy-content');
+                if (contentElement) {
+                    contentElement.innerHTML = `
+                        <p class="error-message">${response.message || 'Error al cargar la política'}</p>
+                    `;
+                }
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('[DEBUG] Error loading policy content:', error);
+            const contentElement = document.getElementById('policy-content');
+            if (contentElement) {
+                contentElement.innerHTML = `
+                    <p class="error-message">${translations[currentLanguage]['error_loading_policy'] || 'Error al cargar la política'}</p>
+                `;
+            }
+        }
+    });
+};
+
+window.renderPoliciesPage = renderPoliciesPage;
+window.renderPolicyPage = renderPolicyPage;
+```
+
+### 6. `/Views/WebsiteBuilder/Preview.cshtml`
+
+#### Configuración de Páginas de Políticas
+**Líneas: 498-538**
+```javascript
+} else if (currentPageId === 'policies') {
+    // Special handling for policies list page
+    console.log('[PREVIEW] Loading policies page configuration');
+    // Keep existing header and footer configurations
+    const existingHeader = currentSectionsConfig.header || {};
+    const existingFooter = currentSectionsConfig.footer || {};
+    
+    // Policies page should show header, policies list, and footer
+    currentSectionsConfig = {
+        ...currentSectionsConfig,
+        sectionOrder: ['header', 'policies', 'footer'],
+        header: existingHeader,
+        footer: existingFooter,
+        policies: {
+            isHidden: false,
+            colorScheme: 'scheme1'
+        }
+    };
+    console.log('[PREVIEW] Policies page config set:', currentSectionsConfig);
+} else if (currentPageId === 'policy') {
+    // Special handling for individual policy page
+    console.log('[PREVIEW] Loading individual policy page configuration');
+    const policyType = '@ViewBag.PolicyType';
+    console.log('[PREVIEW] Policy type:', policyType);
+    
+    // Keep existing header and footer configurations
+    const existingHeader = currentSectionsConfig.header || {};
+    const existingFooter = currentSectionsConfig.footer || {};
+    
+    // Policy page should show header, policy content, and footer
+    currentSectionsConfig = {
+        ...currentSectionsConfig,
+        sectionOrder: ['header', 'policy', 'footer'],
+        header: existingHeader,
+        footer: existingFooter,
+        policy: {
+            isHidden: false,
+            type: policyType
+        }
+    };
+    console.log('[PREVIEW] Policy page config set:', currentSectionsConfig);
+}
+```
+
+#### Renderizado de Secciones de Políticas
+**Líneas: 1260-1307**
+```javascript
+} else if (sectionId === 'policies') {
+    console.log('[PREVIEW] Processing policies list section');
+    const policiesConfig = currentSectionsConfig.policies;
+    
+    if (policiesConfig && !policiesConfig.isHidden) {
+        // Render policies list page
+        if (window.renderPoliciesPage && typeof window.renderPoliciesPage === 'function') {
+            console.log('[PREVIEW] Rendering policies with renderPoliciesPage');
+            finalHtml += window.renderPoliciesPage(policiesConfig);
+        } else {
+            console.log('[PREVIEW] renderPoliciesPage not available, using fallback');
+            finalHtml += `
+                <div class="section-wrapper policies-section" style="padding: 40px 0; background: #f5f5f5;">
+                    <div class="container" style="max-width: 1200px; margin: 0 auto; padding: 0 20px;">
+                        <div style="text-align: center; color: #666;">
+                            <i class="material-icons" style="font-size: 48px; margin-bottom: 16px;">gavel</i>
+                            <h3>Políticas</h3>
+                            <p>La página de políticas está cargando...</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+    }
+} else if (sectionId === 'policy') {
+    console.log('[PREVIEW] Processing individual policy section');
+    const policyConfig = currentSectionsConfig.policy;
+    
+    if (policyConfig && !policyConfig.isHidden) {
+        // Render individual policy page
+        if (window.renderPolicyPage && typeof window.renderPolicyPage === 'function') {
+            console.log('[PREVIEW] Rendering policy with renderPolicyPage');
+            finalHtml += window.renderPolicyPage(policyConfig);
+        } else {
+            console.log('[PREVIEW] renderPolicyPage not available, using fallback');
+            finalHtml += `
+                <div class="section-wrapper policy-section" style="padding: 40px 0; background: #f5f5f5;">
+                    <div class="container" style="max-width: 1200px; margin: 0 auto; padding: 0 20px;">
+                        <div style="text-align: center; color: #666;">
+                            <i class="material-icons" style="font-size: 48px; margin-bottom: 16px;">description</i>
+                            <h3>Política</h3>
+                            <p>El contenido de la política está cargando...</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+    }
+}
+```
+
+#### Carga de Datos Después del Renderizado
+**Líneas: 1405-1418**
+```javascript
+// Load policies data if on policies page
+if (currentPageId === 'policies' && window.loadPoliciesData) {
+    console.log('[PREVIEW] Loading policies data...');
+    window.loadPoliciesData();
+}
+
+// Load policy content if on individual policy page
+if (currentPageId === 'policy' && window.loadPolicyContent) {
+    const policyType = currentSectionsConfig.policy?.type;
+    if (policyType) {
+        console.log('[PREVIEW] Loading policy content for type:', policyType);
+        window.loadPolicyContent(policyType);
+    }
+}
+```
+
+### 7. `/wwwroot/css/website-builder.css`
+
+#### Estilos para Páginas de Políticas
+**Líneas: 9520-9674**
+```css
+/* ==================== POLICIES STYLES ==================== */
+.policies-page {
+    min-height: 400px;
+    padding: 40px 0;
+}
+
+.policies-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+.policies-header {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.policies-header h1 {
+    font-size: 32px;
+    margin: 0;
+    color: #333;
+}
+
+.policies-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 30px;
+    margin-top: 40px;
+}
+
+.policy-card {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 30px;
+    text-align: center;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.policy-card:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    transform: translateY(-2px);
+}
+
+.policy-card a {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+}
+
+.policy-icon {
+    width: 60px;
+    height: 60px;
+    margin: 0 auto 20px;
+    background: #f5f5f5;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.policy-icon i {
+    font-size: 28px;
+    color: #666;
+}
+
+.policy-info h3 {
+    font-size: 18px;
+    margin: 0 0 10px 0;
+    color: #333;
+}
+
+.policy-info p {
+    margin: 0;
+    color: #666;
+    font-size: 14px;
+}
+
+/* Individual Policy Page */
+.policy-page {
+    min-height: 400px;
+    padding: 60px 0;
+    background: #fff;
+}
+
+.policy-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+.policy-header {
+    margin-bottom: 40px;
+}
+
+.policy-header h1 {
+    font-size: 36px;
+    margin: 0;
+    color: #333;
+    line-height: 1.2;
+}
+
+.policy-content {
+    font-size: 16px;
+    line-height: 1.8;
+    color: #444;
+}
+
+.policy-text p {
+    margin-bottom: 20px;
+}
+
+.policy-text p:last-child {
+    margin-bottom: 0;
+}
+
+.no-policies,
+.no-content {
+    text-align: center;
+    color: #666;
+    padding: 40px 20px;
+    font-size: 16px;
+}
+
+.error-message {
+    text-align: center;
+    color: #d32f2f;
+    padding: 40px 20px;
+    font-size: 16px;
+}
+
+.loading-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: #666;
+    font-size: 16px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .policies-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+    
+    .policy-header h1 {
+        font-size: 28px;
+    }
+    
+    .policy-container {
+        padding: 0 15px;
+    }
+}
+```
+
+## Características Implementadas
+
+### Sistema de Navegación Inteligente
+1. **Carga dinámica**: Solo muestra políticas que tienen contenido configurado
+2. **Submenú expandible**: Al hacer click en "Políticas" se muestran las opciones disponibles
+3. **Opción "Todas las políticas"**: Siempre aparece primero en el submenú
+4. **Handler de clicks**: Inserta correctamente la URL seleccionada en el campo de enlace
+
+### Iconos Distintivos por Tipo
+```javascript
+const iconMap = {
+    'refund': 'autorenew',      // 🔄 Devoluciones
+    'privacy': 'lock',          // 🔒 Privacidad
+    'terms': 'description',     // 📄 Términos
+    'shipping': 'local_shipping', // 🚚 Envío
+    'contact': 'contact_mail'   // ✉️ Contacto
+};
+```
+
+### Formateo de Contenido
+El contenido de las políticas se formatea automáticamente:
+- Convierte saltos de línea dobles en párrafos HTML
+- Elimina espacios en blanco innecesarios
+- Mantiene una estructura de lectura limpia
+
+### Estados de la Interfaz
+1. **Estado de carga**: Muestra mensaje mientras se cargan las políticas
+2. **Estado vacío**: Mensaje cuando no hay políticas configuradas
+3. **Estado de error**: Mensajes descriptivos si algo falla
+4. **Estado sin contenido**: Mensaje específico cuando una política individual no tiene contenido
+
+## Patrón de Implementación para Futuras Páginas
+
+### 1. Backend - Controller
+```csharp
+// Agregar endpoints API con camelCase explícito
+[HttpGet]
+[Route("api/builder/[entity]")]
+[AllowAnonymous]
+public async Task<IActionResult> Get[Entity]ForBuilder()
+{
+    // Retornar siempre con propiedades en camelCase
+    return Json(new { id = x.Id, name = x.Name, handle = x.Handle });
+}
+```
+
+### 2. Frontend - JavaScript Handler
+```javascript
+else if (url === '/[entity]') {
+    // Implementar carga dinámica del submenú
+    // Usar AJAX para cargar desde API
+    // Agregar handlers para clicks en items del submenú
+}
+```
+
+### 3. Rutas - Program.cs
+```csharp
+app.MapControllerRoute(
+    name: "[entity]",
+    pattern: "[entity]",
+    defaults: new { controller = "WebsiteBuilder", action = "Preview" });
+```
+
+### 4. Detección - WebsiteBuilderController
+```csharp
+if (Request.Path.Value?.Equals("/[entity]", StringComparison.OrdinalIgnoreCase) == true)
+{
+    page = "[entity]";
+}
+```
+
+### 5. Renderizado - website-render-functions.js
+```javascript
+function render[Entity]Page(config = {}) {
+    // Implementar HTML base
+}
+
+window.load[Entity]Data = function() {
+    // Implementar carga AJAX de datos
+}
+```
+
+### 6. Vista - Preview.cshtml
+- Agregar configuración de página en la sección de inicialización
+- Agregar caso en renderPreviewContent
+- Agregar carga de datos después del renderizado
+
+### 7. Estilos - website-builder.css
+- Mantener consistencia con el diseño existente
+- Usar grid para layouts de múltiples elementos
+- Implementar diseño responsivo
+
+## Lecciones Aprendidas
+
+### 1. Consistencia en Serialización JSON
+**SIEMPRE** usar camelCase explícito en los endpoints:
+```csharp
+// ✅ CORRECTO
+new { id = p.Id, name = p.Name, handle = p.Handle }
+
+// ❌ EVITAR
+new { p.Id, p.Name, p.Handle }
+```
+
+### 2. Validación de Contenido
+Solo mostrar elementos que tienen contenido real:
+```csharp
+if (!string.IsNullOrWhiteSpace(policy.RefundPolicyContent))
+{
+    policies.Add(new { ... });
+}
+```
+
+### 3. Manejo de Estados
+Siempre implementar todos los estados posibles:
+- Loading
+- Empty
+- Error
+- Success
+
+### 4. Formateo de Texto
+Convertir texto plano en HTML bien estructurado:
+```javascript
+const formattedContent = response.content
+    .split('\n\n')
+    .filter(p => p.trim())
+    .map(p => `<p>${p.trim()}</p>`)
+    .join('');
+```
+
+### 5. Debug Logs
+Mantener logs detallados durante el desarrollo:
+```javascript
+console.log('[DEBUG] Policies API response:', policies);
+console.log('[DEBUG] Added', policies.length, 'policies to submenu');
+```
+
+## Estado de Implementación
+
+✅ Endpoints API funcionando correctamente
+✅ Submenú expandible en el dropdown de navegación
+✅ Página de lista de políticas con grid responsivo
+✅ Páginas individuales de políticas con contenido formateado
+✅ Manejo completo de estados (carga, vacío, error)
+✅ Integración con sistema de traducciones
+✅ Estilos CSS consistentes con el diseño del sitio
+✅ Navegación funcional desde menú hasta páginas de políticas
+
+## Próximos Pasos Recomendados
+
+1. **Implementar Pages (CMS)**:
+   - Seguir el mismo patrón de políticas
+   - Crear modelo Page si no existe
+   - Implementar CRUD básico
+   - Agregar editor de contenido
+
+2. **Mejorar el Editor de Políticas**:
+   - Agregar editor WYSIWYG
+   - Preview en tiempo real
+   - Historial de cambios
+
+3. **Optimizaciones**:
+   - Cache de políticas
+   - Lazy loading de contenido
+   - Compresión de respuestas
+
+4. **SEO**:
+   - Meta tags dinámicos
+   - URLs canónicas
+   - Schema markup para políticas legales

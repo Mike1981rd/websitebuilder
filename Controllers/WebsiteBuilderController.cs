@@ -21,7 +21,7 @@ namespace Hotel.Controllers
         }
 
         // Vista de preview completa en nueva pestaña
-        public IActionResult Preview(string page = null, string handle = null)
+        public IActionResult Preview(string page = null, string handle = null, string type = null)
         {
             // Check if this is being accessed via /cart route
             if (Request.Path.Value?.Equals("/cart", StringComparison.OrdinalIgnoreCase) == true)
@@ -47,6 +47,19 @@ namespace Hotel.Controllers
             {
                 page = "product";
                 ViewBag.ProductHandle = handle;
+            }
+            
+            // Check if this is being accessed via /policies route
+            if (Request.Path.Value?.Equals("/policies", StringComparison.OrdinalIgnoreCase) == true)
+            {
+                page = "policies";
+            }
+            
+            // Check if this is being accessed via /policies/{type} route
+            if (Request.Path.Value?.StartsWith("/policies/", StringComparison.OrdinalIgnoreCase) == true)
+            {
+                page = "policy"; // singular for individual policy
+                ViewBag.PolicyType = type; // Use the type parameter
             }
             
             // Pass the page parameter to the view

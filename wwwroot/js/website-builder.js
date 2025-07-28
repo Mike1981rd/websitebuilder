@@ -28462,6 +28462,97 @@ document.head.appendChild(style);
             });
             $item.toggleClass('expanded');
             console.log('[DEBUG] Item expanded:', $item.hasClass('expanded'));
+        } else if (url === '/policies') {
+            console.log('[DEBUG] Policies item clicked');
+            // Check if submenu already exists
+            let $submenu = $item.find('.link-submenu');
+            console.log('[DEBUG] Submenu exists:', $submenu.length > 0);
+            
+            if ($submenu.length === 0) {
+                console.log('[DEBUG] Creating new submenu for policies');
+                // Create submenu structure
+                const submenuHtml = `
+                    <ul class="link-submenu" style="display: none;">
+                        <li data-url="/policies">
+                            <i class="material-icons">gavel</i>
+                            <span>Todas las políticas</span>
+                        </li>
+                        <li class="submenu-loading">
+                            <i class="material-icons rotating">sync</i>
+                            <span>Cargando políticas...</span>
+                        </li>
+                    </ul>
+                `;
+                
+                $item.append(submenuHtml);
+                $submenu = $item.find('.link-submenu');
+                console.log('[DEBUG] Submenu created:', $submenu.length);
+                
+                // Load policies from API
+                $.ajax({
+                    url: '/api/builder/policies',
+                    method: 'GET',
+                    success: function(policies) {
+                        console.log('[DEBUG] Policies API response:', policies);
+                        // Remove loading indicator
+                        $submenu.find('.submenu-loading').remove();
+                        
+                        // Add individual policies
+                        if (policies && policies.length > 0) {
+                            policies.forEach(function(policy) {
+                                const policyHtml = `
+                                    <li data-url="/policies/${policy.handle}">
+                                        <i class="material-icons">description</i>
+                                        <span>${policy.name}</span>
+                                    </li>
+                                `;
+                                $submenu.append(policyHtml);
+                            });
+                            console.log('[DEBUG] Added', policies.length, 'policies to submenu');
+                        } else {
+                            $submenu.append('<li class="no-items"><span>No hay políticas configuradas</span></li>');
+                        }
+                        
+                        // Add click handler for submenu items
+                        $submenu.find('li:not(.no-items)').on('click', function(e) {
+                            e.stopPropagation();
+                            const subUrl = $(this).data('url');
+                            const dropdownId = $dropdown.attr('id');
+                            
+                            let $input;
+                            if (dropdownId.startsWith('link-suggestions-submenu-')) {
+                                const parentId = dropdownId.replace('link-suggestions-submenu-', '');
+                                $input = $(`#submenu-url-${parentId}`);
+                            } else if (dropdownId.startsWith('link-suggestions-inline-')) {
+                                // For inline edit dropdowns
+                                $input = $dropdown.parent().find('.edit-item-url');
+                            } else {
+                                const inputId = dropdownId === 'link-suggestions-create' ? 'new-item-url-create' : 'new-item-url-edit';
+                                $input = $('#' + inputId);
+                            }
+                            
+                            if ($input.length) {
+                                $input.val(subUrl);
+                            }
+                            // Clear the keep-open flag before hiding
+                            $dropdown.data('keep-open', false);
+                            $dropdown.fadeOut(200);
+                        });
+                    },
+                    error: function(xhr, status, error) {
+                        console.log('[DEBUG] Policies API error:', status, error);
+                        $submenu.find('.submenu-loading').html('<span>Error al cargar políticas</span>');
+                    }
+                });
+            }
+            
+            // Toggle submenu visibility
+            console.log('[DEBUG] About to toggle submenu, current display:', $submenu.css('display'));
+            $submenu.slideToggle(200, function() {
+                console.log('[DEBUG] Submenu toggled, new display:', $submenu.css('display'));
+            });
+            $item.toggleClass('expanded');
+            console.log('[DEBUG] Item expanded:', $item.hasClass('expanded'));
         }
         // TODO: Handle other submenus (Products, Pages, etc.)
     });
