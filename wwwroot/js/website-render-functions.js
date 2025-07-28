@@ -3210,6 +3210,44 @@ function renderCollectionPage(config = {}) {
     // HTML base de la página
     const html = `
         <div class="collection-products-page" data-collection-handle="${handle}">
+            <!-- Filters Panel -->
+            <div class="filters-panel" id="filters-panel">
+                <div class="filters-header">
+                    <button class="filters-close" id="filters-close">
+                        <span>&times;</span>
+                    </button>
+                    <h3>${translations[currentLanguage]['filters'] || 'Filtros'}</h3>
+                    <div class="filters-sort-section">
+                        <span class="sort-arrows">⇅</span>
+                        <span class="sort-label">${translations[currentLanguage]['sort'] || 'Ordenar'}</span>
+                        <select class="filters-sort-select" id="filters-sort-select">
+                            <option value="featured">${translations[currentLanguage]['featured'] || 'Más vendidos'}</option>
+                            <option value="alphabetically-az">${translations[currentLanguage]['alphabetically_az'] || 'Alfabéticamente, A-Z'}</option>
+                            <option value="alphabetically-za">${translations[currentLanguage]['alphabetically_za'] || 'Alfabéticamente, Z-A'}</option>
+                            <option value="price-low-high">${translations[currentLanguage]['price_low_high'] || 'Precio: menor a mayor'}</option>
+                            <option value="price-high-low">${translations[currentLanguage]['price_high_low'] || 'Precio: mayor a menor'}</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="filters-body">
+                    <div class="filter-section">
+                        <h4 class="filter-title">PRICE</h4>
+                        <div class="price-range-container">
+                            <div class="price-range-values">
+                                <span class="price-min" id="price-min">$0</span>
+                                <span class="price-max" id="price-max">$15</span>
+                            </div>
+                            <div class="price-range-slider">
+                                <input type="range" class="price-slider" id="price-slider-min" min="0" max="15" value="0" step="0.01">
+                                <input type="range" class="price-slider" id="price-slider-max" min="0" max="15" value="15" step="0.01">
+                                <div class="price-range-track"></div>
+                                <div class="price-range-progress" id="price-range-progress"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
             <!-- Filters and Sorting Bar -->
             <div class="collection-toolbar">
                 <div class="toolbar-container">
@@ -3279,10 +3317,6 @@ function renderCollectionPage(config = {}) {
                 </div>
             </div>
             
-            <!-- Promotional Badge -->
-            <div class="promotional-section">
-                <span class="promo-badge">${translations[currentLanguage]['offer'] || 'Oferta'}</span>
-            </div>
             
             <!-- Products Grid -->
             <div class="products-container">
@@ -3299,6 +3333,10 @@ function renderCollectionPage(config = {}) {
     console.log('[DEBUG] Returning collection products HTML');
     return html;
 }
+
+// Variable global para almacenar productos originales
+let originalProducts = [];
+let currentProducts = [];
 
 // Función para cargar los datos de productos de la colección
 function loadCollectionProductsData(handle) {
@@ -3352,80 +3390,17 @@ function loadCollectionProductsData(handle) {
                     return;
                 }
                 
-                // Renderizar grid de productos
-                let productsHtml = response.products.map(product => {
-                    console.log('[DEBUG] Rendering product:', product);
-                    
-                    // Calcular precio con descuento
-                    const hasDiscount = product.hasDiscount;
-                    const discountPercentage = Math.round(product.discountPercentage || 0);
-                    
-                    // Formatear precios
-                    const formatPrice = (price) => {
-                        return new Intl.NumberFormat('es-DO', {
-                            style: 'currency',
-                            currency: 'USD',
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 2
-                        }).format(price);
-                    };
-                    
-                    // Generar estrellas
-                    const starsHtml = Array(5).fill(0).map((_, i) => 
-                        `<svg class="star-icon ${i < product.rating ? 'filled' : ''}" width="12" height="12" viewBox="0 0 12 12">
-                            <path d="M6 0.5L7.635 4.195L11.5 4.635L8.575 7.385L9.27 11.5L6 9.445L2.73 11.5L3.425 7.385L0.5 4.635L4.365 4.195L6 0.5Z" fill="currentColor"/>
-                        </svg>`
-                    ).join('');
-                    
-                    return `
-                        <div class="product-card">
-                            <a href="/products/${product.handle}" class="product-card-link">
-                                <div class="product-image-container">
-                                    ${hasDiscount && discountPercentage > 0 
-                                        ? `<span class="discount-badge">-${discountPercentage}%</span>` 
-                                        : ''
-                                    }
-                                    <div class="product-image-wrapper">
-                                        ${product.imageUrl 
-                                            ? `<img src="${product.imageUrl}" alt="${product.title}" class="product-image" loading="lazy">`
-                                            : `<div class="product-image-placeholder">
-                                                    <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
-                                                        <rect width="48" height="48" fill="#F5F5F5"/>
-                                                        <path d="M28 21L22 27L16 21" stroke="#CCCCCC" stroke-width="2"/>
-                                                        <circle cx="32" cy="16" r="3" fill="#CCCCCC"/>
-                                                        <rect x="8" y="8" width="32" height="32" stroke="#CCCCCC" stroke-width="2"/>
-                                                    </svg>
-                                               </div>`
-                                        }
-                                    </div>
-                                </div>
-                                <div class="product-details">
-                                    <h3 class="product-title">${product.title || 'Sin título'}</h3>
-                                    <p class="product-vendor">${product.vendor || 'Aurora'}</p>
-                                    <div class="product-rating">
-                                        ${starsHtml}
-                                    </div>
-                                    <div class="product-pricing">
-                                        ${hasDiscount && product.compareAtPrice 
-                                            ? `<span class="price-original">${formatPrice(product.compareAtPrice)}</span>` 
-                                            : ''
-                                        }
-                                        <span class="price-sale">${formatPrice(product.price)}</span>
-                                    </div>
-                                    ${product.variantCount && product.variantCount > 1 
-                                        ? `<p class="product-options">${product.variantCount} Colors</p>` 
-                                        : ''
-                                    }
-                                </div>
-                            </a>
-                        </div>
-                    `;
-                }).join('');
+                // Guardar productos originales
+                originalProducts = response.products || [];
+                currentProducts = [...originalProducts];
                 
-                grid.innerHTML = productsHtml;
+                // Renderizar productos
+                renderProductsGrid(currentProducts);
                 
-                // Agregar event listeners para cambio de vista
+                // Agregar event listeners
                 attachViewOptionsListeners();
+                attachFilterListeners();
+                attachSortListeners();
             } else {
                 console.error('[DEBUG] Error en respuesta:', response.message);
                 const grid = document.getElementById('products-grid');
@@ -3466,6 +3441,276 @@ function attachViewOptionsListeners() {
             this.classList.add('active');
             
             // Actualizar columnas del grid
+            if (grid) {
+                grid.setAttribute('data-columns', columns);
+            }
+        });
+    });
+}
+
+// Función para renderizar el grid de productos
+function renderProductsGrid(products) {
+    const grid = document.getElementById('products-grid');
+    if (!grid) return;
+    
+    // Formatear precios
+    const formatPrice = (price) => {
+        return new Intl.NumberFormat('es-DO', {
+            style: 'currency',
+            currency: 'USD',
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        }).format(price);
+    };
+    
+    grid.innerHTML = products.map(product => {
+        console.log('[DEBUG] Rendering product:', product);
+        
+        // Calcular precio con descuento
+        const price = parseFloat(product.price) || 0;
+        const comparePrice = parseFloat(product.compareAtPrice) || 0;
+        const hasDiscount = product.hasDiscount || (comparePrice > price);
+        const discountPercentage = hasDiscount && comparePrice > 0 
+            ? Math.round(((comparePrice - price) / comparePrice) * 100)
+            : 0;
+        
+        // Generar estrellas
+        const rating = product.rating || 4; // Default 4 estrellas si no hay rating
+        const starsHtml = Array(5).fill(0).map((_, i) => 
+            `<svg class="star-icon ${i < rating ? 'filled' : ''}" width="12" height="12" viewBox="0 0 12 12">
+                <path d="M6 0.5L7.635 4.195L11.5 4.635L8.575 7.385L9.27 11.5L6 9.445L2.73 11.5L3.425 7.385L0.5 4.635L4.365 4.195L6 0.5Z" fill="currentColor"/>
+            </svg>`
+        ).join('');
+        
+        return `
+            <div class="product-card">
+                <a href="/products/${product.handle || ''}" class="product-card-link">
+                    <div class="product-image-container">
+                        ${hasDiscount && discountPercentage > 0 
+                            ? `<span class="discount-badge">-${discountPercentage}%</span>` 
+                            : ''
+                        }
+                        <div class="product-image-wrapper">
+                            ${product.imageUrl || product.image
+                                ? `<img src="${product.imageUrl || product.image}" alt="${product.title}" class="product-image" loading="lazy">`
+                                : `<div class="product-image-placeholder">
+                                        <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+                                            <rect width="48" height="48" fill="#F5F5F5"/>
+                                            <path d="M28 21L22 27L16 21" stroke="#CCCCCC" stroke-width="2"/>
+                                            <circle cx="32" cy="16" r="3" fill="#CCCCCC"/>
+                                            <rect x="8" y="8" width="32" height="32" stroke="#CCCCCC" stroke-width="2"/>
+                                        </svg>
+                                   </div>`
+                            }
+                        </div>
+                    </div>
+                    <div class="product-details">
+                        <h3 class="product-title">${product.title || 'Sin título'}</h3>
+                        <div class="product-rating">
+                            ${starsHtml}
+                        </div>
+                        <div class="product-pricing">
+                            ${hasDiscount && comparePrice > 0
+                                ? `<span class="price-original">${formatPrice(comparePrice)}</span>` 
+                                : ''
+                            }
+                            <span class="price-sale">${formatPrice(price)}</span>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        `;
+    }).join('');
+}
+
+// Función para filtrar productos por precio
+function filterProductsByPrice(products, minPrice, maxPrice) {
+    return products.filter(product => {
+        const price = parseFloat(product.price) || 0;
+        return price >= minPrice && price <= maxPrice;
+    });
+}
+
+// Función para ordenar productos
+function sortProducts(products, sortType) {
+    const sorted = [...products];
+    
+    switch(sortType) {
+        case 'alphabetically-az':
+            return sorted.sort((a, b) => (a.title || '').localeCompare(b.title || ''));
+            
+        case 'alphabetically-za':
+            return sorted.sort((a, b) => (b.title || '').localeCompare(a.title || ''));
+            
+        case 'price-low-high':
+            return sorted.sort((a, b) => (parseFloat(a.price) || 0) - (parseFloat(b.price) || 0));
+            
+        case 'price-high-low':
+            return sorted.sort((a, b) => (parseFloat(b.price) || 0) - (parseFloat(a.price) || 0));
+            
+        case 'featured':
+        default:
+            return sorted; // Mantener orden original
+    }
+}
+
+// Función para actualizar el slider de precio
+function updatePriceSlider() {
+    const minSlider = document.getElementById('price-slider-min');
+    const maxSlider = document.getElementById('price-slider-max');
+    const minDisplay = document.getElementById('price-min');
+    const maxDisplay = document.getElementById('price-max');
+    const progress = document.getElementById('price-range-progress');
+    
+    if (!minSlider || !maxSlider) return;
+    
+    // Encontrar precio mínimo y máximo de los productos
+    const prices = originalProducts.map(p => parseFloat(p.price) || 0);
+    const minProductPrice = Math.min(...prices);
+    const maxProductPrice = Math.max(...prices);
+    
+    // Actualizar los límites de los sliders
+    minSlider.min = minProductPrice;
+    minSlider.max = maxProductPrice;
+    minSlider.value = minProductPrice;
+    
+    maxSlider.min = minProductPrice;
+    maxSlider.max = maxProductPrice;
+    maxSlider.value = maxProductPrice;
+    
+    // Función para actualizar la visualización
+    function updateDisplay() {
+        const minVal = parseFloat(minSlider.value);
+        const maxVal = parseFloat(maxSlider.value);
+        
+        // Prevenir que se crucen los valores
+        if (minVal > maxVal) {
+            if (this === minSlider) {
+                minSlider.value = maxVal;
+            } else {
+                maxSlider.value = minVal;
+            }
+            return;
+        }
+        
+        // Actualizar displays
+        minDisplay.textContent = `$${minVal.toFixed(2)}`;
+        maxDisplay.textContent = `$${maxVal.toFixed(2)}`;
+        
+        // Actualizar la barra de progreso
+        const range = maxProductPrice - minProductPrice;
+        const leftPercent = ((minVal - minProductPrice) / range) * 100;
+        const rightPercent = ((maxProductPrice - maxVal) / range) * 100;
+        
+        progress.style.left = `${leftPercent}%`;
+        progress.style.right = `${rightPercent}%`;
+        
+        // Filtrar productos por precio considerando el ordenamiento actual
+        const sortSelect = document.getElementById('sort-select');
+        const currentSort = sortSelect ? sortSelect.value : 'featured';
+        
+        const filtered = filterProductsByPrice(originalProducts, minVal, maxVal);
+        const sorted = sortProducts(filtered, currentSort);
+        renderProductsGrid(sorted);
+        
+        // Actualizar currentProducts para mantener consistencia
+        currentProducts = sorted;
+        
+        // Actualizar contador
+        const countEl = document.getElementById('product-count');
+        if (countEl) {
+            countEl.textContent = `${sorted.length} ${translations[currentLanguage]['results'] || 'Resultados'}`;
+        }
+    }
+    
+    minSlider.addEventListener('input', updateDisplay);
+    maxSlider.addEventListener('input', updateDisplay);
+    
+    // Inicializar displays
+    updateDisplay.call(minSlider);
+}
+
+// Función para adjuntar event listeners de filtros
+function attachFilterListeners() {
+    // Botón de abrir/cerrar filtros
+    const filterBtn = document.getElementById('btn-filters');
+    const filterPanel = document.getElementById('filters-panel');
+    const closeBtn = document.getElementById('filters-close');
+    
+    if (filterBtn && filterPanel) {
+        filterBtn.addEventListener('click', () => {
+            filterPanel.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        });
+    }
+    
+    if (closeBtn && filterPanel) {
+        closeBtn.addEventListener('click', () => {
+            filterPanel.classList.remove('active');
+            document.body.style.overflow = '';
+        });
+    }
+    
+    // Click fuera del panel para cerrar
+    if (filterPanel) {
+        filterPanel.addEventListener('click', (e) => {
+            if (e.target === filterPanel) {
+                filterPanel.classList.remove('active');
+                document.body.style.overflow = '';
+            }
+        });
+    }
+    
+    // Inicializar slider de precio
+    updatePriceSlider();
+}
+
+// Función para adjuntar event listeners de ordenamiento
+function attachSortListeners() {
+    // Selector principal de ordenamiento
+    const sortSelect = document.getElementById('sort-select');
+    const filtersSortSelect = document.getElementById('filters-sort-select');
+    
+    function handleSort(sortType) {
+        currentProducts = sortProducts(originalProducts, sortType);
+        renderProductsGrid(currentProducts);
+    }
+    
+    if (sortSelect) {
+        sortSelect.addEventListener('change', (e) => {
+            handleSort(e.target.value);
+            // Sincronizar con el select del panel de filtros
+            if (filtersSortSelect) {
+                filtersSortSelect.value = e.target.value;
+            }
+        });
+    }
+    
+    if (filtersSortSelect) {
+        filtersSortSelect.addEventListener('change', (e) => {
+            handleSort(e.target.value);
+            // Sincronizar con el select principal
+            if (sortSelect) {
+                sortSelect.value = e.target.value;
+            }
+        });
+    }
+}
+
+// Función para adjuntar event listeners de opciones de vista
+function attachViewOptionsListeners() {
+    const viewBtns = document.querySelectorAll('.view-btn');
+    const grid = document.getElementById('products-grid');
+    
+    viewBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const columns = btn.getAttribute('data-columns');
+            
+            // Actualizar botón activo
+            viewBtns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            
+            // Actualizar grid
             if (grid) {
                 grid.setAttribute('data-columns', columns);
             }

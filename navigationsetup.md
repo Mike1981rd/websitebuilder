@@ -570,3 +570,202 @@ public async Task<IActionResult> SearchProductsForBuilder()
 ### Pages (CMS)
 - Decidir estructura de páginas estáticas
 - Implementar sistema CMS básico si es necesario
+
+## Problemas y Soluciones - Página de Productos de Colección
+
+### PROBLEMA 1: Navegación incorrecta al hacer click en cards de colección
+**Síntoma**: Al hacer click en un card de colección, navegaba a `/products/{handle}` en lugar de `/collections/{handle}`
+
+**Causa**: El controlador WebsiteBuilderController detectaba cualquier URL con handle como página de producto:
+```csharp
+// INCORRECTO
+if (!string.IsNullOrEmpty(handle) || Request.Path.Value?.StartsWith("/products/", StringComparison.OrdinalIgnoreCase) == true)
+{
+    page = "product"; // Esto capturaba TODAS las rutas con handle
+}
+```
+
+**Solución**: Cambiar la lógica para ser más específica:
+```csharp
+// CORRECTO
+if (Request.Path.Value?.StartsWith("/products/", StringComparison.OrdinalIgnoreCase) == true && !string.IsNullOrEmpty(handle))
+{
+    page = "product";
+}
+else if (Request.Path.Value?.StartsWith("/collections/", StringComparison.OrdinalIgnoreCase) == true && !string.IsNullOrEmpty(handle))
+{
+    page = "collection";
+}
+```
+
+### PROBLEMA 2: Página mostrando solo header y footer sin contenido
+**Síntoma**: La página de productos de colección mostraba solo header y footer
+
+**Causa**: Faltaba el caso 'collection' en la función `renderPreviewContent` de Preview.cshtml
+
+**Solución**: Agregar el caso en Preview.cshtml:
+```javascript
+} else if (sectionId === 'collection') {
+    // Render individual collection page
+    const handle = '@ViewBag.CollectionHandle';
+    if (handle && window.parent.renderCollectionPage) {
+        return window.parent.renderCollectionPage({ handle: handle });
+    }
+}
+```
+
+Y cargar los datos después del renderizado:
+```javascript
+if (currentPageId === 'collection') {
+    setTimeout(() => {
+        const handle = '@ViewBag.CollectionHandle';
+        if (handle && window.parent.loadCollectionProductsData) {
+            window.parent.loadCollectionProductsData(handle);
+        }
+    }, 100);
+}
+```
+
+### PROBLEMA 3: CSS no se aplicaba al preview
+**Síntoma**: Los estilos de la página de productos no se veían en el preview
+
+**Causa**: El archivo CSS no estaba incluido en Preview.cshtml
+
+**Solución**: Agregar el CSS con cache busting:
+```html
+<link rel="stylesheet" href="~/css/website-builder.css?v=@DateTime.Now.Ticks" />
+```
+
+### PROBLEMA 4: Pérdida del diseño original al implementar filtros
+**Síntoma**: Después de agregar la funcionalidad de filtros, los cards de productos perdieron:
+- Estrellas de rating
+- Formato de moneda ($2,500.00 USD)
+- Badges de descuento
+- Estructura HTML completa
+
+**Causa**: La función `renderProductsGrid` fue reescrita de forma muy básica, perdiendo todo el HTML del diseño original
+
+**Solución**: Restaurar la función completa con:
+1. Formato de precio usando `Intl.NumberFormat`
+2. Generación de estrellas SVG con rating
+3. Badge de descuento calculado dinámicamente
+4. Estructura HTML completa con todas las clases CSS
+
+```javascript
+// Formatear precios
+const formatPrice = (price) => {
+    return new Intl.NumberFormat('es-DO', {
+        style: 'currency',
+        currency: 'USD',
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    }).format(price);
+};
+
+// Generar estrellas
+const starsHtml = Array(5).fill(0).map((_, i) => 
+    `<svg class="star-icon ${i < rating ? 'filled' : ''}" width="12" height="12" viewBox="0 0 12 12">
+        <path d="..." fill="currentColor"/>
+    </svg>`
+).join('');
+```
+
+### PROBLEMA 5: Error de compilación con Product.IsActive
+**Síntoma**: Error CS1061: 'Product' does not contain a definition for 'IsActive'
+
+**Causa**: El modelo Product usa `Status` (string) en lugar de `IsActive` (bool)
+
+**Solución**: Cambiar la condición:
+```csharp
+// INCORRECTO
+.Where(p => p.IsActive)
+
+// CORRECTO
+.Where(p => p.Status == "active")
+```
+
+## Implementación de Filtros y Ordenamiento
+
+### Panel de Filtros (Offcanvas)
+Se implementó un panel lateral que se desliza desde la izquierda con:
+- Botón de cerrar (X)
+- Selector de ordenamiento integrado
+- Slider de rango de precio con dos controles
+
+### Funcionalidad de Ordenamiento
+Opciones implementadas:
+- Más vendidos (orden original)
+- Alfabéticamente A-Z
+- Alfabéticamente Z-A  
+- Precio: menor a mayor
+- Precio: mayor a menor
+
+### Slider de Precio
+- Doble slider para seleccionar rango mínimo y máximo
+- Se ajusta automáticamente al rango de precios de los productos
+- Actualización en tiempo real del grid de productos
+- Prevención de cruce de valores (min no puede ser mayor que max)
+
+### Sincronización de Controles
+- El selector de ordenamiento principal se sincroniza con el del panel de filtros
+- Los cambios en cualquiera actualiza ambos
+- El contador de productos se actualiza con los filtros aplicados
+
+## Rutas y Endpoints Implementados
+
+### Rutas en Program.cs
+```csharp
+// Página de lista de colecciones
+app.MapControllerRoute(
+    name: "collections",
+    pattern: "collections",
+    defaults: new { controller = "WebsiteBuilder", action = "Preview" });
+
+// Página de productos de una colección
+app.MapControllerRoute(
+    name: "collection",
+    pattern: "collections/{handle}",
+    defaults: new { controller = "WebsiteBuilder", action = "Preview" });
+```
+
+### API Endpoints
+```csharp
+// Obtener productos de una colección específica
+[HttpGet]
+[Route("api/builder/collections/{handle}/products")]
+public async Task<IActionResult> GetCollectionProducts(string handle)
+```
+
+## Lecciones Aprendidas - Filtros y UI
+
+### 1. Preservar Funcionalidad al Agregar Features
+- **SIEMPRE** hacer backup del código funcional antes de agregar nuevas características
+- Al refactorizar funciones, mantener TODA la funcionalidad original
+- Documentar qué hace cada parte del código antes de modificarlo
+
+### 2. Gestión de Estado en Filtros
+- Mantener arrays separados: `originalProducts` (inmutable) y `currentProducts` (mutable)
+- Los filtros de precio deben trabajar sobre `originalProducts`
+- El ordenamiento se aplica después del filtrado
+
+### 3. CSS para Paneles Offcanvas
+- Usar `position: fixed` con overlay de fondo semi-transparente
+- Animar con `transform: translateX()` para deslizamiento suave
+- Z-index alto (9999) para asegurar que esté sobre todo
+- Diferentes anchos para diferentes breakpoints responsivos
+
+### 4. Sincronización de UI
+- Cuando hay controles duplicados (selectores de ordenamiento), mantenerlos sincronizados
+- Usar IDs únicos para cada control
+- Actualizar programáticamente el valor de ambos cuando uno cambia
+
+## Estado Final de la Implementación
+
+✅ Navegación completa: Menú → Lista de colecciones → Productos de colección
+✅ Página de productos con diseño completo (imágenes, estrellas, precios formateados)
+✅ Panel de filtros con UI según diseño proporcionado
+✅ Ordenamiento funcional (alfabético, precio)
+✅ Slider de precio con rango dinámico
+✅ Sincronización entre controles de ordenamiento
+✅ Diseño responsivo
+✅ Sin elementos de marca (removidos vendor "Aurora", badges "Oferta", "3 Colors")
