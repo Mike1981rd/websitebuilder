@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="~/css/materialize-exact.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/company-settings.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/roles.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/customers.css" asp-append-version="true" />
 </head>
 <body>
     <div class="layout-container">
@@ -52,7 +53,7 @@
                     </li>
 
                     <li class="menu-item">
-                        <a href="#" class="menu-link">
+                        <a href="@Url.Action("Index", "Customers")" class="menu-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Customers" ? "active" : "")">
                             <i class="menu-icon fas fa-user-friends"></i>
                             <span class="menu-text" data-i18n="menu.clientes">Clientes</span>
                             <span class="menu-tooltip" data-i18n="menu.clientes">Clientes</span>
@@ -109,7 +110,7 @@
                 <div class="navbar-content">
                     <div class="search-wrapper">
                         <i class="search-icon fas fa-search"></i>
-                        <input type="text" class="search-input" placeholder="Buscar (CTRL + K)" data-i18n-placeholder="search.placeholder" />
+                        <input type="text" class="search-input" placeholder="" data-i18n-placeholder="search.placeholder" />
                     </div>
                     <div class="navbar-actions">
                         <div class="language-selector">
@@ -636,7 +637,7 @@
                 'menu.policies': 'Políticas',
                 'menu.sitioWeb': 'Sitio Web',
                 // Search
-                'search.placeholder': 'Buscar (CTRL + K)',
+                'search.placeholder': '',
                 // Template Customizer
                 'customizer.title': 'Personalizador de Plantilla',
                 'customizer.theming': 'Tema',
@@ -804,7 +805,7 @@
                 'menu.policies': 'Policies',
                 'menu.sitioWeb': 'Website',
                 // Search
-                'search.placeholder': 'Search (CTRL + K)',
+                'search.placeholder': '',
                 // Template Customizer
                 'customizer.title': 'Template Customizer',
                 'customizer.theming': 'Theming',

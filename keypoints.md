@@ -285,6 +285,566 @@ console.log('Idioma actual (builder):', localStorage.getItem('selectedLanguage')
 
 ---
 
+# Layout y Panel Lateral - Configuración Obligatoria
+
+## Problema Común
+Al crear un nuevo módulo, si no se especifica el layout correcto, el panel lateral desaparece y los estilos no se aplican correctamente. La aplicación usa un layout por defecto que no incluye estos elementos.
+
+## Solución Requerida
+
+### 1. En TODAS las vistas del módulo (.cshtml)
+Agregar la línea del layout en el bloque `@{}`:
+
+```csharp
+@{
+    ViewData["Title"] = "Título de la Vista";
+    Layout = "_MaterializeExactLayout";  // ← CRÍTICO: Sin esto se pierde el panel lateral
+}
+```
+
+### 2. En el Layout Principal (_MaterializeExactLayout.cshtml)
+Agregar el link al CSS del módulo en la sección `<head>`:
+
+```html
+<link rel="stylesheet" href="~/css/tu-modulo.css" asp-append-version="true" />
+```
+
+### Ejemplo Completo - Módulo Customers
+
+**Views/Customers/Index.cshtml:**
+```csharp
+@model IEnumerable<Hotel.Models.Guest>
+
+@{
+    ViewData["Title"] = "Clientes";
+    Layout = "_MaterializeExactLayout";  // ← Sin esto, no hay panel lateral
+}
+```
+
+**Views/Shared/_MaterializeExactLayout.cshtml:**
+```html
+<link rel="stylesheet" href="~/css/roles.css" asp-append-version="true" />
+<link rel="stylesheet" href="~/css/customers.css" asp-append-version="true" />  <!-- ← CSS del módulo -->
+```
+
+### Checklist para Nuevos Módulos
+- [ ] Agregar `Layout = "_MaterializeExactLayout";` en TODAS las vistas
+- [ ] Crear archivo CSS en `/wwwroot/css/nombre-modulo.css`
+- [ ] Agregar link al CSS en `_MaterializeExactLayout.cshtml`
+- [ ] Verificar que el panel lateral se mantiene visible
+- [ ] Confirmar que los estilos se aplican correctamente
+
+### Módulos que YA usan este patrón correctamente:
+- ✅ Roles
+- ✅ Collections
+- ✅ Customers (después del fix)
+- ✅ Empresa
+- ✅ WebsiteBuilder (usa _WebsiteBuilderLayout que es especial)
+
+**IMPORTANTE**: Sin especificar el layout, ASP.NET usa un layout por defecto minimalista que NO incluye el panel lateral ni los estilos del proyecto.
+
+---
+
+# Estructura UI Estándar para Módulos CRUD
+
+## Problema Común
+Al crear nuevos módulos CRUD (Create, Read, Update, Delete), es fácil crear interfaces inconsistentes que no siguen el diseño establecido del proyecto. Esto resulta en módulos que se ven diferentes entre sí y no respetan el sistema de colores.
+
+## Estructura HTML Requerida para Index.cshtml
+
+### 1. Page Header
+```html
+<div class="page-header">
+    <nav class="breadcrumb-container" aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="@Url.Action("Index", "Home")" data-i18n="breadcrumb.home">Home</a></li>
+            <li class="breadcrumb-item active" aria-current="page" data-i18n="module.title">Módulo</li>
+        </ol>
+    </nav>
+    <div class="page-title-container">
+        <h1 class="page-title" data-i18n="module.title">Título del Módulo</h1>
+        <button class="btn btn-create" onclick="window.location.href='@Url.Action("Create", "Controller")'">
+            <i class="fas fa-plus"></i>
+            <span data-i18n="module.create">Crear Nuevo</span>
+        </button>
+    </div>
+</div>
+```
+
+### 2. Card Contenedor
+```html
+<div class="card">
+    <div class="card-content">
+        <!-- Contenido aquí -->
+    </div>
+</div>
+```
+
+### 3. Controles de Tabla
+```html
+<div class="table-controls">
+    <div class="search-container">
+        <input type="text" 
+               id="searchInput" 
+               class="form-control search-input" 
+               data-i18n-placeholder="module.searchPlaceholder"
+               placeholder="Buscar...">
+    </div>
+    <div class="table-actions">
+        <button class="btn btn-secondary" id="exportBtn">
+            <i class="fas fa-download"></i>
+            <span data-i18n="module.export">Exportar</span>
+        </button>
+    </div>
+</div>
+```
+
+### 4. Tabla Responsiva
+```html
+<div class="table-responsive">
+    <table class="table table-hover" id="moduleTable">
+        <thead>
+            <tr>
+                <th></th> <!-- Para checkbox si es necesario -->
+                <th data-i18n="module.column1">Columna 1</th>
+                <th data-i18n="module.column2">Columna 2</th>
+                <th data-i18n="module.actions">Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Filas aquí -->
+        </tbody>
+    </table>
+</div>
+```
+
+### 5. Estado Vacío
+```html
+@if (!Model.Any())
+{
+    <div class="empty-state">
+        <i class="fas fa-icon empty-state-icon"></i>
+        <h3 data-i18n="module.noRecords">No hay registros</h3>
+        <p data-i18n="module.noRecordsDesc">Comienza creando tu primer registro</p>
+        <button class="btn btn-primary" onclick="window.location.href='@Url.Action("Create")'">
+            <i class="fas fa-plus"></i>
+            <span data-i18n="module.createFirst">Crear primero</span>
+        </button>
+    </div>
+}
+```
+
+## Clases CSS Obligatorias
+
+### Botones (SIEMPRE usar var(--primary))
+```css
+/* Botón principal de crear */
+.btn-create {
+    background-color: var(--primary);  /* OBLIGATORIO */
+    color: #ffffff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-create:hover {
+    background-color: var(--primary);  /* OBLIGATORIO */
+    opacity: 0.9;
+}
+
+/* Otros botones estándar */
+.btn-primary { /* Acciones principales */ }
+.btn-secondary { /* Acciones secundarias */ }
+.btn-danger { /* Acciones destructivas */ }
+.btn-icon { /* Botones solo ícono */ }
+```
+
+### Estructura Base
+```css
+/* Card contenedor */
+.card {
+    background-color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+    overflow: hidden;
+}
+
+.card-content {
+    padding: 25px;
+}
+
+/* Tabla */
+.table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.table thead th {
+    background-color: #f8f9fa;
+    font-weight: 600;
+    color: #666;
+    padding: 12px 16px;
+    text-align: left;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 2px solid #e9ecef;
+}
+
+.table tbody td {
+    padding: 16px;
+    border-bottom: 1px solid #f0f0f0;
+    vertical-align: middle;
+}
+```
+
+### Dark Mode
+```css
+body.dark-mode .card {
+    background-color: #3a3c55;  /* NO #282A42 para cards */
+    color: #e0e0e0;
+}
+```
+
+## Posicionamiento del Botón "Agregar" en Index
+
+### 🔴 Problema Común
+El botón "Agregar" puede aparecer centrado o mal posicionado si se intenta colocar en el header de la página. Esto ocurre cuando no hay un título visible o estructura adecuada.
+
+### ✅ Solución Correcta
+Colocar el botón dentro del card junto con los controles de búsqueda y exportar:
+
+```html
+<!-- CORRECTO: Botón dentro del card -->
+<div class="card">
+    <div class="card-content">
+        <div class="table-controls">
+            <div class="search-container">
+                <input type="text" class="form-control search-input" placeholder="Buscar...">
+            </div>
+            <div class="table-actions">
+                <button class="btn btn-create" onclick="window.location.href='@Url.Action("Create")'">
+                    <i class="fas fa-plus"></i>
+                    <span>Agregar</span>
+                </button>
+                <button class="btn btn-secondary">
+                    <i class="fas fa-download"></i>
+                    <span>Exportar</span>
+                </button>
+            </div>
+        </div>
+        <!-- Resto del contenido -->
+    </div>
+</div>
+```
+
+### ❌ Evitar
+```html
+<!-- INCORRECTO: Botón en page-header sin título -->
+<div class="page-header">
+    <nav class="breadcrumb-container">...</nav>
+    <div class="page-title-container">
+        <button class="btn btn-create">Agregar</button> <!-- Aparece centrado -->
+    </div>
+</div>
+```
+
+### CSS Necesario
+```css
+.table-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    gap: 20px;
+}
+
+.search-container {
+    flex: 1;
+    max-width: 400px;
+}
+
+.table-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+```
+
+## Checklist UI para Nuevos Módulos
+
+### Estructura
+- [ ] Vista usa `Layout = "_MaterializeExactLayout"`
+- [ ] CSS del módulo agregado en el layout
+- [ ] Page header con breadcrumb
+- [ ] Botón crear con clase `btn-create` **dentro del card**
+- [ ] Contenido en `.card` > `.card-content`
+- [ ] Tabla con clases correctas
+- [ ] Estado vacío implementado
+
+### Estilos
+- [ ] Botón crear usa `var(--primary)` NO color hardcodeado
+- [ ] Enlaces usan `var(--primary)`
+- [ ] Checkboxes usan `accent-color: var(--primary)`
+- [ ] Focus states usan `var(--primary)`
+- [ ] Dark mode funciona correctamente
+
+### Funcionalidad
+- [ ] Búsqueda en tabla funciona
+- [ ] Traducciones implementadas
+- [ ] Modales de confirmación
+- [ ] Mensajes de éxito/error
+
+## Ejemplo de Referencia
+
+Para ver una implementación correcta completa, revisar:
+- `/Views/Customers/Index.cshtml` - Estructura HTML (después del fix)
+- `/wwwroot/css/customers.css` - Estilos siguiendo el sistema
+
+## Errores Comunes a Evitar
+
+1. **NO hardcodear colores**: Siempre usar `var(--primary)`
+2. **NO crear nuevas clases de botones**: Usar las existentes
+3. **NO omitir el card contenedor**: Mantiene consistencia visual
+4. **NO usar estilos inline**: Todo en el archivo CSS del módulo
+5. **NO olvidar dark mode**: Probar siempre ambos modos
+6. **NO poner botón "Agregar" en page-header sin título**: Colocarlo dentro del card con los controles de tabla
+
+---
+
+# Estándares de Tablas y Listas de Datos
+
+## Problema Común
+Al crear tablas de datos en diferentes módulos, se crean estilos inconsistentes en iconos de acción, tamaños de fuente, avatares y espaciados. Esto causa que cada módulo se vea diferente.
+
+## Estándares OBLIGATORIOS - Basados en Tabla de Usuarios (Roles)
+
+### 1. Estructura de Tabla HTML
+```html
+<div class="table-responsive">
+    <table class="table table-hover" id="moduleTable">
+        <thead>
+            <tr>
+                <th></th> <!-- Para checkbox -->
+                <th data-i18n="table.column1">COLUMNA 1</th>
+                <th data-i18n="table.actions">ACCIONES</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Filas aquí -->
+        </tbody>
+    </table>
+</div>
+```
+
+### 2. Estilos CSS de Tabla
+```css
+.table thead th {
+    text-align: left;
+    padding: 1rem;
+    font-weight: 600;
+    color: #666;
+    font-size: 0.75rem;  /* 12px */
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.table tbody td {
+    padding: 1rem;
+    border-bottom: 1px solid #f5f5f9;
+}
+```
+
+### 3. Información de Usuario/Entidad
+```html
+<td>
+    <div class="user-info">  <!-- o entity-info -->
+        <img src="avatar.jpg" alt="Name" class="user-avatar-small" />
+        <div class="user-details">
+            <div class="user-name">Nombre Completo</div>
+            <div class="user-email">email@ejemplo.com</div>
+        </div>
+    </div>
+</td>
+```
+
+#### Estilos de Avatar
+```css
+.user-avatar-small {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #e0e0e0;
+}
+```
+
+#### Tamaños de Fuente Estándar
+```css
+.user-name {
+    font-weight: 600;
+    color: #444564;
+    font-size: 0.875rem;  /* 14px */
+}
+
+.user-email {
+    color: #a5a3ae;
+    font-size: 0.75rem;   /* 12px */
+}
+
+/* Si necesitas mostrar username o ID */
+.user-username {
+    color: #697a8d;
+    font-size: 0.8125rem; /* 13px */
+}
+```
+
+### 4. Botones de Acción ESTÁNDAR
+```html
+<td>
+    <div class="action-buttons">
+        <button class="btn-action" onclick="editEntity(id)" title="Editar">
+            <i class="fas fa-edit"></i>
+        </button>
+        <button class="btn-action" onclick="toggleStatus(id)" title="Inactivar">
+            <i class="fas fa-ban"></i>  <!-- NO usar fa-trash -->
+        </button>
+    </div>
+</td>
+```
+
+#### Estilos OBLIGATORIOS para Botones
+```css
+.action-buttons {
+    display: flex;
+    gap: 0.25rem;
+}
+
+.btn-action {
+    background: none;
+    border: none;
+    padding: 0.5rem;
+    cursor: pointer;
+    color: #a5a3ae;
+    transition: all 0.3s ease;
+    border-radius: 0.25rem;
+}
+
+.btn-action:hover {
+    background: #f5f5f9;
+    color: #666;
+}
+```
+
+### 5. Iconos Correctos
+- **Editar**: `fas fa-edit` (lápiz simple)
+- **Inactivar/Eliminar**: `fas fa-ban` (círculo prohibido)
+- **Activar**: `fas fa-check-circle`
+- **Ver detalles**: `fas fa-eye`
+- **Configuración**: `fas fa-cog`
+
+**NUNCA USAR**: `fa-trash` (bote de basura) para acciones de eliminar/inactivar
+
+### 6. Badges de Estado
+```html
+<span class="status-badge active">Activo</span>
+```
+
+```css
+.status-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 0.25rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.status-badge.active {
+    background: #e8f5e9;
+    color: #388e3c;
+}
+
+.status-badge.inactive {
+    background: #f5f5f5;
+    color: #666;
+}
+```
+
+### 7. Checkboxes
+```css
+.user-checkbox {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+}
+```
+
+## Checklist para Nuevas Tablas
+- [ ] Usar padding `1rem` en celdas
+- [ ] Fuente de headers: `0.75rem` uppercase
+- [ ] Avatar: 48px con borde 2px solid #e0e0e0
+- [ ] Nombre: `0.875rem`, Email: `0.75rem`
+- [ ] Botones sin borde, color `#a5a3ae`
+- [ ] Usar `fa-ban` NO `fa-trash`
+- [ ] Hover de botones: background `#f5f5f9`
+- [ ] Status badges con padding `0.25rem 0.75rem`
+
+## Módulos de Referencia
+- **✅ CORRECTO**: Vista de usuarios en `/Roles/Index`
+- **❌ EVITAR**: Estilos personalizados diferentes en cada módulo
+
+## ⚠️ ADVERTENCIA CRÍTICA - Enlaces y Selectores CSS
+
+### Problema Común
+Al estilizar enlaces en módulos, usar selectores demasiado generales puede afectar elementos fuera del módulo, como el panel lateral.
+
+### ❌ NUNCA HACER ESTO:
+```css
+/* MALO - Afecta TODOS los enlaces de la página */
+a {
+    color: var(--primary);
+}
+
+/* MALO - Afecta enlaces en todo el sitio */
+a:not(.btn-action) {
+    color: var(--primary);
+}
+```
+
+### ✅ SIEMPRE HACER ESTO:
+```css
+/* CORRECTO - Solo afecta enlaces dentro del módulo */
+.card a:not(.btn-action) {
+    color: var(--primary);
+}
+
+/* CORRECTO - Usar contenedor específico del módulo */
+.customers-container a {
+    color: var(--primary);
+}
+
+/* CORRECTO - Ser específico con el contexto */
+.table a, .customer-details a {
+    color: var(--primary);
+}
+```
+
+### Regla de Oro
+**SIEMPRE** limitar el alcance de tus selectores CSS al contenedor del módulo para evitar efectos secundarios en otros elementos del sistema, especialmente:
+- Panel lateral (debe mantener enlaces blancos)
+- Navegación principal
+- Breadcrumbs
+- Otros módulos
+
+---
+
 # Sistema de Íconos
 
 ## Resumen

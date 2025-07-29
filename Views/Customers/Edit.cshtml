@@ -1,0 +1,375 @@
+@model Hotel.Models.Guest
+
+@{
+    ViewData["Title"] = "Editar Cliente";
+    Layout = "_MaterializeExactLayout";
+}
+
+<div class="page-header">
+    <nav class="breadcrumb-container" aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="@Url.Action("Index", "Home")" data-i18n="breadcrumb.home">Home</a></li>
+            <li class="breadcrumb-item"><a href="@Url.Action("Index", "Customers")" data-i18n="customers.title">Clientes</a></li>
+            <li class="breadcrumb-item active" aria-current="page" data-i18n="customers.editTitle">Editar Cliente</li>
+        </ol>
+    </nav>
+</div>
+
+<div class="card">
+    <div class="card-content">
+        <form asp-action="Edit" method="post" id="editCustomerForm">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="Id" />
+            
+            <div class="form-section">
+                <h3 class="section-title" data-i18n="customers.personalInfo">Información Personal</h3>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label asp-for="FirstName" class="form-label">
+                                <span data-i18n="customers.firstName">Nombre</span>
+                                <span class="required-asterisk">*</span>
+                            </label>
+                            <input asp-for="FirstName" class="form-control" required />
+                            <span asp-validation-for="FirstName" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label asp-for="LastName" class="form-label">
+                                <span data-i18n="customers.lastName">Apellido</span>
+                                <span class="required-asterisk">*</span>
+                            </label>
+                            <input asp-for="LastName" class="form-control" required />
+                            <span asp-validation-for="LastName" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label asp-for="Email" class="form-label">
+                                <span data-i18n="customers.email">Correo Electrónico</span>
+                                <span class="required-asterisk">*</span>
+                            </label>
+                            <input asp-for="Email" class="form-control" type="email" required />
+                            <span asp-validation-for="Email" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label asp-for="Phone" class="form-label" data-i18n="customers.phone">Teléfono</label>
+                            <input asp-for="Phone" class="form-control" type="tel" />
+                            <span asp-validation-for="Phone" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label asp-for="Username" class="form-label" data-i18n="customers.username">Nombre de Usuario</label>
+                            <input asp-for="Username" class="form-control" />
+                            <span asp-validation-for="Username" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label asp-for="DateOfBirth" class="form-label" data-i18n="customers.dateOfBirth">Fecha de Nacimiento</label>
+                            <input asp-for="DateOfBirth" class="form-control" type="date" />
+                            <span asp-validation-for="DateOfBirth" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label asp-for="DocumentType" class="form-label" data-i18n="customers.documentType">Tipo de Documento</label>
+                            <select asp-for="DocumentType" class="form-control">
+                                <option value="" data-i18n="common.selectOption">Seleccionar...</option>
+                                <option value="credito-fiscal" data-i18n="customers.creditoFiscal">Crédito Fiscal</option>
+                                <option value="consumidor-final" data-i18n="customers.consumidorFinal">Consumidor Final</option>
+                                <option value="gubernamental" data-i18n="customers.gubernamental">Gubernamental</option>
+                                <option value="regimen-especial" data-i18n="customers.regimenEspecial">Régimen Especial</option>
+                            </select>
+                            <span asp-validation-for="DocumentType" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label asp-for="DocumentNumber" class="form-label" data-i18n="customers.documentNumber">Número de Documento</label>
+                            <input asp-for="DocumentNumber" class="form-control" />
+                            <span asp-validation-for="DocumentNumber" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" data-i18n="customers.profileImage">Imagen de Perfil</label>
+                    <input type="hidden" asp-for="ProfileImageUrl" id="profileImageUrl" />
+                    
+                    <div class="image-upload-container">
+                        <div class="image-upload-area" id="imageUploadArea" style="@(!string.IsNullOrEmpty(Model.ProfileImageUrl) ? "display:none" : "")">
+                            <i class="fas fa-cloud-upload-alt upload-icon"></i>
+                            <p data-i18n="customers.dragDropImage">Arrastra una imagen aquí o haz clic para seleccionar</p>
+                            <input type="file" id="imageInput" accept="image/*" style="display: none;" />
+                        </div>
+                        <div class="image-preview" id="imagePreview" style="@(!string.IsNullOrEmpty(Model.ProfileImageUrl) ? "" : "display:none")">
+                            <img id="previewImg" src="@Model.ProfileImageUrl" alt="Preview" />
+                            <button type="button" class="btn btn-sm btn-danger remove-image" id="removeImage">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h3 class="section-title" data-i18n="customers.addressInfo">Información de Dirección</h3>
+                
+                <div class="form-group">
+                    <label asp-for="Address" class="form-label" data-i18n="customers.address">Dirección</label>
+                    <input asp-for="Address" class="form-control" />
+                    <span asp-validation-for="Address" class="text-danger"></span>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label asp-for="City" class="form-label" data-i18n="customers.city">Ciudad</label>
+                            <input asp-for="City" class="form-control" />
+                            <span asp-validation-for="City" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label asp-for="Country" class="form-label" data-i18n="customers.country">País</label>
+                            <input asp-for="Country" class="form-control" />
+                            <span asp-validation-for="Country" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label asp-for="PostalCode" class="form-label" data-i18n="customers.postalCode">Código Postal</label>
+                            <input asp-for="PostalCode" class="form-control" />
+                            <span asp-validation-for="PostalCode" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h3 class="section-title" data-i18n="customers.accountSettings">Configuración de Cuenta</h3>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label asp-for="Status" class="form-label" data-i18n="customers.status">Estado</label>
+                            <select asp-for="Status" class="form-control">
+                                <option value="Active" data-i18n="status.active">Activo</option>
+                                <option value="Inactive" data-i18n="status.inactive">Inactivo</option>
+                                <option value="Guest" data-i18n="status.guest">Invitado</option>
+                            </select>
+                            <span asp-validation-for="Status" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label asp-for="LoyaltyTier" class="form-label" data-i18n="customers.loyaltyTier">Nivel de Lealtad</label>
+                            <select asp-for="LoyaltyTier" class="form-control">
+                                <option value="" data-i18n="common.none">Ninguno</option>
+                                <option value="Bronze" data-i18n="loyalty.bronze">Bronce</option>
+                                <option value="Silver" data-i18n="loyalty.silver">Plata</option>
+                                <option value="Gold" data-i18n="loyalty.gold">Oro</option>
+                                <option value="Platinum" data-i18n="loyalty.platinum">Platino</option>
+                            </select>
+                            <span asp-validation-for="LoyaltyTier" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="button" class="btn btn-secondary" onclick="window.location.href='@Url.Action("Index", "Customers")'">
+                    <span data-i18n="common.cancel">Cancelar</span>
+                </button>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save"></i>
+                    <span data-i18n="common.saveChanges">Guardar Cambios</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+@section Scripts {
+    <script>
+        // Traducción local adicional
+        const editCustomerTranslations = {
+            es: {
+                'customers.editTitle': 'Editar Cliente',
+                'customers.personalInfo': 'Información Personal',
+                'customers.firstName': 'Nombre',
+                'customers.lastName': 'Apellido',
+                'customers.email': 'Correo Electrónico',
+                'customers.phone': 'Teléfono',
+                'customers.username': 'Nombre de Usuario',
+                'customers.dateOfBirth': 'Fecha de Nacimiento',
+                'customers.documentType': 'Tipo de Documento',
+                'customers.documentNumber': 'Número de Documento',
+                'customers.creditoFiscal': 'Crédito Fiscal',
+                'customers.consumidorFinal': 'Consumidor Final',
+                'customers.gubernamental': 'Gubernamental',
+                'customers.regimenEspecial': 'Régimen Especial',
+                'customers.profileImage': 'Imagen de Perfil',
+                'customers.dragDropImage': 'Arrastra una imagen aquí o haz clic para seleccionar',
+                'customers.addressInfo': 'Información de Dirección',
+                'customers.address': 'Dirección',
+                'customers.city': 'Ciudad',
+                'customers.country': 'País',
+                'customers.postalCode': 'Código Postal',
+                'customers.accountSettings': 'Configuración de Cuenta',
+                'customers.status': 'Estado',
+                'customers.loyaltyTier': 'Nivel de Lealtad',
+                'common.selectOption': 'Seleccionar...',
+                'common.none': 'Ninguno',
+                'loyalty.bronze': 'Bronce',
+                'loyalty.silver': 'Plata',
+                'loyalty.gold': 'Oro',
+                'loyalty.platinum': 'Platino',
+                'common.saveChanges': 'Guardar Cambios',
+                'common.cancel': 'Cancelar'
+            },
+            en: {
+                'customers.editTitle': 'Edit Customer',
+                'customers.personalInfo': 'Personal Information',
+                'customers.firstName': 'First Name',
+                'customers.lastName': 'Last Name',
+                'customers.email': 'Email',
+                'customers.phone': 'Phone',
+                'customers.username': 'Username',
+                'customers.dateOfBirth': 'Date of Birth',
+                'customers.documentType': 'Document Type',
+                'customers.documentNumber': 'Document Number',
+                'customers.creditoFiscal': 'Tax Credit',
+                'customers.consumidorFinal': 'Final Consumer',
+                'customers.gubernamental': 'Government',
+                'customers.regimenEspecial': 'Special Regime',
+                'customers.profileImage': 'Profile Image',
+                'customers.dragDropImage': 'Drag an image here or click to select',
+                'customers.addressInfo': 'Address Information',
+                'customers.address': 'Address',
+                'customers.city': 'City',
+                'customers.country': 'Country',
+                'customers.postalCode': 'Postal Code',
+                'customers.accountSettings': 'Account Settings',
+                'customers.status': 'Status',
+                'customers.loyaltyTier': 'Loyalty Tier',
+                'common.selectOption': 'Select...',
+                'common.none': 'None',
+                'loyalty.bronze': 'Bronze',
+                'loyalty.silver': 'Silver',
+                'loyalty.gold': 'Gold',
+                'loyalty.platinum': 'Platinum',
+                'common.saveChanges': 'Save Changes',
+                'common.cancel': 'Cancel'
+            }
+        };
+
+        // Fusionar con el objeto global
+        if (typeof translations !== 'undefined') {
+            Object.assign(translations.es, editCustomerTranslations.es);
+            Object.assign(translations.en, editCustomerTranslations.en);
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Aplicar traducciones
+            if (typeof translatePage === 'function') {
+                const currentLang = localStorage.getItem('preferredLanguage') || 'es';
+                translatePage(currentLang);
+            }
+
+            // Manejo de imagen
+            const imageUploadArea = document.getElementById('imageUploadArea');
+            const imageInput = document.getElementById('imageInput');
+            const imagePreview = document.getElementById('imagePreview');
+            const previewImg = document.getElementById('previewImg');
+            const profileImageUrl = document.getElementById('profileImageUrl');
+            const removeImageBtn = document.getElementById('removeImage');
+
+            // Click en área de upload
+            imageUploadArea.addEventListener('click', () => imageInput.click());
+
+            // Drag and drop
+            imageUploadArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                imageUploadArea.classList.add('drag-over');
+            });
+
+            imageUploadArea.addEventListener('dragleave', () => {
+                imageUploadArea.classList.remove('drag-over');
+            });
+
+            imageUploadArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                imageUploadArea.classList.remove('drag-over');
+                
+                const files = e.dataTransfer.files;
+                if (files.length > 0 && files[0].type.startsWith('image/')) {
+                    handleImageFile(files[0]);
+                }
+            });
+
+            // Selección de archivo
+            imageInput.addEventListener('change', (e) => {
+                if (e.target.files.length > 0) {
+                    handleImageFile(e.target.files[0]);
+                }
+            });
+
+            // Remover imagen
+            removeImageBtn.addEventListener('click', () => {
+                previewImg.src = '';
+                profileImageUrl.value = '';
+                imageInput.value = '';
+                imageUploadArea.style.display = 'block';
+                imagePreview.style.display = 'none';
+            });
+
+            // Función para manejar archivo de imagen
+            function handleImageFile(file) {
+                const maxSizeMB = 25;
+                const maxSizeBytes = maxSizeMB * 1024 * 1024;
+                
+                if (file.size > maxSizeBytes) {
+                    alert(`La imagen es demasiado grande. Máximo ${maxSizeMB}MB.`);
+                    return;
+                }
+                
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    previewImg.src = e.target.result;
+                    profileImageUrl.value = e.target.result;
+                    
+                    imageUploadArea.style.display = 'none';
+                    imagePreview.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            }
+
+            // Validación del formulario
+            const form = document.getElementById('editCustomerForm');
+            form.addEventListener('submit', function(e) {
+                if (!form.checkValidity()) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                }
+                form.classList.add('was-validated');
+            });
+        });
+    </script>
+}

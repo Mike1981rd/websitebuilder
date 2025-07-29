@@ -200,6 +200,204 @@ namespace Hotel.Migrations
                     b.ToTable("Companies");
                 });
 
+            modelBuilder.Entity("Hotel.Models.CustomerAddress", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("City")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("Country")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<int>("GuestId")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("IsDefault")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("PostalCode")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<string>("State")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("Street")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("GuestId");
+
+                    b.ToTable("CustomerAddresses");
+                });
+
+            modelBuilder.Entity("Hotel.Models.CustomerDevice", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Browser")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<string>("Device")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<int>("GuestId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("IpAddress")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<DateTime>("LastActivity")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<string>("Location")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("OperatingSystem")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("GuestId");
+
+                    b.ToTable("CustomerDevices");
+                });
+
+            modelBuilder.Entity("Hotel.Models.CustomerNotificationPreference", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("AppEnabled")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("BrowserEnabled")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<bool>("EmailEnabled")
+                        .HasColumnType("boolean");
+
+                    b.Property<int>("GuestId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("GuestId");
+
+                    b.ToTable("CustomerNotificationPreferences");
+                });
+
+            modelBuilder.Entity("Hotel.Models.CustomerPaymentMethod", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("AccountType")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("BankName")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("CardType")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<DateTime?>("ExpiryDate")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<int>("GuestId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("HolderName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<bool>("IsDefault")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("LastFourDigits")
+                        .IsRequired()
+                        .HasMaxLength(4)
+                        .HasColumnType("character varying(4)");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("GuestId");
+
+                    b.ToTable("CustomerPaymentMethods");
+                });
+
             modelBuilder.Entity("Hotel.Models.Guest", b =>
                 {
                     b.Property<int>("Id")
@@ -207,6 +405,10 @@ namespace Hotel.Migrations
                         .HasColumnType("integer");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("AccountBalance")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("Address")
                         .HasMaxLength(200)
@@ -220,10 +422,21 @@ namespace Hotel.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
+                    b.Property<int>("CouponsCount")
+                        .HasColumnType("integer");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp without time zone");
 
+                    b.Property<string>("CustomerId")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
                     b.Property<DateTime?>("DateOfBirth")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<DateTime?>("DeletedAt")
                         .HasColumnType("timestamp without time zone");
 
                     b.Property<string>("DocumentNumber")
@@ -244,10 +457,26 @@ namespace Hotel.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime?>("LastLoginAt")
+                        .HasColumnType("timestamp without time zone");
+
                     b.Property<string>("LastName")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
+
+                    b.Property<int>("LoyaltyPoints")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("LoyaltyTier")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("PasswordHash")
+                        .HasColumnType("text");
 
                     b.Property<string>("Phone")
                         .HasMaxLength(20)
@@ -257,12 +486,44 @@ namespace Hotel.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)");
 
+                    b.Property<string>("ProfileImageUrl")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<decimal>("TotalSpent")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<bool>("TwoFactorEnabled")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("TwoFactorPhone")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp without time zone");
 
+                    b.Property<string>("Username")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<int>("WishlistCount")
+                        .HasColumnType("integer");
+
                     b.HasKey("Id");
 
+                    b.HasIndex("CustomerId")
+                        .IsUnique();
+
                     b.HasIndex("Email")
+                        .IsUnique();
+
+                    b.HasIndex("Username")
                         .IsUnique();
 
                     b.ToTable("Guests");
@@ -1037,38 +1298,38 @@ namespace Hotel.Migrations
                         new
                         {
                             Id = 1,
-                            CreatedAt = new DateTime(2025, 7, 14, 20, 20, 2, 661, DateTimeKind.Utc).AddTicks(4220),
+                            CreatedAt = new DateTime(2025, 7, 29, 15, 31, 5, 398, DateTimeKind.Utc).AddTicks(2270),
                             Description = "Acceso completo al sistema",
                             IsActive = true,
                             Name = "Administrator",
-                            UpdatedAt = new DateTime(2025, 7, 14, 20, 20, 2, 661, DateTimeKind.Utc).AddTicks(4221)
+                            UpdatedAt = new DateTime(2025, 7, 29, 15, 31, 5, 398, DateTimeKind.Utc).AddTicks(2270)
                         },
                         new
                         {
                             Id = 2,
-                            CreatedAt = new DateTime(2025, 7, 14, 20, 20, 2, 661, DateTimeKind.Utc).AddTicks(4225),
+                            CreatedAt = new DateTime(2025, 7, 29, 15, 31, 5, 398, DateTimeKind.Utc).AddTicks(2274),
                             Description = "Acceso de gestión",
                             IsActive = true,
                             Name = "Manager",
-                            UpdatedAt = new DateTime(2025, 7, 14, 20, 20, 2, 661, DateTimeKind.Utc).AddTicks(4226)
+                            UpdatedAt = new DateTime(2025, 7, 29, 15, 31, 5, 398, DateTimeKind.Utc).AddTicks(2274)
                         },
                         new
                         {
                             Id = 3,
-                            CreatedAt = new DateTime(2025, 7, 14, 20, 20, 2, 661, DateTimeKind.Utc).AddTicks(4230),
+                            CreatedAt = new DateTime(2025, 7, 29, 15, 31, 5, 398, DateTimeKind.Utc).AddTicks(2276),
                             Description = "Acceso de soporte",
                             IsActive = true,
                             Name = "Support",
-                            UpdatedAt = new DateTime(2025, 7, 14, 20, 20, 2, 661, DateTimeKind.Utc).AddTicks(4231)
+                            UpdatedAt = new DateTime(2025, 7, 29, 15, 31, 5, 398, DateTimeKind.Utc).AddTicks(2276)
                         },
                         new
                         {
                             Id = 4,
-                            CreatedAt = new DateTime(2025, 7, 14, 20, 20, 2, 661, DateTimeKind.Utc).AddTicks(4234),
+                            CreatedAt = new DateTime(2025, 7, 29, 15, 31, 5, 398, DateTimeKind.Utc).AddTicks(2278),
                             Description = "Acceso básico de usuario",
                             IsActive = true,
                             Name = "Users",
-                            UpdatedAt = new DateTime(2025, 7, 14, 20, 20, 2, 661, DateTimeKind.Utc).AddTicks(4236)
+                            UpdatedAt = new DateTime(2025, 7, 29, 15, 31, 5, 398, DateTimeKind.Utc).AddTicks(2278)
                         });
                 });
 
@@ -1173,7 +1434,7 @@ namespace Hotel.Migrations
                         {
                             Id = 1,
                             BasePrice = 50.00m,
-                            CreatedAt = new DateTime(2025, 7, 14, 20, 20, 2, 661, DateTimeKind.Utc).AddTicks(2957),
+                            CreatedAt = new DateTime(2025, 7, 29, 15, 31, 5, 398, DateTimeKind.Utc).AddTicks(1800),
                             Description = "Habitación individual estándar",
                             MaxOccupancy = 1,
                             Name = "Individual"
@@ -1182,7 +1443,7 @@ namespace Hotel.Migrations
                         {
                             Id = 2,
                             BasePrice = 80.00m,
-                            CreatedAt = new DateTime(2025, 7, 14, 20, 20, 2, 661, DateTimeKind.Utc).AddTicks(2970),
+                            CreatedAt = new DateTime(2025, 7, 29, 15, 31, 5, 398, DateTimeKind.Utc).AddTicks(1807),
                             Description = "Habitación doble estándar",
                             MaxOccupancy = 2,
                             Name = "Doble"
@@ -1191,7 +1452,7 @@ namespace Hotel.Migrations
                         {
                             Id = 3,
                             BasePrice = 150.00m,
-                            CreatedAt = new DateTime(2025, 7, 14, 20, 20, 2, 661, DateTimeKind.Utc).AddTicks(2975),
+                            CreatedAt = new DateTime(2025, 7, 29, 15, 31, 5, 398, DateTimeKind.Utc).AddTicks(1809),
                             Description = "Suite de lujo",
                             MaxOccupancy = 4,
                             Name = "Suite"
@@ -1200,7 +1461,7 @@ namespace Hotel.Migrations
                         {
                             Id = 4,
                             BasePrice = 300.00m,
-                            CreatedAt = new DateTime(2025, 7, 14, 20, 20, 2, 661, DateTimeKind.Utc).AddTicks(2978),
+                            CreatedAt = new DateTime(2025, 7, 29, 15, 31, 5, 398, DateTimeKind.Utc).AddTicks(1811),
                             Description = "Suite presidencial de lujo",
                             MaxOccupancy = 6,
                             Name = "Suite Presidencial"
@@ -1370,6 +1631,50 @@ namespace Hotel.Migrations
                     b.Navigation("Product");
                 });
 
+            modelBuilder.Entity("Hotel.Models.CustomerAddress", b =>
+                {
+                    b.HasOne("Hotel.Models.Guest", "Guest")
+                        .WithMany("Addresses")
+                        .HasForeignKey("GuestId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Guest");
+                });
+
+            modelBuilder.Entity("Hotel.Models.CustomerDevice", b =>
+                {
+                    b.HasOne("Hotel.Models.Guest", "Guest")
+                        .WithMany("Devices")
+                        .HasForeignKey("GuestId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Guest");
+                });
+
+            modelBuilder.Entity("Hotel.Models.CustomerNotificationPreference", b =>
+                {
+                    b.HasOne("Hotel.Models.Guest", "Guest")
+                        .WithMany("NotificationPreferences")
+                        .HasForeignKey("GuestId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Guest");
+                });
+
+            modelBuilder.Entity("Hotel.Models.CustomerPaymentMethod", b =>
+                {
+                    b.HasOne("Hotel.Models.Guest", "Guest")
+                        .WithMany("PaymentMethods")
+                        .HasForeignKey("GuestId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Guest");
+                });
+
             modelBuilder.Entity("Hotel.Models.Page", b =>
                 {
                     b.HasOne("Hotel.Models.Company", "Company")
@@ -1513,6 +1818,14 @@ namespace Hotel.Migrations
 
             modelBuilder.Entity("Hotel.Models.Guest", b =>
                 {
+                    b.Navigation("Addresses");
+
+                    b.Navigation("Devices");
+
+                    b.Navigation("NotificationPreferences");
+
+                    b.Navigation("PaymentMethods");
+
                     b.Navigation("Reservations");
                 });
 

@@ -1,0 +1,325 @@
+@model IEnumerable<Hotel.Models.Guest>
+
+@{
+    ViewData["Title"] = "Clientes";
+    Layout = "_MaterializeExactLayout";
+}
+
+<div class="page-header">
+    <nav class="breadcrumb-container" aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="@Url.Action("Index", "Home")" data-i18n="breadcrumb.home">Home</a></li>
+            <li class="breadcrumb-item active" aria-current="page" data-i18n="customers.title">Clientes</li>
+        </ol>
+    </nav>
+</div>
+
+<div class="card">
+    <div class="card-content">
+        <div class="table-controls">
+            <div class="search-container">
+                <input type="text" 
+                       id="searchInput" 
+                       class="form-control search-input" 
+                       data-i18n-placeholder="customers.searchPlaceholder"
+                       placeholder="Buscar clientes...">
+            </div>
+            <div class="table-actions">
+                <button class="btn btn-create" onclick="window.location.href='@Url.Action("Create", "Customers")'">
+                    <i class="fas fa-plus"></i>
+                    <span data-i18n="customers.addCustomer">Agregar Cliente</span>
+                </button>
+                <div class="dropdown export-dropdown">
+                    <button class="btn btn-sm btn-secondary" onclick="toggleExportMenu(event)">
+                        <i class="fas fa-download"></i>
+                        <span data-i18n="customers.export">Exportar</span>
+                    </button>
+                    <div class="dropdown-menu" id="exportMenu">
+                        <a href="#" onclick="exportCustomers('excel')" class="dropdown-item">
+                            <i class="fas fa-file-excel"></i> Excel
+                        </a>
+                        <a href="#" onclick="exportCustomers('pdf')" class="dropdown-item">
+                            <i class="fas fa-file-pdf"></i> PDF
+                        </a>
+                        <a href="#" onclick="exportCustomers('csv')" class="dropdown-item">
+                            <i class="fas fa-file-csv"></i> CSV
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-hover" id="customersTable">
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th data-i18n="customers.customer">Cliente</th>
+                        <th data-i18n="customers.customerId">ID Cliente</th>
+                        <th data-i18n="customers.country">País</th>
+                        <th data-i18n="customers.orders">Órdenes</th>
+                        <th data-i18n="customers.totalSpent">Total Gastado</th>
+                        <th data-i18n="customers.status">Estado</th>
+                        <th data-i18n="customers.actions">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var customer in Model)
+                    {
+                        <tr data-customer-id="@customer.Id">
+                            <td style="width: 40px;">
+                                <input type="checkbox" class="customer-checkbox" value="@customer.Id">
+                            </td>
+                            <td>
+                                <div class="customer-info">
+                                    <div class="customer-avatar">
+                                        @if (!string.IsNullOrEmpty(customer.ProfileImageUrl))
+                                        {
+                                            <img src="@customer.ProfileImageUrl" alt="@customer.FirstName">
+                                        }
+                                        else
+                                        {
+                                            <div class="avatar-placeholder">
+                                                @customer.FirstName.Substring(0, 1)@customer.LastName.Substring(0, 1)
+                                            </div>
+                                        }
+                                    </div>
+                                    <div class="customer-details">
+                                        <div class="customer-name">@customer.FirstName @customer.LastName</div>
+                                        <div class="customer-email">@customer.Email</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="customer-id">@customer.CustomerId</span>
+                            </td>
+                            <td>
+                                @if (!string.IsNullOrEmpty(customer.Country))
+                                {
+                                    <span class="country-badge">
+                                        <img src="/images/flags/@(customer.Country.ToLower()).png" 
+                                             alt="@customer.Country" 
+                                             class="country-flag"
+                                             onerror="this.style.display='none'">
+                                        @customer.Country
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">-</span>
+                                }
+                            </td>
+                            <td>
+                                <span class="order-count">@customer.Reservations.Count</span>
+                            </td>
+                            <td>
+                                <span class="total-spent">$@customer.TotalSpent.ToString("N2")</span>
+                            </td>
+                            <td>
+                                @if (customer.Status == "Active")
+                                {
+                                    <span class="status-badge status-active" data-i18n="status.active">Activo</span>
+                                }
+                                else if (customer.Status == "Inactive")
+                                {
+                                    <span class="status-badge status-inactive" data-i18n="status.inactive">Inactivo</span>
+                                }
+                                else
+                                {
+                                    <span class="status-badge status-guest" data-i18n="status.guest">Invitado</span>
+                                }
+                            </td>
+                            <td>
+                                <div class="action-buttons">
+                                    <a href="@Url.Action("Edit", "Customers", new { id = customer.Id })" 
+                                       class="btn-action" 
+                                       data-i18n-title="customers.edit"
+                                       title="Editar">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <button type="button" 
+                                            class="btn-action" 
+                                            data-customer-id="@customer.Id"
+                                            data-customer-name="@customer.FirstName @customer.LastName"
+                                            data-i18n-title="customers.delete"
+                                            title="Eliminar">
+                                        <i class="fas fa-ban"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        @if (!Model.Any())
+        {
+            <div class="empty-state">
+                <i class="fas fa-users empty-state-icon"></i>
+                <h3 data-i18n="customers.noCustomers">No hay clientes registrados</h3>
+                <p data-i18n="customers.noCustomersDesc">Comienza agregando tu primer cliente</p>
+                <button class="btn btn-primary" onclick="window.location.href='@Url.Action("Create", "Customers")'">
+                    <i class="fas fa-plus"></i>
+                    <span data-i18n="customers.addFirstCustomer">Agregar primer cliente</span>
+                </button>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- Modal de confirmación de eliminación -->
+<div class="modal fade" id="deleteModal" tabindex="-1" style="display: none;">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" data-i18n="customers.deleteTitle">Eliminar Cliente</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p data-i18n="customers.deleteConfirm">¿Estás seguro de que deseas eliminar a <strong id="customerName"></strong>?</p>
+                <p class="text-muted" data-i18n="customers.deleteWarning">Esta acción no se puede deshacer.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" data-i18n="common.cancel">Cancelar</button>
+                <form id="deleteForm" method="post" style="display: inline;">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-danger" data-i18n="common.delete">Eliminar</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Traducción local para el módulo
+        const customersTranslations = {
+            es: {
+                'customers.title': 'Clientes',
+                'customers.addCustomer': 'Agregar Cliente',
+                'customers.searchPlaceholder': 'Buscar clientes...',
+                'customers.export': 'Exportar',
+                'customers.customer': 'Cliente',
+                'customers.customerId': 'ID Cliente',
+                'customers.country': 'País',
+                'customers.orders': 'Órdenes',
+                'customers.totalSpent': 'Total Gastado',
+                'customers.status': 'Estado',
+                'customers.actions': 'Acciones',
+                'customers.edit': 'Editar',
+                'customers.delete': 'Eliminar',
+                'customers.noCustomers': 'No hay clientes registrados',
+                'customers.noCustomersDesc': 'Comienza agregando tu primer cliente',
+                'customers.addFirstCustomer': 'Agregar primer cliente',
+                'customers.deleteTitle': 'Eliminar Cliente',
+                'customers.deleteConfirm': '¿Estás seguro de que deseas eliminar a',
+                'customers.deleteWarning': 'Esta acción no se puede deshacer.',
+                'status.active': 'Activo',
+                'status.inactive': 'Inactivo',
+                'status.guest': 'Invitado',
+                'common.cancel': 'Cancelar',
+                'common.delete': 'Eliminar',
+                'breadcrumb.home': 'Home',
+                'export.excel': 'Excel',
+                'export.pdf': 'PDF',
+                'export.csv': 'CSV'
+            },
+            en: {
+                'customers.title': 'Customers',
+                'customers.addCustomer': 'Add Customer',
+                'customers.searchPlaceholder': 'Search customers...',
+                'customers.export': 'Export',
+                'customers.customer': 'Customer',
+                'customers.customerId': 'Customer ID',
+                'customers.country': 'Country',
+                'customers.orders': 'Orders',
+                'customers.totalSpent': 'Total Spent',
+                'customers.status': 'Status',
+                'customers.actions': 'Actions',
+                'customers.edit': 'Edit',
+                'customers.delete': 'Delete',
+                'customers.noCustomers': 'No customers registered',
+                'customers.noCustomersDesc': 'Start by adding your first customer',
+                'customers.addFirstCustomer': 'Add first customer',
+                'customers.deleteTitle': 'Delete Customer',
+                'customers.deleteConfirm': 'Are you sure you want to delete',
+                'customers.deleteWarning': 'This action cannot be undone.',
+                'status.active': 'Active',
+                'status.inactive': 'Inactive',
+                'status.guest': 'Guest',
+                'common.cancel': 'Cancel',
+                'common.delete': 'Delete',
+                'breadcrumb.home': 'Home',
+                'export.excel': 'Excel',
+                'export.pdf': 'PDF',
+                'export.csv': 'CSV'
+            }
+        };
+
+        // Fusionar con el objeto global de traducciones
+        if (typeof translations !== 'undefined') {
+            if (!translations.es) translations.es = {};
+            if (!translations.en) translations.en = {};
+            
+            Object.assign(translations.es, customersTranslations.es);
+            Object.assign(translations.en, customersTranslations.en);
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Aplicar traducciones
+            if (typeof translatePage === 'function') {
+                const currentLang = localStorage.getItem('preferredLanguage') || 'es';
+                translatePage(currentLang);
+            }
+
+            // Búsqueda en tabla
+            const searchInput = document.getElementById('searchInput');
+            const table = document.getElementById('customersTable');
+            
+            searchInput.addEventListener('input', function() {
+                const searchTerm = this.value.toLowerCase();
+                const rows = table.querySelectorAll('tbody tr');
+                
+                rows.forEach(row => {
+                    const text = row.textContent.toLowerCase();
+                    row.style.display = text.includes(searchTerm) ? '' : 'none';
+                });
+            });
+
+            // Modal de eliminación
+            const deleteModal = document.getElementById('deleteModal');
+            const deleteForm = document.getElementById('deleteForm');
+            const customerNameSpan = document.getElementById('customerName');
+            
+            document.querySelectorAll('.btn-delete').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const customerId = this.dataset.customerId;
+                    const customerName = this.dataset.customerName;
+                    
+                    customerNameSpan.textContent = customerName;
+                    deleteForm.action = '@Url.Action("Delete", "Customers")/' + customerId;
+                    
+                    new bootstrap.Modal(deleteModal).show();
+                });
+            });
+
+            // Export functions
+            window.toggleExportMenu = function(e) {
+                e.stopPropagation();
+                const menu = document.getElementById('exportMenu');
+                menu.classList.toggle('show');
+            }
+            
+            window.exportCustomers = function(format) {
+                window.location.href = '@Url.Action("Export", "Customers")?format=' + format;
+                document.getElementById('exportMenu').classList.remove('show');
+            }
+            
+            // Close dropdown when clicking outside
+            document.addEventListener('click', function() {
+                document.getElementById('exportMenu')?.classList.remove('show');
+            });
+        });
+    </script>
+}

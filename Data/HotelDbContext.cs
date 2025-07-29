@@ -30,6 +30,12 @@ namespace Hotel.Data
         public DbSet<ProductVariant> ProductVariants { get; set; }
         public DbSet<Page> Pages { get; set; }
         public DbSet<Policy> Policies { get; set; }
+        
+        // DbSets para Customer (Guest) relacionados
+        public DbSet<CustomerAddress> CustomerAddresses { get; set; }
+        public DbSet<CustomerPaymentMethod> CustomerPaymentMethods { get; set; }
+        public DbSet<CustomerDevice> CustomerDevices { get; set; }
+        public DbSet<CustomerNotificationPreference> CustomerNotificationPreferences { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -44,6 +50,51 @@ namespace Hotel.Data
             modelBuilder.Entity<Guest>()
                 .HasIndex(g => g.Email)
                 .IsUnique();
+                
+            modelBuilder.Entity<Guest>()
+                .HasIndex(g => g.CustomerId)
+                .IsUnique();
+                
+            modelBuilder.Entity<Guest>()
+                .HasIndex(g => g.Username)
+                .IsUnique();
+                
+            modelBuilder.Entity<Guest>()
+                .Property(g => g.TotalSpent)
+                .HasPrecision(18, 2);
+                
+            modelBuilder.Entity<Guest>()
+                .Property(g => g.AccountBalance)
+                .HasPrecision(18, 2);
+                
+            modelBuilder.Entity<Guest>()
+                .Property(g => g.ProfileImageUrl)
+                .HasColumnType("text");
+                
+            // Configuración de relaciones Customer
+            modelBuilder.Entity<CustomerAddress>()
+                .HasOne(ca => ca.Guest)
+                .WithMany(g => g.Addresses)
+                .HasForeignKey(ca => ca.GuestId)
+                .OnDelete(DeleteBehavior.Cascade);
+                
+            modelBuilder.Entity<CustomerPaymentMethod>()
+                .HasOne(cpm => cpm.Guest)
+                .WithMany(g => g.PaymentMethods)
+                .HasForeignKey(cpm => cpm.GuestId)
+                .OnDelete(DeleteBehavior.Cascade);
+                
+            modelBuilder.Entity<CustomerDevice>()
+                .HasOne(cd => cd.Guest)
+                .WithMany(g => g.Devices)
+                .HasForeignKey(cd => cd.GuestId)
+                .OnDelete(DeleteBehavior.Cascade);
+                
+            modelBuilder.Entity<CustomerNotificationPreference>()
+                .HasOne(cnp => cnp.Guest)
+                .WithMany(g => g.NotificationPreferences)
+                .HasForeignKey(cnp => cnp.GuestId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             // Configuración de Reservation
             modelBuilder.Entity<Reservation>()

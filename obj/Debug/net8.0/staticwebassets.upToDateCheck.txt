@@ -1,5 +1,6 @@
 wwwroot\css\admin-panel.css
 wwwroot\css\company-settings.css
+wwwroot\css\customers.css
 wwwroot\css\login.css
 wwwroot\css\materialize-admin.css
 wwwroot\css\materialize-exact-improved.css
@@ -9,6 +10,7 @@ wwwroot\css\site.css
 wwwroot\css\website-builder.css
 wwwroot\favicon.ico
 wwwroot\js\admin-panel.js
+wwwroot\js\customers.js
 wwwroot\js\materialize-admin.js
 wwwroot\js\site.js
 wwwroot\js\website-builder-modules\cart.js
@@ -28,6 +30,7 @@ wwwroot\js\website-builder\modules\newsletter.js
 wwwroot\js\website-builder\modules\product-container.js
 wwwroot\js\website-builder\modules\richtext.js
 wwwroot\js\website-builder\modules\testimonials.js
+wwwroot\js\website-render-functions.js
 wwwroot\lib\bootstrap\dist\css\bootstrap-grid.css
 wwwroot\lib\bootstrap\dist\css\bootstrap-grid.css.map
 wwwroot\lib\bootstrap\dist\css\bootstrap-grid.min.css
@@ -139,4 +142,3 @@ wwwroot\uploads\website-logos\1_mobile_8d21d01a-da49-46df-8811-a15452b7197d.png
 wwwroot\uploads\website-logos\1_mobile_aedffa67-9a48-4696-906e-3955982d7488.png
 wwwroot\uploads\website-logos\1_mobile_c45cf4ad-e77d-4fd6-a762-39a8409f52ed.png
 wwwroot\uploads\website-videos\1_video_a1a9a037-34cf-47fd-8fd2-0c9413d21bd9.mp4
-wwwroot\js\website-render-functions.js
