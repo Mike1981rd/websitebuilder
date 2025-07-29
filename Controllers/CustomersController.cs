@@ -366,6 +366,37 @@ namespace Hotel.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+        // POST: Customers/ToggleStatus/5
+        [HttpPost]
+        public async Task<IActionResult> ToggleStatus(int id)
+        {
+            var guest = await _context.Guests.FindAsync(id);
+            if (guest == null)
+            {
+                return NotFound();
+            }
+
+            // Toggle status
+            if (guest.Status == "Active")
+            {
+                guest.Status = "Inactive";
+            }
+            else
+            {
+                guest.Status = "Active";
+            }
+            
+            guest.UpdatedAt = DateTime.UtcNow;
+            await _context.SaveChangesAsync();
+
+            return Json(new 
+            { 
+                success = true, 
+                message = guest.Status == "Active" ? "Cliente activado exitosamente" : "Cliente desactivado exitosamente",
+                newStatus = guest.Status
+            });
+        }
+
         // POST: Customers/ChangePassword
         [HttpPost]
         [ValidateAntiForgeryToken]
