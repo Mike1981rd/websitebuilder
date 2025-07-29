@@ -42,6 +42,12 @@ namespace Hotel.Controllers
                 ViewBag.CollectionHandle = handle;
             }
             
+            // Check if this is being accessed via /products route (all products)
+            if (Request.Path.Value?.Equals("/products", StringComparison.OrdinalIgnoreCase) == true)
+            {
+                page = "products";
+            }
+            
             // Check if this is being accessed via /products/{handle} route
             if (Request.Path.Value?.StartsWith("/products/", StringComparison.OrdinalIgnoreCase) == true && !string.IsNullOrEmpty(handle))
             {

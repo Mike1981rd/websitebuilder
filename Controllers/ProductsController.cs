@@ -716,46 +716,28 @@ namespace Hotel.Controllers
             try
             {
                 var products = await _context.Products
+                    .Include(p => p.Images)
                     .Where(p => p.Status == "active") // Solo productos activos
                     .Select(p => new
                     {
-                        p.Id,
-                        name = p.Title, // Usar Title y mapearlo a name para el frontend
-                        p.Handle,
-                        p.Description,
-                        p.Price,
-                        p.CompareAtPrice,
-                        p.ProductType,
-                        p.Vendor,
-                        images = _context.ProductImages
-                            .Where(img => img.ProductId == p.Id)
-                            .OrderBy(img => img.Position)
-                            .Select(img => new
-                            {
-                                img.Id,
-                                url = img.ImageUrl, // Usar ImageUrl y mapearlo a url para el frontend
-                                img.AltText,
-                                img.Position
-                            })
-                            .ToList(),
-                        variants = _context.ProductVariants
-                            .Where(v => v.ProductId == p.Id)
-                            .OrderBy(v => v.Position)
-                            .Select(v => new
-                            {
-                                v.Id,
-                                v.Title,
-                                v.Price,
-                                v.CompareAtPrice,
-                                v.SKU,
-                                v.Option1,
-                                v.Option2,
-                                v.Option3,
-                                v.Quantity
-                            })
-                            .ToList()
+                        id = p.Id,
+                        title = p.Title,
+                        handle = p.Handle,
+                        price = p.Price,
+                        compareAtPrice = p.CompareAtPrice,
+                        imageUrl = p.Images.OrderBy(i => i.Position).FirstOrDefault() != null 
+                            ? p.Images.OrderBy(i => i.Position).First().ImageUrl 
+                            : "",
+                        vendor = p.Vendor ?? "Aurora", // Vendor por defecto
+                        rating = 5, // Por ahora hardcoded, implementar sistema de ratings después
+                        reviewCount = 0,
+                        hasDiscount = p.CompareAtPrice.HasValue && p.CompareAtPrice > p.Price,
+                        discountPercentage = p.CompareAtPrice.HasValue && p.CompareAtPrice > p.Price 
+                            ? Math.Round(((p.CompareAtPrice.Value - p.Price) / p.CompareAtPrice.Value) * 100)
+                            : 0,
+                        variantCount = 3 // Por ahora hardcoded, implementar variantes después
                     })
-                    .OrderBy(p => p.name)
+                    .OrderBy(p => p.title)
                     .ToListAsync();
 
                 return Json(products);

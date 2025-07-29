@@ -3533,7 +3533,15 @@ function filterProductsByPrice(products, minPrice, maxPrice) {
 
 // Función para ordenar productos
 function sortProducts(products, sortType) {
+    console.log('[DEBUG] sortProducts called with type:', sortType, 'products count:', products.length);
+    
+    if (!products || products.length === 0) {
+        console.log('[DEBUG] No products to sort');
+        return [];
+    }
+    
     const sorted = [...products];
+    console.log('[DEBUG] First product before sort:', sorted[0]);
     
     switch(sortType) {
         case 'alphabetically-az':
@@ -3548,8 +3556,23 @@ function sortProducts(products, sortType) {
         case 'price-high-low':
             return sorted.sort((a, b) => (parseFloat(b.price) || 0) - (parseFloat(a.price) || 0));
             
+        case 'date-new-old':
+            return sorted.sort((a, b) => {
+                const dateA = new Date(a.createdAt || a.created_at || 0);
+                const dateB = new Date(b.createdAt || b.created_at || 0);
+                return dateB - dateA; // Más nuevo primero
+            });
+            
+        case 'date-old-new':
+            return sorted.sort((a, b) => {
+                const dateA = new Date(a.createdAt || a.created_at || 0);
+                const dateB = new Date(b.createdAt || b.created_at || 0);
+                return dateA - dateB; // Más antiguo primero
+            });
+            
         case 'featured':
         default:
+            console.log('[DEBUG] Using default sort (featured)');
             return sorted; // Mantener orden original
     }
 }
@@ -3560,7 +3583,8 @@ function updatePriceSlider() {
     const maxSlider = document.getElementById('price-slider-max');
     const minDisplay = document.getElementById('price-min');
     const maxDisplay = document.getElementById('price-max');
-    const progress = document.getElementById('price-range-progress');
+    // Try both possible IDs for the progress bar
+    const progress = document.getElementById('price-range-progress') || document.getElementById('price-slider-range');
     
     if (!minSlider || !maxSlider) return;
     
@@ -3593,17 +3617,19 @@ function updatePriceSlider() {
             return;
         }
         
-        // Actualizar displays
-        minDisplay.textContent = `$${minVal.toFixed(2)}`;
-        maxDisplay.textContent = `$${maxVal.toFixed(2)}`;
+        // Actualizar displays si existen
+        if (minDisplay) minDisplay.textContent = `$${minVal.toFixed(2)}`;
+        if (maxDisplay) maxDisplay.textContent = `$${maxVal.toFixed(2)}`;
         
-        // Actualizar la barra de progreso
-        const range = maxProductPrice - minProductPrice;
-        const leftPercent = ((minVal - minProductPrice) / range) * 100;
-        const rightPercent = ((maxProductPrice - maxVal) / range) * 100;
-        
-        progress.style.left = `${leftPercent}%`;
-        progress.style.right = `${rightPercent}%`;
+        // Actualizar la barra de progreso si existe
+        if (progress) {
+            const range = maxProductPrice - minProductPrice;
+            const leftPercent = ((minVal - minProductPrice) / range) * 100;
+            const rightPercent = ((maxProductPrice - maxVal) / range) * 100;
+            
+            progress.style.left = `${leftPercent}%`;
+            progress.style.right = `${rightPercent}%`;
+        }
         
         // Filtrar productos por precio considerando el ordenamiento actual
         const sortSelect = document.getElementById('sort-select');
@@ -3636,10 +3662,14 @@ function attachFilterListeners() {
     const filterBtn = document.getElementById('btn-filters');
     const filterPanel = document.getElementById('filters-panel');
     const closeBtn = document.getElementById('filters-close');
+    const filterOverlay = document.getElementById('filters-overlay');
     
     if (filterBtn && filterPanel) {
         filterBtn.addEventListener('click', () => {
             filterPanel.classList.add('active');
+            if (filterOverlay) {
+                filterOverlay.classList.add('active');
+            }
             document.body.style.overflow = 'hidden';
         });
     }
@@ -3647,6 +3677,18 @@ function attachFilterListeners() {
     if (closeBtn && filterPanel) {
         closeBtn.addEventListener('click', () => {
             filterPanel.classList.remove('active');
+            if (filterOverlay) {
+                filterOverlay.classList.remove('active');
+            }
+            document.body.style.overflow = '';
+        });
+    }
+    
+    // Click en el overlay para cerrar
+    if (filterOverlay) {
+        filterOverlay.addEventListener('click', () => {
+            filterPanel.classList.remove('active');
+            filterOverlay.classList.remove('active');
             document.body.style.overflow = '';
         });
     }
@@ -3656,6 +3698,9 @@ function attachFilterListeners() {
         filterPanel.addEventListener('click', (e) => {
             if (e.target === filterPanel) {
                 filterPanel.classList.remove('active');
+                if (filterOverlay) {
+                    filterOverlay.classList.remove('active');
+                }
                 document.body.style.overflow = '';
             }
         });
@@ -3671,19 +3716,28 @@ function attachSortListeners() {
     const sortSelect = document.getElementById('sort-select');
     const filtersSortSelect = document.getElementById('filters-sort-select');
     
+    console.log('[DEBUG] attachSortListeners - sortSelect found:', !!sortSelect);
+    console.log('[DEBUG] attachSortListeners - originalProducts length:', originalProducts.length);
+    
     function handleSort(sortType) {
+        console.log('[DEBUG] handleSort called with:', sortType);
+        console.log('[DEBUG] originalProducts before sort:', originalProducts.length);
         currentProducts = sortProducts(originalProducts, sortType);
+        console.log('[DEBUG] currentProducts after sort:', currentProducts.length);
         renderProductsGrid(currentProducts);
     }
     
     if (sortSelect) {
         sortSelect.addEventListener('change', (e) => {
+            console.log('[DEBUG] Sort select changed to:', e.target.value);
             handleSort(e.target.value);
             // Sincronizar con el select del panel de filtros
             if (filtersSortSelect) {
                 filtersSortSelect.value = e.target.value;
             }
         });
+    } else {
+        console.error('[DEBUG] Sort select not found!');
     }
     
     if (filtersSortSelect) {
@@ -4076,3 +4130,143 @@ window.loadPageContent = function(handle) {
 
 window.renderPagesPage = renderPagesPage;
 window.renderPagePage = renderPagePage;
+
+// ==================== PRODUCTS PAGE (ALL PRODUCTS) ====================
+function renderProductsPage(config = {}) {
+    console.log('[DEBUG] renderProductsPage called');
+    
+    // Reuse the same HTML structure as collection page but without collection-specific data
+    const html = `
+        <div class="collection-products-page" data-collection-handle="all-products">
+            <!-- Filters Panel -->
+            <div class="filters-panel" id="filters-panel">
+                <div class="filters-header">
+                    <button class="filters-close" id="filters-close">
+                        <span>&times;</span>
+                    </button>
+                    <h3>${translations[currentLanguage]['filters'] || 'Filtros'}</h3>
+                    <div class="filters-sort-section">
+                        <span class="sort-arrows">⇅</span>
+                        <span class="sort-label">${translations[currentLanguage]['sort'] || 'Ordenar'}</span>
+                        <select class="filters-sort-select" id="filters-sort-select">
+                            <option value="featured">${translations[currentLanguage]['featured'] || 'Más vendidos'}</option>
+                            <option value="alphabetically-az">${translations[currentLanguage]['alphabetically_az'] || 'Alfabéticamente, A-Z'}</option>
+                            <option value="alphabetically-za">${translations[currentLanguage]['alphabetically_za'] || 'Alfabéticamente, Z-A'}</option>
+                            <option value="price-low-high">${translations[currentLanguage]['price_low_high'] || 'Precio: menor a mayor'}</option>
+                            <option value="price-high-low">${translations[currentLanguage]['price_high_low'] || 'Precio: mayor a menor'}</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="filters-body">
+                    <div class="filter-section">
+                        <h4 class="filter-title">${translations[currentLanguage]['price'] || 'Precio'}</h4>
+                        <div class="price-range-container">
+                            <div class="price-inputs">
+                                <input type="number" class="price-input" id="price-min" placeholder="$ Min">
+                                <span class="price-separator">–</span>
+                                <input type="number" class="price-input" id="price-max" placeholder="$ Max">
+                            </div>
+                            <div class="price-slider-container">
+                                <div class="price-slider-track">
+                                    <div class="price-slider-range" id="price-slider-range"></div>
+                                </div>
+                                <input type="range" class="price-slider" id="price-slider-min" min="0" max="10000" value="0">
+                                <input type="range" class="price-slider" id="price-slider-max" min="0" max="10000" value="10000">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Filters Overlay -->
+            <div class="filters-overlay" id="filters-overlay"></div>
+            
+            <div class="collection-products-container">
+                <div class="collection-header">
+                    <h1>${translations[currentLanguage]['all_products'] || 'Todos los productos'}</h1>
+                    <div class="collection-controls">
+                        <button class="btn-filters" id="btn-filters">
+                            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                <path d="M3 7h14M6 12h8M9 17h2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                            </svg>
+                            <span>${translations[currentLanguage]['filter'] || 'Filtrar'}</span>
+                        </button>
+                        <div class="sort-container">
+                            <select class="sort-select" id="sort-select">
+                                <option value="featured">${translations[currentLanguage]['featured'] || 'Más vendidos'}</option>
+                                <option value="alphabetically-az">${translations[currentLanguage]['alphabetically_az'] || 'Alfabéticamente, A-Z'}</option>
+                                <option value="alphabetically-za">${translations[currentLanguage]['alphabetically_za'] || 'Alfabéticamente, Z-A'}</option>
+                                <option value="price-low-high">${translations[currentLanguage]['price_low_high'] || 'Precio: menor a mayor'}</option>
+                                <option value="price-high-low">${translations[currentLanguage]['price_high_low'] || 'Precio: mayor a menor'}</option>
+                            </select>
+                            <span class="product-count" id="product-count">0 ${translations[currentLanguage]['products'] || 'productos'}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="products-grid" id="products-grid" data-columns="4">
+                    <div class="loading-state">
+                        ${translations[currentLanguage]['loading_products'] || 'Cargando productos...'}
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    console.log('[DEBUG] Returning products HTML');
+    return html;
+}
+
+// Function to load all products data
+window.loadAllProductsData = function() {
+    console.log('[DEBUG] loadAllProductsData called');
+    
+    $.ajax({
+        url: '/api/builder/products',
+        method: 'GET',
+        success: function(products) {
+            console.log('[DEBUG] All products API response:', products);
+            
+            if (products && Array.isArray(products)) {
+                // Store products for filtering (use global variables, not window)
+                originalProducts = products;
+                currentProducts = [...products];
+                
+                // Update product count
+                $('#product-count').text(`${products.length} ${translations[currentLanguage]['products'] || 'productos'}`);
+                
+                // Initialize price range
+                if (products.length > 0) {
+                    const prices = products.map(p => parseFloat(p.price || p.Price || 0));
+                    const minPrice = Math.floor(Math.min(...prices));
+                    const maxPrice = Math.ceil(Math.max(...prices));
+                    
+                    $('#price-slider-min, #price-slider-max').attr('min', minPrice).attr('max', maxPrice);
+                    $('#price-slider-min').val(minPrice);
+                    $('#price-slider-max').val(maxPrice);
+                    $('#price-min').val(minPrice);
+                    $('#price-max').val(maxPrice);
+                }
+                
+                // Render products
+                renderProductsGrid(products);
+                
+                // Attach event handlers after DOM is updated
+                setTimeout(() => {
+                    console.log('[DEBUG] Attaching event listeners for products page');
+                    attachViewOptionsListeners();
+                    attachFilterListeners();
+                    attachSortListeners();
+                }, 100);
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('[DEBUG] Error loading all products:', error);
+            const grid = document.getElementById('products-grid');
+            if (grid) {
+                grid.innerHTML = '<p class="error-message">' + (translations[currentLanguage]['error_loading_products'] || 'Error al cargar los productos') + '</p>';
+            }
+        }
+    });
+};
+
+window.renderProductsPage = renderProductsPage;

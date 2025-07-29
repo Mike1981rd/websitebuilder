@@ -28580,6 +28580,104 @@ document.head.appendChild(style);
             });
             $item.toggleClass('expanded');
             console.log('[DEBUG] Item expanded:', $item.hasClass('expanded'));
+        } else if (url === '/products') {
+            console.log('[DEBUG] Products item clicked');
+            // Check if submenu already exists
+            let $submenu = $item.find('.link-submenu');
+            console.log('[DEBUG] Submenu exists:', $submenu.length > 0);
+            
+            if ($submenu.length === 0) {
+                console.log('[DEBUG] Creating new submenu for products');
+                // Create submenu structure
+                const submenuHtml = `
+                    <ul class="link-submenu" style="display: none;">
+                        <li data-url="/products">
+                            <i class="material-icons">inventory_2</i>
+                            <span>Todos los productos</span>
+                        </li>
+                        <li class="submenu-loading">
+                            <i class="material-icons rotating">sync</i>
+                            <span>Cargando productos...</span>
+                        </li>
+                    </ul>
+                `;
+                
+                $item.append(submenuHtml);
+                $submenu = $item.find('.link-submenu');
+                console.log('[DEBUG] Submenu created:', $submenu.length);
+                
+                // Load products from API
+                $.ajax({
+                    url: '/api/builder/products',
+                    method: 'GET',
+                    success: function(products) {
+                        console.log('[DEBUG] Products API response:', products);
+                        // Remove loading indicator
+                        $submenu.find('.submenu-loading').remove();
+                        
+                        // Add individual products
+                        if (products && products.length > 0) {
+                            // Limit to first 20 products to avoid huge dropdown
+                            const productsToShow = products.slice(0, 20);
+                            productsToShow.forEach(function(product) {
+                                const productHtml = `
+                                    <li data-url="/products/${product.handle}">
+                                        <i class="material-icons">shopping_bag</i>
+                                        <span>${product.title}</span>
+                                    </li>
+                                `;
+                                $submenu.append(productHtml);
+                            });
+                            console.log('[DEBUG] Added', productsToShow.length, 'products to submenu');
+                            
+                            // If there are more products, add a note
+                            if (products.length > 20) {
+                                $submenu.append(`<li class="more-items"><span>... y ${products.length - 20} productos más</span></li>`);
+                            }
+                        } else {
+                            $submenu.append('<li class="no-items"><span>No hay productos disponibles</span></li>');
+                        }
+                        
+                        // Add click handler for submenu items
+                        $submenu.find('li:not(.no-items):not(.more-items)').on('click', function(e) {
+                            e.stopPropagation();
+                            const subUrl = $(this).data('url');
+                            const dropdownId = $dropdown.attr('id');
+                            
+                            let $input;
+                            if (dropdownId.startsWith('link-suggestions-submenu-')) {
+                                const parentId = dropdownId.replace('link-suggestions-submenu-', '');
+                                $input = $(`#submenu-url-${parentId}`);
+                            } else if (dropdownId.startsWith('link-suggestions-inline-')) {
+                                // For inline edit dropdowns
+                                $input = $dropdown.parent().find('.edit-item-url');
+                            } else {
+                                const inputId = dropdownId === 'link-suggestions-create' ? 'new-item-url-create' : 'new-item-url-edit';
+                                $input = $('#' + inputId);
+                            }
+                            
+                            if ($input.length) {
+                                $input.val(subUrl);
+                            }
+                            // Clear the keep-open flag before hiding
+                            $dropdown.data('keep-open', false);
+                            $dropdown.fadeOut(200);
+                        });
+                    },
+                    error: function(xhr, status, error) {
+                        console.log('[DEBUG] Products API error:', status, error);
+                        $submenu.find('.submenu-loading').html('<span>Error al cargar productos</span>');
+                    }
+                });
+            }
+            
+            // Toggle submenu visibility
+            console.log('[DEBUG] About to toggle submenu, current display:', $submenu.css('display'));
+            $submenu.slideToggle(200, function() {
+                console.log('[DEBUG] Submenu toggled, new display:', $submenu.css('display'));
+            });
+            $item.toggleClass('expanded');
+            console.log('[DEBUG] Item expanded:', $item.hasClass('expanded'));
         } else if (url === '/pages') {
             console.log('[DEBUG] Pages item clicked');
             // Check if submenu already exists

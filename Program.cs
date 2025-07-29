@@ -104,6 +104,11 @@ app.MapControllerRoute(
     defaults: new { controller = "WebsiteBuilder", action = "Preview" });
 
 app.MapControllerRoute(
+    name: "products",
+    pattern: "products",
+    defaults: new { controller = "WebsiteBuilder", action = "Preview" });
+
+app.MapControllerRoute(
     name: "product",
     pattern: "products/{handle}",
     defaults: new { controller = "WebsiteBuilder", action = "Preview" });

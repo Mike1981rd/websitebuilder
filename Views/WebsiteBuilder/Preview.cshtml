@@ -495,6 +495,25 @@
                                 }
                             };
                             console.log('[PREVIEW] Collection page config set:', currentSectionsConfig);
+                        } else if (currentPageId === 'products') {
+                            // Special handling for products list page
+                            console.log('[PREVIEW] Loading products page configuration');
+                            // Keep existing header and footer configurations
+                            const existingHeader = currentSectionsConfig.header || {};
+                            const existingFooter = currentSectionsConfig.footer || {};
+                            
+                            // Products page should show header, products list, and footer
+                            currentSectionsConfig = {
+                                ...currentSectionsConfig,
+                                sectionOrder: ['header', 'products', 'footer'],
+                                header: existingHeader,
+                                footer: existingFooter,
+                                products: {
+                                    isHidden: false,
+                                    colorScheme: 'scheme1'
+                                }
+                            };
+                            console.log('[PREVIEW] Products page config set:', currentSectionsConfig);
                         } else if (currentPageId === 'policies') {
                             // Special handling for policies list page
                             console.log('[PREVIEW] Loading policies page configuration');
@@ -1298,6 +1317,30 @@
                                 `;
                             }
                         }
+                    } else if (sectionId === 'products') {
+                        console.log('[PREVIEW] Processing products list section');
+                        const productsConfig = currentSectionsConfig.products;
+                        
+                        if (productsConfig && !productsConfig.isHidden) {
+                            // Render products page
+                            if (window.renderProductsPage && typeof window.renderProductsPage === 'function') {
+                                console.log('[PREVIEW] Rendering products with renderProductsPage');
+                                finalHtml += window.renderProductsPage(productsConfig);
+                            } else {
+                                console.log('[PREVIEW] renderProductsPage not available, using fallback');
+                                finalHtml += `
+                                    <div class="section-wrapper products-section" style="padding: 40px 0; background: #f5f5f5;">
+                                        <div class="container" style="max-width: 1200px; margin: 0 auto; padding: 0 20px;">
+                                            <div style="text-align: center; color: #666;">
+                                                <i class="material-icons" style="font-size: 48px; margin-bottom: 16px;">inventory_2</i>
+                                                <h3>Todos los productos</h3>
+                                                <p>La página de productos está cargando...</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                `;
+                            }
+                        }
                     } else if (sectionId === 'policies') {
                         console.log('[PREVIEW] Processing policies list section');
                         const policiesConfig = currentSectionsConfig.policies;
@@ -1489,6 +1532,12 @@
                     console.log('[PREVIEW] Loading collection products data for handle:', collectionHandle);
                     window.loadCollectionProductsData(collectionHandle);
                 }
+            }
+            
+            // Load products data if on products page
+            if (currentPageId === 'products' && window.loadAllProductsData) {
+                console.log('[PREVIEW] Loading all products data...');
+                window.loadAllProductsData();
             }
             
             // Load policies data if on policies page
