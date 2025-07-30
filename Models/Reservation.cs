@@ -12,9 +12,9 @@ namespace Hotel.Models
         public Guest Guest { get; set; } = null!;
         
         [Required]
-        public int RoomId { get; set; }
+        public int ProductId { get; set; }
         
-        public Room Room { get; set; } = null!;
+        public Product Product { get; set; } = null!;
         
         [Required]
         public DateTime CheckInDate { get; set; }

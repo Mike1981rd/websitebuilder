@@ -98,9 +98,9 @@ namespace Hotel.Data
 
             // Configuración de Reservation
             modelBuilder.Entity<Reservation>()
-                .HasOne(r => r.Room)
-                .WithMany(room => room.Reservations)
-                .HasForeignKey(r => r.RoomId)
+                .HasOne(r => r.Product)
+                .WithMany(product => product.Reservations)
+                .HasForeignKey(r => r.ProductId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<Reservation>()

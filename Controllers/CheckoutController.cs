@@ -3,6 +3,7 @@ using Hotel.Data;
 using Hotel.Models;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
+using Npgsql;
 
 namespace Hotel.Controllers
 {
@@ -183,5 +184,192 @@ namespace Hotel.Controllers
             
             return View();
         }
+
+        [HttpPost]
+        public async Task<IActionResult> ProcessPayment([FromBody] CheckoutFormData formData)
+        {
+            try 
+            {
+                // Validate required fields
+                if (string.IsNullOrEmpty(formData.Email) || string.IsNullOrEmpty(formData.LastName))
+                {
+                    return Json(new { success = false, message = "Por favor complete los campos requeridos" });
+                }
+
+                if (formData.IsReservation)
+                {
+                    return await ProcessReservation(formData);
+                }
+                else
+                {
+                    // TODO: Process regular product orders in the future
+                    return Json(new { success = false, message = "Procesamiento de productos aún no implementado" });
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[CHECKOUT ERROR] {ex.Message}");
+                return Json(new { success = false, message = "Ocurrió un error al procesar el pago" });
+            }
+        }
+
+        private async Task<IActionResult> ProcessReservation(CheckoutFormData formData)
+        {
+            try
+            {
+                Console.WriteLine($"[RESERVATION] Processing reservation for email: {formData.Email}");
+                
+                // 1. Find or create Guest
+                var guest = await _context.Guests
+                    .FirstOrDefaultAsync(g => g.Email == formData.Email);
+
+                if (guest == null)
+                {
+                    Console.WriteLine("[RESERVATION] Creating new guest");
+                    
+                    // Create new Guest
+                    guest = new Guest
+                    {
+                        FirstName = formData.FirstName ?? "",
+                        LastName = formData.LastName,
+                        Email = formData.Email,
+                        Phone = "", // No phone field in checkout yet
+                        Address = $"{formData.Address}, {formData.State}", // Concatenate address + state
+                        City = formData.City ?? "",
+                        Country = formData.Country ?? "",
+                        PostalCode = formData.PostalCode ?? "",
+                        CustomerId = GenerateCustomerId(),
+                        Status = "Active",
+                        CreatedAt = DateTime.UtcNow
+                    };
+
+                    _context.Guests.Add(guest);
+                    await _context.SaveChangesAsync();
+                    
+                    Console.WriteLine($"[RESERVATION] Guest created with ID: {guest.Id}");
+                }
+                else
+                {
+                    // Update existing guest data
+                    guest.FirstName = formData.FirstName ?? guest.FirstName;
+                    guest.LastName = formData.LastName ?? guest.LastName;
+                    guest.Address = $"{formData.Address}, {formData.State}";
+                    guest.City = formData.City ?? guest.City;
+                    guest.Country = formData.Country ?? guest.Country;
+                    guest.PostalCode = formData.PostalCode ?? guest.PostalCode;
+                    guest.UpdatedAt = DateTime.UtcNow;
+
+                    await _context.SaveChangesAsync();
+                }
+
+                // 2. Verify the product exists
+                var product = await _context.Products.FindAsync(formData.ProductId);
+                if (product == null)
+                {
+                    Console.WriteLine($"[RESERVATION] Product not found with ID: {formData.ProductId}");
+                    return Json(new { 
+                        success = false, 
+                        message = "El producto seleccionado no está disponible." 
+                    });
+                }
+                
+                Console.WriteLine($"[RESERVATION] Creating reservation for Product: {product.Title}");
+                Console.WriteLine($"[RESERVATION] CheckIn: {formData.CheckinDate}, CheckOut: {formData.CheckoutDate}");
+                Console.WriteLine($"[RESERVATION] Total Amount: {formData.TotalAmount}");
+                
+                var reservation = new Reservation
+                {
+                    GuestId = guest.Id,
+                    ProductId = formData.ProductId,
+                    CheckInDate = DateTime.Parse(formData.CheckinDate).ToUniversalTime(),
+                    CheckOutDate = DateTime.Parse(formData.CheckoutDate).ToUniversalTime(),
+                    NumberOfGuests = 2, // Default value for now
+                    TotalAmount = formData.TotalAmount,
+                    Status = "Confirmada", // Always confirmed after payment
+                    CreatedAt = DateTime.UtcNow
+                };
+
+                _context.Reservations.Add(reservation);
+                await _context.SaveChangesAsync();
+                
+                Console.WriteLine($"[RESERVATION] Reservation created with ID: {reservation.Id}");
+
+                // 3. Return success response
+                return Json(new 
+                { 
+                    success = true, 
+                    message = "Reservación confirmada",
+                    reservationId = reservation.Id 
+                });
+            }
+            catch (DbUpdateException dbEx)
+            {
+                Console.WriteLine($"[RESERVATION DB ERROR] {dbEx.Message}");
+                
+                if (dbEx.InnerException != null)
+                {
+                    Console.WriteLine($"[RESERVATION INNER ERROR] {dbEx.InnerException.Message}");
+                    
+                    if (dbEx.InnerException is Npgsql.PostgresException pgEx)
+                    {
+                        Console.WriteLine($"[RESERVATION POSTGRES ERROR] Code: {pgEx.SqlState}");
+                        Console.WriteLine($"[RESERVATION POSTGRES ERROR] Message: {pgEx.MessageText}");
+                        Console.WriteLine($"[RESERVATION POSTGRES ERROR] Detail: {pgEx.Detail}");
+                        Console.WriteLine($"[RESERVATION POSTGRES ERROR] Column: {pgEx.ColumnName}");
+                        
+                        return Json(new { 
+                            success = false, 
+                            message = $"Error en base de datos: {pgEx.MessageText}" 
+                        });
+                    }
+                }
+                
+                return Json(new { 
+                    success = false, 
+                    message = "Error al guardar en la base de datos" 
+                });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[RESERVATION ERROR] {ex.Message}");
+                Console.WriteLine($"[RESERVATION ERROR STACKTRACE] {ex.StackTrace}");
+                return Json(new { success = false, message = "Error al procesar la reservación" });
+            }
+        }
+
+        private string GenerateCustomerId()
+        {
+            var random = new Random();
+            return $"#{random.Next(100000, 999999)}";
+        }
+    }
+
+    // Data model for form submission
+    public class CheckoutFormData
+    {
+        public string Email { get; set; }
+        public string FirstName { get; set; }
+        public string LastName { get; set; }
+        public string Country { get; set; }
+        public string Address { get; set; }
+        public string Apartment { get; set; }
+        public string City { get; set; }
+        public string State { get; set; }
+        public string PostalCode { get; set; }
+        public string CardNumber { get; set; }
+        public string CardExpiry { get; set; }
+        public string CardCvv { get; set; }
+        public string CardName { get; set; }
+        public bool Newsletter { get; set; }
+        public bool SaveInfo { get; set; }
+        public bool BillingSame { get; set; }
+        public bool IsReservation { get; set; }
+        public string CheckinDate { get; set; }
+        public string CheckoutDate { get; set; }
+        public int ProductId { get; set; }
+        public string ProductName { get; set; }
+        public decimal PricePerNight { get; set; }
+        public int Nights { get; set; }
+        public decimal TotalAmount { get; set; }
     }
 }

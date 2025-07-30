@@ -1260,7 +1260,10 @@ namespace Hotel.Migrations
                     b.Property<int>("NumberOfGuests")
                         .HasColumnType("integer");
 
-                    b.Property<int>("RoomId")
+                    b.Property<int>("ProductId")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("RoomId")
                         .HasColumnType("integer");
 
                     b.Property<string>("SpecialRequests")
@@ -1282,6 +1285,8 @@ namespace Hotel.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("GuestId");
+
+                    b.HasIndex("ProductId");
 
                     b.HasIndex("RoomId");
 
@@ -1322,38 +1327,38 @@ namespace Hotel.Migrations
                         new
                         {
                             Id = 1,
-                            CreatedAt = new DateTime(2025, 7, 29, 21, 31, 23, 650, DateTimeKind.Utc).AddTicks(972),
+                            CreatedAt = new DateTime(2025, 7, 30, 20, 57, 48, 281, DateTimeKind.Utc).AddTicks(9273),
                             Description = "Acceso completo al sistema",
                             IsActive = true,
                             Name = "Administrator",
-                            UpdatedAt = new DateTime(2025, 7, 29, 21, 31, 23, 650, DateTimeKind.Utc).AddTicks(973)
+                            UpdatedAt = new DateTime(2025, 7, 30, 20, 57, 48, 281, DateTimeKind.Utc).AddTicks(9274)
                         },
                         new
                         {
                             Id = 2,
-                            CreatedAt = new DateTime(2025, 7, 29, 21, 31, 23, 650, DateTimeKind.Utc).AddTicks(976),
+                            CreatedAt = new DateTime(2025, 7, 30, 20, 57, 48, 281, DateTimeKind.Utc).AddTicks(9277),
                             Description = "Acceso de gestión",
                             IsActive = true,
                             Name = "Manager",
-                            UpdatedAt = new DateTime(2025, 7, 29, 21, 31, 23, 650, DateTimeKind.Utc).AddTicks(976)
+                            UpdatedAt = new DateTime(2025, 7, 30, 20, 57, 48, 281, DateTimeKind.Utc).AddTicks(9277)
                         },
                         new
                         {
                             Id = 3,
-                            CreatedAt = new DateTime(2025, 7, 29, 21, 31, 23, 650, DateTimeKind.Utc).AddTicks(978),
+                            CreatedAt = new DateTime(2025, 7, 30, 20, 57, 48, 281, DateTimeKind.Utc).AddTicks(9279),
                             Description = "Acceso de soporte",
                             IsActive = true,
                             Name = "Support",
-                            UpdatedAt = new DateTime(2025, 7, 29, 21, 31, 23, 650, DateTimeKind.Utc).AddTicks(978)
+                            UpdatedAt = new DateTime(2025, 7, 30, 20, 57, 48, 281, DateTimeKind.Utc).AddTicks(9279)
                         },
                         new
                         {
                             Id = 4,
-                            CreatedAt = new DateTime(2025, 7, 29, 21, 31, 23, 650, DateTimeKind.Utc).AddTicks(980),
+                            CreatedAt = new DateTime(2025, 7, 30, 20, 57, 48, 281, DateTimeKind.Utc).AddTicks(9281),
                             Description = "Acceso básico de usuario",
                             IsActive = true,
                             Name = "Users",
-                            UpdatedAt = new DateTime(2025, 7, 29, 21, 31, 23, 650, DateTimeKind.Utc).AddTicks(980)
+                            UpdatedAt = new DateTime(2025, 7, 30, 20, 57, 48, 281, DateTimeKind.Utc).AddTicks(9281)
                         });
                 });
 
@@ -1458,7 +1463,7 @@ namespace Hotel.Migrations
                         {
                             Id = 1,
                             BasePrice = 50.00m,
-                            CreatedAt = new DateTime(2025, 7, 29, 21, 31, 23, 650, DateTimeKind.Utc).AddTicks(266),
+                            CreatedAt = new DateTime(2025, 7, 30, 20, 57, 48, 281, DateTimeKind.Utc).AddTicks(8785),
                             Description = "Habitación individual estándar",
                             MaxOccupancy = 1,
                             Name = "Individual"
@@ -1467,7 +1472,7 @@ namespace Hotel.Migrations
                         {
                             Id = 2,
                             BasePrice = 80.00m,
-                            CreatedAt = new DateTime(2025, 7, 29, 21, 31, 23, 650, DateTimeKind.Utc).AddTicks(276),
+                            CreatedAt = new DateTime(2025, 7, 30, 20, 57, 48, 281, DateTimeKind.Utc).AddTicks(8796),
                             Description = "Habitación doble estándar",
                             MaxOccupancy = 2,
                             Name = "Doble"
@@ -1476,7 +1481,7 @@ namespace Hotel.Migrations
                         {
                             Id = 3,
                             BasePrice = 150.00m,
-                            CreatedAt = new DateTime(2025, 7, 29, 21, 31, 23, 650, DateTimeKind.Utc).AddTicks(278),
+                            CreatedAt = new DateTime(2025, 7, 30, 20, 57, 48, 281, DateTimeKind.Utc).AddTicks(8799),
                             Description = "Suite de lujo",
                             MaxOccupancy = 4,
                             Name = "Suite"
@@ -1485,7 +1490,7 @@ namespace Hotel.Migrations
                         {
                             Id = 4,
                             BasePrice = 300.00m,
-                            CreatedAt = new DateTime(2025, 7, 29, 21, 31, 23, 650, DateTimeKind.Utc).AddTicks(279),
+                            CreatedAt = new DateTime(2025, 7, 30, 20, 57, 48, 281, DateTimeKind.Utc).AddTicks(8800),
                             Description = "Suite presidencial de lujo",
                             MaxOccupancy = 6,
                             Name = "Suite Presidencial"
@@ -1773,15 +1778,19 @@ namespace Hotel.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Hotel.Models.Room", "Room")
+                    b.HasOne("Hotel.Models.Product", "Product")
                         .WithMany("Reservations")
-                        .HasForeignKey("RoomId")
+                        .HasForeignKey("ProductId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("Hotel.Models.Room", null)
+                        .WithMany("Reservations")
+                        .HasForeignKey("RoomId");
+
                     b.Navigation("Guest");
 
-                    b.Navigation("Room");
+                    b.Navigation("Product");
                 });
 
             modelBuilder.Entity("Hotel.Models.RolePermission", b =>
@@ -1863,6 +1872,8 @@ namespace Hotel.Migrations
                     b.Navigation("CollectionProducts");
 
                     b.Navigation("Images");
+
+                    b.Navigation("Reservations");
 
                     b.Navigation("Variants");
 

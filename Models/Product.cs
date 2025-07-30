@@ -72,5 +72,6 @@ namespace Hotel.Models
         public ICollection<ProductVideo> Videos { get; set; }
         public ICollection<ProductVariant> Variants { get; set; }
         public ICollection<CollectionProduct> CollectionProducts { get; set; }
+        public ICollection<Reservation> Reservations { get; set; } = new List<Reservation>();
     }
 }

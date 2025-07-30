@@ -661,7 +661,7 @@
             <div class="form-section">
                 <h2 class="section-title">Contacto</h2>
                 <div class="form-group">
-                    <input type="email" class="form-input" placeholder="Email o número de teléfono móvil" required>
+                    <input type="email" class="form-input" id="email" name="email" placeholder="Email o número de teléfono móvil" required>
                 </div>
                 <div class="checkbox-group">
                     <input type="checkbox" id="newsletter" checked>
@@ -686,24 +686,24 @@
                 
                 <div class="form-row">
                     <div class="form-group">
-                        <input type="text" class="form-input" placeholder="Nombre (opcional)">
+                        <input type="text" class="form-input" id="firstName" name="firstName" placeholder="Nombre (opcional)">
                     </div>
                     <div class="form-group">
-                        <input type="text" class="form-input" placeholder="Apellidos">
+                        <input type="text" class="form-input" id="lastName" name="lastName" placeholder="Apellidos">
                     </div>
                 </div>
                 
                 <div class="form-group">
-                    <input type="text" class="form-input" placeholder="Dirección">
+                    <input type="text" class="form-input" id="address" name="address" placeholder="Dirección">
                 </div>
                 
                 <div class="form-group">
-                    <input type="text" class="form-input" placeholder="Casa, apartamento, etc. (opcional)">
+                    <input type="text" class="form-input" id="apartment" name="apartment" placeholder="Casa, apartamento, etc. (opcional)">
                 </div>
                 
                 <div class="form-row">
                     <div class="form-group">
-                        <input type="text" class="form-input" placeholder="Ciudad">
+                        <input type="text" class="form-input" id="city" name="city" placeholder="Ciudad">
                     </div>
                     <div class="form-group">
                         <select class="form-select" id="state-select" name="state">
@@ -711,7 +711,7 @@
                         </select>
                     </div>
                     <div class="form-group">
-                        <input type="text" class="form-input" placeholder="Código postal">
+                        <input type="text" class="form-input" id="postalCode" name="postalCode" placeholder="Código postal">
                     </div>
                 </div>
                 
@@ -752,20 +752,20 @@
                     </div>
                     
                     <div class="form-group">
-                        <input type="text" class="form-input" placeholder="Número de tarjeta" maxlength="19">
+                        <input type="text" class="form-input" id="cardNumber" name="cardNumber" placeholder="Número de tarjeta" maxlength="19">
                     </div>
                     
                     <div class="form-row">
                         <div class="form-group">
-                            <input type="text" class="form-input" placeholder="Fecha de vencimiento (MM / AA)" maxlength="7">
+                            <input type="text" class="form-input" id="cardExpiry" name="cardExpiry" placeholder="Fecha de vencimiento (MM / AA)" maxlength="7">
                         </div>
                         <div class="form-group">
-                            <input type="text" class="form-input" placeholder="Código de seguridad" maxlength="4">
+                            <input type="text" class="form-input" id="cardCvv" name="cardCvv" placeholder="Código de seguridad" maxlength="4">
                         </div>
                     </div>
                     
                     <div class="form-group">
-                        <input type="text" class="form-input" placeholder="Nombre del titular">
+                        <input type="text" class="form-input" id="cardName" name="cardName" placeholder="Nombre del titular">
                     </div>
                     
                     <div class="checkbox-group">
@@ -774,7 +774,7 @@
                     </div>
                 </div>
                 
-                <button class="submit-btn">Pagar ahora</button>
+                <button class="submit-btn" type="button" onclick="processCheckout()">Pagar ahora</button>
             </div>
         </div>
         
@@ -869,14 +869,14 @@
         }
         
         // Format card number input
-        document.querySelector('input[placeholder="Número de tarjeta"]').addEventListener('input', function(e) {
+        document.getElementById('cardNumber').addEventListener('input', function(e) {
             let value = e.target.value.replace(/\s/g, '');
             let formattedValue = value.match(/.{1,4}/g)?.join(' ') || value;
             e.target.value = formattedValue;
         });
         
         // Format expiry date input
-        document.querySelector('input[placeholder="Fecha de vencimiento (MM / AA)"]').addEventListener('input', function(e) {
+        document.getElementById('cardExpiry').addEventListener('input', function(e) {
             let value = e.target.value.replace(/\D/g, '');
             if (value.length >= 2) {
                 value = value.slice(0, 2) + ' / ' + value.slice(2, 4);
@@ -1208,6 +1208,123 @@
             
             // Replace select with input
             stateSelect.parentNode.replaceChild(stateInput, stateSelect);
+        }
+        
+        // Process checkout - collect all form data
+        function processCheckout() {
+            // Get URL parameters to check if it's a reservation
+            const urlParams = new URLSearchParams(window.location.search);
+            const isReservation = urlParams.get('type') === 'reservation';
+            
+            // Collect form data
+            const formData = {
+                // Contact info
+                email: document.getElementById('email').value,
+                firstName: document.getElementById('firstName').value,
+                lastName: document.getElementById('lastName').value,
+                
+                // Address info
+                country: document.getElementById('country-hidden')?.value || document.getElementById('country-select')?.value || '',
+                address: document.getElementById('address').value,
+                apartment: document.getElementById('apartment').value,
+                city: document.getElementById('city').value,
+                state: document.getElementById('state-input')?.value || document.getElementById('state-select')?.value || '',
+                postalCode: document.getElementById('postalCode').value,
+                
+                // Payment info (mockup - not real validation)
+                cardNumber: document.getElementById('cardNumber').value,
+                cardExpiry: document.getElementById('cardExpiry').value,
+                cardCvv: document.getElementById('cardCvv').value,
+                cardName: document.getElementById('cardName').value,
+                
+                // Additional flags
+                newsletter: document.getElementById('newsletter').checked,
+                saveInfo: document.getElementById('save-info').checked,
+                billingSame: document.getElementById('billing-same').checked,
+                
+                // Reservation specific
+                isReservation: isReservation
+            };
+            
+            // If it's a reservation, add specific data
+            if (isReservation) {
+                // Get dates
+                formData.checkinDate = document.getElementById('checkin-date')?.value || '';
+                formData.checkoutDate = document.getElementById('checkout-date')?.value || '';
+                
+                // Get product info from localStorage
+                const cartItems = JSON.parse(localStorage.getItem('websiteBuilderCart') || '[]');
+                if (cartItems.length > 0 && cartItems[0].isReservation) {
+                    formData.productId = cartItems[0].id;
+                    formData.productName = cartItems[0].name;
+                    formData.pricePerNight = cartItems[0].price;
+                    
+                    // Calculate total if dates are selected
+                    if (formData.checkinDate && formData.checkoutDate) {
+                        const checkin = new Date(formData.checkinDate);
+                        const checkout = new Date(formData.checkoutDate);
+                        const nights = Math.floor((checkout - checkin) / (1000 * 60 * 60 * 24));
+                        formData.nights = nights;
+                        formData.totalAmount = formData.pricePerNight * nights;
+                    }
+                }
+            }
+            
+            // Basic validation
+            if (!formData.email || !formData.lastName) {
+                alert('Por favor complete los campos requeridos');
+                return;
+            }
+            
+            if (isReservation && (!formData.checkinDate || !formData.checkoutDate)) {
+                alert('Por favor seleccione las fechas de check-in y check-out');
+                return;
+            }
+            
+            // Show loading state
+            const submitBtn = document.querySelector('.submit-btn');
+            const originalBtnText = submitBtn.textContent;
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Procesando...';
+            
+            // Send data via AJAX
+            fetch('/Checkout/ProcessPayment', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(formData)
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result.success) {
+                    // Clear localStorage
+                    localStorage.removeItem('websiteBuilderCart');
+                    
+                    // Show success message
+                    alert(`¡Reservación confirmada! \n\nNúmero de reservación: #${result.reservationId}`);
+                    
+                    // Redirect to website homepage
+                    setTimeout(() => {
+                        window.location.href = '/WebsiteBuilder/Preview';
+                    }, 2000);
+                } else {
+                    // Show error
+                    alert('Error: ' + (result.message || 'Ocurrió un error al procesar la reservación'));
+                    
+                    // Re-enable button
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = originalBtnText;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error de conexión. Por favor intente nuevamente.');
+                
+                // Re-enable button
+                submitBtn.disabled = false;
+                submitBtn.textContent = originalBtnText;
+            });
         }
     </script>
 </body>

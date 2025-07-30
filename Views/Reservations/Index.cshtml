@@ -1,0 +1,603 @@
+@model IEnumerable<Hotel.Models.Reservation>
+
+@{
+    ViewData["Title"] = "Reservaciones";
+    Layout = "_MaterializeExactLayout";
+}
+
+<style>
+    /* Reservation specific styles following project standards */
+    .filters-section {
+        margin-bottom: 20px;
+    }
+
+    .quick-filters {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 15px;
+        flex-wrap: wrap;
+    }
+
+    .filter-btn {
+        padding: 8px 16px;
+        border: 1px solid #e0e0e0;
+        background: #fff;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: all 0.3s ease;
+    }
+
+    .filter-btn:hover {
+        background: #f5f5f5;
+    }
+
+    .filter-btn.active {
+        background: var(--primary);
+        color: #fff;
+        border-color: var(--primary);
+    }
+
+    .custom-filters {
+        background: #f8f9fa;
+        padding: 20px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+    }
+
+    .date-filter-group {
+        display: flex;
+        gap: 15px;
+        align-items: center;
+        margin-bottom: 15px;
+        flex-wrap: wrap;
+    }
+
+    .date-filter-group label {
+        font-weight: 500;
+        min-width: 150px;
+        color: #666;
+    }
+
+    .date-filter-group input[type="date"] {
+        padding: 8px 12px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 14px;
+    }
+
+    .btn-apply-filters {
+        background: var(--primary);
+        color: #fff;
+        border: none;
+        padding: 10px 24px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        margin-right: 10px;
+    }
+
+    .btn-clear-filters {
+        background: #6c757d;
+        color: #fff;
+        border: none;
+        padding: 10px 24px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+    }
+
+    .pagination {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 5px;
+        margin-top: 30px;
+    }
+
+    .pagination a,
+    .pagination span {
+        padding: 8px 12px;
+        text-decoration: none;
+        color: #666;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 14px;
+        transition: all 0.3s ease;
+    }
+
+    .pagination a:hover {
+        background: #f5f5f5;
+    }
+
+    .pagination .active {
+        background: var(--primary);
+        color: #fff;
+        border-color: var(--primary);
+    }
+
+    .results-info {
+        color: #666;
+        font-size: 14px;
+        margin-bottom: 10px;
+    }
+
+    .table thead th {
+        text-align: left;
+        padding: 1rem;
+        font-weight: 600;
+        color: #666;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        border-bottom: 1px solid #e0e0e0;
+    }
+
+    .table tbody td {
+        padding: 1rem;
+        border-bottom: 1px solid #f5f5f9;
+        vertical-align: middle;
+    }
+
+    .user-info {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .user-details {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .user-name {
+        font-weight: 600;
+        color: #444564;
+        font-size: 0.875rem;
+    }
+
+    .user-email {
+        color: #a5a3ae;
+        font-size: 0.75rem;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 0.25rem;
+    }
+
+    .btn-action {
+        background: none;
+        border: none;
+        padding: 0.5rem;
+        cursor: pointer;
+        color: #a5a3ae;
+        transition: all 0.3s ease;
+        border-radius: 0.25rem;
+    }
+
+    .btn-action:hover {
+        background: #f5f5f9;
+        color: #666;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+    }
+
+    .empty-state-icon {
+        font-size: 48px;
+        color: #ccc;
+        margin-bottom: 20px;
+    }
+
+    .empty-state h3 {
+        color: #666;
+        margin-bottom: 10px;
+    }
+
+    .empty-state p {
+        color: #999;
+    }
+
+    .status-badge {
+        padding: 0.25rem 0.75rem;
+        border-radius: 0.25rem;
+        font-size: 0.75rem;
+        font-weight: 500;
+    }
+
+    .status-badge.confirmed {
+        background: #e8f5e9;
+        color: #388e3c;
+    }
+
+    /* Dark mode support */
+    body.dark-mode .card {
+        background-color: #3a3c55;
+        color: #e0e0e0;
+    }
+
+    body.dark-mode .table thead th {
+        background-color: #2c2e3f;
+        color: #a0a0a0;
+    }
+
+    body.dark-mode .table tbody td {
+        border-bottom: 1px solid #404354;
+    }
+
+    body.dark-mode .user-name {
+        color: #e0e0e0;
+    }
+
+    body.dark-mode .user-email {
+        color: #a0a0a0;
+    }
+
+    body.dark-mode .btn-action {
+        color: #a0a0a0;
+    }
+
+    body.dark-mode .btn-action:hover {
+        background: #404354;
+        color: #e0e0e0;
+    }
+
+    /* Dark mode for filters */
+    body.dark-mode .filter-btn {
+        background: #404354;
+        border-color: #555;
+        color: #e0e0e0;
+    }
+
+    body.dark-mode .filter-btn:hover {
+        background: #4a4d66;
+    }
+
+    body.dark-mode .filter-btn.active {
+        background: var(--primary);
+        color: #fff;
+        border-color: var(--primary);
+    }
+
+    body.dark-mode .custom-filters {
+        background: #404354;
+    }
+
+    body.dark-mode .date-filter-group input[type="date"] {
+        background: #3a3c55;
+        border-color: #555;
+        color: #e0e0e0;
+    }
+
+    body.dark-mode .pagination a,
+    body.dark-mode .pagination span {
+        background: #404354;
+        border-color: #555;
+        color: #e0e0e0;
+    }
+
+    body.dark-mode .pagination a:hover {
+        background: #4a4d66;
+    }
+</style>
+
+<div class="page-header">
+    <nav class="breadcrumb-container" aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="@Url.Action("Index", "Home")" data-i18n="breadcrumb.home">Home</a></li>
+            <li class="breadcrumb-item active" aria-current="page" data-i18n="reservations.title">Reservaciones</li>
+        </ol>
+    </nav>
+</div>
+
+<div class="card">
+    <div class="card-content">
+        <!-- Filters Section -->
+        <div class="filters-section">
+            <!-- Quick Filters -->
+            <div class="quick-filters">
+                <button class="filter-btn @(ViewBag.DateFilter == null ? "active" : "")" 
+                        data-filter="all" 
+                        data-i18n="reservations.filterAll">Todas</button>
+                <button class="filter-btn @(ViewBag.DateFilter == "today" ? "active" : "")" 
+                        data-filter="today" 
+                        data-i18n="reservations.filterToday">Hoy</button>
+                <button class="filter-btn @(ViewBag.DateFilter == "week" ? "active" : "")" 
+                        data-filter="week" 
+                        data-i18n="reservations.filterWeek">Esta Semana</button>
+                <button class="filter-btn @(ViewBag.DateFilter == "month" ? "active" : "")" 
+                        data-filter="month" 
+                        data-i18n="reservations.filterMonth">Este Mes</button>
+                <button class="filter-btn @(ViewBag.DateFilter == "custom" ? "active" : "")" 
+                        data-filter="custom" 
+                        data-i18n="reservations.filterCustom">Personalizado ▼</button>
+            </div>
+
+            <!-- Custom Filters -->
+            <div class="custom-filters" id="customFilters" style="@(ViewBag.DateFilter == "custom" ? "" : "display: none;")">
+                <form method="get" action="@Url.Action("Index")">
+                    <input type="hidden" name="dateFilter" value="custom" />
+                    <input type="hidden" name="searchString" value="@ViewBag.CurrentFilter" />
+                    
+                    <div class="date-filter-group">
+                        <label data-i18n="reservations.checkinBetween">Check-in entre:</label>
+                        <input type="date" name="checkinFrom" value="@ViewBag.CheckinFrom" />
+                        <span data-i18n="reservations.and">y</span>
+                        <input type="date" name="checkinTo" value="@ViewBag.CheckinTo" />
+                    </div>
+                    
+                    <div class="date-filter-group">
+                        <label data-i18n="reservations.checkoutBetween">Check-out entre:</label>
+                        <input type="date" name="checkoutFrom" value="@ViewBag.CheckoutFrom" />
+                        <span data-i18n="reservations.and">y</span>
+                        <input type="date" name="checkoutTo" value="@ViewBag.CheckoutTo" />
+                    </div>
+                    
+                    <div>
+                        <button type="submit" class="btn-apply-filters" data-i18n="reservations.applyFilters">Aplicar Filtros</button>
+                        <button type="button" class="btn-clear-filters" onclick="window.location.href='@Url.Action("Index")'" data-i18n="reservations.clearFilters">Limpiar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="table-controls">
+            <div class="search-container">
+                <form method="get" action="@Url.Action("Index")" style="display: flex; gap: 10px;">
+                    <input type="hidden" name="dateFilter" value="@ViewBag.DateFilter" />
+                    <input type="hidden" name="checkinFrom" value="@ViewBag.CheckinFrom" />
+                    <input type="hidden" name="checkinTo" value="@ViewBag.CheckinTo" />
+                    <input type="hidden" name="checkoutFrom" value="@ViewBag.CheckoutFrom" />
+                    <input type="hidden" name="checkoutTo" value="@ViewBag.CheckoutTo" />
+                    <input type="text" 
+                           name="searchString"
+                           value="@ViewBag.CurrentFilter"
+                           class="form-control search-input" 
+                           data-i18n-placeholder="reservations.searchPlaceholder"
+                           placeholder="Buscar por cliente...">
+                    <button type="submit" class="btn btn-secondary">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        @if (ViewBag.TotalItems > 0)
+        {
+            <div class="results-info">
+                <span data-i18n="reservations.showingResults">Mostrando</span> 
+                @((ViewBag.CurrentPage - 1) * 20 + 1) - @Math.Min(ViewBag.CurrentPage * 20, ViewBag.TotalItems) 
+                <span data-i18n="reservations.of">de</span> 
+                @ViewBag.TotalItems 
+                <span data-i18n="reservations.reservations">reservaciones</span>
+            </div>
+        }
+
+        @if (!Model.Any())
+        {
+            <div class="empty-state">
+                <i class="fas fa-calendar-alt empty-state-icon"></i>
+                <h3 data-i18n="reservations.noRecords">No hay reservaciones</h3>
+                <p data-i18n="reservations.noRecordsDesc">Las reservaciones aparecerán aquí cuando los clientes reserven</p>
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-hover" id="reservationsTable">
+                    <thead>
+                        <tr>
+                            <th data-i18n="reservations.id">ID</th>
+                            <th data-i18n="reservations.client">CLIENTE</th>
+                            <th data-i18n="reservations.product">PRODUCTO</th>
+                            <th data-i18n="reservations.checkin">CHECK-IN</th>
+                            <th data-i18n="reservations.checkout">CHECK-OUT</th>
+                            <th data-i18n="reservations.total">TOTAL</th>
+                            <th data-i18n="reservations.actions">ACCIONES</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var reservation in Model)
+                        {
+                            <tr>
+                                <td>#@reservation.Id</td>
+                                <td>
+                                    <div class="user-info">
+                                        <div class="user-details">
+                                            <div class="user-name">@reservation.Guest.FirstName @reservation.Guest.LastName</div>
+                                            <div class="user-email">@reservation.Guest.Email</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>@reservation.Product.Title</td>
+                                <td>@reservation.CheckInDate.ToString("dd/MM/yyyy")</td>
+                                <td>@reservation.CheckOutDate.ToString("dd/MM/yyyy")</td>
+                                <td>$@reservation.TotalAmount.ToString("N2")</td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <button class="btn-action" 
+                                                onclick="window.location.href='@Url.Action("Details", new { id = reservation.Id })'" 
+                                                data-i18n-title="reservations.viewDetails"
+                                                title="Ver detalles">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            @if (ViewBag.TotalPages > 1)
+            {
+                <div class="pagination">
+                    @if (ViewBag.CurrentPage > 1)
+                    {
+                        <a href="@Url.Action("Index", new { 
+                            page = ViewBag.CurrentPage - 1, 
+                            searchString = ViewBag.CurrentFilter,
+                            dateFilter = ViewBag.DateFilter,
+                            checkinFrom = ViewBag.CheckinFrom,
+                            checkinTo = ViewBag.CheckinTo,
+                            checkoutFrom = ViewBag.CheckoutFrom,
+                            checkoutTo = ViewBag.CheckoutTo
+                        })">
+                            <i class="fas fa-chevron-left"></i>
+                        </a>
+                    }
+
+                    @for (int i = 1; i <= ViewBag.TotalPages; i++)
+                    {
+                        if (i == ViewBag.CurrentPage)
+                        {
+                            <span class="active">@i</span>
+                        }
+                        else if (i == 1 || i == ViewBag.TotalPages || (i >= ViewBag.CurrentPage - 2 && i <= ViewBag.CurrentPage + 2))
+                        {
+                            <a href="@Url.Action("Index", new { 
+                                page = i, 
+                                searchString = ViewBag.CurrentFilter,
+                                dateFilter = ViewBag.DateFilter,
+                                checkinFrom = ViewBag.CheckinFrom,
+                                checkinTo = ViewBag.CheckinTo,
+                                checkoutFrom = ViewBag.CheckoutFrom,
+                                checkoutTo = ViewBag.CheckoutTo
+                            })">@i</a>
+                        }
+                        else if (i == ViewBag.CurrentPage - 3 || i == ViewBag.CurrentPage + 3)
+                        {
+                            <span>...</span>
+                        }
+                    }
+
+                    @if (ViewBag.CurrentPage < ViewBag.TotalPages)
+                    {
+                        <a href="@Url.Action("Index", new { 
+                            page = ViewBag.CurrentPage + 1, 
+                            searchString = ViewBag.CurrentFilter,
+                            dateFilter = ViewBag.DateFilter,
+                            checkinFrom = ViewBag.CheckinFrom,
+                            checkinTo = ViewBag.CheckinTo,
+                            checkoutFrom = ViewBag.CheckoutFrom,
+                            checkoutTo = ViewBag.CheckoutTo
+                        })">
+                            <i class="fas fa-chevron-right"></i>
+                        </a>
+                    }
+                </div>
+            }
+        }
+    </div>
+</div>
+
+<script>
+    // Translations for reservations module
+    const reservationTranslations = {
+        es: {
+            'reservations.title': 'Reservaciones',
+            'reservations.searchPlaceholder': 'Buscar por cliente...',
+            'reservations.noRecords': 'No hay reservaciones',
+            'reservations.noRecordsDesc': 'Las reservaciones aparecerán aquí cuando los clientes reserven',
+            'reservations.id': 'ID',
+            'reservations.client': 'CLIENTE',
+            'reservations.product': 'PRODUCTO',
+            'reservations.checkin': 'CHECK-IN',
+            'reservations.checkout': 'CHECK-OUT',
+            'reservations.total': 'TOTAL',
+            'reservations.actions': 'ACCIONES',
+            'reservations.viewDetails': 'Ver detalles',
+            'breadcrumb.home': 'Home',
+            'reservations.filterAll': 'Todas',
+            'reservations.filterToday': 'Hoy',
+            'reservations.filterWeek': 'Esta Semana',
+            'reservations.filterMonth': 'Este Mes',
+            'reservations.filterCustom': 'Personalizado ▼',
+            'reservations.checkinBetween': 'Check-in entre:',
+            'reservations.checkoutBetween': 'Check-out entre:',
+            'reservations.and': 'y',
+            'reservations.applyFilters': 'Aplicar Filtros',
+            'reservations.clearFilters': 'Limpiar',
+            'reservations.showingResults': 'Mostrando',
+            'reservations.of': 'de',
+            'reservations.reservations': 'reservaciones'
+        },
+        en: {
+            'reservations.title': 'Reservations',
+            'reservations.searchPlaceholder': 'Search by client...',
+            'reservations.noRecords': 'No reservations',
+            'reservations.noRecordsDesc': 'Reservations will appear here when clients book',
+            'reservations.id': 'ID',
+            'reservations.client': 'CLIENT',
+            'reservations.product': 'PRODUCT',
+            'reservations.checkin': 'CHECK-IN',
+            'reservations.checkout': 'CHECK-OUT',
+            'reservations.total': 'TOTAL',
+            'reservations.actions': 'ACTIONS',
+            'reservations.viewDetails': 'View details',
+            'breadcrumb.home': 'Home',
+            'reservations.filterAll': 'All',
+            'reservations.filterToday': 'Today',
+            'reservations.filterWeek': 'This Week',
+            'reservations.filterMonth': 'This Month',
+            'reservations.filterCustom': 'Custom ▼',
+            'reservations.checkinBetween': 'Check-in between:',
+            'reservations.checkoutBetween': 'Check-out between:',
+            'reservations.and': 'and',
+            'reservations.applyFilters': 'Apply Filters',
+            'reservations.clearFilters': 'Clear',
+            'reservations.showingResults': 'Showing',
+            'reservations.of': 'of',
+            'reservations.reservations': 'reservations'
+        }
+    };
+
+    // Merge translations with global object
+    if (typeof translations !== 'undefined') {
+        if (!translations.es) translations.es = {};
+        if (!translations.en) translations.en = {};
+        
+        Object.assign(translations.es, reservationTranslations.es);
+        Object.assign(translations.en, reservationTranslations.en);
+    }
+
+    // Apply translations after DOM ready
+    document.addEventListener('DOMContentLoaded', function() {
+        // Apply translations
+        if (typeof translatePage === 'function') {
+            const currentLang = localStorage.getItem('preferredLanguage') || 'es';
+            translatePage(currentLang);
+        }
+
+        // Quick filter buttons functionality
+        const filterButtons = document.querySelectorAll('.filter-btn');
+        const customFilters = document.getElementById('customFilters');
+        
+        filterButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const filter = this.getAttribute('data-filter');
+                
+                if (filter === 'custom') {
+                    // Toggle custom filters visibility
+                    customFilters.style.display = customFilters.style.display === 'none' ? 'block' : 'none';
+                } else {
+                    // Navigate to filtered view
+                    let url = '@Url.Action("Index")';
+                    if (filter !== 'all') {
+                        url += '?dateFilter=' + filter;
+                    }
+                    // Preserve search string if exists
+                    const currentSearch = '@ViewBag.CurrentFilter';
+                    if (currentSearch) {
+                        url += (filter === 'all' ? '?' : '&') + 'searchString=' + encodeURIComponent(currentSearch);
+                    }
+                    window.location.href = url;
+                }
+            });
+        });
+    });
+</script>
