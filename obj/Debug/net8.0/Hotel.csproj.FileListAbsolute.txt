@@ -664,7 +664,7 @@ C:\Users\hp\Documents\Visual Studio 2022\Projects\Hotel23\obj\Debug\net8.0\rjims
 C:\Users\hp\Documents\Visual Studio 2022\Projects\Hotel23\obj\Debug\net8.0\rjsmrazor.dswa.cache.json
 C:\Users\hp\Documents\Visual Studio 2022\Projects\Hotel23\obj\Debug\net8.0\rjsmcshtml.dswa.cache.json
 C:\Users\hp\Documents\Visual Studio 2022\Projects\Hotel23\obj\Debug\net8.0\staticwebassets.build.json.cache
-C:\Users\hp\Documents\Visual Studio 2022\Projects\Hotel23\obj\Debug\net8.0\staticwebassets.upToDateCheck.txt
 C:\Users\hp\Documents\Visual Studio 2022\Projects\Hotel23\bin\Debug\net8.0\BouncyCastle.Crypto.dll
 C:\Users\hp\Documents\Visual Studio 2022\Projects\Hotel23\bin\Debug\net8.0\CsvHelper.dll
 C:\Users\hp\Documents\Visual Studio 2022\Projects\Hotel23\bin\Debug\net8.0\itextsharp.dll
+C:\Users\hp\Documents\Visual Studio 2022\Projects\Hotel23\obj\Debug\net8.0\staticwebassets.upToDateCheck.txt

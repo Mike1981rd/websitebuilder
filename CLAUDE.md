@@ -677,3 +677,77 @@ Una vez creados los permisos:
 3. Los permisos aparecen en la tabla Permissions
 4. Se pueden asignar a roles desde `/Roles`
 5. El CollectionsController usará `[Authorize]` para autenticación básica
+
+## 🏨 Sistema de Reservaciones - Estado Actual (30/07/2025)
+
+### ✅ FASE 1 COMPLETADA: Botón Reservar en Featured Collection
+- **Archivo**: `/wwwroot/js/website-builder/modules/featured-collection.js`
+- **Función handleReservation**: línea 3231 - maneja click del botón
+- **Data attributes**: líneas 1519, 1537 - precio agregado como data-price
+- **Prevención hover**: líneas 3202-3221 - evita efecto hover en cards
+
+### ✅ Ajustes en Checkout Completados:
+- **Archivo**: `/Views/Checkout/Index.cshtml`
+- **Detección de reservación**: línea 679 - detecta type=reservation
+- **Campos de fecha**: líneas 761-787 - sección de fechas check-in/out
+- **Cálculo de noches**: líneas 800-822 - actualiza precio por noches
+- **UI adaptada**: 
+  - Google Pay oculto (línea 685)
+  - Logos tarjetas ocultos (línea 697)
+  - Título cambiado a "Datos de Reservación" (línea 712)
+  - Botón "Confirmar Reservación" (línea 717)
+
+### 📋 PRÓXIMAS FASES PENDIENTES:
+- **FASE 2**: ✅ Campos de fecha en checkout (COMPLETADA)
+- **FASE 3**: Procesar reservación en backend (CheckoutController)
+- **FASE 4**: Crear módulo Reservations para admin
+- **FASE 5**: Activar link en sidebar
+- **FASE 6**: Testing final
+
+### 🔧 Problemas Resueltos y Documentados:
+1. **Botón llevaba a página producto**: Solucionado con event.stopPropagation()
+2. **Precio $0.00**: Solucionado con data-price attribute
+3. **Hover en cards**: Solucionado con preventCardHoverOnButtons()
+
+### 📄 Documentación Completa:
+- **Plan completo**: `/flujoreservaciones.md`
+- **Problemas y soluciones detalladas**: Sección "Problemas Encontrados" en flujoreservaciones.md
+
+### 🎯 Siguiente paso:
+Implementar FASE 3: Modificar CheckoutController para procesar reservaciones
+
+### 💬 Resumen de la Sesión (30/07/2025):
+
+**Objetivo**: Implementar sistema de reservaciones para hotel donde las habitaciones son productos.
+
+**Decisiones clave tomadas**:
+1. Reutilizar checkout existente en lugar de crear nueva página
+2. Las habitaciones son productos (no crear entidad Room separada)
+3. Estado siempre "Pagada" (pago obligatorio para reservar)
+4. Concatenar State con Address en modelo Guest (no modificar modelo)
+5. Panel de reservaciones es solo lectura (no gestión)
+
+**Flujo implementado**:
+1. Usuario hace click en "Reservar" en Featured Collection
+2. Se guarda producto temporalmente en localStorage
+3. Se redirige a checkout con ?type=reservation&productId=X
+4. Checkout muestra campos de fecha y adapta UI
+5. (Pendiente) Backend procesa y crea Guest + Reservation
+
+**Soluciones técnicas aplicadas**:
+- localStorage para pasar producto al checkout (como el carrito)
+- data-price attribute para precio confiable
+- event.stopPropagation() para prevenir navegación no deseada
+- preventCardHoverOnButtons() para mejorar UX
+
+**Estado del código**:
+- Featured Collection: Botón reservar funcional con precio
+- Checkout: Adaptado para reservaciones con fechas
+- Backend: Pendiente de implementar procesamiento
+
+### 🔑 Puntos críticos para continuar:
+1. El checkout usa localStorage key: 'websiteBuilderCart'
+2. Los items de reservación tienen flag: isReservation: true
+3. El cálculo de precio se actualiza con updateReservationTotal()
+4. Guest model ya existe, no crear Customer nuevo
+5. Reservation debe relacionarse con Guest y Room (producto)

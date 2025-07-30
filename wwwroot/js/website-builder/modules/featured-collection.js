@@ -753,7 +753,7 @@ window.WebsiteBuilderModules.FeaturedCollection = {
                     
                     ${settings.showAddToCartButton ? window.WebsiteBuilderModules.FeaturedCollection.renderAddToCartButton(settings, schemeColors, cardId, {name: productName, price: productPrice, vendor: productVendor || 'Store', image: productImage}) : ''}
                     ${settings.showBuyButton ? window.WebsiteBuilderModules.FeaturedCollection.renderBuyButton(settings, schemeColors, cardId) : ''}
-                    ${settings.showReserveButton ? window.WebsiteBuilderModules.FeaturedCollection.renderReserveButton(settings, schemeColors, cardId) : ''}
+                    ${settings.showReserveButton ? window.WebsiteBuilderModules.FeaturedCollection.renderReserveButton(settings, schemeColors, cardId, productId, productPrice) : ''}
                 </div>
                 
                 <style>
@@ -1486,7 +1486,7 @@ window.WebsiteBuilderModules.FeaturedCollection = {
     },
     
     // Renderizar botón Reserve
-    renderReserveButton: function(settings, schemeColors, cardId) {
+    renderReserveButton: function(settings, schemeColors, cardId, productId, productPrice) {
         console.log('[FEATURED COLLECTION] Rendering reserve button with settings:', settings);
         
         // Obtener font family de forma segura
@@ -1516,6 +1516,10 @@ window.WebsiteBuilderModules.FeaturedCollection = {
         
         if (isOutline) {
             return '<button class="' + buttonClass + '" ' +
+                   'data-price="' + (productPrice || 0) + '" ' +
+                   'onmouseenter="this.closest(\'.product-card\').style.transform=\'none\'" ' +
+                   'onmouseleave="this.closest(\'.product-card\').style.transform=\'\'" ' +
+                   'onclick="event.stopPropagation(); event.preventDefault(); window.handleReservation(event, ' + productId + '); return false;" ' +
                    'style="width: 100%; margin-top: 12px; padding: 10px 16px; border-radius: 4px; ' +
                    'font-size: 14px; font-family: ' + fontFamily + '; font-weight: 500; cursor: pointer; ' +
                    'transition: all 0.2s ease; background: transparent; ' +
@@ -1530,6 +1534,10 @@ window.WebsiteBuilderModules.FeaturedCollection = {
                    '</style>';
         } else {
             return '<button class="' + buttonClass + '" ' +
+                   'data-price="' + (productPrice || 0) + '" ' +
+                   'onmouseenter="this.closest(\'.product-card\').style.transform=\'none\'" ' +
+                   'onmouseleave="this.closest(\'.product-card\').style.transform=\'\'" ' +
+                   'onclick="event.stopPropagation(); event.preventDefault(); window.handleReservation(event, ' + productId + '); return false;" ' +
                    'style="width: 100%; margin-top: 12px; padding: 10px 16px; border-radius: 4px; ' +
                    'font-size: 14px; font-family: ' + fontFamily + '; font-weight: 500; cursor: pointer; ' +
                    'transition: all 0.2s ease; background: ' + solidButtonBg + '; ' +
@@ -3172,6 +3180,13 @@ window.WebsiteBuilderModules.FeaturedCollection = {
                 });
                 
                 console.log('[FEATURED COLLECTION] Product data cache initialized');
+                
+                // Apply hover prevention after products are loaded and rendered
+                setTimeout(() => {
+                    if (window.preventCardHoverOnButtons) {
+                        window.preventCardHoverOnButtons();
+                    }
+                }, 500);
             },
             error: (xhr, status, error) => {
                 console.error('[FEATURED COLLECTION] Error loading products:', error);
@@ -3189,4 +3204,66 @@ $(document).ready(function() {
 });
 
 // Make module globally accessible
+
+// Function to prevent card hover when hovering buttons
+window.preventCardHoverOnButtons = function() {
+    // Apply to all product cards after a short delay to ensure DOM is ready
+    setTimeout(() => {
+        document.querySelectorAll('.product-card button').forEach(button => {
+            button.addEventListener('mouseenter', function() {
+                const card = this.closest('.product-card');
+                if (card) {
+                    card.style.transform = 'none';
+                }
+            });
+            
+            button.addEventListener('mouseleave', function() {
+                const card = this.closest('.product-card');
+                if (card) {
+                    card.style.transform = '';
+                }
+            });
+        });
+    }, 100);
+};
+
+// Call this function when featured collection loads
+if (window.parent === window) { // Only in preview real
+    document.addEventListener('DOMContentLoaded', window.preventCardHoverOnButtons);
+    // Also call on dynamic content updates
+    window.addEventListener('load', window.preventCardHoverOnButtons);
+}
+
+// Global function to handle reservation button click
+window.handleReservation = function(event, productId) {
+    try {
+        // Find product information from the card
+        const button = event.target.closest('button');
+        const productCard = event.target.closest('.product-card');
+        const productName = productCard.querySelector('h3')?.textContent || 'Producto';
+        const productPrice = parseFloat(button.getAttribute('data-price')) || 0;
+        const productImage = productCard.querySelector('img')?.src || '';
+        
+        // Create reservation item
+        const reservationItem = {
+            id: productId,
+            name: productName,
+            price: productPrice,
+            quantity: 1,
+            image: productImage,
+            vendor: 'Hotel',
+            isReservation: true
+        };
+        
+        // Save to localStorage
+        localStorage.setItem('websiteBuilderCart', JSON.stringify([reservationItem]));
+        
+        // Redirect to checkout
+        window.location.href = '/Checkout?type=reservation&productId=' + productId;
+    } catch (error) {
+        console.error('Error handling reservation:', error);
+        // Fallback redirect
+        window.location.href = '/Checkout?type=reservation&productId=' + productId;
+    }
+};
 console.log('[FEATURED COLLECTION MODULE] Module loaded successfully');

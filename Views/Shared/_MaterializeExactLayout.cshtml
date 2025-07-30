@@ -61,6 +61,14 @@
                     </li>
 
                     <li class="menu-item">
+                        <a href="@Url.Action("Index", "Reservations")" class="menu-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Reservations" ? "active" : "")">
+                            <i class="menu-icon fas fa-calendar-check"></i>
+                            <span class="menu-text" data-i18n="menu.reservations">Reservaciones</span>
+                            <span class="menu-tooltip" data-i18n="menu.reservations">Reservaciones</span>
+                        </a>
+                    </li>
+
+                    <li class="menu-item">
                         <a href="@Url.Action("Index", "Collections")" class="menu-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Collections" ? "active" : "")">
                             <i class="menu-icon fas fa-layer-group"></i>
                             <span class="menu-text" data-i18n="menu.collections">Colecciones</span>
@@ -630,6 +638,7 @@
                 'menu.rolesUsers': 'Roles & Usuarios',
                 'menu.usuarios': 'Usuarios',
                 'menu.clientes': 'Clientes',
+                'menu.reservations': 'Reservaciones',
                 'menu.collections': 'Colecciones',
                 'menu.products': 'Productos',
                 'menu.pages': 'Páginas',
@@ -799,6 +808,7 @@
                 'menu.rolesUsers': 'Roles & Users',
                 'menu.usuarios': 'Users',
                 'menu.clientes': 'Clients',
+                'menu.reservations': 'Reservations',
                 'menu.collections': 'Collections',
                 'menu.products': 'Products',
                 'menu.pages': 'Pages',

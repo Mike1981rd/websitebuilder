@@ -884,6 +884,30 @@ namespace Hotel.Migrations
                             Description = "Crear políticas",
                             DisplayOrder = 9,
                             Module = "Políticas"
+                        },
+                        new
+                        {
+                            Id = 28,
+                            Action = "Read",
+                            Description = "Ver reservaciones",
+                            DisplayOrder = 10,
+                            Module = "Reservations"
+                        },
+                        new
+                        {
+                            Id = 29,
+                            Action = "Write",
+                            Description = "Editar reservaciones",
+                            DisplayOrder = 10,
+                            Module = "Reservations"
+                        },
+                        new
+                        {
+                            Id = 30,
+                            Action = "Create",
+                            Description = "Crear reservaciones",
+                            DisplayOrder = 10,
+                            Module = "Reservations"
                         });
                 });
 
@@ -1298,38 +1322,38 @@ namespace Hotel.Migrations
                         new
                         {
                             Id = 1,
-                            CreatedAt = new DateTime(2025, 7, 29, 15, 31, 5, 398, DateTimeKind.Utc).AddTicks(2270),
+                            CreatedAt = new DateTime(2025, 7, 29, 21, 31, 23, 650, DateTimeKind.Utc).AddTicks(972),
                             Description = "Acceso completo al sistema",
                             IsActive = true,
                             Name = "Administrator",
-                            UpdatedAt = new DateTime(2025, 7, 29, 15, 31, 5, 398, DateTimeKind.Utc).AddTicks(2270)
+                            UpdatedAt = new DateTime(2025, 7, 29, 21, 31, 23, 650, DateTimeKind.Utc).AddTicks(973)
                         },
                         new
                         {
                             Id = 2,
-                            CreatedAt = new DateTime(2025, 7, 29, 15, 31, 5, 398, DateTimeKind.Utc).AddTicks(2274),
+                            CreatedAt = new DateTime(2025, 7, 29, 21, 31, 23, 650, DateTimeKind.Utc).AddTicks(976),
                             Description = "Acceso de gestión",
                             IsActive = true,
                             Name = "Manager",
-                            UpdatedAt = new DateTime(2025, 7, 29, 15, 31, 5, 398, DateTimeKind.Utc).AddTicks(2274)
+                            UpdatedAt = new DateTime(2025, 7, 29, 21, 31, 23, 650, DateTimeKind.Utc).AddTicks(976)
                         },
                         new
                         {
                             Id = 3,
-                            CreatedAt = new DateTime(2025, 7, 29, 15, 31, 5, 398, DateTimeKind.Utc).AddTicks(2276),
+                            CreatedAt = new DateTime(2025, 7, 29, 21, 31, 23, 650, DateTimeKind.Utc).AddTicks(978),
                             Description = "Acceso de soporte",
                             IsActive = true,
                             Name = "Support",
-                            UpdatedAt = new DateTime(2025, 7, 29, 15, 31, 5, 398, DateTimeKind.Utc).AddTicks(2276)
+                            UpdatedAt = new DateTime(2025, 7, 29, 21, 31, 23, 650, DateTimeKind.Utc).AddTicks(978)
                         },
                         new
                         {
                             Id = 4,
-                            CreatedAt = new DateTime(2025, 7, 29, 15, 31, 5, 398, DateTimeKind.Utc).AddTicks(2278),
+                            CreatedAt = new DateTime(2025, 7, 29, 21, 31, 23, 650, DateTimeKind.Utc).AddTicks(980),
                             Description = "Acceso básico de usuario",
                             IsActive = true,
                             Name = "Users",
-                            UpdatedAt = new DateTime(2025, 7, 29, 15, 31, 5, 398, DateTimeKind.Utc).AddTicks(2278)
+                            UpdatedAt = new DateTime(2025, 7, 29, 21, 31, 23, 650, DateTimeKind.Utc).AddTicks(980)
                         });
                 });
 
@@ -1434,7 +1458,7 @@ namespace Hotel.Migrations
                         {
                             Id = 1,
                             BasePrice = 50.00m,
-                            CreatedAt = new DateTime(2025, 7, 29, 15, 31, 5, 398, DateTimeKind.Utc).AddTicks(1800),
+                            CreatedAt = new DateTime(2025, 7, 29, 21, 31, 23, 650, DateTimeKind.Utc).AddTicks(266),
                             Description = "Habitación individual estándar",
                             MaxOccupancy = 1,
                             Name = "Individual"
@@ -1443,7 +1467,7 @@ namespace Hotel.Migrations
                         {
                             Id = 2,
                             BasePrice = 80.00m,
-                            CreatedAt = new DateTime(2025, 7, 29, 15, 31, 5, 398, DateTimeKind.Utc).AddTicks(1807),
+                            CreatedAt = new DateTime(2025, 7, 29, 21, 31, 23, 650, DateTimeKind.Utc).AddTicks(276),
                             Description = "Habitación doble estándar",
                             MaxOccupancy = 2,
                             Name = "Doble"
@@ -1452,7 +1476,7 @@ namespace Hotel.Migrations
                         {
                             Id = 3,
                             BasePrice = 150.00m,
-                            CreatedAt = new DateTime(2025, 7, 29, 15, 31, 5, 398, DateTimeKind.Utc).AddTicks(1809),
+                            CreatedAt = new DateTime(2025, 7, 29, 21, 31, 23, 650, DateTimeKind.Utc).AddTicks(278),
                             Description = "Suite de lujo",
                             MaxOccupancy = 4,
                             Name = "Suite"
@@ -1461,7 +1485,7 @@ namespace Hotel.Migrations
                         {
                             Id = 4,
                             BasePrice = 300.00m,
-                            CreatedAt = new DateTime(2025, 7, 29, 15, 31, 5, 398, DateTimeKind.Utc).AddTicks(1811),
+                            CreatedAt = new DateTime(2025, 7, 29, 21, 31, 23, 650, DateTimeKind.Utc).AddTicks(279),
                             Description = "Suite presidencial de lujo",
                             MaxOccupancy = 6,
                             Name = "Suite Presidencial"

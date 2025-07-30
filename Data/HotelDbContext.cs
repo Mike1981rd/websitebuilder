@@ -391,6 +391,11 @@ namespace Hotel.Data
             permissions.Add(new Permission { Id = permissionId++, Module = "Políticas", Action = "Read", Description = "Ver políticas", DisplayOrder = 9 });
             permissions.Add(new Permission { Id = permissionId++, Module = "Políticas", Action = "Write", Description = "Editar políticas", DisplayOrder = 9 });
             permissions.Add(new Permission { Id = permissionId++, Module = "Políticas", Action = "Create", Description = "Crear políticas", DisplayOrder = 9 });
+            
+            // Reservations
+            permissions.Add(new Permission { Id = permissionId++, Module = "Reservations", Action = "Read", Description = "Ver reservaciones", DisplayOrder = 10 });
+            permissions.Add(new Permission { Id = permissionId++, Module = "Reservations", Action = "Write", Description = "Editar reservaciones", DisplayOrder = 10 });
+            permissions.Add(new Permission { Id = permissionId++, Module = "Reservations", Action = "Create", Description = "Crear reservaciones", DisplayOrder = 10 });
 
             modelBuilder.Entity<Permission>().HasData(permissions);
 

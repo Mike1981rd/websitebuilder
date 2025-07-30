@@ -670,8 +670,156 @@
             e.target.value = value;
         });
         
-        // Load cart items on page load
-        loadCartItems();
+        // Check if this is a reservation FIRST
+        document.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const isReservation = urlParams.get('type') === 'reservation';
+            const productId = urlParams.get('productId');
+            
+            if (isReservation) {
+                // Hide Google Pay button for reservations
+                const expressCheckout = document.querySelector('.express-checkout');
+                if (expressCheckout) {
+                    expressCheckout.style.display = 'none';
+                }
+                
+                // Hide the divider "O" as well
+                const divider = document.querySelector('.divider');
+                if (divider) {
+                    divider.style.display = 'none';
+                }
+                
+                // Hide credit card logos for reservations
+                const paymentIcons = document.querySelector('.payment-icons');
+                if (paymentIcons) {
+                    paymentIcons.style.display = 'none';
+                }
+                
+                // For reservations, the product is already in localStorage
+                // just load it normally with loadCartItems
+                
+                // Add date fields for reservation
+                addReservationDateFields();
+                
+                // Change page title for reservation
+                const sectionTitle = document.querySelector('.section-title');
+                if (sectionTitle) {
+                    sectionTitle.textContent = 'Datos de Reservación';
+                }
+                
+                // Change submit button text for reservation
+                const submitBtn = document.querySelector('.submit-btn');
+                if (submitBtn) {
+                    submitBtn.textContent = 'Confirmar Reservación';
+                }
+            }
+            
+            // Always load cart items (for both normal checkout and reservations)
+            loadCartItems();
+        });
+        
+        // Add date fields for reservation
+        function addReservationDateFields() {
+            // Create date section HTML
+            const dateSection = `
+                <div class="form-section" id="reservation-dates-section">
+                    <h2 class="section-title">Fechas de Estadía</h2>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Check-in</label>
+                            <input type="date" 
+                                   class="form-input" 
+                                   id="checkin-date" 
+                                   name="checkinDate" 
+                                   required
+                                   min="${new Date().toISOString().split('T')[0]}">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Check-out</label>
+                            <input type="date" 
+                                   class="form-input" 
+                                   id="checkout-date" 
+                                   name="checkoutDate" 
+                                   required>
+                        </div>
+                    </div>
+                    <div class="info-text" id="nights-info" style="margin-top: 10px; font-weight: 500;"></div>
+                </div>
+            `;
+            
+            // Insert after contact section
+            const contactSection = document.querySelector('.form-section');
+            if (contactSection) {
+                contactSection.insertAdjacentHTML('afterend', dateSection);
+            }
+            
+            // Add event listeners for date validation
+            const checkinInput = document.getElementById('checkin-date');
+            const checkoutInput = document.getElementById('checkout-date');
+            
+            checkinInput.addEventListener('change', function() {
+                validateDates();
+                // Set minimum checkout date to day after checkin
+                if (this.value) {
+                    const checkinDate = new Date(this.value);
+                    checkinDate.setDate(checkinDate.getDate() + 1);
+                    checkoutInput.min = checkinDate.toISOString().split('T')[0];
+                }
+            });
+            
+            checkoutInput.addEventListener('change', validateDates);
+        }
+        
+        // Validate reservation dates
+        function validateDates() {
+            const checkinInput = document.getElementById('checkin-date');
+            const checkoutInput = document.getElementById('checkout-date');
+            const checkin = checkinInput.value;
+            const checkout = checkoutInput.value;
+            
+            if (checkin && checkout) {
+                const checkinDate = new Date(checkin);
+                const checkoutDate = new Date(checkout);
+                
+                if (checkoutDate <= checkinDate) {
+                    checkoutInput.setCustomValidity('La fecha de salida debe ser posterior a la de entrada');
+                    document.getElementById('nights-info').textContent = '';
+                } else {
+                    checkoutInput.setCustomValidity('');
+                    
+                    // Calculate nights
+                    const nights = Math.floor((checkoutDate - checkinDate) / (1000 * 60 * 60 * 24));
+                    document.getElementById('nights-info').textContent = `${nights} noche${nights > 1 ? 's' : ''}`;
+                    
+                    // Update price based on cart items
+                    updateReservationTotal(nights);
+                }
+            }
+        }
+        
+        // Update total price based on nights
+        function updateReservationTotal(nights) {
+            const cartItems = JSON.parse(localStorage.getItem('websiteBuilderCart') || '[]');
+            if (cartItems.length > 0 && cartItems[0].isReservation) {
+                const pricePerNight = cartItems[0].price;
+                const total = pricePerNight * nights;
+                
+                // Update totals
+                document.getElementById('subtotal').textContent = formatCurrency(total);
+                document.getElementById('total').textContent = formatCurrency(total);
+                
+                // Update the price display to show per night
+                const priceDisplay = document.querySelector('.order-item-price:last-child');
+                if (priceDisplay) {
+                    priceDisplay.innerHTML = `
+                        <div style="text-align: right;">
+                            <div style="font-size: 12px; color: #666;">$${pricePerNight.toFixed(2)} x ${nights} noches</div>
+                            <div>${formatCurrency(total)}</div>
+                        </div>
+                    `;
+                }
+            }
+        }
     </script>
 </body>
 </html>
