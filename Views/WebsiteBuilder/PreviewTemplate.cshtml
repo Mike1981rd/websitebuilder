@@ -464,6 +464,58 @@
                 
                 return false; // Extra prevention
             });
+            
+            // Reserve button event listener for iframe context
+            $(document).on('click', '.reserve-button', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                const $button = $(this);
+                const productId = $button.data('product-id');
+                
+                console.log('[PREVIEW] Reserve button clicked, product ID:', productId);
+                
+                // Get product data from current product (stored in Product Container module)
+                let productData = null;
+                
+                // Try to get product data from module
+                if (window.WebsiteBuilderModules && window.WebsiteBuilderModules.ProductContainer && window.WebsiteBuilderModules.ProductContainer.currentProduct) {
+                    productData = window.WebsiteBuilderModules.ProductContainer.currentProduct;
+                } else {
+                    // If no product data, get from button data attributes
+                    productData = {
+                        id: productId,
+                        title: $button.data('product-title') || 'Producto',
+                        price: parseFloat($button.data('product-price')) || 0
+                    };
+                }
+                
+                console.log('[PREVIEW] Product data for reservation:', productData);
+                
+                // Save to localStorage
+                const reservationData = {
+                    isReservation: true,
+                    items: [{
+                        ...productData,
+                        quantity: 1,
+                        isReservation: true
+                    }]
+                };
+                
+                localStorage.setItem('websiteBuilderCart', JSON.stringify(reservationData));
+                
+                // Redirect to checkout with reservation parameters
+                const checkoutUrl = `/Checkout?type=reservation&productId=${productId}`;
+                
+                // Check if we're in iframe (preview mode) or standalone
+                if (window.parent && window.parent !== window) {
+                    // We're in iframe, redirect parent window
+                    window.parent.location.href = checkoutUrl;
+                } else {
+                    // We're standalone, redirect current window
+                    window.location.href = checkoutUrl;
+                }
+            });
         });
     </script>
 </body>

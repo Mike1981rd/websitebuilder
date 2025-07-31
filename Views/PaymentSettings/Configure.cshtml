@@ -1,0 +1,153 @@
+@model Hotel.ViewModels.ConfigureGatewayViewModel
+
+@{
+    ViewData["Title"] = $"Configurar {Model.Name}";
+    Layout = "_MaterializeExactLayout";
+}
+
+<div class="page-header">
+    <nav class="breadcrumb-container" aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="@Url.Action("Index", "Home")">Home</a></li>
+            <li class="breadcrumb-item"><a href="@Url.Action("Index")">Métodos de Pago</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Configurar @Model.Name</li>
+        </ol>
+    </nav>
+</div>
+
+<div class="card">
+    <div class="card-content">
+        <form asp-action="SaveConfiguration" method="post" enctype="multipart/form-data" id="gateway-config-form">
+            <input type="hidden" asp-for="Id" />
+            <input type="hidden" asp-for="Name" />
+            <input type="hidden" asp-for="Provider" />
+            
+            <div class="config-section">
+                <h3 class="section-title">Credenciales de API</h3>
+                <p class="section-description">
+                    Ingrese las credenciales proporcionadas por Azul. Estos datos serán encriptados de forma segura.
+                </p>
+                
+                <div class="form-group">
+                    <label asp-for="StoreId" class="form-label">
+                        Store ID <span class="required-asterisk">*</span>
+                    </label>
+                    <input asp-for="StoreId" class="form-control" placeholder="39038540035" />
+                    <span asp-validation-for="StoreId" class="text-danger"></span>
+                </div>
+                
+                <div class="form-group">
+                    <label asp-for="Auth1" class="form-label">
+                        Usuario (Auth1) <span class="required-asterisk">*</span>
+                    </label>
+                    <input asp-for="Auth1" class="form-control" />
+                    <span asp-validation-for="Auth1" class="text-danger"></span>
+                </div>
+                
+                <div class="form-group">
+                    <label asp-for="Auth2" class="form-label">
+                        Contraseña (Auth2) <span class="required-asterisk">*</span>
+                    </label>
+                    <div class="password-input-wrapper">
+                        <input asp-for="Auth2" class="form-control" type="password" id="auth2-input" />
+                        <button type="button" class="password-toggle" onclick="togglePasswordVisibility('auth2-input')">
+                            <i class="fas fa-eye" id="auth2-toggle-icon"></i>
+                        </button>
+                    </div>
+                    <span asp-validation-for="Auth2" class="text-danger"></span>
+                </div>
+            </div>
+            
+            <div class="config-section">
+                <h3 class="section-title">Certificados SSL</h3>
+                <p class="section-description">
+                    Los certificados son requeridos para establecer una conexión segura con Azul.
+                </p>
+                
+                <div class="form-group">
+                    <label asp-for="CertificateFile" class="form-label">
+                        Certificado (.pem)
+                        @if (Model.HasCertificate)
+                        {
+                            <span class="file-status">
+                                <i class="fas fa-check-circle text-success"></i>
+                                @Model.CertificateFileName
+                            </span>
+                        }
+                    </label>
+                    <div class="file-upload-wrapper">
+                        <input asp-for="CertificateFile" type="file" accept=".pem" class="file-input" id="cert-file" />
+                        <label for="cert-file" class="file-label">
+                            <i class="fas fa-upload"></i>
+                            <span>Seleccionar archivo .pem</span>
+                        </label>
+                        <span class="file-name"></span>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label asp-for="CertificateKeyFile" class="form-label">
+                        Llave del Certificado (.key)
+                        @if (Model.HasCertificateKey)
+                        {
+                            <span class="file-status">
+                                <i class="fas fa-check-circle text-success"></i>
+                                @Model.CertificateKeyFileName
+                            </span>
+                        }
+                    </label>
+                    <div class="file-upload-wrapper">
+                        <input asp-for="CertificateKeyFile" type="file" accept=".key" class="file-input" id="key-file" />
+                        <label for="key-file" class="file-label">
+                            <i class="fas fa-upload"></i>
+                            <span>Seleccionar archivo .key</span>
+                        </label>
+                        <span class="file-name"></span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="config-section">
+                <h3 class="section-title">Configuración del Entorno</h3>
+                
+                <div class="form-group">
+                    <div class="custom-control custom-switch">
+                        <input asp-for="IsTestMode" type="checkbox" class="custom-control-input" id="test-mode-switch" />
+                        <label class="custom-control-label" for="test-mode-switch">
+                            Modo de Prueba
+                            <small class="form-text text-muted d-block">
+                                Active esta opción mientras realiza pruebas. Desactívela para procesar pagos reales.
+                            </small>
+                        </label>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save"></i>
+                    <span>Guardar Configuración</span>
+                </button>
+                <a href="@Url.Action("Index")" class="btn btn-secondary">
+                    <i class="fas fa-times"></i>
+                    <span>Cancelar</span>
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="info-panel">
+    <h4><i class="fas fa-info-circle"></i> Información Importante</h4>
+    <ul>
+        <li>Las credenciales son encriptadas antes de almacenarse en la base de datos</li>
+        <li>Los certificados se almacenan de forma segura fuera del directorio público</li>
+        <li>Asegúrese de usar las credenciales correctas según el modo (prueba/producción)</li>
+        <li>Para obtener sus credenciales, contacte a Azul al 809-544-2985</li>
+    </ul>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script src="~/js/payment-settings.js" asp-append-version="true"></script>
+}

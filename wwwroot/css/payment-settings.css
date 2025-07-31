@@ -1,0 +1,453 @@
+/* Payment Settings Styles */
+
+/* Gateway Cards Container */
+.payment-gateways-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 20px;
+    margin-top: 20px;
+}
+
+/* Gateway Card */
+.payment-gateway-card {
+    background: #ffffff;
+    border: 1px solid #e5e5e5;
+    border-radius: 8px;
+    padding: 24px;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.payment-gateway-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.payment-gateway-card.active {
+    border-color: #4CAF50;
+    background: #f8fff8;
+}
+
+.payment-gateway-card.coming-soon {
+    opacity: 0.6;
+}
+
+/* Gateway Header */
+.gateway-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.gateway-info {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.gateway-logo {
+    width: 80px;
+    height: 40px;
+    object-fit: contain;
+}
+
+.gateway-logo.grayscale {
+    filter: grayscale(100%);
+}
+
+.gateway-details h3 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+    color: #333;
+}
+
+.gateway-description {
+    margin: 4px 0 0;
+    font-size: 14px;
+    color: #666;
+}
+
+/* Toggle Switch */
+.toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 24px;
+}
+
+.toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: .4s;
+    border-radius: 24px;
+}
+
+.toggle-slider:before {
+    position: absolute;
+    content: "";
+    height: 18px;
+    width: 18px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+}
+
+input:checked + .toggle-slider {
+    background-color: #4CAF50;
+}
+
+input:checked + .toggle-slider:before {
+    transform: translateX(26px);
+}
+
+input:disabled + .toggle-slider {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Gateway Status */
+.gateway-status {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+.status-indicator {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+}
+
+.status-indicator.active {
+    color: #4CAF50;
+}
+
+.status-indicator.configured {
+    color: #FF9800;
+}
+
+.status-indicator.pending {
+    color: #f44336;
+}
+
+.status-indicator.coming-soon {
+    color: #9E9E9E;
+}
+
+.mode-indicator {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    color: #666;
+}
+
+/* Gateway Actions */
+.gateway-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.gateway-actions a.btn {
+    text-decoration: none !important;
+}
+
+.gateway-footer {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid #f0f0f0;
+}
+
+/* Configure Page Styles */
+.config-section {
+    margin-bottom: 32px;
+    padding: 24px;
+    background: #f9f9f9;
+    border-radius: 8px;
+}
+
+.section-title {
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0 0 8px;
+    color: #333;
+}
+
+.section-description {
+    font-size: 14px;
+    color: #666;
+    margin: 0 0 20px;
+}
+
+/* Form Elements */
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: #333;
+    font-size: 14px;
+}
+
+.form-control {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    transition: border-color 0.3s;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 2px rgba(var(--primary-rgb), 0.1);
+}
+
+/* Password Input */
+.password-input-wrapper {
+    position: relative;
+}
+
+.password-toggle {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #666;
+    padding: 4px 8px;
+}
+
+.password-toggle:hover {
+    color: #333;
+}
+
+/* File Upload */
+.file-upload-wrapper {
+    position: relative;
+    overflow: hidden;
+}
+
+.file-input {
+    position: absolute;
+    left: -9999px;
+}
+
+.file-label {
+    display: inline-block;
+    padding: 10px 20px;
+    background: #f0f0f0;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.file-label:hover {
+    background: #e0e0e0;
+}
+
+.file-upload-wrapper.has-file .file-label {
+    background: #e8f5e9;
+    border-color: #4CAF50;
+    color: #4CAF50;
+}
+
+.file-name {
+    display: inline-block;
+    margin-left: 12px;
+    font-size: 14px;
+    color: #666;
+}
+
+.file-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-left: 12px;
+    font-size: 12px;
+    color: #4CAF50;
+}
+
+/* Custom Switch */
+.custom-control {
+    margin-bottom: 1rem;
+}
+
+.custom-control-input {
+    position: absolute;
+    left: -9999px;
+}
+
+.custom-control-label {
+    position: relative;
+    padding-left: 60px;
+    cursor: pointer;
+    font-weight: 500;
+}
+
+.custom-control-label::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 50px;
+    height: 24px;
+    background: #ccc;
+    border-radius: 24px;
+    transition: .4s;
+}
+
+.custom-control-label::after {
+    content: '';
+    position: absolute;
+    left: 3px;
+    top: 3px;
+    width: 18px;
+    height: 18px;
+    background: white;
+    border-radius: 50%;
+    transition: .4s;
+}
+
+.custom-control-input:checked ~ .custom-control-label::before {
+    background: #4CAF50;
+}
+
+.custom-control-input:checked ~ .custom-control-label::after {
+    transform: translateX(26px);
+}
+
+/* Form Actions */
+.form-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 32px;
+}
+
+/* Info Panel */
+.info-panel {
+    background: #e3f2fd;
+    border: 1px solid #90caf9;
+    border-radius: 8px;
+    padding: 20px;
+    margin-top: 24px;
+}
+
+.info-panel h4 {
+    margin: 0 0 12px;
+    color: #1976d2;
+    font-size: 16px;
+}
+
+.info-panel ul {
+    margin: 0;
+    padding-left: 20px;
+}
+
+.info-panel li {
+    margin-bottom: 8px;
+    color: #333;
+    font-size: 14px;
+}
+
+/* Buttons */
+.btn-disabled {
+    opacity: 0.6;
+    cursor: not-allowed !important;
+}
+
+/* Dark Mode Support */
+body.dark-mode .payment-gateway-card {
+    background: #2a2d47;
+    border-color: #3a3d57;
+}
+
+body.dark-mode .gateway-details h3,
+body.dark-mode .section-title,
+body.dark-mode .form-label {
+    color: #fff;
+}
+
+body.dark-mode .gateway-description,
+body.dark-mode .section-description,
+body.dark-mode .mode-indicator {
+    color: #b0b0b0;
+}
+
+body.dark-mode .config-section {
+    background: #1e2139;
+}
+
+body.dark-mode .form-control {
+    background: #2a2d47;
+    border-color: #3a3d57;
+    color: #fff;
+}
+
+body.dark-mode .info-panel {
+    background: #1e2139;
+    border-color: #3a3d57;
+}
+
+body.dark-mode .info-panel h4 {
+    color: #64b5f6;
+}
+
+body.dark-mode .info-panel li {
+    color: #e0e0e0;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .payment-gateways-container {
+        grid-template-columns: 1fr;
+    }
+    
+    .gateway-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 16px;
+    }
+    
+    .gateway-toggle {
+        align-self: flex-end;
+    }
+    
+    .gateway-status {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+    
+    .gateway-actions {
+        flex-direction: column;
+        width: 100%;
+    }
+    
+    .gateway-actions .btn {
+        width: 100%;
+    }
+}

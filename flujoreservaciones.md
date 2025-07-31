@@ -1108,3 +1108,568 @@ La vista Index mostraría todas las reservaciones sin límite, causando problema
 ✅ Guest se crea/actualiza automáticamente
 ✅ Panel de reservaciones con filtros y paginación
 ✅ Todos los problemas documentados con soluciones
+
+---
+
+## 🐛 PROBLEMA #7: Error en página de carrito con items de reservación
+**Fecha**: 30/07/2025
+**Archivo**: `/wwwroot/js/website-render-functions.js`
+**Error**: `TypeError: itemsToShow.forEach is not a function at renderCartPage (line 2729)`
+
+### Descripción del problema
+Al hacer click en "Ir al carrito" desde el cart drawer cuando hay un item de reservación, la página de carrito falla al intentar renderizar. El error ocurre porque el código espera un array pero recibe un objeto.
+
+### Causa raíz
+El sistema maneja dos formatos diferentes en localStorage para el key `websiteBuilderCart`:
+1. **Productos normales**: `[{item1}, {item2}]` - Array directo
+2. **Reservaciones**: `{ isReservation: true, items: [{item}] }` - Objeto con array interno
+
+Cuando `renderCartPage` recibe el formato de reservación, intenta hacer `forEach` sobre un objeto, causando el error.
+
+### Ubicación específica del error
+```javascript
+// website-render-functions.js línea 2729
+itemsToShow.forEach(...) // itemsToShow es un objeto cuando hay reservación
+```
+
+### Soluciones propuestas
+
+#### Solución 1: Modificación Inmediata (menos invasiva)
+Modificar `renderCartPage` en `website-render-functions.js` para detectar y manejar ambos formatos:
+```javascript
+// Al inicio de renderCartPage
+let items = itemsToShow;
+if (itemsToShow && !Array.isArray(itemsToShow) && itemsToShow.items) {
+    items = itemsToShow.items;
+}
+// Luego usar 'items' en lugar de 'itemsToShow'
+```
+
+#### Solución 2: Estandarización Robusta
+Estandarizar el formato en localStorage para usar siempre arrays y agregar `isReservation` a cada item individual. Esto requeriría actualizar:
+- `handleReservation` en featured-collection.js
+- `handleProductReservation` en product-container.js
+- Todas las funciones de carga de cart
+
+#### Solución 3: Workaround Temporal
+Interceptar la navegación a la página de carrito y convertir el formato antes de renderizar. Esto se podría hacer en el mismo website-builder.js cuando detecta navegación a cart.
+
+### Estado actual
+- ✅ Cart drawer funciona correctamente con reservaciones
+- ✅ Checkout funciona correctamente con reservaciones
+- ❌ Cart page falla al renderizar con reservaciones
+- ✅ Featured Collection maneja reservaciones correctamente
+- ✅ Product page maneja reservaciones correctamente
+
+### Próximos pasos para la siguiente sesión
+1. Examinar `website-render-functions.js` línea 2729
+2. Implementar detección de formato antes del forEach
+3. Probar con ambos tipos de items (productos normales y reservaciones)
+4. Verificar que no se rompa funcionalidad existente
+
+### Archivos relacionados que han manejado este formato exitosamente
+- `/Views/WebsiteBuilder/Preview.cshtml` - función loadCart() maneja ambos formatos
+- `/wwwroot/js/website-builder.js` - cart page loading actualizado para manejar formato
+- `/Views/Checkout/Index.cshtml` - loadCartItems() maneja ambos formatos
+
+---
+
+## 🔧 SOLUCIÓN IMPLEMENTADA (31/07/2025)
+
+### Descripción de la solución
+Se implementó una solución integral que resuelve ambos bugs identificados:
+1. **Preservación de items existentes**: Las funciones de reservación ahora leen el carrito antes de agregar
+2. **Formato unificado**: Se migró completamente al formato array, manteniendo compatibilidad hacia atrás
+
+### Cambios técnicos implementados
+
+#### 1. **featured-collection.js** (líneas 3258-3284)
+```javascript
+// ANTES: Sobrescribía todo el carrito
+localStorage.setItem('websiteBuilderCart', JSON.stringify([reservationItem]));
+
+// DESPUÉS: Lee existente, filtra reservaciones anteriores, agrega nueva
+let existingCart = [];
+try {
+    const savedCart = localStorage.getItem('websiteBuilderCart');
+    if (savedCart) {
+        const parsedCart = JSON.parse(savedCart);
+        if (Array.isArray(parsedCart)) {
+            existingCart = parsedCart;
+        } else if (parsedCart && parsedCart.items && Array.isArray(parsedCart.items)) {
+            existingCart = parsedCart.items; // Convierte formato antiguo
+        }
+    }
+} catch (e) {
+    console.error('[RESERVATION] Error parsing existing cart:', e);
+    existingCart = [];
+}
+existingCart = existingCart.filter(item => !item.isReservation);
+existingCart.push(reservationItem);
+localStorage.setItem('websiteBuilderCart', JSON.stringify(existingCart));
+```
+
+#### 2. **product-container.js** (líneas 3449-3487)
+Implementación idéntica a featured-collection.js para consistencia
+
+#### 3. **website-builder.js - loadCart()** (líneas 29981-30004)
+```javascript
+function loadCart() {
+    const savedCart = localStorage.getItem('websiteBuilderCart');
+    if (savedCart) {
+        try {
+            const parsedCart = JSON.parse(savedCart);
+            if (Array.isArray(parsedCart)) {
+                cartItems = parsedCart;
+            } else if (parsedCart && parsedCart.items && Array.isArray(parsedCart.items)) {
+                cartItems = parsedCart.items;
+                // Auto-migra al nuevo formato
+                localStorage.setItem('websiteBuilderCart', JSON.stringify(cartItems));
+            }
+        } catch (e) {
+            console.error('[CART] Error parsing saved cart:', e);
+            cartItems = [];
+        }
+    }
+    return cartItems;
+}
+```
+
+#### 4. **website-builder.js - Simplificación de saveCart** (líneas 51, 137, 219)
+```javascript
+// ANTES: Lógica compleja con formato objeto
+if (wasReservation) {
+    localStorage.setItem('websiteBuilderCart', JSON.stringify({ isReservation: true, items: cartItems }));
+}
+
+// DESPUÉS: Siempre array
+localStorage.setItem('websiteBuilderCart', JSON.stringify(cartItems));
+```
+
+#### 5. **Preview.cshtml - Carga de carrito** (líneas 1251-1267)
+```javascript
+let cartItems = [];
+try {
+    const savedCart = localStorage.getItem('websiteBuilderCart');
+    if (savedCart) {
+        const parsedCart = JSON.parse(savedCart);
+        if (Array.isArray(parsedCart)) {
+            cartItems = parsedCart;
+        } else if (parsedCart && parsedCart.items && Array.isArray(parsedCart.items)) {
+            cartItems = parsedCart.items;
+        }
+    }
+} catch (e) {
+    console.error('[PREVIEW] Error parsing cart data:', e);
+    cartItems = [];
+}
+```
+
+#### 6. **Preview.cshtml - saveCart simplificado** (líneas 1930-1932)
+```javascript
+function saveCart() {
+    // Siempre guarda como array - reservaciones marcadas por item.isReservation
+    localStorage.setItem('websiteBuilderCart', JSON.stringify(cartItems));
+}
+```
+
+### Comportamiento del sistema después de los cambios
+
+1. **Agregar producto normal**: Se guarda como `[{producto}]`
+2. **Agregar reservación con productos existentes**: 
+   - Lee array existente
+   - Filtra reservaciones anteriores
+   - Agrega nueva reservación
+   - Resultado: `[{producto1}, {producto2}, {reservación}]`
+3. **Solo reservación**: Se guarda como `[{reservación con isReservation: true}]`
+4. **Página del carrito**: Siempre recibe un array, no más errores de forEach
+
+### Migración automática
+Si el sistema encuentra el formato antiguo `{isReservation: true, items: [...]}`:
+- Lo convierte automáticamente a `[...]`
+- Actualiza localStorage con el nuevo formato
+- Transparente para el usuario
+
+### Resultado final
+✅ **Bug #1 resuelto**: Reservaciones ya no sobrescriben productos normales
+✅ **Bug #2 resuelto**: Página del carrito funciona con todos los escenarios
+✅ **Compatibilidad**: Sistema maneja datos antiguos automáticamente
+✅ **Consistencia**: Un solo formato (array) en todo el sistema
+
+---
+
+## 🔧 SOLUCIÓN BUG "BUY NOW" (31/07/2025)
+
+### Descripción del problema
+Los botones "Buy Now" (Comprar Ahora) en los módulos featured-collection y featured-product redirigían al checkout pero mostraban $0.00. El producto no se guardaba en localStorage, por lo que si el usuario se arrepentía y volvía atrás, no tenía forma de recuperar el producto.
+
+### Síntomas específicos
+- Click en "Buy Now" → Redirección a checkout
+- Checkout mostraba precio $0.00 en el resumen
+- Si había productos previos en el carrito, esos sí aparecían
+- El producto del "Buy Now" nunca se mostraba
+
+### Causa raíz
+Los botones "Buy Now" solo hacían una redirección directa sin guardar el producto en localStorage:
+```javascript
+// ANTES:
+onclick="window.location.href='/Checkout'"
+```
+
+El checkout depende completamente de localStorage (`websiteBuilderCart`) para mostrar productos.
+
+### Solución implementada
+
+#### 1. **featured-collection.js - handleBuyNow** (líneas 3296-3355)
+```javascript
+window.handleBuyNow = function(event, productId) {
+    if (event) {
+        event.stopPropagation();
+        event.preventDefault();
+    }
+    
+    console.log('[BUY NOW] Starting buy now process for product:', productId);
+    
+    // Buscar el producto en la card
+    const productCard = event.target.closest('.product-card');
+    if (!productCard) {
+        console.error('[BUY NOW] Product card not found');
+        window.location.href = '/Checkout';
+        return;
+    }
+    
+    // Extraer información del producto
+    const productName = productCard.querySelector('h3')?.textContent || 'Producto';
+    const button = event.target.closest('button');
+    const productPrice = parseFloat(button.getAttribute('data-price')) || 0;
+    
+    // Imagen del producto
+    let productImage = '/images/placeholder.jpg';
+    const imgElement = productCard.querySelector('img');
+    if (imgElement) {
+        productImage = imgElement.src || imgElement.getAttribute('data-src') || productImage;
+    }
+    
+    // Leer carrito existente
+    let existingCart = [];
+    try {
+        const savedCart = localStorage.getItem('websiteBuilderCart');
+        if (savedCart) {
+            const parsedCart = JSON.parse(savedCart);
+            if (Array.isArray(parsedCart)) {
+                existingCart = parsedCart;
+            } else if (parsedCart && parsedCart.items && Array.isArray(parsedCart.items)) {
+                existingCart = parsedCart.items;
+            }
+        }
+    } catch (e) {
+        console.error('[BUY NOW] Error parsing existing cart:', e);
+        existingCart = [];
+    }
+    
+    // Crear item para buy now
+    const buyNowItem = {
+        id: productId,
+        name: productName,
+        price: productPrice,
+        quantity: 1,
+        image: productImage,
+        vendor: 'Hotel',
+        isBuyNow: true  // Marcador para identificar items de buy now
+    };
+    
+    // Agregar al carrito existente
+    existingCart.push(buyNowItem);
+    
+    // Guardar en localStorage
+    localStorage.setItem('websiteBuilderCart', JSON.stringify(existingCart));
+    
+    console.log('[BUY NOW] Cart saved with', existingCart.length, 'items. Redirecting to checkout...');
+    
+    // Redirigir al checkout
+    window.location.href = '/Checkout';
+};
+```
+
+#### 2. **featured-collection.js - renderBuyButton actualizado** (líneas 3125-3154)
+```javascript
+renderBuyButton: function(settings, schemeColors, cardId, productId, productPrice) {
+    if (!settings.showBuyButton || !settings.buyButtonText) {
+        return '';
+    }
+    
+    const isOutlineStyle = settings.buyButtonStyle === 'outline';
+    
+    // Estilos según el tipo de botón...
+    
+    return isOutlineStyle ? `
+        <button class="btn outline-button buy-now-btn" 
+                style="${outlineStyles}"
+                data-price="${productPrice || 0}"
+                onclick="event.stopPropagation(); event.preventDefault(); window.handleBuyNow(event, ${productId}); return false;">
+            ${settings.buyButtonText}
+        </button>
+    ` : `
+        <button class="btn solid-button buy-now-btn" 
+                style="${solidStyles}"
+                data-price="${productPrice || 0}"
+                onclick="event.stopPropagation(); event.preventDefault(); window.handleBuyNow(event, ${productId}); return false;">
+            ${settings.buyButtonText}
+        </button>
+    `;
+}
+```
+
+#### 3. **featured-product.js - handleProductBuyNow** (líneas 3074-3141)
+```javascript
+window.handleProductBuyNow = function(productId, price) {
+    console.log('[FEATURED PRODUCT BUY NOW] Starting buy now for product:', productId, 'price:', price);
+    
+    // Obtener información del producto desde el DOM
+    const productContainer = document.querySelector('.product-container-content');
+    if (!productContainer) {
+        console.error('[FEATURED PRODUCT BUY NOW] Product container not found');
+        window.location.href = '/Checkout';
+        return;
+    }
+    
+    // Extraer información del producto
+    const productName = productContainer.querySelector('h1')?.textContent || 
+                       productContainer.querySelector('h2')?.textContent || 
+                       'Producto';
+    
+    const productPrice = price || 0;
+    
+    // Buscar imagen
+    let productImage = '/images/placeholder.jpg';
+    const imgElement = productContainer.querySelector('.product-main-image img') || 
+                      productContainer.querySelector('img');
+    if (imgElement) {
+        productImage = imgElement.src || imgElement.getAttribute('data-src') || productImage;
+    }
+    
+    // Leer carrito existente
+    let existingCart = [];
+    try {
+        const savedCart = localStorage.getItem('websiteBuilderCart');
+        if (savedCart) {
+            const parsedCart = JSON.parse(savedCart);
+            if (Array.isArray(parsedCart)) {
+                existingCart = parsedCart;
+            } else if (parsedCart && parsedCart.items && Array.isArray(parsedCart.items)) {
+                existingCart = parsedCart.items;
+            }
+        }
+    } catch (e) {
+        console.error('[FEATURED PRODUCT BUY NOW] Error parsing existing cart:', e);
+        existingCart = [];
+    }
+    
+    // Crear item para buy now
+    const buyNowItem = {
+        id: productId,
+        name: productName,
+        price: productPrice,
+        quantity: 1,
+        image: productImage,
+        vendor: productVendor || 'Hotel',
+        isBuyNow: true
+    };
+    
+    // Agregar al carrito
+    existingCart.push(buyNowItem);
+    
+    // Guardar
+    localStorage.setItem('websiteBuilderCart', JSON.stringify(existingCart));
+    
+    console.log('[FEATURED PRODUCT BUY NOW] Product added to cart. Redirecting...');
+    
+    // Redirigir
+    window.location.href = '/Checkout';
+};
+```
+
+#### 4. **featured-product.js - Actualización del onclick** (líneas 611-615)
+```javascript
+// ANTES:
+'onclick="window.location.href=\'/Checkout\'"'
+
+// DESPUÉS:
+'onclick="window.handleProductBuyNow(' + productId + ', ' + (productPrice || 0) + ')"'
+```
+
+### Características de la solución
+
+1. **Preserva carrito existente**: Lee items actuales antes de agregar
+2. **Formato consistente**: Usa el mismo formato array que las reservaciones
+3. **Marca items con `isBuyNow`**: Permite identificar origen del item si es necesario
+4. **Extrae precio del data-attribute**: Mismo método confiable que las reservaciones
+5. **Maneja errores**: Si algo falla, al menos redirige al checkout
+
+### Resultado
+✅ Los productos "Buy Now" ahora se muestran con precio correcto en checkout
+✅ Si el usuario vuelve atrás, el producto permanece en el carrito
+✅ Compatible con productos normales y reservaciones en el mismo carrito
+✅ Usa el mismo patrón de solución que las reservaciones para consistencia
+
+---
+
+## 🔧 SOLUCIÓN BUG "BUY NOW" EN PRODUCT CONTAINER (31/07/2025)
+
+### Descripción del problema
+El botón "Buy Now" en la página individual del producto (módulo product-container) tenía exactamente el mismo problema que en featured-collection: redirigía al checkout mostrando $0.00 y sin guardar el producto en localStorage.
+
+### Síntomas idénticos
+- Click en "Buy Now" desde página de producto → Checkout con $0.00
+- Producto no se guardaba en localStorage
+- Si había productos previos, solo esos aparecían
+- Código idéntico al problema anterior: `onclick="window.location.href='/checkout'"`
+
+### Solución implementada - Parte 1
+
+#### 1. **Crear handleProductContainerBuyNow** (líneas 3504-3563)
+```javascript
+window.handleProductContainerBuyNow = function(productId, productPrice) {
+    console.log('[PRODUCT-CONTAINER BUY NOW] Starting buy now for product:', productId, 'price:', productPrice);
+    
+    // Get product data from the current module's data
+    const productData = window.WebsiteBuilderModules.ProductContainer.currentProduct || {};
+    
+    // Extract product information
+    const productName = productData.title || 'Producto';
+    const price = productPrice || productData.price || 0;
+    
+    // Get image
+    let productImage = '/images/placeholder.jpg';
+    if (productData.images && productData.images.length > 0) {
+        productImage = productData.images[0];
+    }
+    
+    // Read existing cart
+    let existingCart = [];
+    try {
+        const savedCart = localStorage.getItem('websiteBuilderCart');
+        if (savedCart) {
+            const parsedCart = JSON.parse(savedCart);
+            if (Array.isArray(parsedCart)) {
+                existingCart = parsedCart;
+            } else if (parsedCart && parsedCart.items && Array.isArray(parsedCart.items)) {
+                existingCart = parsedCart.items;
+            }
+        }
+    } catch (e) {
+        console.error('[PRODUCT-CONTAINER BUY NOW] Error parsing existing cart:', e);
+        existingCart = [];
+    }
+    
+    // Create buy now item
+    const buyNowItem = {
+        id: productId || productData.id,
+        name: productName,
+        price: price,
+        quantity: 1,
+        image: productImage,
+        vendor: productData.vendor || 'Hotel',
+        isBuyNow: true
+    };
+    
+    // Add to existing cart
+    existingCart.push(buyNowItem);
+    
+    // Save to localStorage
+    localStorage.setItem('websiteBuilderCart', JSON.stringify(existingCart));
+    
+    console.log('[PRODUCT-CONTAINER BUY NOW] Cart saved with', existingCart.length, 'items. Redirecting to checkout...');
+    
+    // Redirect to checkout
+    if (window.parent && window.parent !== window) {
+        window.parent.location.href = '/Checkout';
+    } else {
+        window.location.href = '/Checkout';
+    }
+};
+```
+
+#### 2. **Actualizar renderBuyButton** (líneas 3279-3323)
+```javascript
+// ANTES (líneas 3294 y 3309):
+onclick="event.preventDefault(); event.stopPropagation(); if(window.parent && window.parent !== window) { window.parent.location.href='/checkout'; } else { window.location.href='/checkout'; }"
+
+// DESPUÉS (líneas 3296 y 3312):
+onclick="event.preventDefault(); event.stopPropagation(); window.handleProductContainerBuyNow('${product.id || 'demo-product'}', ${productPrice}); return false;"
+```
+
+También se agregó:
+- `const productPrice = product.price || 0;` (línea 3283)
+- `data-price="${productPrice}"` en ambos botones (líneas 3295 y 3311)
+
+### Problema adicional: Imagen rota en checkout
+
+#### Síntoma específico
+Después de implementar la solución inicial, el producto aparecía en checkout con el precio correcto PERO la imagen aparecía rota. Esto solo ocurría con Buy Now desde product-container, no en otros casos.
+
+#### Causa del problema de imagen
+La implementación inicial extraía la imagen así:
+```javascript
+if (productData.images && productData.images.length > 0) {
+    productImage = productData.images[0];
+}
+```
+
+El problema era que `productData.images[0]` podría contener:
+- Una ruta relativa sin dominio
+- Un objeto con estructura `{url: '...', altText: '...'}`
+
+Mientras que en featured-collection se usaba:
+```javascript
+const productImage = productCard.querySelector('img')?.src || '';
+```
+
+El `.src` siempre devuelve la URL completa con dominio.
+
+### Solución del problema de imagen (líneas 3518-3532)
+
+```javascript
+// Get image from DOM (more reliable than data)
+let productImage = '/images/placeholder.jpg';
+
+// Try to get image from the main product image in DOM
+const mainImageElement = document.querySelector('#main-product-image');
+if (mainImageElement && mainImageElement.src) {
+    productImage = mainImageElement.src;
+} else if (productData.images && productData.images.length > 0) {
+    // Fallback to data if DOM element not found
+    if (typeof productData.images[0] === 'string') {
+        productImage = productData.images[0];
+    } else if (productData.images[0].url) {
+        productImage = productData.images[0].url;
+    }
+}
+```
+
+#### Detalles técnicos de la solución de imagen
+
+1. **Prioridad al DOM**: Primero intenta obtener la imagen del elemento `#main-product-image`
+2. **URL completa garantizada**: El `.src` del DOM siempre incluye el dominio completo
+3. **Fallbacks inteligentes**: 
+   - Si no encuentra en DOM, usa los datos
+   - Detecta si es string o objeto
+   - Extrae `.url` si es objeto
+
+4. **Consistencia**: Ahora funciona igual que featured-collection
+
+### Comparación de implementaciones
+
+| Aspecto | featured-collection | product-container (antes) | product-container (después) |
+|---------|-------------------|-------------------------|---------------------------|
+| Extracción precio | `data-price` attribute | No pasaba precio | `data-price` attribute |
+| Extracción imagen | `.querySelector('img').src` | `productData.images[0]` | `#main-product-image.src` |
+| Formato imagen | URL completa | Ruta relativa/objeto | URL completa |
+| localStorage | ✅ Array format | ❌ No guardaba | ✅ Array format |
+
+### Resultado final
+✅ Buy Now en product-container ahora funciona idénticamente a featured-collection
+✅ Precio se muestra correctamente en checkout
+✅ Imagen se muestra correctamente (no más imágenes rotas)
+✅ Compatible con carrito mixto (productos normales + buy now + reservaciones)
+✅ Código mantenible y consistente entre módulos

@@ -26,13 +26,28 @@ window.removeFromCart = function(productId) {
     
     try {
         // Eliminar de localStorage
-        let cartItems = JSON.parse(localStorage.getItem('websiteBuilderCart') || '[]');
+        const savedCart = localStorage.getItem('websiteBuilderCart');
+        let cartItems = [];
+        let wasReservation = false;
+        
+        if (savedCart) {
+            const parsed = JSON.parse(savedCart);
+            if (Array.isArray(parsed)) {
+                cartItems = parsed;
+            } else if (parsed && parsed.items && Array.isArray(parsed.items)) {
+                cartItems = parsed.items;
+                wasReservation = true;
+            }
+        }
         // Convertir productId a string para comparación consistente
         const productIdStr = String(productId);
         const itemIndex = cartItems.findIndex(item => String(item.id) === productIdStr);
         
         if (itemIndex !== -1) {
             cartItems.splice(itemIndex, 1);
+            
+            // Save back in the correct format
+            // Always save as array format
             localStorage.setItem('websiteBuilderCart', JSON.stringify(cartItems));
             
             // Actualizar el contador inmediatamente
@@ -91,13 +106,27 @@ window.updateCartQty = function(productId, delta) {
         if (newQty < 1) {
             // Si la cantidad es 0, eliminar el producto sin confirmación
             // Eliminar de localStorage
-            let cartItems = JSON.parse(localStorage.getItem('websiteBuilderCart') || '[]');
+            const savedCart = localStorage.getItem('websiteBuilderCart');
+            let cartItems = [];
+            let wasReservation = false;
+            
+            if (savedCart) {
+                const parsed = JSON.parse(savedCart);
+                if (Array.isArray(parsed)) {
+                    cartItems = parsed;
+                } else if (parsed && parsed.items && Array.isArray(parsed.items)) {
+                    cartItems = parsed.items;
+                    wasReservation = true;
+                }
+            }
             // Convertir productId a string para comparación consistente
             const productIdStr = String(productId);
             const itemIndex = cartItems.findIndex(item => String(item.id) === productIdStr);
             if (itemIndex !== -1) {
                 cartItems.splice(itemIndex, 1);
             }
+            
+            // Always save as array format
             localStorage.setItem('websiteBuilderCart', JSON.stringify(cartItems));
             
             // Recargar la página del carrito
@@ -148,7 +177,20 @@ window.updateCartQty = function(productId, delta) {
             }
             
             // IMPORTANTE: Actualizar localStorage y todo el sistema
-            let cartItems = JSON.parse(localStorage.getItem('websiteBuilderCart') || '[]');
+            const savedCart = localStorage.getItem('websiteBuilderCart');
+            let cartItems = [];
+            let wasReservation = false;
+            
+            if (savedCart) {
+                const parsed = JSON.parse(savedCart);
+                if (Array.isArray(parsed)) {
+                    cartItems = parsed;
+                } else if (parsed && parsed.items && Array.isArray(parsed.items)) {
+                    cartItems = parsed.items;
+                    wasReservation = true;
+                }
+            }
+            
             console.log('[CART-GLOBAL] Cart items antes de actualizar:', cartItems);
             console.log('[CART-GLOBAL] Buscando producto con ID:', productId);
             console.log('[CART-GLOBAL] IDs en el carrito:', cartItems.map(item => item.id));
@@ -159,7 +201,10 @@ window.updateCartQty = function(productId, delta) {
             
             if (itemIndex !== -1) {
                 cartItems[itemIndex].quantity = newQty;
+                
+                // Always save as array format
                 localStorage.setItem('websiteBuilderCart', JSON.stringify(cartItems));
+                
                 console.log('[CART-GLOBAL] Cart items después de actualizar:', cartItems);
                 
                 // Actualizar el contador del carrito en el header
@@ -3073,7 +3118,19 @@ function renderPreview() {
                     if (!config.isHidden) {
                         // Load cart items from localStorage (websiteBuilderCart)
                         const savedCart = localStorage.getItem('websiteBuilderCart');
-                        const cartItemsData = savedCart ? JSON.parse(savedCart) : [];
+                        let cartItemsData = [];
+                        
+                        if (savedCart) {
+                            const parsed = JSON.parse(savedCart);
+                            // Handle both formats: array (normal cart) and object (reservation)
+                            if (Array.isArray(parsed)) {
+                                cartItemsData = parsed;
+                            } else if (parsed && parsed.items && Array.isArray(parsed.items)) {
+                                // This is a reservation format, extract the items
+                                cartItemsData = parsed.items;
+                            }
+                        }
+                        
                         console.log('[PREVIEW] Cart items from websiteBuilderCart:', cartItemsData);
                         console.log('[PREVIEW] Cart items count:', cartItemsData.length);
                         
@@ -29907,7 +29964,23 @@ function formatPrice(price) {
 function loadCart() {
     const savedCart = localStorage.getItem('websiteBuilderCart');
     if (savedCart) {
-        cartItems = JSON.parse(savedCart);
+        try {
+            const parsedCart = JSON.parse(savedCart);
+            // Handle both array format and object format for backward compatibility
+            if (Array.isArray(parsedCart)) {
+                cartItems = parsedCart;
+            } else if (parsedCart && parsedCart.items && Array.isArray(parsedCart.items)) {
+                // Convert old object format to array format
+                cartItems = parsedCart.items;
+                // Update localStorage to new format
+                localStorage.setItem('websiteBuilderCart', JSON.stringify(cartItems));
+            } else {
+                cartItems = [];
+            }
+        } catch (e) {
+            console.error('[CART] Error parsing saved cart:', e);
+            cartItems = [];
+        }
     }
     return cartItems;
 }

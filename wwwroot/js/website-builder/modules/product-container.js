@@ -3280,6 +3280,7 @@ window.WebsiteBuilderModules.ProductContainer = {
     renderBuyButton: function(settings, schemeColors, uniqueId, product, bodyFont) {
         const isOutline = settings.buyButtonStyle === 'outline';
         const buttonText = settings.buyButtonText || 'Comprar ahora';
+        const productPrice = product.price || 0;
         
         // Get colors from scheme
         const solidButtonBg = schemeColors['solid-button'] || '#121212';
@@ -3291,7 +3292,8 @@ window.WebsiteBuilderModules.ProductContainer = {
             return `
                 <button class="buy-now-button buy-now-outline-${uniqueId}" 
                         data-product-id="${product.id || 'demo-product'}"
-                        onclick="event.preventDefault(); event.stopPropagation(); if(window.parent && window.parent !== window) { window.parent.location.href='/checkout'; } else { window.location.href='/checkout'; }"
+                        data-price="${productPrice}"
+                        onclick="event.preventDefault(); event.stopPropagation(); window.handleProductContainerBuyNow('${product.id || 'demo-product'}', ${productPrice}); return false;"
                         style="font-family: ${bodyFont}; width: 100%; padding: 14px 24px; background-color: transparent; color: ${outlineButtonText}; border: 1px solid ${outlineButtonBorder}; border-radius: 4px; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s;">
                     ${buttonText}
                 </button>
@@ -3306,7 +3308,8 @@ window.WebsiteBuilderModules.ProductContainer = {
             return `
                 <button class="buy-now-button buy-now-solid-${uniqueId}" 
                         data-product-id="${product.id || 'demo-product'}"
-                        onclick="event.preventDefault(); event.stopPropagation(); if(window.parent && window.parent !== window) { window.parent.location.href='/checkout'; } else { window.location.href='/checkout'; }"
+                        data-price="${productPrice}"
+                        onclick="event.preventDefault(); event.stopPropagation(); window.handleProductContainerBuyNow('${product.id || 'demo-product'}', ${productPrice}); return false;"
                         style="font-family: ${bodyFont}; width: 100%; padding: 14px 24px; background-color: ${solidButtonBg}; color: ${solidButtonText}; border: none; border-radius: 4px; font-size: 14px; font-weight: 500; cursor: pointer; transition: opacity 0.2s;">
                     ${buttonText}
                 </button>
@@ -3334,6 +3337,9 @@ window.WebsiteBuilderModules.ProductContainer = {
             return `
                 <button class="reserve-button reserve-outline-${uniqueId}" 
                         data-product-id="${product.id || 'demo-product'}"
+                        data-product-title="${product.title || 'Producto'}"
+                        data-product-price="${product.price || 0}"
+                        onclick="event.stopPropagation(); event.preventDefault(); window.handleProductReservation(event, ${product.id || 'null'}); return false;"
                         style="font-family: ${bodyFont}; width: 100%; padding: 14px 24px; background-color: transparent; color: ${outlineButtonText}; border: 1px solid ${outlineButtonBorder}; border-radius: 4px; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s;">
                     ${buttonText}
                 </button>
@@ -3348,6 +3354,9 @@ window.WebsiteBuilderModules.ProductContainer = {
             return `
                 <button class="reserve-button reserve-solid-${uniqueId}" 
                         data-product-id="${product.id || 'demo-product'}"
+                        data-product-title="${product.title || 'Producto'}"
+                        data-product-price="${product.price || 0}"
+                        onclick="event.stopPropagation(); event.preventDefault(); window.handleProductReservation(event, ${product.id || 'null'}); return false;"
                         style="font-family: ${bodyFont}; width: 100%; padding: 14px 24px; background-color: ${solidButtonBg}; color: ${solidButtonText}; border: none; border-radius: 4px; font-size: 14px; font-weight: 500; cursor: pointer; transition: opacity 0.2s;">
                     ${buttonText}
                 </button>
@@ -3402,6 +3411,170 @@ if (window.registerWebsiteBuilderModule) {
 }
 
 // Confirm module is loaded
+// Global function for handling product reservation
+window.handleProductReservation = function(event, productId) {
+    console.log('[PRODUCT-CONTAINER] Reserve button clicked, product ID:', productId);
+    
+    if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+    }
+    
+    // Get product data
+    let productData = null;
+    
+    // Try to get from module's current product
+    if (window.WebsiteBuilderModules && window.WebsiteBuilderModules.ProductContainer && window.WebsiteBuilderModules.ProductContainer.currentProduct) {
+        productData = window.WebsiteBuilderModules.ProductContainer.currentProduct;
+        console.log('[PRODUCT-CONTAINER] Using current product from module:', productData);
+    } else if (productId) {
+        // Try to find product in cached products
+        const cachedProducts = window.WebsiteBuilderModules?.ProductContainer?.cachedProducts || [];
+        productData = cachedProducts.find(p => p.id === productId);
+        
+        if (!productData) {
+            // Create minimal product data
+            productData = {
+                id: productId,
+                title: 'Producto',
+                price: 0
+            };
+        }
+    }
+    
+    if (!productData) {
+        console.error('[PRODUCT-CONTAINER] No product data available');
+        return;
+    }
+    
+    console.log('[PRODUCT-CONTAINER] Product data for reservation:', productData);
+    
+    // Create reservation item
+    const reservationItem = {
+        id: productData.id,
+        name: productData.name || productData.title,
+        title: productData.title || productData.name,
+        price: productData.price || 0,
+        vendor: productData.vendor || 'Store',
+        image: productData.images && productData.images.length > 0 ? productData.images[0].url : null,
+        quantity: 1,
+        isReservation: true
+    };
+    
+    // Get existing cart items
+    let existingCart = [];
+    try {
+        const savedCart = localStorage.getItem('websiteBuilderCart');
+        if (savedCart) {
+            const parsedCart = JSON.parse(savedCart);
+            // Handle both array format and object format for backward compatibility
+            if (Array.isArray(parsedCart)) {
+                existingCart = parsedCart;
+            } else if (parsedCart && parsedCart.items && Array.isArray(parsedCart.items)) {
+                // Convert old object format to array format
+                existingCart = parsedCart.items;
+            }
+        }
+    } catch (e) {
+        console.error('[PRODUCT-CONTAINER] Error parsing existing cart:', e);
+        existingCart = [];
+    }
+    
+    // Remove any existing reservations (only one reservation allowed at a time)
+    existingCart = existingCart.filter(item => !item.isReservation);
+    
+    // Add the new reservation
+    existingCart.push(reservationItem);
+    
+    // Save back to localStorage in array format
+    localStorage.setItem('websiteBuilderCart', JSON.stringify(existingCart));
+    console.log('[PRODUCT-CONTAINER] Saved reservation data to localStorage');
+    
+    // Redirect to checkout
+    const checkoutUrl = `/Checkout?type=reservation&productId=${productData.id}`;
+    console.log('[PRODUCT-CONTAINER] Redirecting to:', checkoutUrl);
+    
+    // Check if we're in iframe or standalone
+    if (window.parent && window.parent !== window) {
+        // In iframe, redirect parent
+        window.parent.location.href = checkoutUrl;
+    } else {
+        // Standalone, redirect current window
+        window.location.href = checkoutUrl;
+    }
+};
+
+// Handle Buy Now for Product Container
+window.handleProductContainerBuyNow = function(productId, productPrice) {
+    console.log('[PRODUCT-CONTAINER BUY NOW] Starting buy now for product:', productId, 'price:', productPrice);
+    
+    // Get product data from the current module's data
+    const productData = window.WebsiteBuilderModules.ProductContainer.currentProduct || {};
+    
+    // Extract product information
+    const productName = productData.title || 'Producto';
+    const price = productPrice || productData.price || 0;
+    
+    // Get image from DOM (more reliable than data)
+    let productImage = '/images/placeholder.jpg';
+    
+    // Try to get image from the main product image in DOM
+    const mainImageElement = document.querySelector('#main-product-image');
+    if (mainImageElement && mainImageElement.src) {
+        productImage = mainImageElement.src;
+    } else if (productData.images && productData.images.length > 0) {
+        // Fallback to data if DOM element not found
+        if (typeof productData.images[0] === 'string') {
+            productImage = productData.images[0];
+        } else if (productData.images[0].url) {
+            productImage = productData.images[0].url;
+        }
+    }
+    
+    // Read existing cart
+    let existingCart = [];
+    try {
+        const savedCart = localStorage.getItem('websiteBuilderCart');
+        if (savedCart) {
+            const parsedCart = JSON.parse(savedCart);
+            if (Array.isArray(parsedCart)) {
+                existingCart = parsedCart;
+            } else if (parsedCart && parsedCart.items && Array.isArray(parsedCart.items)) {
+                existingCart = parsedCart.items;
+            }
+        }
+    } catch (e) {
+        console.error('[PRODUCT-CONTAINER BUY NOW] Error parsing existing cart:', e);
+        existingCart = [];
+    }
+    
+    // Create buy now item
+    const buyNowItem = {
+        id: productId || productData.id,
+        name: productName,
+        price: price,
+        quantity: 1,
+        image: productImage,
+        vendor: productData.vendor || 'Hotel',
+        isBuyNow: true
+    };
+    
+    // Add to existing cart
+    existingCart.push(buyNowItem);
+    
+    // Save to localStorage
+    localStorage.setItem('websiteBuilderCart', JSON.stringify(existingCart));
+    
+    console.log('[PRODUCT-CONTAINER BUY NOW] Cart saved with', existingCart.length, 'items. Redirecting to checkout...');
+    
+    // Redirect to checkout
+    if (window.parent && window.parent !== window) {
+        window.parent.location.href = '/Checkout';
+    } else {
+        window.location.href = '/Checkout';
+    }
+};
+
 console.log('[PRODUCT-CONTAINER] Module loaded successfully');
 console.log('[PRODUCT-CONTAINER] Module available at:', window.WebsiteBuilderModules.ProductContainer);
 

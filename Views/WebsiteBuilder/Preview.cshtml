@@ -1248,7 +1248,23 @@
                             if (window.renderCartPage && typeof window.renderCartPage === 'function') {
                                 console.log('[PREVIEW] Rendering cart with renderCartPage');
                                 // Load cart items from localStorage
-                                const cartItems = JSON.parse(localStorage.getItem('websiteBuilderCart') || '[]');
+                                let cartItems = [];
+                                try {
+                                    const savedCart = localStorage.getItem('websiteBuilderCart');
+                                    if (savedCart) {
+                                        const parsedCart = JSON.parse(savedCart);
+                                        // Handle both array format and object format for backward compatibility
+                                        if (Array.isArray(parsedCart)) {
+                                            cartItems = parsedCart;
+                                        } else if (parsedCart && parsedCart.items && Array.isArray(parsedCart.items)) {
+                                            // Convert old object format to array format
+                                            cartItems = parsedCart.items;
+                                        }
+                                    }
+                                } catch (e) {
+                                    console.error('[PREVIEW] Error parsing cart data:', e);
+                                    cartItems = [];
+                                }
                                 const cartConfigWithItems = {
                                     ...cartConfig,
                                     cartItems: cartItems
@@ -1891,13 +1907,28 @@
         function loadCart() {
             const savedCart = localStorage.getItem('websiteBuilderCart');
             if (savedCart) {
-                cartItems = JSON.parse(savedCart);
+                try {
+                    const parsed = JSON.parse(savedCart);
+                    // Handle both formats: array (normal cart) and object (reservation)
+                    if (Array.isArray(parsed)) {
+                        cartItems = parsed;
+                    } else if (parsed && parsed.items && Array.isArray(parsed.items)) {
+                        // This is a reservation format, extract the items
+                        cartItems = parsed.items;
+                    } else {
+                        cartItems = [];
+                    }
+                } catch (e) {
+                    console.error('[CART] Error parsing cart data:', e);
+                    cartItems = [];
+                }
             }
             return cartItems;
         }
         
         // Save cart to localStorage
         function saveCart() {
+            // Always save as array format - reservations are marked by item.isReservation flag
             localStorage.setItem('websiteBuilderCart', JSON.stringify(cartItems));
         }
         
@@ -2094,9 +2125,23 @@
         
         // Remove from cart
         window.removeFromCart = function(productId) {
-            console.log('[PREVIEW REAL] Removing product:', productId);
+            console.log('[PREVIEW REAL] Removing product:', productId, 'Type:', typeof productId);
             loadCart();
-            cartItems = cartItems.filter(item => item.id !== productId);
+            console.log('[PREVIEW REAL] Cart items before filter:', cartItems);
+            console.log('[PREVIEW REAL] Cart item IDs:', cartItems.map(item => ({ id: item.id, type: typeof item.id })));
+            
+            // Convert productId to match the type of item.id
+            const productIdToCompare = typeof productId === 'string' ? productId : productId.toString();
+            cartItems = cartItems.filter(item => {
+                const itemId = typeof item.id === 'string' ? item.id : item.id.toString();
+                const shouldKeep = itemId !== productIdToCompare;
+                console.log('[PREVIEW REAL] Comparing:', itemId, '!==', productIdToCompare, 'Keep:', shouldKeep);
+                return shouldKeep;
+            });
+            
+            console.log('[PREVIEW REAL] Cart items after filter:', cartItems);
+            
+            // Simply save the updated cart
             saveCart();
             
             // Update drawer content
@@ -2410,31 +2455,35 @@
             }
         };
         
-        // Remove from cart
-        window.removeFromCart = function(productId) {
-            console.log('[CART] Removing product:', productId);
-            
-            loadCart();
-            cartItems = cartItems.filter(item => item.id !== productId);
-            saveCart();
-            
-            // If on cart page, remove the row from DOM
-            if (window.location.pathname === '/cart') {
-                const row = document.querySelector(`tr[data-product-id="${productId}"]`);
-                if (row) {
-                    row.remove();
+        // Remove from cart (second definition for cart page)
+        if (!window.removeFromCart) {
+            window.removeFromCart = function(productId) {
+                console.log('[CART] Removing product:', productId);
+                
+                loadCart();
+                cartItems = cartItems.filter(item => item.id !== productId);
+                
+                // Simply save the updated cart
+                saveCart();
+                
+                // If on cart page, remove the row from DOM
+                if (window.location.pathname === '/cart') {
+                    const row = document.querySelector(`tr[data-product-id="${productId}"]`);
+                    if (row) {
+                        row.remove();
+                    }
+                    updateCartPageTotals();
                 }
-                updateCartPageTotals();
-            }
-            
-            // Update drawer content
-            const drawers = document.querySelectorAll('.cart-drawer');
-            if (drawers.length > 0) {
-                updateCartDrawerContent(drawers[0].id);
-            }
-            
-            updateCartIconCount();
-        };
+                
+                // Update drawer content
+                const drawers = document.querySelectorAll('.cart-drawer');
+                if (drawers.length > 0) {
+                    updateCartDrawerContent(drawers[0].id);
+                }
+                
+                updateCartIconCount();
+            };
+        }
         
         // Translations
         translations = {

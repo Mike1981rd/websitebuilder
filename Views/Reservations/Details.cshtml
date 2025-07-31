@@ -1,0 +1,542 @@
+@model Hotel.Models.Reservation
+
+@{
+    ViewData["Title"] = $"Reservación #{Model.Id}";
+    Layout = "_MaterializeExactLayout";
+}
+
+<style>
+    /* Reservation Details specific styles */
+    .reservation-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+        flex-wrap: wrap;
+        gap: 20px;
+    }
+
+    .reservation-id {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #444564;
+    }
+
+    .reservation-status {
+        padding: 0.5rem 1.5rem;
+        border-radius: 25px;
+        font-size: 0.875rem;
+        font-weight: 500;
+        text-transform: uppercase;
+    }
+
+    .status-confirmed {
+        background: #e8f5e9;
+        color: #388e3c;
+    }
+
+    .status-pending {
+        background: #fff3e0;
+        color: #f57c00;
+    }
+
+    .status-cancelled {
+        background: #ffebee;
+        color: #d32f2f;
+    }
+
+    .detail-card {
+        background: #fff;
+        border-radius: 12px;
+        padding: 30px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+
+    .detail-card h5 {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #444564;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .detail-card h5 i {
+        color: var(--primary);
+        font-size: 1.2rem;
+    }
+
+    .detail-row {
+        display: flex;
+        padding: 12px 0;
+        border-bottom: 1px solid #f5f5f9;
+    }
+
+    .detail-row:last-child {
+        border-bottom: none;
+    }
+
+    .detail-label {
+        flex: 0 0 200px;
+        font-weight: 500;
+        color: #666;
+        font-size: 0.875rem;
+    }
+
+    .detail-value {
+        flex: 1;
+        color: #444564;
+        font-size: 0.875rem;
+    }
+
+    .dates-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 30px;
+        margin-top: 20px;
+    }
+
+    .date-block {
+        text-align: center;
+        padding: 20px;
+        background: #f8f9fa;
+        border-radius: 8px;
+    }
+
+    .date-block .date-label {
+        font-size: 0.75rem;
+        color: #666;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 5px;
+    }
+
+    .date-block .date-value {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #444564;
+    }
+
+    .date-block .time-value {
+        font-size: 0.875rem;
+        color: #666;
+        margin-top: 5px;
+    }
+
+    .nights-indicator {
+        background: var(--primary);
+        color: #fff;
+        padding: 10px 20px;
+        border-radius: 20px;
+        font-size: 0.875rem;
+        font-weight: 500;
+        display: inline-block;
+        margin-top: 20px;
+    }
+
+    .amount-summary {
+        background: #f8f9fa;
+        padding: 20px;
+        border-radius: 8px;
+        margin-top: 20px;
+    }
+
+    .amount-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 8px 0;
+        font-size: 0.875rem;
+    }
+
+    .amount-row.total {
+        border-top: 2px solid #e0e0e0;
+        margin-top: 10px;
+        padding-top: 15px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #444564;
+    }
+
+    .special-requests {
+        background: #fffbf0;
+        border: 1px solid #ffe0b2;
+        padding: 15px;
+        border-radius: 8px;
+        margin-top: 15px;
+        font-size: 0.875rem;
+        color: #666;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 15px;
+        margin-top: 30px;
+        flex-wrap: wrap;
+    }
+
+    .btn-back {
+        background: #6c757d;
+        color: #fff;
+        padding: 10px 24px;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 14px;
+        transition: all 0.3s ease;
+    }
+
+    .btn-back:hover {
+        background: #5a6268;
+        color: #fff;
+    }
+
+    .btn-print {
+        background: #fff;
+        color: #666;
+        padding: 10px 24px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 14px;
+        transition: all 0.3s ease;
+    }
+
+    .btn-print:hover {
+        background: #f5f5f5;
+    }
+
+    /* Dark mode support */
+    body.dark-mode .detail-card {
+        background-color: #3a3c55;
+        color: #e0e0e0;
+    }
+
+    body.dark-mode .reservation-id {
+        color: #e0e0e0;
+    }
+
+    body.dark-mode .detail-card h5 {
+        color: #e0e0e0;
+    }
+
+    body.dark-mode .detail-row {
+        border-bottom-color: #404354;
+    }
+
+    body.dark-mode .detail-label {
+        color: #a0a0a0;
+    }
+
+    body.dark-mode .detail-value {
+        color: #e0e0e0;
+    }
+
+    body.dark-mode .date-block {
+        background: #404354;
+    }
+
+    body.dark-mode .date-block .date-label {
+        color: #a0a0a0;
+    }
+
+    body.dark-mode .date-block .date-value {
+        color: #e0e0e0;
+    }
+
+    body.dark-mode .amount-summary {
+        background: #404354;
+    }
+
+    body.dark-mode .amount-row.total {
+        border-top-color: #555;
+        color: #e0e0e0;
+    }
+
+    body.dark-mode .special-requests {
+        background: #3a3c55;
+        border-color: #555;
+        color: #a0a0a0;
+    }
+
+    body.dark-mode .btn-print {
+        background: #404354;
+        border-color: #555;
+        color: #e0e0e0;
+    }
+
+    body.dark-mode .btn-print:hover {
+        background: #4a4d66;
+    }
+
+    /* Responsive */
+    @@media (max-width: 768px) {
+        .dates-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .detail-label {
+            flex: 0 0 120px;
+        }
+
+        .reservation-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+    }
+</style>
+
+<div class="page-header">
+    <nav class="breadcrumb-container" aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="@Url.Action("Index", "Home")" data-i18n="breadcrumb.home">Home</a></li>
+            <li class="breadcrumb-item"><a href="@Url.Action("Index", "Reservations")" data-i18n="reservations.title">Reservaciones</a></li>
+            <li class="breadcrumb-item active" aria-current="page">@($"#{Model.Id}")</li>
+        </ol>
+    </nav>
+</div>
+
+<div class="reservation-header">
+    <h4 class="reservation-id" data-i18n="reservationDetails.title">Reservación #@Model.Id</h4>
+    <span class="reservation-status @($"status-{Model.Status.ToLower()}")">
+        @Model.Status
+    </span>
+</div>
+
+<!-- Guest Information -->
+<div class="detail-card">
+    <h5>
+        <i class="fas fa-user"></i>
+        <span data-i18n="reservationDetails.guestInfo">Información del Huésped</span>
+    </h5>
+    <div class="detail-row">
+        <div class="detail-label" data-i18n="reservationDetails.fullName">Nombre Completo</div>
+        <div class="detail-value">@Model.Guest.FirstName @Model.Guest.LastName</div>
+    </div>
+    <div class="detail-row">
+        <div class="detail-label" data-i18n="reservationDetails.email">Email</div>
+        <div class="detail-value">@Model.Guest.Email</div>
+    </div>
+    <div class="detail-row">
+        <div class="detail-label" data-i18n="reservationDetails.phone">Teléfono</div>
+        <div class="detail-value">@(Model.Guest.Phone ?? "N/A")</div>
+    </div>
+    <div class="detail-row">
+        <div class="detail-label" data-i18n="reservationDetails.address">Dirección</div>
+        <div class="detail-value">@Model.Guest.Address</div>
+    </div>
+    <div class="detail-row">
+        <div class="detail-label" data-i18n="reservationDetails.country">País</div>
+        <div class="detail-value">@Model.Guest.Country</div>
+    </div>
+</div>
+
+<!-- Reservation Details -->
+<div class="detail-card">
+    <h5>
+        <i class="fas fa-bed"></i>
+        <span data-i18n="reservationDetails.reservationInfo">Detalles de la Reservación</span>
+    </h5>
+    <div class="detail-row">
+        <div class="detail-label" data-i18n="reservationDetails.room">Habitación</div>
+        <div class="detail-value">@Model.Product.Title</div>
+    </div>
+    <div class="detail-row">
+        <div class="detail-label" data-i18n="reservationDetails.guests">Número de Huéspedes</div>
+        <div class="detail-value">@Model.NumberOfGuests</div>
+    </div>
+    
+    <div class="dates-grid">
+        <div class="date-block">
+            <div class="date-label" data-i18n="reservationDetails.checkin">CHECK-IN</div>
+            <div class="date-value">@Model.CheckInDate.ToString("dd MMM yyyy")</div>
+            <div class="time-value">3:00 PM</div>
+        </div>
+        <div class="date-block">
+            <div class="date-label" data-i18n="reservationDetails.checkout">CHECK-OUT</div>
+            <div class="date-value">@Model.CheckOutDate.ToString("dd MMM yyyy")</div>
+            <div class="time-value">12:00 PM</div>
+        </div>
+    </div>
+    
+    <div class="nights-indicator">
+        <i class="fas fa-moon"></i>
+        <span data-i18n="reservationDetails.nights">@ViewBag.Nights noches</span>
+    </div>
+    
+    @if (!string.IsNullOrEmpty(Model.SpecialRequests))
+    {
+        <div class="special-requests">
+            <strong data-i18n="reservationDetails.specialRequests">Peticiones Especiales:</strong><br>
+            @Model.SpecialRequests
+        </div>
+    }
+</div>
+
+<!-- Payment Summary -->
+<div class="detail-card">
+    <h5>
+        <i class="fas fa-credit-card"></i>
+        <span data-i18n="reservationDetails.paymentSummary">Resumen de Pago</span>
+    </h5>
+    <div class="amount-summary">
+        <div class="amount-row">
+            <span data-i18n="reservationDetails.pricePerNight">Precio por noche</span>
+            <span>$@ViewBag.PricePerNight.ToString("N2")</span>
+        </div>
+        <div class="amount-row">
+            <span data-i18n="reservationDetails.numberOfNights">Número de noches</span>
+            <span>@ViewBag.Nights</span>
+        </div>
+        <div class="amount-row total">
+            <span data-i18n="reservationDetails.total">Total</span>
+            <span>$@Model.TotalAmount.ToString("N2")</span>
+        </div>
+    </div>
+</div>
+
+<!-- Additional Information -->
+<div class="detail-card">
+    <h5>
+        <i class="fas fa-info-circle"></i>
+        <span data-i18n="reservationDetails.additionalInfo">Información Adicional</span>
+    </h5>
+    <div class="detail-row">
+        <div class="detail-label" data-i18n="reservationDetails.createdAt">Fecha de Creación</div>
+        <div class="detail-value">@Model.CreatedAt.ToString("dd/MM/yyyy HH:mm")</div>
+    </div>
+    @if (Model.UpdatedAt.HasValue)
+    {
+        <div class="detail-row">
+            <div class="detail-label" data-i18n="reservationDetails.updatedAt">Última Actualización</div>
+            <div class="detail-value">@Model.UpdatedAt.Value.ToString("dd/MM/yyyy HH:mm")</div>
+        </div>
+    }
+</div>
+
+<!-- Action Buttons -->
+<div class="action-buttons">
+    <a href="@Url.Action("Index", "Reservations")" class="btn-back">
+        <i class="fas fa-arrow-left"></i>
+        <span data-i18n="reservationDetails.backToList">Volver al Listado</span>
+    </a>
+    <button class="btn-print" onclick="window.print()">
+        <i class="fas fa-print"></i>
+        <span data-i18n="reservationDetails.print">Imprimir</span>
+    </button>
+</div>
+
+<script>
+    // Translations for reservation details
+    const reservationDetailsTranslations = {
+        es: {
+            'reservationDetails.title': 'Reservación',
+            'reservationDetails.guestInfo': 'Información del Huésped',
+            'reservationDetails.fullName': 'Nombre Completo',
+            'reservationDetails.email': 'Email',
+            'reservationDetails.phone': 'Teléfono',
+            'reservationDetails.address': 'Dirección',
+            'reservationDetails.country': 'País',
+            'reservationDetails.reservationInfo': 'Detalles de la Reservación',
+            'reservationDetails.room': 'Habitación',
+            'reservationDetails.guests': 'Número de Huéspedes',
+            'reservationDetails.checkin': 'CHECK-IN',
+            'reservationDetails.checkout': 'CHECK-OUT',
+            'reservationDetails.nights': '@ViewBag.Nights noches',
+            'reservationDetails.specialRequests': 'Peticiones Especiales:',
+            'reservationDetails.paymentSummary': 'Resumen de Pago',
+            'reservationDetails.pricePerNight': 'Precio por noche',
+            'reservationDetails.numberOfNights': 'Número de noches',
+            'reservationDetails.total': 'Total',
+            'reservationDetails.additionalInfo': 'Información Adicional',
+            'reservationDetails.createdAt': 'Fecha de Creación',
+            'reservationDetails.updatedAt': 'Última Actualización',
+            'reservationDetails.backToList': 'Volver al Listado',
+            'reservationDetails.print': 'Imprimir',
+            'breadcrumb.home': 'Home',
+            'reservations.title': 'Reservaciones'
+        },
+        en: {
+            'reservationDetails.title': 'Reservation',
+            'reservationDetails.guestInfo': 'Guest Information',
+            'reservationDetails.fullName': 'Full Name',
+            'reservationDetails.email': 'Email',
+            'reservationDetails.phone': 'Phone',
+            'reservationDetails.address': 'Address',
+            'reservationDetails.country': 'Country',
+            'reservationDetails.reservationInfo': 'Reservation Details',
+            'reservationDetails.room': 'Room',
+            'reservationDetails.guests': 'Number of Guests',
+            'reservationDetails.checkin': 'CHECK-IN',
+            'reservationDetails.checkout': 'CHECK-OUT',
+            'reservationDetails.nights': '@ViewBag.Nights nights',
+            'reservationDetails.specialRequests': 'Special Requests:',
+            'reservationDetails.paymentSummary': 'Payment Summary',
+            'reservationDetails.pricePerNight': 'Price per night',
+            'reservationDetails.numberOfNights': 'Number of nights',
+            'reservationDetails.total': 'Total',
+            'reservationDetails.additionalInfo': 'Additional Information',
+            'reservationDetails.createdAt': 'Created Date',
+            'reservationDetails.updatedAt': 'Last Updated',
+            'reservationDetails.backToList': 'Back to List',
+            'reservationDetails.print': 'Print',
+            'breadcrumb.home': 'Home',
+            'reservations.title': 'Reservations'
+        }
+    };
+
+    // Merge translations with global object
+    if (typeof translations !== 'undefined') {
+        if (!translations.es) translations.es = {};
+        if (!translations.en) translations.en = {};
+        
+        Object.assign(translations.es, reservationDetailsTranslations.es);
+        Object.assign(translations.en, reservationDetailsTranslations.en);
+    }
+
+    // Apply translations after DOM ready
+    document.addEventListener('DOMContentLoaded', function() {
+        // Apply translations
+        if (typeof translatePage === 'function') {
+            const currentLang = localStorage.getItem('preferredLanguage') || 'es';
+            translatePage(currentLang);
+        }
+    });
+
+    // Print styles
+    const printStyles = `
+        @@media print {
+            body * {
+                visibility: hidden;
+            }
+            .reservation-header,
+            .reservation-header *,
+            .detail-card,
+            .detail-card * {
+                visibility: visible;
+            }
+            .page-header,
+            .action-buttons {
+                display: none !important;
+            }
+            .reservation-header {
+                position: absolute;
+                left: 0;
+                top: 0;
+            }
+        }
+    `;
+    
+    const styleSheet = document.createElement("style");
+    styleSheet.innerText = printStyles;
+    document.head.appendChild(styleSheet);
+</script>

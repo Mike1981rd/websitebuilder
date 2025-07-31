@@ -639,6 +639,135 @@ namespace Hotel.Migrations
                     b.ToTable("Payments");
                 });
 
+            modelBuilder.Entity("Hotel.Models.PaymentGateway", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("CertificateFileName")
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
+
+                    b.Property<string>("CertificateKeyFileName")
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
+
+                    b.Property<string>("ConfigurationJson")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsTestMode")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("Provider")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("PaymentGateways");
+                });
+
+            modelBuilder.Entity("Hotel.Models.PaymentTransaction", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("AuthorizationCode")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("CardLastFour")
+                        .HasMaxLength(4)
+                        .HasColumnType("character varying(4)");
+
+                    b.Property<string>("CardType")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<string>("Currency")
+                        .IsRequired()
+                        .HasMaxLength(3)
+                        .HasColumnType("character varying(3)");
+
+                    b.Property<string>("Gateway")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("OrderId")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("RequestJson")
+                        .HasColumnType("text");
+
+                    b.Property<int?>("ReservationId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("ResponseCode")
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
+
+                    b.Property<string>("ResponseJson")
+                        .HasColumnType("text");
+
+                    b.Property<string>("ResponseMessage")
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<decimal>("Tax")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("TransactionId")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrderId");
+
+                    b.HasIndex("ReservationId");
+
+                    b.HasIndex("TransactionId");
+
+                    b.ToTable("PaymentTransactions");
+                });
+
             modelBuilder.Entity("Hotel.Models.Permission", b =>
                 {
                     b.Property<int>("Id")
@@ -1327,38 +1456,38 @@ namespace Hotel.Migrations
                         new
                         {
                             Id = 1,
-                            CreatedAt = new DateTime(2025, 7, 30, 20, 57, 48, 281, DateTimeKind.Utc).AddTicks(9273),
+                            CreatedAt = new DateTime(2025, 7, 31, 3, 58, 28, 379, DateTimeKind.Utc).AddTicks(8139),
                             Description = "Acceso completo al sistema",
                             IsActive = true,
                             Name = "Administrator",
-                            UpdatedAt = new DateTime(2025, 7, 30, 20, 57, 48, 281, DateTimeKind.Utc).AddTicks(9274)
+                            UpdatedAt = new DateTime(2025, 7, 31, 3, 58, 28, 379, DateTimeKind.Utc).AddTicks(8141)
                         },
                         new
                         {
                             Id = 2,
-                            CreatedAt = new DateTime(2025, 7, 30, 20, 57, 48, 281, DateTimeKind.Utc).AddTicks(9277),
+                            CreatedAt = new DateTime(2025, 7, 31, 3, 58, 28, 379, DateTimeKind.Utc).AddTicks(8145),
                             Description = "Acceso de gestión",
                             IsActive = true,
                             Name = "Manager",
-                            UpdatedAt = new DateTime(2025, 7, 30, 20, 57, 48, 281, DateTimeKind.Utc).AddTicks(9277)
+                            UpdatedAt = new DateTime(2025, 7, 31, 3, 58, 28, 379, DateTimeKind.Utc).AddTicks(8146)
                         },
                         new
                         {
                             Id = 3,
-                            CreatedAt = new DateTime(2025, 7, 30, 20, 57, 48, 281, DateTimeKind.Utc).AddTicks(9279),
+                            CreatedAt = new DateTime(2025, 7, 31, 3, 58, 28, 379, DateTimeKind.Utc).AddTicks(8148),
                             Description = "Acceso de soporte",
                             IsActive = true,
                             Name = "Support",
-                            UpdatedAt = new DateTime(2025, 7, 30, 20, 57, 48, 281, DateTimeKind.Utc).AddTicks(9279)
+                            UpdatedAt = new DateTime(2025, 7, 31, 3, 58, 28, 379, DateTimeKind.Utc).AddTicks(8148)
                         },
                         new
                         {
                             Id = 4,
-                            CreatedAt = new DateTime(2025, 7, 30, 20, 57, 48, 281, DateTimeKind.Utc).AddTicks(9281),
+                            CreatedAt = new DateTime(2025, 7, 31, 3, 58, 28, 379, DateTimeKind.Utc).AddTicks(8150),
                             Description = "Acceso básico de usuario",
                             IsActive = true,
                             Name = "Users",
-                            UpdatedAt = new DateTime(2025, 7, 30, 20, 57, 48, 281, DateTimeKind.Utc).AddTicks(9281)
+                            UpdatedAt = new DateTime(2025, 7, 31, 3, 58, 28, 379, DateTimeKind.Utc).AddTicks(8150)
                         });
                 });
 
@@ -1463,7 +1592,7 @@ namespace Hotel.Migrations
                         {
                             Id = 1,
                             BasePrice = 50.00m,
-                            CreatedAt = new DateTime(2025, 7, 30, 20, 57, 48, 281, DateTimeKind.Utc).AddTicks(8785),
+                            CreatedAt = new DateTime(2025, 7, 31, 3, 58, 28, 379, DateTimeKind.Utc).AddTicks(7402),
                             Description = "Habitación individual estándar",
                             MaxOccupancy = 1,
                             Name = "Individual"
@@ -1472,7 +1601,7 @@ namespace Hotel.Migrations
                         {
                             Id = 2,
                             BasePrice = 80.00m,
-                            CreatedAt = new DateTime(2025, 7, 30, 20, 57, 48, 281, DateTimeKind.Utc).AddTicks(8796),
+                            CreatedAt = new DateTime(2025, 7, 31, 3, 58, 28, 379, DateTimeKind.Utc).AddTicks(7414),
                             Description = "Habitación doble estándar",
                             MaxOccupancy = 2,
                             Name = "Doble"
@@ -1481,7 +1610,7 @@ namespace Hotel.Migrations
                         {
                             Id = 3,
                             BasePrice = 150.00m,
-                            CreatedAt = new DateTime(2025, 7, 30, 20, 57, 48, 281, DateTimeKind.Utc).AddTicks(8799),
+                            CreatedAt = new DateTime(2025, 7, 31, 3, 58, 28, 379, DateTimeKind.Utc).AddTicks(7418),
                             Description = "Suite de lujo",
                             MaxOccupancy = 4,
                             Name = "Suite"
@@ -1490,7 +1619,7 @@ namespace Hotel.Migrations
                         {
                             Id = 4,
                             BasePrice = 300.00m,
-                            CreatedAt = new DateTime(2025, 7, 30, 20, 57, 48, 281, DateTimeKind.Utc).AddTicks(8800),
+                            CreatedAt = new DateTime(2025, 7, 31, 3, 58, 28, 379, DateTimeKind.Utc).AddTicks(7420),
                             Description = "Suite presidencial de lujo",
                             MaxOccupancy = 6,
                             Name = "Suite Presidencial"
@@ -1722,6 +1851,16 @@ namespace Hotel.Migrations
                         .HasForeignKey("ReservationId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Reservation");
+                });
+
+            modelBuilder.Entity("Hotel.Models.PaymentTransaction", b =>
+                {
+                    b.HasOne("Hotel.Models.Reservation", "Reservation")
+                        .WithMany()
+                        .HasForeignKey("ReservationId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Reservation");
                 });

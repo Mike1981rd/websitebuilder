@@ -22,7 +22,9 @@
       "Bash(git config:*)",
       "Bash(git push:*)",
       "Bash(git add:*)",
-      "Bash(psql:*)"
+      "Bash(psql:*)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:gist.github.com)"
     ],
     "deny": []
   }

@@ -108,6 +108,14 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUGFnZXNcSW5kZXguY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
+[C:/Users/hp/Documents/Visual Studio 2022/Projects/Hotel23/Views/PaymentSettings/Configure.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUGF5bWVudFNldHRpbmdzXENvbmZpZ3VyZS5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/hp/Documents/Visual Studio 2022/Projects/Hotel23/Views/PaymentSettings/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUGF5bWVudFNldHRpbmdzXEluZGV4LmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
 [C:/Users/hp/Documents/Visual Studio 2022/Projects/Hotel23/Views/Policies/Edit.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUG9saWNpZXNcRWRpdC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
@@ -130,6 +138,10 @@ build_metadata.AdditionalFiles.CssScope =
 
 [C:/Users/hp/Documents/Visual Studio 2022/Projects/Hotel23/Views/Products/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUHJvZHVjdHNcSW5kZXguY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/hp/Documents/Visual Studio 2022/Projects/Hotel23/Views/Reservations/Details.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUmVzZXJ2YXRpb25zXERldGFpbHMuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
 [C:/Users/hp/Documents/Visual Studio 2022/Projects/Hotel23/Views/Reservations/Index.cshtml]

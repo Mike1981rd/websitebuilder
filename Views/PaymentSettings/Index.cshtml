@@ -1,0 +1,147 @@
+@model List<Hotel.ViewModels.PaymentGatewayViewModel>
+
+@{
+    ViewData["Title"] = "Métodos de Pago";
+    Layout = "_MaterializeExactLayout";
+}
+
+<div class="page-header">
+    <nav class="breadcrumb-container" aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="@Url.Action("Index", "Home")">Home</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Métodos de Pago</li>
+        </ol>
+    </nav>
+</div>
+
+<div class="payment-gateways-container">
+    @foreach (var gateway in Model)
+    {
+        <div class="payment-gateway-card @(gateway.Status)" data-gateway-id="@gateway.Id">
+            <div class="gateway-header">
+                <div class="gateway-info">
+                    @if (gateway.Provider == "AZUL_DO")
+                    {
+                        <img src="/images/payment/azul-logo.jpg" alt="@gateway.Name" class="gateway-logo" 
+                             style="width: 80px; height: 40px; object-fit: contain;">
+                    }
+                    else
+                    {
+                        <img src="@gateway.LogoUrl" alt="@gateway.Name" class="gateway-logo" 
+                             onerror="this.style.display='none'">
+                    }
+                    <div class="gateway-details">
+                        <h3 class="gateway-name">@gateway.Name</h3>
+                        <p class="gateway-description">@gateway.Description</p>
+                    </div>
+                </div>
+                <div class="gateway-toggle">
+                    <label class="toggle-switch">
+                        <input type="checkbox" 
+                               class="gateway-active-toggle" 
+                               data-gateway-id="@gateway.Id"
+                               @(gateway.IsActive ? "checked" : "")
+                               @(!gateway.IsConfigured ? "disabled" : "")>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+            </div>
+            
+            <div class="gateway-status">
+                @if (gateway.IsActive)
+                {
+                    <div class="status-indicator active">
+                        <i class="fas fa-check-circle"></i>
+                        <span>Activo</span>
+                    </div>
+                }
+                else if (gateway.IsConfigured)
+                {
+                    <div class="status-indicator configured">
+                        <i class="fas fa-pause-circle"></i>
+                        <span>Configurado</span>
+                    </div>
+                }
+                else
+                {
+                    <div class="status-indicator pending">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <span>Pendiente de configuración</span>
+                    </div>
+                }
+                
+                @if (gateway.IsConfigured)
+                {
+                    <div class="mode-indicator">
+                        <i class="fas fa-flask"></i>
+                        <span>Modo: @(gateway.IsTestMode ? "Prueba" : "Producción")</span>
+                    </div>
+                }
+            </div>
+            
+            <div class="gateway-actions">
+                @if (gateway.Provider == "AZUL_DO")
+                {
+                    <a href="@Url.Action("Configure", new { id = gateway.Id })" class="btn btn-primary">
+                        <i class="fas fa-cog"></i>
+                        <span>Configurar</span>
+                    </a>
+                    
+                    @if (gateway.IsConfigured)
+                    {
+                        <button class="btn btn-secondary test-connection-btn" data-gateway-id="@gateway.Id">
+                            <i class="fas fa-plug"></i>
+                            <span>Probar Conexión</span>
+                        </button>
+                    }
+                }
+                else
+                {
+                    <button class="btn btn-disabled" disabled>
+                        <i class="fas fa-clock"></i>
+                        <span>Próximamente</span>
+                    </button>
+                }
+            </div>
+            
+            @if (gateway.LastUpdated.HasValue)
+            {
+                <div class="gateway-footer">
+                    <small class="text-muted">
+                        Última actualización: @gateway.LastUpdated.Value.ToString("dd/MM/yyyy HH:mm")
+                    </small>
+                </div>
+            }
+        </div>
+    }
+    
+    <!-- Future gateways -->
+    <div class="payment-gateway-card coming-soon">
+        <div class="gateway-header">
+            <div class="gateway-info">
+                <img src="/images/payment/paypal-logo.jpg" alt="PayPal" class="gateway-logo grayscale"
+                     style="width: 80px; height: 40px; object-fit: contain;">
+                <div class="gateway-details">
+                    <h3 class="gateway-name">PayPal</h3>
+                    <p class="gateway-description">Pagos internacionales</p>
+                </div>
+            </div>
+        </div>
+        <div class="gateway-status">
+            <div class="status-indicator coming-soon">
+                <i class="fas fa-clock"></i>
+                <span>Próximamente</span>
+            </div>
+        </div>
+        <div class="gateway-actions">
+            <button class="btn btn-disabled" disabled>
+                <i class="fas fa-bell"></i>
+                <span>Notificarme</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/payment-settings.js" asp-append-version="true"></script>
+}

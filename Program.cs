@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Server.IISIntegration;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Hotel.Data;
+using Hotel.Services;
+using Hotel.Services.Payment;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -52,6 +54,17 @@ builder.Services.AddCors(options =>
 // Configurar DbContext con PostgreSQL
 builder.Services.AddDbContext<HotelDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+// Registrar servicios de pago
+builder.Services.AddSingleton<IEncryptionService, EncryptionService>();
+builder.Services.AddScoped<AzulPaymentProcessor>();
+builder.Services.AddScoped<PaymentProcessorFactory>();
+
+// Configurar HttpClient para Azul
+builder.Services.AddHttpClient("Azul", client =>
+{
+    client.Timeout = TimeSpan.FromSeconds(30);
+});
 
 // Configurar autenticación con cookies
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)

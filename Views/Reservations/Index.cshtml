@@ -7,6 +7,66 @@
 
 <style>
     /* Reservation specific styles following project standards */
+    /* Export dropdown styles - Similar to Roles */
+    .export-dropdown {
+        position: relative;
+        display: inline-block;
+    }
+
+    .dropdown-menu {
+        position: absolute;
+        top: 100%;
+        right: 0;
+        background: #ffffff;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        border-radius: 4px;
+        min-width: 150px;
+        z-index: 1000;
+        display: none;
+        margin-top: 5px;
+    }
+
+    .dropdown-menu.show {
+        display: block;
+    }
+
+    .dropdown-item {
+        display: block;
+        padding: 8px 16px;
+        color: #333;
+        text-decoration: none;
+        font-size: 14px;
+        transition: all 0.2s;
+    }
+
+    .dropdown-item:hover {
+        background-color: #f8f9fa;
+        color: #000;
+        text-decoration: none;
+    }
+
+    .dropdown-item i {
+        font-size: 16px;
+        width: 20px;
+        text-align: center;
+        margin-right: 8px;
+    }
+
+    /* Dark mode for dropdown */
+    body.dark-mode .dropdown-menu {
+        background-color: #3a3c55;
+        border: 1px solid #404359;
+    }
+
+    body.dark-mode .dropdown-item {
+        color: #e0e0e0;
+    }
+
+    body.dark-mode .dropdown-item:hover {
+        background-color: #2d2f45;
+        color: #ffffff;
+    }
+
     .filters-section {
         margin-bottom: 20px;
     }
@@ -345,6 +405,23 @@
         </div>
 
         <div class="table-controls">
+            <div class="dropdown export-dropdown" style="float: right; margin-left: 10px;">
+                <button class="btn btn-sm btn-secondary" onclick="toggleExportMenu(event)">
+                    <i class="fas fa-download"></i>
+                    <span data-i18n="reservations.export">Exportar</span>
+                </button>
+                <div class="dropdown-menu" id="exportMenu">
+                    <a href="#" onclick="exportReservations('excel')" class="dropdown-item">
+                        <i class="fas fa-file-excel"></i> <span data-i18n="export.excel">Excel</span>
+                    </a>
+                    <a href="#" onclick="exportReservations('pdf')" class="dropdown-item">
+                        <i class="fas fa-file-pdf"></i> <span data-i18n="export.pdf">PDF</span>
+                    </a>
+                    <a href="#" onclick="exportReservations('csv')" class="dropdown-item">
+                        <i class="fas fa-file-csv"></i> <span data-i18n="export.csv">CSV</span>
+                    </a>
+                </div>
+            </div>
             <div class="search-container">
                 <form method="get" action="@Url.Action("Index")" style="display: flex; gap: 10px;">
                     <input type="hidden" name="dateFilter" value="@ViewBag.DateFilter" />
@@ -500,6 +577,10 @@
     const reservationTranslations = {
         es: {
             'reservations.title': 'Reservaciones',
+            'reservations.export': 'Exportar',
+            'export.excel': 'Excel',
+            'export.pdf': 'PDF',
+            'export.csv': 'CSV',
             'reservations.searchPlaceholder': 'Buscar por cliente...',
             'reservations.noRecords': 'No hay reservaciones',
             'reservations.noRecordsDesc': 'Las reservaciones aparecerán aquí cuando los clientes reserven',
@@ -528,6 +609,10 @@
         },
         en: {
             'reservations.title': 'Reservations',
+            'reservations.export': 'Export',
+            'export.excel': 'Excel',
+            'export.pdf': 'PDF',
+            'export.csv': 'CSV',
             'reservations.searchPlaceholder': 'Search by client...',
             'reservations.noRecords': 'No reservations',
             'reservations.noRecordsDesc': 'Reservations will appear here when clients book',
@@ -598,6 +683,23 @@
                     window.location.href = url;
                 }
             });
+        });
+        
+        // Export functions
+        window.toggleExportMenu = function(e) {
+            e.stopPropagation();
+            const menu = document.getElementById('exportMenu');
+            menu.classList.toggle('show');
+        }
+        
+        window.exportReservations = function(format) {
+            window.location.href = '@Url.Action("Export", "Reservations")?format=' + format;
+            document.getElementById('exportMenu').classList.remove('show');
+        }
+        
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function() {
+            document.getElementById('exportMenu')?.classList.remove('show');
         });
     });
 </script>

@@ -36,6 +36,10 @@ namespace Hotel.Data
         public DbSet<CustomerPaymentMethod> CustomerPaymentMethods { get; set; }
         public DbSet<CustomerDevice> CustomerDevices { get; set; }
         public DbSet<CustomerNotificationPreference> CustomerNotificationPreferences { get; set; }
+        
+        // DbSets para sistema de pagos
+        public DbSet<PaymentGateway> PaymentGateways { get; set; }
+        public DbSet<PaymentTransaction> PaymentTransactions { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -112,6 +116,27 @@ namespace Hotel.Data
             modelBuilder.Entity<Reservation>()
                 .Property(r => r.TotalAmount)
                 .HasPrecision(18, 2);
+
+            // Configuración de PaymentTransaction
+            modelBuilder.Entity<PaymentTransaction>()
+                .HasOne(pt => pt.Reservation)
+                .WithMany()
+                .HasForeignKey(pt => pt.ReservationId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<PaymentTransaction>()
+                .Property(pt => pt.Amount)
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<PaymentTransaction>()
+                .Property(pt => pt.Tax)
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<PaymentTransaction>()
+                .HasIndex(pt => pt.OrderId);
+
+            modelBuilder.Entity<PaymentTransaction>()
+                .HasIndex(pt => pt.TransactionId);
 
             // Configuración de Payment
             modelBuilder.Entity<Payment>()

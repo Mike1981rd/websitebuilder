@@ -608,7 +608,9 @@ window.WebsiteBuilderModules.FeaturedProduct = {
                                 <span style="position: relative; z-index: 1;">Agregar al carrito</span>
                             </button>
                             ${showDynamicCheckout ? `
-                                <button class="buy-now-btn" onclick="event.preventDefault(); event.stopPropagation(); if(window.parent && window.parent !== window) { window.parent.location.href='/checkout'; } else { window.location.href='/checkout'; }" style="font-family: ${bodyFont}; display: block; width: auto; min-width: 280px; padding: 18px 40px; background: ${dynamicCheckoutButton.background}; color: ${dynamicCheckoutButton.text}; border: ${dynamicCheckoutButton.border !== 'none' ? `2px solid ${dynamicCheckoutButton.border}` : 'none'}; border-radius: 4px; font-size: 16px; font-weight: 500; cursor: pointer; transition: all 0.2s; position: relative; overflow: hidden;">
+                                <button class="buy-now-btn" 
+                                        onclick="event.preventDefault(); event.stopPropagation(); window.handleProductBuyNow(event, ${JSON.stringify(productData).replace(/"/g, '&quot;')}); return false;" 
+                                        style="font-family: ${bodyFont}; display: block; width: auto; min-width: 280px; padding: 18px 40px; background: ${dynamicCheckoutButton.background}; color: ${dynamicCheckoutButton.text}; border: ${dynamicCheckoutButton.border !== 'none' ? `2px solid ${dynamicCheckoutButton.border}` : 'none'}; border-radius: 4px; font-size: 16px; font-weight: 500; cursor: pointer; transition: all 0.2s; position: relative; overflow: hidden;">
                                     <span style="position: relative; z-index: 1;">Comprar ahora</span>
                                 </button>
                             ` : ''}
@@ -3068,5 +3070,74 @@ window.refreshFeaturedProductImages = function(productId) {
         
         console.log('[FeaturedProduct] Refreshing featured product data...');
         window.WebsiteBuilderModules.FeaturedProduct.refreshProductData(productId);
+    }
+};
+
+// Global function to handle buy now button click for featured product
+window.handleProductBuyNow = function(event, product) {
+    try {
+        console.log('[FEATURED PRODUCT] Buy now clicked, product:', product);
+        
+        // Ensure we have product data
+        if (!product) {
+            console.error('[FEATURED PRODUCT] No product data available for buy now');
+            window.location.href = '/Checkout';
+            return;
+        }
+        
+        // Create product item (without isReservation flag)
+        const productItem = {
+            id: product.id,
+            name: product.name || product.title || 'Producto',
+            price: product.price || 0,
+            quantity: 1,
+            image: product.images && product.images.length > 0 ? product.images[0].url : '',
+            vendor: product.vendor || 'Store'
+        };
+        
+        // Get existing cart items
+        let existingCart = [];
+        try {
+            const savedCart = localStorage.getItem('websiteBuilderCart');
+            if (savedCart) {
+                const parsedCart = JSON.parse(savedCart);
+                // Handle both array format and object format for backward compatibility
+                if (Array.isArray(parsedCart)) {
+                    existingCart = parsedCart;
+                } else if (parsedCart && parsedCart.items && Array.isArray(parsedCart.items)) {
+                    // Convert old object format to array format
+                    existingCart = parsedCart.items;
+                }
+            }
+        } catch (e) {
+            console.error('[FEATURED PRODUCT BUY NOW] Error parsing existing cart:', e);
+            existingCart = [];
+        }
+        
+        // Check if product already exists in cart
+        const existingIndex = existingCart.findIndex(item => item.id === product.id && !item.isReservation);
+        
+        if (existingIndex > -1) {
+            // Increment quantity if already exists
+            existingCart[existingIndex].quantity += 1;
+        } else {
+            // Add new product
+            existingCart.push(productItem);
+        }
+        
+        // Save back to localStorage in array format
+        localStorage.setItem('websiteBuilderCart', JSON.stringify(existingCart));
+        console.log('[FEATURED PRODUCT] Product added to cart, redirecting to checkout');
+        
+        // Redirect to checkout
+        if (window.parent && window.parent !== window) {
+            window.parent.location.href = '/Checkout';
+        } else {
+            window.location.href = '/Checkout';
+        }
+    } catch (error) {
+        console.error('[FEATURED PRODUCT] Error handling buy now:', error);
+        // Fallback redirect
+        window.location.href = '/Checkout';
     }
 };

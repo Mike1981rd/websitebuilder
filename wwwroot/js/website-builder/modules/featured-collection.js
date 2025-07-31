@@ -752,7 +752,7 @@ window.WebsiteBuilderModules.FeaturedCollection = {
                     </div>
                     
                     ${settings.showAddToCartButton ? window.WebsiteBuilderModules.FeaturedCollection.renderAddToCartButton(settings, schemeColors, cardId, {name: productName, price: productPrice, vendor: productVendor || 'Store', image: productImage}) : ''}
-                    ${settings.showBuyButton ? window.WebsiteBuilderModules.FeaturedCollection.renderBuyButton(settings, schemeColors, cardId) : ''}
+                    ${settings.showBuyButton ? window.WebsiteBuilderModules.FeaturedCollection.renderBuyButton(settings, schemeColors, cardId, productId, productPrice) : ''}
                     ${settings.showReserveButton ? window.WebsiteBuilderModules.FeaturedCollection.renderReserveButton(settings, schemeColors, cardId, productId, productPrice) : ''}
                 </div>
                 
@@ -3094,7 +3094,7 @@ window.WebsiteBuilderModules.FeaturedCollection = {
     },
     
     // Renderizar botón Buy button
-    renderBuyButton: function(settings, schemeColors, cardId) {
+    renderBuyButton: function(settings, schemeColors, cardId, productId, productPrice) {
         console.log('[FEATURED COLLECTION] Rendering buy button with settings:', settings);
         
         // Obtener font family de forma segura
@@ -3124,7 +3124,8 @@ window.WebsiteBuilderModules.FeaturedCollection = {
         
         if (isOutline) {
             return '<button class="' + buttonClass + '" ' +
-                   'onclick="event.preventDefault(); event.stopPropagation(); if(window.parent && window.parent !== window) { window.parent.location.href=\'/checkout\'; } else { window.location.href=\'/checkout\'; }" ' +
+                   'data-price="' + (productPrice || 0) + '" ' +
+                   'onclick="event.preventDefault(); event.stopPropagation(); window.handleBuyNow(event, ' + productId + '); return false;" ' +
                    'style="width: 100%; margin-top: 12px; padding: 10px 16px; border-radius: 4px; ' +
                    'font-size: 14px; font-family: ' + fontFamily + '; font-weight: 500; cursor: pointer; ' +
                    'transition: all 0.2s ease; background: transparent; ' +
@@ -3139,7 +3140,8 @@ window.WebsiteBuilderModules.FeaturedCollection = {
                    '</style>';
         } else {
             return '<button class="' + buttonClass + '" ' +
-                   'onclick="event.preventDefault(); event.stopPropagation(); if(window.parent && window.parent !== window) { window.parent.location.href=\'/checkout\'; } else { window.location.href=\'/checkout\'; }" ' +
+                   'data-price="' + (productPrice || 0) + '" ' +
+                   'onclick="event.preventDefault(); event.stopPropagation(); window.handleBuyNow(event, ' + productId + '); return false;" ' +
                    'style="width: 100%; margin-top: 12px; padding: 10px 16px; border-radius: 4px; ' +
                    'font-size: 14px; font-family: ' + fontFamily + '; font-weight: 500; cursor: pointer; ' +
                    'transition: all 0.2s ease; background: ' + solidButtonBg + '; ' +
@@ -3255,8 +3257,33 @@ window.handleReservation = function(event, productId) {
             isReservation: true
         };
         
-        // Save to localStorage
-        localStorage.setItem('websiteBuilderCart', JSON.stringify([reservationItem]));
+        // Get existing cart items
+        let existingCart = [];
+        try {
+            const savedCart = localStorage.getItem('websiteBuilderCart');
+            if (savedCart) {
+                const parsedCart = JSON.parse(savedCart);
+                // Handle both array format and object format for backward compatibility
+                if (Array.isArray(parsedCart)) {
+                    existingCart = parsedCart;
+                } else if (parsedCart && parsedCart.items && Array.isArray(parsedCart.items)) {
+                    // Convert old object format to array format
+                    existingCart = parsedCart.items;
+                }
+            }
+        } catch (e) {
+            console.error('[RESERVATION] Error parsing existing cart:', e);
+            existingCart = [];
+        }
+        
+        // Remove any existing reservations (only one reservation allowed at a time)
+        existingCart = existingCart.filter(item => !item.isReservation);
+        
+        // Add the new reservation
+        existingCart.push(reservationItem);
+        
+        // Save back to localStorage in array format
+        localStorage.setItem('websiteBuilderCart', JSON.stringify(existingCart));
         
         // Redirect to checkout
         window.location.href = '/Checkout?type=reservation&productId=' + productId;
@@ -3266,4 +3293,67 @@ window.handleReservation = function(event, productId) {
         window.location.href = '/Checkout?type=reservation&productId=' + productId;
     }
 };
+
+// Global function to handle buy now button click
+window.handleBuyNow = function(event, productId) {
+    try {
+        // Find product information from the card
+        const button = event.target.closest('button');
+        const productCard = event.target.closest('.product-card');
+        const productName = productCard.querySelector('h3')?.textContent || 'Producto';
+        const productPrice = parseFloat(button.getAttribute('data-price')) || 0;
+        const productImage = productCard.querySelector('img')?.src || '';
+        
+        // Create product item (without isReservation flag)
+        const productItem = {
+            id: productId,
+            name: productName,
+            price: productPrice,
+            quantity: 1,
+            image: productImage,
+            vendor: 'Store'
+        };
+        
+        // Get existing cart items
+        let existingCart = [];
+        try {
+            const savedCart = localStorage.getItem('websiteBuilderCart');
+            if (savedCart) {
+                const parsedCart = JSON.parse(savedCart);
+                // Handle both array format and object format for backward compatibility
+                if (Array.isArray(parsedCart)) {
+                    existingCart = parsedCart;
+                } else if (parsedCart && parsedCart.items && Array.isArray(parsedCart.items)) {
+                    // Convert old object format to array format
+                    existingCart = parsedCart.items;
+                }
+            }
+        } catch (e) {
+            console.error('[BUY NOW] Error parsing existing cart:', e);
+            existingCart = [];
+        }
+        
+        // Check if product already exists in cart
+        const existingIndex = existingCart.findIndex(item => item.id === productId && !item.isReservation);
+        
+        if (existingIndex > -1) {
+            // Increment quantity if already exists
+            existingCart[existingIndex].quantity += 1;
+        } else {
+            // Add new product
+            existingCart.push(productItem);
+        }
+        
+        // Save back to localStorage in array format
+        localStorage.setItem('websiteBuilderCart', JSON.stringify(existingCart));
+        
+        // Redirect to checkout
+        window.location.href = '/Checkout';
+    } catch (error) {
+        console.error('Error handling buy now:', error);
+        // Fallback redirect
+        window.location.href = '/Checkout';
+    }
+};
+
 console.log('[FEATURED COLLECTION MODULE] Module loaded successfully');
