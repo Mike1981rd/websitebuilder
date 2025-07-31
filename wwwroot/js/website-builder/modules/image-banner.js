@@ -310,11 +310,25 @@ Object.assign(window.WebsiteBuilderModules.ImageBanner, {
                 }
                 
                 @media (max-width: 768px) {
+                    #${uniqueId} {
+                        background-color: #ffffff !important;
+                        padding: 0 !important;
+                        margin: 0 !important;
+                    }
+                    
+                    #${uniqueId}.stick-to-header {
+                        margin-top: 0 !important;
+                    }
+                    
                     #${uniqueId} .banner-container {
                         height: ${mobileHeight};
-                        min-height: 300px;
+                        min-height: 50px;
                         max-height: none;
                         ${hasVideo ? '' : `background-image: url('${mobileImage}');`}
+                        background-size: cover !important;
+                        background-position: center center !important;
+                        background-repeat: no-repeat !important;
+                        background-color: #ffffff !important;
                     }
                     
                     #${uniqueId} .banner-inner {
@@ -337,6 +351,7 @@ Object.assign(window.WebsiteBuilderModules.ImageBanner, {
                         padding: 30px 20px;
                         max-width: 100%;
                         ${mobileContentBg}
+                        ${(!config.mobileContentBackground || config.mobileContentBackground === 'none') ? 'background-color: transparent !important;' : ''}
                     }
                     
                     #${uniqueId} .banner-heading {
@@ -353,7 +368,7 @@ Object.assign(window.WebsiteBuilderModules.ImageBanner, {
                 }
             </style>
             
-            <div id="${uniqueId}" class="section-wrapper image-banner-section" data-section-id="imageBanner" data-block-type="imageBanner" style="margin-top: ${parseInt(containerTopPadding) === 1 ? '-20' : containerTopPadding}px; margin-bottom: ${parseInt(containerBottomPadding) === 1 ? '-20' : containerBottomPadding}px;">
+            <div id="${uniqueId}" class="section-wrapper image-banner-section ${parseInt(containerTopPadding) === 1 ? 'stick-to-header' : ''}" data-section-id="imageBanner" data-block-type="imageBanner" style="background-color: #ffffff !important; margin-top: ${parseInt(containerTopPadding) === 1 ? '-20' : containerTopPadding}px; margin-bottom: ${parseInt(containerBottomPadding) === 1 ? '-20' : containerBottomPadding}px;">
                 <div class="section-header-tag">
                     <span class="material-symbols-outlined" style="font-size: 16px;">image</span>
                     ${window.translations && window.translations[window.currentLanguage] ? 
@@ -684,7 +699,7 @@ Object.assign(window.WebsiteBuilderModules.ImageBanner, {
             const $previewContainer = $container.find('.image-preview-container');
             
             $previewContainer.html(`
-                <div class="image-placeholder" style="width: 100%; height: 100%; background: #f6f6f7; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 8px; cursor: pointer;">
+                <div class="image-placeholder" style="width: 100%; height: 100%; background: #ffffff !important; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 8px; cursor: pointer;">
                     <i class="material-icons" style="font-size: 32px; color: #999;">add_photo_alternate</i>
                     <span style="color: #666; font-size: 13px;">${translations['common.selectImage'] || 'Seleccionar imagen'}</span>
                 </div>
@@ -779,7 +794,7 @@ Object.assign(window.WebsiteBuilderModules.ImageBanner, {
             
             // Show loading state
             $previewContainer.html(`
-                <div style="width: 100%; height: 100%; background: #f6f6f7; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 8px;">
+                <div style="width: 100%; height: 100%; background: #ffffff !important; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 8px;">
                     <div class="spinner" style="
                         width: 40px;
                         height: 40px;
@@ -836,7 +851,7 @@ Object.assign(window.WebsiteBuilderModules.ImageBanner, {
                     
                     // Reset to placeholder
                     $previewContainer.html(`
-                        <div class="video-placeholder" style="width: 100%; height: 100%; background: #f6f6f7; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 8px;">
+                        <div class="video-placeholder" style="width: 100%; height: 100%; background: #ffffff !important; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 8px;">
                             <i class="material-icons" style="font-size: 32px; color: #999;">videocam</i>
                             <span style="color: #666; font-size: 13px;">Seleccionar video</span>
                         </div>
@@ -864,7 +879,7 @@ Object.assign(window.WebsiteBuilderModules.ImageBanner, {
             const $previewContainer = $container.find('.video-preview-container');
             
             $previewContainer.html(`
-                <div class="video-placeholder" style="width: 100%; height: 100%; background: #f6f6f7; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 8px;">
+                <div class="video-placeholder" style="width: 100%; height: 100%; background: #ffffff !important; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 8px;">
                     <i class="material-icons" style="font-size: 32px; color: #999;">videocam</i>
                     <span style="color: #666; font-size: 13px;">${translations['common.selectVideo'] || 'Seleccionar video'}</span>
                 </div>

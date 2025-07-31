@@ -32,6 +32,15 @@ ESTAS REGLAS SON OBLIGATORIAS Y DEBEN SEGUIRSE SIEMPRE:
    - La página de producto dejó de mostrar contenido (solo header y footer)
    - La vista de configuración se volvió inaccesible
    - Se perdieron horas arreglando el problema creado
+
+5. PROBLEMA CRÍTICO DEL JSON GIGANTE (31/07/2025):
+   - **ADVERTENCIA**: El campo `GlobalThemeSettingsJson` tiene un problema arquitectónico grave
+   - **Síntoma**: Entity Framework no detecta cambios cuando el JSON es muy grande
+   - **Fix actual**: Se usa SQL directo en `UpdateGlobalThemeSettings` (líneas 212-228 de WebSitesController.cs)
+   - **NO TOCAR**: Este fix es crítico y NO debe modificarse sin entender las consecuencias
+   - **NO REFACTORIZAR**: Con deadline próximo, NO intentar separar el JSON en múltiples campos
+   - **Cuidado con nuevos módulos**: Cada módulo nuevo aumenta el tamaño del JSON
+   - **Detalles**: Ver `/colorscheme.md` para la investigación completa del bug
 </critical-rules>
 
 ## Reglas Importantes
@@ -751,3 +760,64 @@ Implementar FASE 3: Modificar CheckoutController para procesar reservaciones
 3. El cálculo de precio se actualiza con updateReservationTotal()
 4. Guest model ya existe, no crear Customer nuevo
 5. Reservation debe relacionarse con Guest y Room (producto)
+
+## 🚨 ESTADO CRÍTICO DEL PROYECTO (31/07/2025)
+
+### Situación Actual
+- **Duración del proyecto**: 35 días (deadline original: 5 días)
+- **Estado**: 90% completado pero con problemas críticos de arquitectura
+- **Bug más grave encontrado**: Color schemes no se guardaban debido al tamaño del JSON
+
+### Problema del JSON Gigante
+- **Archivo problemático**: `GlobalThemeSettingsJson` en tabla WebSites
+- **Tamaño**: Contiene TODO el estado del website builder en un solo campo
+- **Posición de colorSchemes**: Posición 10 en el objeto (mucho contenido antes)
+- **Síntoma**: Entity Framework no detecta cambios en campos JSONB grandes
+- **Solución implementada**: SQL directo en `UpdateGlobalThemeSettings`
+
+### Código del Fix (NO MODIFICAR)
+```csharp
+// Líneas 212-228 de WebSitesController.cs
+// SOLUCIÓN DIRECTA: Usar SQL raw para evitar problemas de Entity Framework
+website.UpdatedAt = DateTime.UtcNow;
+
+try
+{
+    // Guardar primero para actualizar UpdatedAt
+    _context.Entry(website).State = EntityState.Modified;
+    await _context.SaveChangesAsync();
+    
+    // Luego actualizar el JSON directamente con SQL
+    await _context.Database.ExecuteSqlRawAsync(
+        @"UPDATE ""WebSites"" 
+          SET ""GlobalThemeSettingsJson"" = {0}::jsonb 
+          WHERE ""Id"" = {1}",
+        jsonToSave,
+        website.Id
+    );
+```
+
+### Decisiones Arquitectónicas Críticas
+1. **NO refactorizar el JSON**: Con deadline próximo, sería suicida
+2. **NO agregar más módulos**: Cada módulo aumenta el tamaño del JSON
+3. **Mantener el fix SQL**: Es robusto y funciona
+4. **Solo fixes críticos**: No "mejorar" código que funciona
+
+### Tareas Pendientes (Solo Críticas)
+1. **Responsividad móvil** - Solo CSS, bajo riesgo
+2. **Contact Form backoffice** - Nueva tabla, no afecta JSON
+3. **Email de comprobante** - Independiente del builder
+4. **NO AGREGAR MÁS MÓDULOS AL WEBSITE BUILDER**
+
+### Lecciones Aprendidas
+- Entity Framework tiene limitaciones severas con JSONB grandes
+- Un solo campo JSON para todo es un antipatrón grave
+- La posición de los datos en el JSON importa para EF
+- SQL directo es más confiable para operaciones críticas
+
+### Para Futuros Desarrolladores
+Si necesitas trabajar en este proyecto:
+1. **Lee `/colorscheme.md`** para entender el bug del JSON
+2. **NO modifiques** el método UpdateGlobalThemeSettings
+3. **Considera refactorizar** el JSON en fase 2 (post-deadline)
+4. **Backup siempre** antes de tocar el website builder

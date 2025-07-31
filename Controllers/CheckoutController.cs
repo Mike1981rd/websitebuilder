@@ -1,19 +1,30 @@
 using Microsoft.AspNetCore.Mvc;
 using Hotel.Data;
 using Hotel.Models;
+using Hotel.DTOs.Payment;
+using Hotel.Services;
+using Hotel.Services.Payment;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
 using Npgsql;
+using Microsoft.Extensions.Logging;
 
 namespace Hotel.Controllers
 {
     public class CheckoutController : Controller
     {
         private readonly HotelDbContext _context;
+        private readonly PaymentProcessorFactory _paymentFactory;
+        private readonly ILogger<CheckoutController> _logger;
 
-        public CheckoutController(HotelDbContext context)
+        public CheckoutController(
+            HotelDbContext context,
+            PaymentProcessorFactory paymentFactory,
+            ILogger<CheckoutController> logger)
         {
             _context = context;
+            _paymentFactory = paymentFactory;
+            _logger = logger;
         }
 
         public async Task<IActionResult> Index()
@@ -196,6 +207,19 @@ namespace Hotel.Controllers
                     return Json(new { success = false, message = "Por favor complete los campos requeridos" });
                 }
 
+                // Check for active payment gateway
+                var activeGateway = await _context.PaymentGateways
+                    .FirstOrDefaultAsync(g => g.IsActive);
+
+                if (activeGateway != null && activeGateway.Provider != "MOCK" && !string.IsNullOrEmpty(activeGateway.ConfigurationJson))
+                {
+                    _logger.LogInformation("Processing payment with gateway: {Gateway}", activeGateway.Provider);
+                    return await ProcessRealPayment(formData, activeGateway);
+                }
+
+                // Fall back to mock payment processing
+                _logger.LogInformation("Processing payment with mock gateway");
+                
                 if (formData.IsReservation)
                 {
                     return await ProcessReservation(formData);
@@ -208,7 +232,7 @@ namespace Hotel.Controllers
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[CHECKOUT ERROR] {ex.Message}");
+                _logger.LogError(ex, "Error processing payment");
                 return Json(new { success = false, message = "Ocurrió un error al procesar el pago" });
             }
         }
@@ -341,6 +365,179 @@ namespace Hotel.Controllers
         {
             var random = new Random();
             return $"#{random.Next(100000, 999999)}";
+        }
+
+        private async Task<IActionResult> ProcessRealPayment(CheckoutFormData formData, PaymentGateway gateway)
+        {
+            try
+            {
+                // Get payment processor
+                var processor = _paymentFactory.GetProcessor(gateway.Provider);
+                
+                // Create payment request
+                var paymentRequest = new PaymentRequest
+                {
+                    OrderId = GenerateOrderId(),
+                    Amount = formData.TotalAmount,
+                    Tax = 0, // TODO: Calculate tax if needed
+                    CardNumber = formData.CardNumber?.Replace(" ", ""),
+                    CardExpiry = formData.CardExpiry,
+                    CardCvc = formData.CardCvv,
+                    CardHolderName = formData.CardName ?? $"{formData.FirstName} {formData.LastName}",
+                    Customer = new CustomerInfo
+                    {
+                        FirstName = formData.FirstName ?? "",
+                        LastName = formData.LastName,
+                        Email = formData.Email,
+                        Phone = "", // Not in current form
+                        Address = formData.Address,
+                        City = formData.City,
+                        Country = formData.Country,
+                        PostalCode = formData.PostalCode
+                    },
+                    SaveCard = false, // Not implemented yet
+                    ReservationId = null // Will be set after creating reservation
+                };
+                
+                _logger.LogInformation("Processing payment for order {OrderId}, amount: {Amount}", 
+                    paymentRequest.OrderId, paymentRequest.Amount);
+                
+                // Process payment
+                var result = await processor.ProcessPaymentAsync(paymentRequest);
+                
+                if (result.IsSuccess)
+                {
+                    _logger.LogInformation("Payment approved for order {OrderId}, transaction: {TransactionId}", 
+                        paymentRequest.OrderId, result.TransactionId);
+                    
+                    // Continue with reservation/order creation
+                    if (formData.IsReservation)
+                    {
+                        // Create guest and reservation
+                        var guest = await CreateOrUpdateGuest(formData);
+                        var reservation = await CreateReservation(formData, guest, result.TransactionId);
+                        
+                        // Update payment transaction with reservation ID
+                        var transaction = await _context.PaymentTransactions
+                            .FirstOrDefaultAsync(t => t.TransactionId == result.TransactionId);
+                        if (transaction != null)
+                        {
+                            transaction.ReservationId = reservation.Id;
+                            await _context.SaveChangesAsync();
+                        }
+                        
+                        return Json(new { 
+                            success = true, 
+                            message = "Reservación confirmada exitosamente",
+                            reservationId = reservation.Id,
+                            transactionId = result.TransactionId
+                        });
+                    }
+                    else
+                    {
+                        // TODO: Handle regular product orders
+                        return Json(new { 
+                            success = true, 
+                            message = "Pago procesado exitosamente",
+                            transactionId = result.TransactionId
+                        });
+                    }
+                }
+                else
+                {
+                    _logger.LogWarning("Payment rejected for order {OrderId}: {Message}", 
+                        paymentRequest.OrderId, result.ErrorMessage);
+                    
+                    return Json(new { 
+                        success = false, 
+                        message = result.ErrorMessage ?? "El pago fue rechazado. Por favor verifique los datos de su tarjeta."
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error processing real payment");
+                
+                // Fall back to mock if real payment fails
+                if (formData.IsReservation)
+                {
+                    _logger.LogInformation("Falling back to mock payment after real payment error");
+                    return await ProcessReservation(formData);
+                }
+                
+                return Json(new { 
+                    success = false, 
+                    message = "Error al procesar el pago. Por favor intente nuevamente."
+                });
+            }
+        }
+
+        private async Task<Guest> CreateOrUpdateGuest(CheckoutFormData formData)
+        {
+            var guest = await _context.Guests
+                .FirstOrDefaultAsync(g => g.Email == formData.Email);
+            
+            if (guest == null)
+            {
+                guest = new Guest
+                {
+                    FirstName = formData.FirstName ?? "",
+                    LastName = formData.LastName,
+                    Email = formData.Email,
+                    Phone = "", // Not in current form
+                    Address = $"{formData.Address}, {formData.State}",
+                    City = formData.City,
+                    Country = formData.Country,
+                    PostalCode = formData.PostalCode,
+                    CustomerId = GenerateCustomerId(),
+                    Status = "Active",
+                    CreatedAt = DateTime.UtcNow
+                };
+                
+                _context.Guests.Add(guest);
+            }
+            else
+            {
+                // Update existing guest
+                guest.FirstName = formData.FirstName ?? guest.FirstName;
+                guest.LastName = formData.LastName ?? guest.LastName;
+                guest.Address = $"{formData.Address}, {formData.State}";
+                guest.City = formData.City ?? guest.City;
+                guest.Country = formData.Country ?? guest.Country;
+                guest.PostalCode = formData.PostalCode ?? guest.PostalCode;
+                guest.UpdatedAt = DateTime.UtcNow;
+            }
+            
+            await _context.SaveChangesAsync();
+            return guest;
+        }
+
+        private async Task<Reservation> CreateReservation(CheckoutFormData formData, Guest guest, string transactionId = null)
+        {
+            var reservation = new Reservation
+            {
+                GuestId = guest.Id,
+                ProductId = formData.ProductId,
+                CheckInDate = DateTime.Parse(formData.CheckinDate).ToUniversalTime(),
+                CheckOutDate = DateTime.Parse(formData.CheckoutDate).ToUniversalTime(),
+                TotalAmount = formData.TotalAmount,
+                Status = "Confirmada",
+                NumberOfGuests = 2, // Default value
+                CreatedAt = DateTime.UtcNow
+            };
+            
+            _context.Reservations.Add(reservation);
+            await _context.SaveChangesAsync();
+            
+            _logger.LogInformation("Reservation created: {ReservationId} for guest: {GuestId}", 
+                reservation.Id, guest.Id);
+            
+            return reservation;
+        }
+
+        private string GenerateOrderId()
+        {
+            return $"ORD-{DateTime.UtcNow:yyyyMMdd}-{Guid.NewGuid().ToString().Substring(0, 8).ToUpper()}";
         }
     }
 

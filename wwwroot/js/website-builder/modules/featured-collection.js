@@ -216,6 +216,111 @@ window.WebsiteBuilderModules.FeaturedCollection = {
                     flex: 0 0 ${cardWidth};
                     margin: ${spaceBetween/2}px;
                 }
+                
+                /* Mobile responsive styles */
+                @media (max-width: 768px) {
+                    #${uniqueId} {
+                        padding: 20px 10px !important;
+                    }
+                    
+                    #${uniqueId} .container {
+                        padding: 0 15px !important;
+                    }
+                    
+                    #${uniqueId} h2 {
+                        font-size: 24px !important;
+                        margin-bottom: 20px !important;
+                        text-align: center !important;
+                    }
+                    
+                    #${uniqueId} .grid-layout,
+                    #${uniqueId} .carousel-track,
+                    #${uniqueId} .slider-track {
+                        flex-direction: column;
+                        margin: 0;
+                    }
+                    
+                    #${uniqueId} .product-card {
+                        flex: 0 0 100% !important;
+                        width: 100% !important;
+                        max-width: 100% !important;
+                        margin: 0 0 20px 0 !important;
+                        padding: 0 !important;
+                        background: #ffffff;
+                        border-radius: 8px;
+                        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+                    }
+                    
+                    #${uniqueId} .product-image-wrapper {
+                        height: 300px !important;
+                        padding-bottom: 0 !important;
+                    }
+                    
+                    #${uniqueId} .product-image-wrapper img {
+                        object-fit: cover !important;
+                    }
+                    
+                    #${uniqueId} .product-info {
+                        padding: 16px !important;
+                        text-align: center !important;
+                    }
+                    
+                    #${uniqueId} .product-info h3 {
+                        font-size: 16px !important;
+                        line-height: 1.4 !important;
+                        margin-bottom: 8px !important;
+                    }
+                    
+                    #${uniqueId} .product-info .star-rating {
+                        justify-content: center !important;
+                        margin: 8px 0 !important;
+                    }
+                    
+                    #${uniqueId} .product-info > div:last-child {
+                        justify-content: center !important;
+                        margin-top: 10px !important;
+                    }
+                    
+                    #${uniqueId} .carousel-wrapper,
+                    #${uniqueId} .slider-wrapper {
+                        margin: 0 !important;
+                    }
+                    
+                    #${uniqueId} .carousel-arrow {
+                        display: none !important;
+                    }
+                    
+                    #${uniqueId} .quick-view-btn {
+                        display: none !important;
+                    }
+                    
+                    /* Style buttons for mobile */
+                    #${uniqueId} button[class*="reserve-button-"],
+                    #${uniqueId} .add-to-cart-button {
+                        width: 100% !important;
+                        padding: 14px 20px !important;
+                        font-size: 16px !important;
+                        margin-top: 12px !important;
+                        border-radius: 8px !important;
+                        font-weight: 600 !important;
+                    }
+                }
+                
+                @media (max-width: 480px) {
+                    #${uniqueId} h2 {
+                        font-size: 20px !important;
+                    }
+                    
+                    #${uniqueId} .product-image-wrapper {
+                        height: 250px !important;
+                    }
+                    
+                    #${uniqueId} button[class*="reserve-button-"],
+                    #${uniqueId} .add-to-cart-button {
+                        padding: 12px 16px !important;
+                        font-size: 14px !important;
+                    }
+                }
             </style>
             <div id="${uniqueId}" class="section-wrapper featured-collection-section" data-section-id="featured-collection" data-element-id="${settings.id || uniqueId}" style="background-color: ${schemeColors.background}; padding-top: ${settings.topPadding || 96}px; padding-bottom: ${settings.bottomPadding || 48}px;" data-color-scheme="${settings.colorScheme || 'scheme1'}">
                 <div class="section-header-tag">

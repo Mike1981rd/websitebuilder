@@ -458,13 +458,26 @@ const defaultColorSchemes = {
 
 // Helper function to get color scheme values
 function getColorSchemeValues(schemeName) {
+    console.log('\n========== COLOR SCHEME DEBUG ==========');
+    console.log(`[COLOR-SCHEME] Getting values for: ${schemeName}`);
+    console.log(`[COLOR-SCHEME] currentGlobalThemeSettings exists: ${!!currentGlobalThemeSettings}`);
+    console.log(`[COLOR-SCHEME] colorSchemes exists: ${!!(currentGlobalThemeSettings && currentGlobalThemeSettings.colorSchemes)}`);
+    
     // First check if we have custom values in currentGlobalThemeSettings
     if (currentGlobalThemeSettings && currentGlobalThemeSettings.colorSchemes && currentGlobalThemeSettings.colorSchemes[schemeName]) {
+        console.log(`[COLOR-SCHEME] Found custom values for ${schemeName}:`);
+        console.log(JSON.stringify(currentGlobalThemeSettings.colorSchemes[schemeName], null, 2));
+        console.log('========================================\n');
         return currentGlobalThemeSettings.colorSchemes[schemeName];
     }
     
     // Fall back to default color schemes
-    return defaultColorSchemes[schemeName] || defaultColorSchemes['scheme1'];
+    console.log(`[COLOR-SCHEME] NO custom values found for ${schemeName}, using defaults`);
+    const defaultValues = defaultColorSchemes[schemeName] || defaultColorSchemes['scheme1'];
+    console.log(`[COLOR-SCHEME] Default values:`);
+    console.log(JSON.stringify(defaultValues, null, 2));
+    console.log('========================================\n');
+    return defaultValues;
 }
 
 // Make it globally accessible
@@ -472,16 +485,16 @@ window.getColorSchemeValues = getColorSchemeValues;
 
 // Function to switch between pages
 async function switchToPage(pageId) {
-    console.log('[DEBUG] Switching to page:', pageId);
-    console.log('[DEBUG] Current pagesConfig:', JSON.parse(JSON.stringify(pagesConfig)));
-    console.log('[DEBUG] Page data for', pageId, ':', pagesConfig[pageId]);
-    console.log('[DEBUG] Current sections config before switch:', JSON.parse(JSON.stringify(currentSectionsConfig)));
+    // console.log('[DEBUG] Switching to page:', pageId);
+    // console.log('[DEBUG] Current pagesConfig:', JSON.parse(JSON.stringify(pagesConfig)));
+    // console.log('[DEBUG] Page data for', pageId, ':', pagesConfig[pageId]);
+    // console.log('[DEBUG] Current sections config before switch:', JSON.parse(JSON.stringify(currentSectionsConfig)));
     
     // Log específico para debugging de la página de producto
     if (pageId === 'product' && pagesConfig[pageId]) {
-        console.log('[DEBUG] Product page sectionOrder:', pagesConfig[pageId].sectionOrder);
-        console.log('[DEBUG] Product page sectionsConfig:', pagesConfig[pageId].sectionsConfig);
-        console.log('[DEBUG] Product-container config:', pagesConfig[pageId].sectionsConfig?.['product-container']);
+        // console.log('[DEBUG] Product page sectionOrder:', pagesConfig[pageId].sectionOrder);
+        // console.log('[DEBUG] Product page sectionsConfig:', pagesConfig[pageId].sectionsConfig);
+        // console.log('[DEBUG] Product-container config:', pagesConfig[pageId].sectionsConfig?.['product-container']);
     }
     
     if (!currentWebsiteId) {
@@ -809,7 +822,17 @@ async function loadCurrentWebsite() {
         if (website.globalThemeSettingsJson) {
             try {
                 currentGlobalThemeSettings = JSON.parse(website.globalThemeSettingsJson);
-                console.log('[DEBUG] Loaded theme settings from DB:', currentGlobalThemeSettings);
+                console.log('\n========== LOADED FROM DATABASE ==========');
+                console.log('[LOAD-DB] Theme settings loaded from database');
+                console.log('[LOAD-DB] Color schemes found:');
+                if (currentGlobalThemeSettings && currentGlobalThemeSettings.colorSchemes) {
+                    Object.keys(currentGlobalThemeSettings.colorSchemes).forEach(scheme => {
+                        console.log(`[LOAD-DB] ${scheme}:`, JSON.stringify(currentGlobalThemeSettings.colorSchemes[scheme], null, 2));
+                    });
+                } else {
+                    console.log('[LOAD-DB] No color schemes found in database');
+                }
+                console.log('==========================================\n');
                 
                 // Update the global window reference
                 window.currentGlobalThemeSettings = currentGlobalThemeSettings;
@@ -841,22 +864,32 @@ async function loadCurrentWebsite() {
             window.currentGlobalThemeSettings = currentGlobalThemeSettings;
         }
         
-        // Initialize default color schemes if they don't exist
-        if (!currentGlobalThemeSettings.colorSchemes || Object.keys(currentGlobalThemeSettings.colorSchemes).length === 0) {
-            console.log('[DEBUG] No color schemes found, initializing with defaults');
+        // CRITICAL FIX: Do NOT initialize default color schemes automatically
+        // Only ensure the colorSchemes object exists
+        if (!currentGlobalThemeSettings.colorSchemes) {
+            console.log('[DEBUG] colorSchemes object not found, creating empty object');
             currentGlobalThemeSettings.colorSchemes = {};
-            
-            // Copy default color schemes to currentGlobalThemeSettings
-            for (const [schemeName, schemeData] of Object.entries(defaultColorSchemes)) {
-                currentGlobalThemeSettings.colorSchemes[schemeName] = { ...schemeData };
-            }
-            
-            // Update the global window reference after setting defaults
-            window.currentGlobalThemeSettings = currentGlobalThemeSettings;
-            
-            // Mark as needing save to persist the defaults
-            hasPendingGlobalSettingsChanges = true;
         }
+        
+        // IMPORTANT: Do NOT add missing schemes with defaults
+        // The system should work with whatever schemes are saved in the database
+        // When a scheme is requested but doesn't exist, getColorSchemeValues() will provide the defaults
+        console.log('\n========== COLOR SCHEMES LOADED FROM DATABASE ==========');
+        console.log('[DB-SCHEMES] Number of schemes in DB:', Object.keys(currentGlobalThemeSettings.colorSchemes).length);
+        console.log('[DB-SCHEMES] Schemes found:', Object.keys(currentGlobalThemeSettings.colorSchemes).join(', '));
+        
+        // Log each scheme's values for debugging
+        Object.keys(currentGlobalThemeSettings.colorSchemes).forEach(scheme => {
+            console.log(`[DB-SCHEMES] ${scheme}:`, JSON.stringify(currentGlobalThemeSettings.colorSchemes[scheme], null, 2));
+        });
+        
+        if (Object.keys(currentGlobalThemeSettings.colorSchemes).length === 0) {
+            console.log('[DB-SCHEMES] No custom schemes found - defaults will be used when needed');
+        }
+        console.log('========================================================\n');
+        
+        // Update the global window reference
+        window.currentGlobalThemeSettings = currentGlobalThemeSettings;
         
         // Parse and load pages config
         if (website.pagesConfigJson) {
@@ -22487,10 +22520,14 @@ document.head.appendChild(style);
             loadSchemeConfiguration(selectedScheme);
         });
         
-        // Load initial color scheme
-        loadColorScheme('scheme1');
-        // Load initial scheme configuration
-        loadSchemeConfiguration('scheme1');
+        // CRITICAL FIX: Load the currently selected scheme, not always scheme1
+        // Check if there's a selected scheme in settings
+        const selectedScheme = currentGlobalThemeSettings.selectedColorScheme || 'scheme1';
+        console.log(`[INIT] Loading selected color scheme: ${selectedScheme}`);
+        loadSchemeConfiguration(selectedScheme);
+        
+        // Also update the dropdown to match
+        $('#schemeConfigSelect').val(selectedScheme);
     };
     
     // Initialize Swatches Range Inputs
@@ -22513,21 +22550,10 @@ document.head.appendChild(style);
     
     // Load color scheme data
     function loadColorScheme(schemeName) {
-        const scheme = defaultColorSchemes[schemeName];
-        
-        if (!scheme) return;
-        
-        // Update all color inputs for Primary, Secondary, Contrasting
-        Object.keys(scheme).forEach(section => {
-            Object.keys(scheme[section]).forEach(field => {
-                const value = scheme[section][field];
-                const fieldName = `${section}-${field.replace(/([A-Z])/g, '-$1').toLowerCase()}`;
-                
-                // Update both picker and text input
-                $(`.shopify-color-picker[data-field="${fieldName}"]`).val(value);
-                $(`.shopify-color-text[data-field="${fieldName}"]`).val(value.toUpperCase());
-            });
-        });
+        // CRITICAL FIX: This function appears to be deprecated/unused
+        // The actual loading is done by loadSchemeConfiguration
+        // Keeping empty to avoid breaking any calls, but it shouldn't be used
+        console.log(`[DEPRECATED] loadColorScheme called for ${schemeName} - this function is deprecated`);
     }
     
     // Generate HTML for scheme fields with unique names
@@ -22578,7 +22604,8 @@ document.head.appendChild(style);
     
     // Load scheme configuration data
     function loadSchemeConfiguration(schemeName) {
-        console.log(`[DEBUG] Loading configuration for ${schemeName}`);
+        console.log('\n========== LOAD SCHEME CONFIGURATION ==========');
+        console.log(`[LOAD-CONFIG] Loading configuration for ${schemeName}`);
         currentSelectedColorScheme = schemeName;
         
         // Generate and display fields for this scheme
@@ -22609,22 +22636,27 @@ document.head.appendChild(style);
         if (currentGlobalThemeSettings.colorSchemes[schemeName]) {
             const existingScheme = currentGlobalThemeSettings.colorSchemes[schemeName];
             
-            // Check if it's the old structure (has primary/secondary/contrasting)
-            if (existingScheme.primary || existingScheme.secondary || existingScheme.contrasting) {
+            // Check if it's the old structure (has primary/secondary/contrasting with actual values)
+            // CRITICAL FIX: Only convert if these properties have actual nested objects with data
+            const hasOldStructure = (existingScheme.primary && typeof existingScheme.primary === 'object' && Object.keys(existingScheme.primary).length > 0) ||
+                                  (existingScheme.secondary && typeof existingScheme.secondary === 'object' && Object.keys(existingScheme.secondary).length > 0) ||
+                                  (existingScheme.contrasting && typeof existingScheme.contrasting === 'object' && Object.keys(existingScheme.contrasting).length > 0);
+            
+            if (hasOldStructure) {
                 console.log(`[DEBUG] Found old nested structure for ${schemeName}, converting to flat structure`);
                 
-                // Convert old structure to new flat structure - taking primary values as default
+                // Convert old structure to new flat structure - PRESERVE existing flat values first
                 schemeData = {
-                    text: existingScheme.primary?.text || existingScheme.text || '#000000',
-                    background: existingScheme.primary?.background || existingScheme.background || '#FFFFFF',
-                    foreground: existingScheme.primary?.foreground || existingScheme.foreground || '#F0F0F0',
-                    border: existingScheme.primary?.border || existingScheme.border || '#DDDDDD',
-                    link: existingScheme.primary?.link || existingScheme.link || '#2c6ecb',
-                    'solid-button': existingScheme.primary?.['solid-button'] || existingScheme['solid-button'] || '#000000',
-                    'solid-button-text': existingScheme.primary?.['solid-button-text'] || existingScheme['solid-button-text'] || '#FFFFFF',
-                    'outline-button': existingScheme.primary?.['outline-button'] || existingScheme['outline-button'] || '#DDDDDD',
-                    'outline-button-text': existingScheme.primary?.['outline-button-text'] || existingScheme['outline-button-text'] || '#000000',
-                    'image-overlay': existingScheme.primary?.['image-overlay'] || existingScheme['image-overlay'] || 'rgba(0, 0, 0, 0.1)'
+                    text: existingScheme.text || existingScheme.primary?.text || '#000000',
+                    background: existingScheme.background || existingScheme.primary?.background || '#FFFFFF',
+                    foreground: existingScheme.foreground || existingScheme.primary?.foreground || '#F0F0F0',
+                    border: existingScheme.border || existingScheme.primary?.border || '#DDDDDD',
+                    link: existingScheme.link || existingScheme.primary?.link || '#2c6ecb',
+                    'solid-button': existingScheme['solid-button'] || existingScheme.primary?.['solid-button'] || '#000000',
+                    'solid-button-text': existingScheme['solid-button-text'] || existingScheme.primary?.['solid-button-text'] || '#FFFFFF',
+                    'outline-button': existingScheme['outline-button'] || existingScheme.primary?.['outline-button'] || '#DDDDDD',
+                    'outline-button-text': existingScheme['outline-button-text'] || existingScheme.primary?.['outline-button-text'] || '#000000',
+                    'image-overlay': existingScheme['image-overlay'] || existingScheme.primary?.['image-overlay'] || 'rgba(0, 0, 0, 0.1)'
                 };
                 
                 // Update the structure to be flat - completely replace the old structure
@@ -22638,10 +22670,21 @@ document.head.appendChild(style);
                 hasPendingGlobalSettingsChanges = true; // Mark as changed to save the new structure
             } else {
                 // It's already flat structure
+                // CRITICAL FIX: Verify the scheme has all required properties
+                // If any property is missing, add it from defaults without overwriting existing values
                 schemeData = existingScheme;
+                
+                // CRITICAL FIX: Use the scheme exactly as it is from the database
+                // Do NOT check for "valid" values or add missing properties
+                console.log(`[LOAD-CONFIG] Using ${schemeName} exactly as loaded from database`);
+                console.log(`[LOAD-CONFIG] Current values:`, JSON.stringify(schemeData));
             }
         } else {
-            // Initialize with default values
+            // CRITICAL FIX: Do NOT initialize scheme with defaults
+            // If the scheme doesn't exist in DB, use defaults ONLY for display
+            console.log(`[DEBUG] ${schemeName} not found in colorSchemes, using defaults for display only`);
+            
+            // Get default values but DO NOT save them to currentGlobalThemeSettings
             if (defaultColorSchemes[schemeName]) {
                 schemeData = JSON.parse(JSON.stringify(defaultColorSchemes[schemeName]));
             } else {
@@ -22658,7 +22701,9 @@ document.head.appendChild(style);
                     'image-overlay': 'rgba(0, 0, 0, 0.1)'
                 };
             }
-            currentGlobalThemeSettings.colorSchemes[schemeName] = schemeData;
+            // IMPORTANT: Do NOT save the defaults to currentGlobalThemeSettings
+            // The scheme will be created only when the user actually changes a value
+            console.log('[DEBUG] NOT saving defaults to memory - scheme will be created on first change');
         }
         
         console.log(`[DEBUG] Loading scheme data:`, schemeData);
@@ -22699,6 +22744,7 @@ document.head.appendChild(style);
         }, 50);
         
         updateSaveButtonState();
+        console.log('===============================================\n');
     }
     
     // Save changes to scheme configuration
@@ -24338,7 +24384,33 @@ document.head.appendChild(style);
                 
                 if (!currentGlobalThemeSettings.colorSchemes) currentGlobalThemeSettings.colorSchemes = {};
                 if (!currentGlobalThemeSettings.colorSchemes[schemeName]) {
-                    currentGlobalThemeSettings.colorSchemes[schemeName] = {};
+                    // CRITICAL FIX: When a scheme doesn't exist and user changes a color,
+                    // we need to initialize it with ALL default values, not just an empty object
+                    console.log('\n========== COLOR SCHEME INITIALIZATION ==========');
+                    console.log(`[INIT] ${schemeName} doesn't exist in memory, initializing with defaults`);
+                    console.log(`[INIT] This ensures all properties have values when saving`);
+                    console.log('=================================================\n');
+                    
+                    // Get the default values for this scheme
+                    if (defaultColorSchemes[schemeName]) {
+                        // Use a deep copy of the defaults
+                        currentGlobalThemeSettings.colorSchemes[schemeName] = JSON.parse(JSON.stringify(defaultColorSchemes[schemeName]));
+                    } else {
+                        // If no default exists, use a standard set
+                        currentGlobalThemeSettings.colorSchemes[schemeName] = {
+                            text: '#000000',
+                            background: '#FFFFFF',
+                            foreground: '#F0F0F0',
+                            border: '#DDDDDD',
+                            link: '#2c6ecb',
+                            'solid-button': '#000000',
+                            'solid-button-text': '#FFFFFF',
+                            'outline-button': '#DDDDDD',
+                            'outline-button-text': '#000000',
+                            'image-overlay': 'rgba(0, 0, 0, 0.1)'
+                        };
+                    }
+                    console.log(`[INIT] Initialized ${schemeName} with:`, currentGlobalThemeSettings.colorSchemes[schemeName]);
                 }
                 currentGlobalThemeSettings.colorSchemes[schemeName][property] = value;
                 
@@ -24416,10 +24488,20 @@ document.head.appendChild(style);
         });
         
         $('#color-scheme-select').on('change', function() {
-            currentSectionsConfig.announcementBar.colorScheme = $(this).val();
+            const newScheme = $(this).val();
+            console.log('\n========== MODULE COLOR SCHEME CHANGE ==========');
+            console.log(`[MODULE-CHANGE] Announcement Bar changing from ${currentSectionsConfig.announcementBar.colorScheme} to ${newScheme}`);
+            console.log(`[MODULE-CHANGE] Current values in memory for ${newScheme}:`);
+            if (currentGlobalThemeSettings && currentGlobalThemeSettings.colorSchemes && currentGlobalThemeSettings.colorSchemes[newScheme]) {
+                console.log(JSON.stringify(currentGlobalThemeSettings.colorSchemes[newScheme], null, 2));
+            } else {
+                console.log('NO VALUES IN MEMORY - Will use defaults!');
+            }
+            console.log('================================================\n');
+            
+            currentSectionsConfig.announcementBar.colorScheme = newScheme;
             hasPendingPageStructureChanges = true;
             updateSaveButtonState();
-            console.log('[DEBUG] Announcement bar config changed - colorScheme');
             
             // Re-render the preview to show the new color scheme
             renderPreview();
@@ -24818,10 +24900,20 @@ document.head.appendChild(style);
         
         // Color scheme
         $('#header-color-scheme').on('change', function() {
-            currentSectionsConfig.header.colorScheme = $(this).val();
+            const newScheme = $(this).val();
+            console.log('\n========== MODULE COLOR SCHEME CHANGE ==========');
+            console.log(`[MODULE-CHANGE] Header changing from ${currentSectionsConfig.header.colorScheme} to ${newScheme}`);
+            console.log(`[MODULE-CHANGE] Current values in memory for ${newScheme}:`);
+            if (currentGlobalThemeSettings && currentGlobalThemeSettings.colorSchemes && currentGlobalThemeSettings.colorSchemes[newScheme]) {
+                console.log(JSON.stringify(currentGlobalThemeSettings.colorSchemes[newScheme], null, 2));
+            } else {
+                console.log('NO VALUES IN MEMORY - Will use defaults!');
+            }
+            console.log('================================================\n');
+            
+            currentSectionsConfig.header.colorScheme = newScheme;
             hasPendingPageStructureChanges = true;
             updateSaveButtonState();
-            console.log('[DEBUG] Header config changed - colorScheme');
             // Re-render to apply color scheme changes
             renderPreview();
         });
@@ -27212,12 +27304,18 @@ document.head.appendChild(style);
         console.log('[DEBUG] hasPendingGlobalSettingsChanges:', hasPendingGlobalSettingsChanges);
         console.log('[DEBUG] hasPendingPageStructureChanges:', hasPendingPageStructureChanges);
         if (hasPendingGlobalSettingsChanges) {
-            console.log('[INFO] Saving global settings...');
-            console.log('[DEBUG] currentGlobalThemeSettings:', JSON.stringify(currentGlobalThemeSettings, null, 2));
+            console.log('\n========== SAVING GLOBAL SETTINGS ==========');
+            console.log('[SAVE] Saving global settings...');
+            console.log('[SAVE] Color schemes being saved:');
+            if (currentGlobalThemeSettings && currentGlobalThemeSettings.colorSchemes) {
+                Object.keys(currentGlobalThemeSettings.colorSchemes).forEach(scheme => {
+                    console.log(`[SAVE] ${scheme}:`, JSON.stringify(currentGlobalThemeSettings.colorSchemes[scheme], null, 2));
+                });
+            }
             const globalPayload = {
                 globalSettings: currentGlobalThemeSettings
             };
-            console.log('[DEBUG] globalPayload to send:', JSON.stringify(globalPayload, null, 2));
+            
             savePromises.push(
                 fetch('/api/builder/websites/current/global-settings', {
                     method: 'PUT',
@@ -27283,8 +27381,8 @@ document.head.appendChild(style);
                     $button.removeClass('loading');
                     // Aquí podrías mostrar una notificación de éxito al usuario
                     
-                    // Renderizar preview después de guardar
-                    renderPreview(); // <-- AÑADIR ESTA LÍNEA
+                    // CRITICAL FIX: Do NOT render preview here - wait until after data is reloaded
+                    // renderPreview(); // REMOVED - This was causing the bug!
                     
                     // Recargar la vista actual para mostrar los cambios guardados
                     console.log('[DEBUG] Current sidebar view after save:', currentSidebarView);
@@ -27299,6 +27397,19 @@ document.head.appendChild(style);
                                     console.log('[DEBUG] Current sections config after reload:', JSON.stringify(currentSectionsConfig, null, 2));
                                     console.log('[DEBUG] Announcement bar isHidden:', currentSectionsConfig.announcementBar?.isHidden);
                                     console.log('[DEBUG] Header isHidden:', currentSectionsConfig.header?.isHidden);
+                                    
+                                    // CRITICAL FIX: Render preview AFTER data is loaded
+                                    console.log('\n========== RENDER PREVIEW AFTER LOAD ==========');
+                                    console.log('[RENDER] About to render preview with fresh data from DB');
+                                    console.log('[RENDER] Color schemes in memory:');
+                                    if (currentGlobalThemeSettings && currentGlobalThemeSettings.colorSchemes) {
+                                        Object.keys(currentGlobalThemeSettings.colorSchemes).forEach(scheme => {
+                                            console.log(`[RENDER] ${scheme}:`, JSON.stringify(currentGlobalThemeSettings.colorSchemes[scheme], null, 2));
+                                        });
+                                    }
+                                    console.log('================================================\n');
+                                    renderPreview();
+                                    
                                     window.switchSidebarView('blockList', window.getUpdatedPageData());
                                     // Sync visibility toggle states after view is refreshed
                                     setTimeout(() => {
@@ -27314,6 +27425,9 @@ document.head.appendChild(style);
                             // For non-home pages, just refresh the view without reloading from server
                             console.log('[DEBUG] Refreshing blockList view without server reload (page:', currentPageId, ')');
                             setTimeout(() => {
+                                // CRITICAL FIX: Also render preview for non-home pages
+                                renderPreview();
+                                
                                 window.switchSidebarView('blockList', window.getUpdatedPageData());
                                 // Sync visibility toggle states after view is refreshed
                                 setTimeout(() => {

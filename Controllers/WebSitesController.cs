@@ -122,7 +122,7 @@ namespace Hotel.Controllers
                      return BadRequest(new { message = "Deserialized DTO is null." });
                 }
 
-                _logger.LogInformation("Received GlobalSettings: {Json}", JsonSerializer.Serialize(dto.GlobalSettings));
+                // _logger.LogInformation("Received GlobalSettings: {Json}", JsonSerializer.Serialize(dto.GlobalSettings));
 
                 // PASO 3: El resto de la lógica original (la cual ya era correcta).
                 var company = await _context.Companies.FirstOrDefaultAsync();
@@ -139,21 +139,29 @@ namespace Hotel.Controllers
                     return NotFound(new { message = "Website not found" });
                 }
 
+                // Serializar los datos a guardar
                 var jsonToSave = JsonSerializer.Serialize(dto.GlobalSettings, new JsonSerializerOptions
                 {
                     WriteIndented = false
                 });
                 
-                _logger.LogInformation("JSON to save length: {Length}", jsonToSave.Length);
-                
-                website.GlobalThemeSettingsJson = jsonToSave;
+                // SOLUCIÓN DIRECTA: Usar SQL raw para evitar problemas de Entity Framework
                 website.UpdatedAt = DateTime.UtcNow;
-
-                _context.Entry(website).State = EntityState.Modified;
                 
                 try
                 {
+                    // Guardar primero para actualizar UpdatedAt
+                    _context.Entry(website).State = EntityState.Modified;
                     await _context.SaveChangesAsync();
+                    
+                    // Luego actualizar el JSON directamente con SQL
+                    await _context.Database.ExecuteSqlRawAsync(
+                        @"UPDATE ""WebSites"" 
+                          SET ""GlobalThemeSettingsJson"" = {0}::jsonb 
+                          WHERE ""Id"" = {1}",
+                        jsonToSave,
+                        website.Id
+                    );
                     _logger.LogInformation("Successfully saved global theme settings");
                 }
                 catch (Exception dbEx)
@@ -170,6 +178,7 @@ namespace Hotel.Controllers
                 return StatusCode(500, new { message = "An error occurred while updating theme settings" });
             }
         }
+
 
         // PUT: api/builder/websites/current
         [HttpPut("current")]
