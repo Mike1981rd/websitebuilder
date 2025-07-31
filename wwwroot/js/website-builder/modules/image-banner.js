@@ -85,9 +85,7 @@ Object.assign(window.WebsiteBuilderModules.ImageBanner, {
             }
         };
         
-        const desktopHeight = config.desktopHeightType === 'fixed' 
-            ? `${config.desktopFixedHeight || 600}px`
-            : getHeightCalc(config.desktopRatio || 0.4, containerMaxWidth);
+        const desktopHeight = `${config.desktopFixedHeight || 600}px`;
         const mobileHeight = `calc(100vw * ${config.mobileRatio || 1.6})`;
         
         // Debug height calculation
@@ -128,17 +126,33 @@ Object.assign(window.WebsiteBuilderModules.ImageBanner, {
         
         // Get button styles
         const getButtonStyles = (style, isPrimary) => {
+            // First check if there are global button settings
             const buttonColors = window.currentGlobalThemeSettings?.buttons || {};
-            const bgColor = buttonColors.backgroundColor || schemeColors.foreground || '#f5d76e';
-            const textColor = buttonColors.textColor || schemeColors.text || '#000';
+            
+            // Use color scheme button colors as the primary source
+            let solidBgColor, solidTextColor, outlineBorderColor, outlineTextColor;
+            
+            if (buttonColors.backgroundColor || buttonColors.textColor) {
+                // If global button settings exist, use them
+                solidBgColor = buttonColors.backgroundColor;
+                solidTextColor = buttonColors.textColor;
+                outlineBorderColor = buttonColors.backgroundColor;
+                outlineTextColor = buttonColors.backgroundColor;
+            } else {
+                // Otherwise, use the color scheme's button colors
+                solidBgColor = schemeColors['solid-button'] || '#121212';
+                solidTextColor = schemeColors['solid-button-text'] || '#FFFFFF';
+                outlineBorderColor = schemeColors['outline-button'] || '#DDDDDD';
+                outlineTextColor = schemeColors['outline-button-text'] || '#121212';
+            }
             
             switch(style) {
                 case 'outline':
-                    return `background: transparent; border: 2px solid ${bgColor}; color: ${bgColor};`;
+                    return `background: transparent; border: 2px solid ${outlineBorderColor}; color: ${outlineTextColor};`;
                 case 'text':
-                    return `background: transparent; border: none; color: ${bgColor}; text-decoration: underline;`;
+                    return `background: transparent; border: none; color: ${solidBgColor}; text-decoration: underline;`;
                 default: // solid
-                    return `background-color: ${bgColor}; color: ${textColor}; border: none;`;
+                    return `background-color: ${solidBgColor}; color: ${solidTextColor}; border: none;`;
             }
         };
         
@@ -348,7 +362,7 @@ Object.assign(window.WebsiteBuilderModules.ImageBanner, {
                     
                     #${uniqueId} .banner-content {
                         text-align: ${config.mobileAlignment || 'center'};
-                        padding: 30px 20px;
+                        padding: 30px 20px 40px 20px;
                         max-width: 100%;
                         ${mobileContentBg}
                         ${(!config.mobileContentBackground || config.mobileContentBackground === 'none') ? 'background-color: transparent !important;' : ''}
@@ -363,7 +377,18 @@ Object.assign(window.WebsiteBuilderModules.ImageBanner, {
                     }
                     
                     #${uniqueId} .banner-buttons {
-                        justify-content: ${config.mobileAlignment === 'left' ? 'flex-start' : 'center'};
+                        justify-content: center !important;
+                        margin: 0;
+                        padding: 0;
+                        width: 100%;
+                        text-align: center;
+                    }
+                    
+                    #${uniqueId} .banner-button {
+                        margin: 5px auto;
+                        min-width: 120px;
+                        text-align: center;
+                        display: inline-block;
                     }
                 }
             </style>
@@ -454,7 +479,6 @@ Object.assign(window.WebsiteBuilderModules.ImageBanner, {
             containerBottomPadding: 60,
             imageFit: 'cover',
             imagePosition: 'center',
-            desktopHeightType: 'ratio',
             desktopFixedHeight: 600
         };
         
@@ -512,16 +536,6 @@ Object.assign(window.WebsiteBuilderModules.ImageBanner, {
             const value = $(this).val();
             updateConfig(setting, value);
             
-            // Special handling for height type
-            if (setting === 'desktopHeightType') {
-                if (value === 'fixed') {
-                    $('[data-setting="desktopRatio"]').closest('.settings-field').hide();
-                    $('[data-setting="desktopFixedHeight"]').closest('.settings-field').show();
-                } else {
-                    $('[data-setting="desktopRatio"]').closest('.settings-field').show();
-                    $('[data-setting="desktopFixedHeight"]').closest('.settings-field').hide();
-                }
-            }
         });
         
         // Text input handlers

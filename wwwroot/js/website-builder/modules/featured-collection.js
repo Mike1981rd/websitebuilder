@@ -221,6 +221,9 @@ window.WebsiteBuilderModules.FeaturedCollection = {
                 @media (max-width: 768px) {
                     #${uniqueId} {
                         padding: 20px 10px !important;
+                        display: block !important;
+                        justify-content: flex-start !important;
+                        min-height: auto !important;
                     }
                     
                     #${uniqueId} .container {
@@ -322,14 +325,15 @@ window.WebsiteBuilderModules.FeaturedCollection = {
                     }
                 }
             </style>
-            <div id="${uniqueId}" class="section-wrapper featured-collection-section" data-section-id="featured-collection" data-element-id="${settings.id || uniqueId}" style="background-color: ${schemeColors.background}; padding-top: ${settings.topPadding || 96}px; padding-bottom: ${settings.bottomPadding || 48}px;" data-color-scheme="${settings.colorScheme || 'scheme1'}">
+            <div id="${uniqueId}" class="section-wrapper featured-collection-section" data-section-id="featured-collection" data-element-id="${settings.id || uniqueId}" style="background-color: ${schemeColors.background}; padding-top: ${settings.topPadding || 96}px; padding-bottom: ${settings.bottomPadding || 48}px; display: flex; flex-direction: column; justify-content: ${settings.contentPosition === 'center' ? 'center' : settings.contentPosition === 'bottom' ? 'flex-end' : 'flex-start'}; min-height: ${(settings.topPadding || 96) + (settings.bottomPadding || 48) + 300}px;" data-color-scheme="${settings.colorScheme || 'scheme1'}">
                 <div class="section-header-tag">
                     <span class="material-symbols-outlined" style="font-size: 16px;">inventory_2</span>
                     ${window.translations && window.translations[window.currentLanguage] ? 
                         (window.translations[window.currentLanguage]['sections.featuredCollection'] || 'Featured collection') : 
                         'Featured collection'}
                 </div>
-                <div class="container" style="max-width: ${settings.width === 'full' ? '100%' : '1200px'}; margin: 0 auto; padding: 0 ${settings.addSidePaddings ? '20px' : '0'};">
+                <div class="featured-collection-content" style="width: 100%;">
+                    <div class="container" style="max-width: ${settings.width === 'full' ? '100%' : '1200px'}; margin: 0 auto; padding: 0 ${settings.addSidePaddings ? '20px' : '0'};">
                     ${settings.heading ? `
                         <h2 style="font-size: ${window.WebsiteBuilderModules.FeaturedCollection.getHeadingSize(settings.headingSize)}; text-align: ${settings.headingAlignment || 'left'}; color: ${schemeColors.text}; margin-bottom: 30px;">
                             ${settings.heading}
@@ -373,6 +377,7 @@ window.WebsiteBuilderModules.FeaturedCollection = {
                             `}
                         </div>
                     `}
+                    </div>
                 </div>
             </div>
             ${(isCarousel || isSlider) && needsArrows ? `
@@ -507,14 +512,15 @@ window.WebsiteBuilderModules.FeaturedCollection = {
                     margin: ${spaceBetween/2}px;
                 }
             </style>
-            <div id="${uniqueId}" class="section-wrapper featured-collection-section" data-section-id="featured-collection" data-element-id="${settings.id || uniqueId}" style="background-color: ${schemeColors.background}; padding-top: ${settings.topPadding || 96}px; padding-bottom: ${settings.bottomPadding || 48}px;" data-color-scheme="${settings.colorScheme || 'scheme1'}">
+            <div id="${uniqueId}" class="section-wrapper featured-collection-section" data-section-id="featured-collection" data-element-id="${settings.id || uniqueId}" style="background-color: ${schemeColors.background}; padding-top: ${settings.topPadding || 96}px; padding-bottom: ${settings.bottomPadding || 48}px; display: flex; flex-direction: column; justify-content: ${settings.contentPosition === 'center' ? 'center' : settings.contentPosition === 'bottom' ? 'flex-end' : 'flex-start'}; min-height: ${(settings.topPadding || 96) + (settings.bottomPadding || 48) + 300}px;" data-color-scheme="${settings.colorScheme || 'scheme1'}">
                 <div class="section-header-tag">
                     <span class="material-symbols-outlined" style="font-size: 16px;">inventory_2</span>
                     ${window.translations && window.translations[window.currentLanguage] ? 
                         (window.translations[window.currentLanguage]['sections.featuredCollection'] || 'Featured collection') : 
                         'Featured collection'}
                 </div>
-                <div class="container" style="max-width: ${settings.width === 'full' ? '100%' : '1200px'}; margin: 0 auto; padding: 0 ${settings.addSidePaddings ? '20px' : '0'};">
+                <div class="featured-collection-content" style="width: 100%;">
+                    <div class="container" style="max-width: ${settings.width === 'full' ? '100%' : '1200px'}; margin: 0 auto; padding: 0 ${settings.addSidePaddings ? '20px' : '0'};">
                     ${settings.heading ? `
                         <h2 style="font-size: ${window.WebsiteBuilderModules.FeaturedCollection.getHeadingSize(settings.headingSize)}; text-align: ${settings.headingAlignment || 'left'}; color: ${schemeColors.text}; margin-bottom: 30px;">
                             ${settings.heading}
@@ -590,6 +596,7 @@ window.WebsiteBuilderModules.FeaturedCollection = {
                             ${showCollectionCard && !collectionCardFirst ? window.WebsiteBuilderModules.FeaturedCollection.renderCollectionCard(settings, schemeColors, cardWidth) : ''}
                         </div>
                     `}
+                    </div>
                 </div>
             </div>
             ${(isCarousel || isSlider) && needsArrows ? `
@@ -616,18 +623,20 @@ window.WebsiteBuilderModules.FeaturedCollection = {
         const uniqueId = 'featured-collection-' + Date.now();
         
         return `
-            <div id="${uniqueId}" class="section-wrapper featured-collection-section" data-section-id="featured-collection" data-element-id="${settings.id || uniqueId}" style="background-color: ${schemeColors.background}; padding-top: ${settings.topPadding || 96}px; padding-bottom: ${settings.bottomPadding || 48}px;" data-color-scheme="${settings.colorScheme || 'scheme1'}">
+            <div id="${uniqueId}" class="section-wrapper featured-collection-section" data-section-id="featured-collection" data-element-id="${settings.id || uniqueId}" style="background-color: ${schemeColors.background}; padding-top: ${settings.topPadding || 96}px; padding-bottom: ${settings.bottomPadding || 48}px; display: flex; flex-direction: column; justify-content: ${settings.contentPosition === 'center' ? 'center' : settings.contentPosition === 'bottom' ? 'flex-end' : 'flex-start'}; min-height: ${(settings.topPadding || 96) + (settings.bottomPadding || 48) + 300}px;" data-color-scheme="${settings.colorScheme || 'scheme1'}">
                 <div class="section-header-tag">
                     <span class="material-symbols-outlined" style="font-size: 16px;">inventory_2</span>
                     ${window.translations && window.translations[window.currentLanguage] ? 
                         (window.translations[window.currentLanguage]['sections.featuredCollection'] || 'Featured collection') : 
                         'Featured collection'}
                 </div>
-                <div class="container" style="max-width: ${settings.width === 'full' ? '100%' : '1200px'}; margin: 0 auto; padding: 0 ${settings.addSidePaddings ? '20px' : '0'};">
+                <div class="featured-collection-content" style="width: 100%;">
+                    <div class="container" style="max-width: ${settings.width === 'full' ? '100%' : '1200px'}; margin: 0 auto; padding: 0 ${settings.addSidePaddings ? '20px' : '0'};">
                     <div style="text-align: center; padding: 60px 20px; border: 2px dashed ${schemeColors.border}; border-radius: 8px;">
                         <i class="material-icons" style="font-size: 48px; color: #999;">inventory_2</i>
                         <h3 style="color: ${schemeColors.text}; margin: 20px 0 10px;">No collection or products selected</h3>
                         <p style="color: #666;">Select a collection or specific products to display them here</p>
+                    </div>
                     </div>
                 </div>
             </div>
@@ -923,6 +932,7 @@ window.WebsiteBuilderModules.FeaturedCollection = {
                             </p>
                         ` : ''}
                     </div>
+                    </div>
                 </div>
             </div>
         `;
@@ -974,7 +984,8 @@ window.WebsiteBuilderModules.FeaturedCollection = {
             autoplaySpeed: 3,
             addSidePaddings: true,
             topPadding: 96,
-            bottomPadding: 48
+            bottomPadding: 48,
+            contentPosition: 'top'
         };
         
         // Mezclar configuración con valores por defecto
@@ -1540,9 +1551,38 @@ window.WebsiteBuilderModules.FeaturedCollection = {
                         </div>
                     </div>
 
+                    <!-- Content Position Section -->
+                    <div class="form-group" style="margin-top: 30px;">
+                        <h4 style="font-size: 13px; font-weight: 500; margin-bottom: 12px; color: #5c5e60;" 
+                            data-i18n="featuredCollection.contentPosition">Content Position</h4>
+                        <label style="font-size: 13px; font-weight: 500; margin-bottom: 8px; color: #5c5e60; display: block;">
+                            Desktop vertical position
+                        </label>
+                        <div class="button-group" style="display: flex; gap: 8px; margin-bottom: 20px;">
+                            <button class="button-group-item ${settings.contentPosition === 'top' ? 'active' : ''}" 
+                                    data-value="top" 
+                                    data-setting="contentPosition"
+                                    style="flex: 1; padding: 8px; border: 1px solid #ddd; background: ${settings.contentPosition === 'top' ? '#2962ff' : '#fff'}; color: ${settings.contentPosition === 'top' ? '#fff' : '#333'}; border-radius: 4px; cursor: pointer;">
+                                Top
+                            </button>
+                            <button class="button-group-item ${settings.contentPosition === 'center' ? 'active' : ''}" 
+                                    data-value="center" 
+                                    data-setting="contentPosition"
+                                    style="flex: 1; padding: 8px; border: 1px solid #ddd; background: ${settings.contentPosition === 'center' ? '#2962ff' : '#fff'}; color: ${settings.contentPosition === 'center' ? '#fff' : '#333'}; border-radius: 4px; cursor: pointer;">
+                                Center
+                            </button>
+                            <button class="button-group-item ${settings.contentPosition === 'bottom' ? 'active' : ''}" 
+                                    data-value="bottom" 
+                                    data-setting="contentPosition"
+                                    style="flex: 1; padding: 8px; border: 1px solid #ddd; background: ${settings.contentPosition === 'bottom' ? '#2962ff' : '#fff'}; color: ${settings.contentPosition === 'bottom' ? '#fff' : '#333'}; border-radius: 4px; cursor: pointer;">
+                                Bottom
+                            </button>
+                        </div>
+                    </div>
+
                     <!-- Paddings Section Title -->
                     <div class="form-group" style="margin-top: 30px;">
-                        <h4 style="font-size: 16px; font-weight: 600; margin-bottom: 20px; color: #202223;" 
+                        <h4 style="font-size: 13px; font-weight: 500; margin-bottom: 12px; color: #5c5e60;" 
                             data-i18n="featuredCollection.paddings">Paddings</h4>
                     </div>
 
@@ -1585,6 +1625,7 @@ window.WebsiteBuilderModules.FeaturedCollection = {
                         </div>
                     </div>
 
+                    </div>
                 </div>
             </div>
         `;
@@ -1921,6 +1962,22 @@ window.WebsiteBuilderModules.FeaturedCollection = {
             updateConfig('reserveButtonText', $(this).val());
         });
         
+        // Button group items para posición del contenido
+        $('.button-group-item[data-setting="contentPosition"]').off('click.featuredCollection').on('click.featuredCollection', function() {
+            const value = $(this).data('value');
+            updateConfig('contentPosition', value);
+            
+            // Update button states
+            $(this).siblings().removeClass('active').css({
+                'background': '#fff',
+                'color': '#333'
+            });
+            $(this).addClass('active').css({
+                'background': '#2962ff',
+                'color': '#fff'
+            });
+        });
+
         // Range sliders con actualización de display
         $('input[type="range"]').off('input.featuredCollection').on('input.featuredCollection', function() {
             const value = $(this).val();
@@ -2080,6 +2137,7 @@ window.WebsiteBuilderModules.FeaturedCollection = {
                         <button class="cancel-collection-selection" style="flex: 1; padding: 10px 16px; background: white; border: 1px solid #e0e0e0; border-radius: 6px; cursor: pointer; color: #202223; font-weight: 500; font-size: 14px;" data-i18n="common.cancel">Cancel</button>
                         <button class="save-collection-selection" style="flex: 1; padding: 10px 16px; background-color: #28a745; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; font-size: 14px;" data-i18n="common.save">Save</button>
                     </div>
+                    </div>
                 </div>
             </div>
         `;
@@ -2204,6 +2262,7 @@ window.WebsiteBuilderModules.FeaturedCollection = {
             <div style="text-align: center; padding: 40px;">
                 <div class="spinner-border" role="status">
                     <span class="sr-only">Loading...</span>
+                    </div>
                 </div>
             </div>
         `);
@@ -2494,6 +2553,7 @@ window.WebsiteBuilderModules.FeaturedCollection = {
                         <button class="cancel-product-selection" style="flex: 1; padding: 10px 16px; background: white; border: 1px solid #e0e0e0; border-radius: 6px; cursor: pointer; color: #202223; font-weight: 500; font-size: 14px;" data-i18n="common.cancel">Cancel</button>
                         <button class="save-product-selection" style="flex: 1; padding: 10px 16px; background-color: #28a745; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; font-size: 14px;" data-i18n="common.save">Save</button>
                     </div>
+                    </div>
                 </div>
             </div>
         `;
@@ -2588,6 +2648,7 @@ window.WebsiteBuilderModules.FeaturedCollection = {
             <div style="text-align: center; padding: 40px;">
                 <div class="spinner-border" role="status">
                     <span class="sr-only">Loading...</span>
+                    </div>
                 </div>
             </div>
         `);
@@ -2807,6 +2868,7 @@ window.WebsiteBuilderModules.FeaturedCollection = {
             <div style="text-align: center; padding: 40px;">
                 <div class="spinner-border" role="status">
                     <span class="sr-only">Loading...</span>
+                    </div>
                 </div>
             </div>
         `);

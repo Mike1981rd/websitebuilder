@@ -49,37 +49,13 @@ window.WebsiteBuilderModules.ImageBanner.renderMainSettings = function(config) {
             </select>
         </div>
         
-        <!-- Desktop height type -->
+        <!-- Desktop height -->
         <div class="settings-field" style="margin-bottom: 20px;">
             <label style="display: block; margin-bottom: 8px; font-size: 13px; color: #333;">
-                ${translations['settings.desktopHeightType'] || 'Desktop height type'}
-            </label>
-            <select data-setting="desktopHeightType" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
-                <option value="ratio" ${config.desktopHeightType === 'ratio' || !config.desktopHeightType ? 'selected' : ''}>${translations['heightType.ratio'] || 'Aspect ratio'}</option>
-                <option value="fixed" ${config.desktopHeightType === 'fixed' ? 'selected' : ''}>${translations['heightType.fixed'] || 'Fixed height'}</option>
-            </select>
-        </div>
-        
-        <!-- Desktop ratio -->
-        <div class="settings-field" style="margin-bottom: 20px; ${config.desktopHeightType === 'fixed' ? 'display: none;' : ''}">
-            <label style="display: block; margin-bottom: 8px; font-size: 13px; color: #333;">
-                ${translations['settings.desktopRatio'] || 'Desktop ratio'}
+                ${translations['settings.desktopHeight'] || 'Desktop height'}
             </label>
             <div style="display: flex; align-items: center; gap: 12px;">
-                <input type="range" min="0.2" max="2" step="0.1" value="${config.desktopRatio}" 
-                       data-setting="desktopRatio" 
-                       style="flex: 1; height: 4px;">
-                <span style="min-width: 45px; font-size: 13px; color: #666; text-align: right;">${config.desktopRatio}</span>
-            </div>
-        </div>
-        
-        <!-- Desktop fixed height -->
-        <div class="settings-field" style="margin-bottom: 20px; ${config.desktopHeightType !== 'fixed' ? 'display: none;' : ''}">
-            <label style="display: block; margin-bottom: 8px; font-size: 13px; color: #333;">
-                ${translations['settings.desktopFixedHeight'] || 'Desktop height (px)'}
-            </label>
-            <div style="display: flex; align-items: center; gap: 12px;">
-                <input type="range" min="200" max="2000" step="10" value="${config.desktopFixedHeight || 600}" 
+                <input type="range" min="200" max="1200" step="25" value="${config.desktopFixedHeight || 600}" 
                        data-setting="desktopFixedHeight" 
                        style="flex: 1; height: 4px;">
                 <span style="min-width: 60px; font-size: 13px; color: #666; text-align: right;">${config.desktopFixedHeight || 600}px</span>
