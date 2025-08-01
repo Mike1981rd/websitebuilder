@@ -1222,7 +1222,9 @@ async function loadCurrentWebsite() {
                                 currentSectionsConfig.header.sectionVisibility = {
                                     menu: true,
                                     logo: true,
-                                    icons: true
+                                    icons: true,
+                                    searchIcon: true,
+                                    accountIcon: true
                                 };
                             }
                         }
@@ -5761,6 +5763,8 @@ $(document).ready(async function() {
             'headerSettings.selectImage': 'Seleccionar',
             'headerSettings.browseFreeImages': 'Explorar imágenes gratuitas',
             'headerSettings.icons': 'Iconos',
+            'headerSettings.showSearchIcon': 'Mostrar icono de búsqueda',
+            'headerSettings.showAccountIcon': 'Mostrar icono de cuenta',
             'headerSettings.iconStyle': 'Estilo de icono',
             'headerSettings.iconStyleSolid': 'Sólido',
             'headerSettings.iconStyleOutline': 'Contorno',
@@ -6619,6 +6623,8 @@ $(document).ready(async function() {
             'headerSettings.selectImage': 'Select',
             'headerSettings.browseFreeImages': 'Browse free images',
             'headerSettings.icons': 'Icons',
+            'headerSettings.showSearchIcon': 'Show search icon',
+            'headerSettings.showAccountIcon': 'Show account icon',
             'headerSettings.iconStyle': 'Icon style',
             'headerSettings.iconStyleSolid': 'Solid',
             'headerSettings.iconStyleOutline': 'Outline',
@@ -7609,8 +7615,10 @@ $(document).ready(async function() {
             attachHeaderSettingsEventListeners();
             // Apply translations after rendering
             setTimeout(applyTranslations, 0);
-            // Populate with current values
-            populateHeaderSettingsFields();
+            // Populate with current values - delay to ensure DOM is ready
+            setTimeout(() => {
+                populateHeaderSettingsFields();
+            }, 50);
         } else if (viewName === 'announcementItemSettings') {
             dynamicContentArea.innerHTML = renderAnnouncementItemSettingsView(data);
             attachAnnouncementItemEventListeners();
@@ -12638,6 +12646,26 @@ $(document).ready(async function() {
                                     `<span style="font-size: 18px; text-decoration: line-through;">👁️</span>`
                                 }
                             </button>
+                        </div>
+                        
+                        <!-- Search icon visibility -->
+                        <div class="settings-field">
+                            <label class="toggle-field">
+                                <span data-i18n="headerSettings.showSearchIcon">Show search icon</span>
+                                <input type="checkbox" class="shopify-toggle" id="header-show-search-icon" 
+                                       ${currentSectionsConfig.header.sectionVisibility?.searchIcon !== false ? 'checked' : ''}>
+                                <label for="header-show-search-icon" class="toggle-slider"></label>
+                            </label>
+                        </div>
+                        
+                        <!-- Account icon visibility -->
+                        <div class="settings-field">
+                            <label class="toggle-field">
+                                <span data-i18n="headerSettings.showAccountIcon">Show account icon</span>
+                                <input type="checkbox" class="shopify-toggle" id="header-show-account-icon" 
+                                       ${currentSectionsConfig.header.sectionVisibility?.accountIcon !== false ? 'checked' : ''}>
+                                <label for="header-show-account-icon" class="toggle-slider"></label>
+                            </label>
                         </div>
                         
                         <!-- Icon style -->
@@ -24993,6 +25021,13 @@ document.head.appendChild(style);
     // Function to populate header settings fields with current values
     function populateHeaderSettingsFields() {
         const config = currentSectionsConfig.header;
+        console.log('[POPULATE] Loading header settings with config:', config);
+        console.log('[POPULATE] Section visibility:', config.sectionVisibility);
+        
+        // Debug: Check if the toggles exist in DOM
+        console.log('[POPULATE] Checking DOM for toggles:');
+        console.log('[POPULATE] searchIcon toggle:', $('.simple-visibility-btn[data-section="searchIcon"]').length);
+        console.log('[POPULATE] accountIcon toggle:', $('.simple-visibility-btn[data-section="accountIcon"]').length);
         $('#header-color-scheme').val(config.colorScheme || 'scheme1');
         $('#header-width').val(config.width);
         $('#header-layout').val(config.layout);
@@ -25032,18 +25067,36 @@ document.head.appendChild(style);
         
         // Load section visibility states
         if (config.sectionVisibility) {
+            // Handle old style toggles (with eye icons)
             Object.keys(config.sectionVisibility).forEach(section => {
-                const $toggle = $(`.header-visibility-toggle[data-section="${section}"]`);
-                const isVisible = config.sectionVisibility[section];
+                const $oldToggle = $(`.header-visibility-toggle[data-section="${section}"]`);
+                const $simpleToggle = $(`.simple-visibility-btn[data-section="${section}"]`);
+                const isVisible = config.sectionVisibility[section] !== false;
                 
-                // Replace the entire button content
-                const iconHtml = isVisible ? 
-                    '<i class="fas fa-eye"></i>' : 
-                    '<i class="fas fa-eye-slash"></i>';
+                // Update old style toggles
+                if ($oldToggle.length > 0) {
+                    const iconHtml = isVisible ? 
+                        '<i class="fas fa-eye"></i>' : 
+                        '<i class="fas fa-eye-slash"></i>';
+                    $oldToggle.html(iconHtml);
+                }
                 
-                $toggle.html(iconHtml);
-                $toggle.attr('data-visible', isVisible);
+                // Update simple button toggles (eye emoji style)
+                if ($simpleToggle.length > 0) {
+                    const simpleIconHtml = isVisible ? 
+                        '<span style="font-size: 18px;">👁️</span>' : 
+                        '<span style="font-size: 18px; text-decoration: line-through;">👁️</span>';
+                    $simpleToggle.html(simpleIconHtml);
+                }
             });
+            
+            // Handle new Shopify-style toggles for search and account icons
+            if (config.sectionVisibility.searchIcon !== undefined) {
+                $('#header-show-search-icon').prop('checked', config.sectionVisibility.searchIcon !== false);
+            }
+            if (config.sectionVisibility.accountIcon !== undefined) {
+                $('#header-show-account-icon').prop('checked', config.sectionVisibility.accountIcon !== false);
+            }
         }
     }
     
@@ -25284,6 +25337,50 @@ document.head.appendChild(style);
             console.log('[DEBUG] Header config changed - navigationMenu');
         });
         
+        // Search icon visibility toggle
+        $('#header-show-search-icon').on('change', function() {
+            const isVisible = $(this).is(':checked');
+            
+            // Initialize sectionVisibility if it doesn't exist
+            if (!currentSectionsConfig.header.sectionVisibility) {
+                currentSectionsConfig.header.sectionVisibility = {
+                    menu: true,
+                    logo: true,
+                    icons: true,
+                    searchIcon: true,
+                    accountIcon: true
+                };
+            }
+            
+            currentSectionsConfig.header.sectionVisibility.searchIcon = isVisible;
+            hasPendingPageStructureChanges = true;
+            updateSaveButtonState();
+            renderPreview();
+            console.log('[DEBUG] Header search icon visibility changed:', isVisible);
+        });
+        
+        // Account icon visibility toggle
+        $('#header-show-account-icon').on('change', function() {
+            const isVisible = $(this).is(':checked');
+            
+            // Initialize sectionVisibility if it doesn't exist
+            if (!currentSectionsConfig.header.sectionVisibility) {
+                currentSectionsConfig.header.sectionVisibility = {
+                    menu: true,
+                    logo: true,
+                    icons: true,
+                    searchIcon: true,
+                    accountIcon: true
+                };
+            }
+            
+            currentSectionsConfig.header.sectionVisibility.accountIcon = isVisible;
+            hasPendingPageStructureChanges = true;
+            updateSaveButtonState();
+            renderPreview();
+            console.log('[DEBUG] Header account icon visibility changed:', isVisible);
+        });
+        
         // Logo upload buttons
         $('.select-logo-btn').on('click', function(e) {
             e.preventDefault();
@@ -25436,15 +25533,23 @@ document.head.appendChild(style);
             currentSectionsConfig.header.sectionVisibility = {
                 menu: true,
                 logo: true,
-                icons: true
+                icons: true,
+                searchIcon: true,
+                accountIcon: true
             };
+        }
+        
+        // Initialize the specific section if it doesn't exist
+        if (currentSectionsConfig.header.sectionVisibility[section] === undefined) {
+            currentSectionsConfig.header.sectionVisibility[section] = true;
         }
         
         // Toggle visibility
         currentSectionsConfig.header.sectionVisibility[section] = !currentSectionsConfig.header.sectionVisibility[section];
         const isVisible = currentSectionsConfig.header.sectionVisibility[section];
         
-        console.log('[SIMPLE-TOGGLE] New visibility state:', isVisible);
+        console.log('[SIMPLE-TOGGLE] New visibility state for', section, ':', isVisible);
+        console.log('[SIMPLE-TOGGLE] Current sectionVisibility:', currentSectionsConfig.header.sectionVisibility);
         
         // Update button content with simple emoji
         if (isVisible) {
@@ -25456,6 +25561,9 @@ document.head.appendChild(style);
         // Mark as having changes
         hasPendingPageStructureChanges = true;
         updateSaveButtonState();
+        
+        // Update preview to reflect changes immediately
+        renderPreview();
     };
     
     // Function to open fullscreen menu modal
@@ -27555,6 +27663,30 @@ document.head.appendChild(style);
                     console.log('[DEBUG] Updated pagesConfig after save:', pagesConfig);
                     console.log('[DEBUG] Updated pagesConfig[' + currentPageId + '] keys:', Object.keys(pagesConfig[currentPageId].sectionsConfig));
                     
+                    // SYNC GLOBAL SECTIONS: If we saved from home page, update header/footer in all other pages
+                    if (currentPageId === 'home' && pagesConfig[currentPageId].sectionsConfig) {
+                        const homeConfig = pagesConfig[currentPageId].sectionsConfig;
+                        const globalSections = {};
+                        
+                        // Extract global sections from home
+                        if (homeConfig.header) globalSections.header = homeConfig.header;
+                        if (homeConfig.footer) globalSections.footer = homeConfig.footer;
+                        if (homeConfig.announcementBar) globalSections.announcementBar = homeConfig.announcementBar;
+                        if (homeConfig.announcements) globalSections.announcements = homeConfig.announcements;
+                        if (homeConfig.announcementOrder) globalSections.announcementOrder = homeConfig.announcementOrder;
+                        
+                        // Update all other pages with the new global sections
+                        Object.keys(pagesConfig).forEach(pageId => {
+                            if (pageId !== 'home' && pagesConfig[pageId] && pagesConfig[pageId].sectionsConfig) {
+                                // Update each global section
+                                Object.keys(globalSections).forEach(sectionKey => {
+                                    pagesConfig[pageId].sectionsConfig[sectionKey] = globalSections[sectionKey];
+                                });
+                                console.log(`[SYNC] Updated global sections in page: ${pageId}`);
+                            }
+                        });
+                    }
+                    
                     $button.find('.btn-text').text('Guardado');
                     $button.removeClass('loading');
                     // Aquí podrías mostrar una notificación de éxito al usuario
@@ -27618,7 +27750,12 @@ document.head.appendChild(style);
                     } else if (currentSidebarView === 'headerSettings') {
                         // Recargar la vista de header settings
                         console.log('[DEBUG] Reloading header settings view after save');
-                        window.switchSidebarView('headerSettings');
+                        // Reload data from server first to get fresh state
+                        loadCurrentWebsite().then(() => {
+                            console.log('[DEBUG] Data reloaded, switching to header settings view');
+                            console.log('[DEBUG] Current sectionVisibility:', currentSectionsConfig.header?.sectionVisibility);
+                            window.switchSidebarView('headerSettings');
+                        });
                     } else if (currentSidebarView === 'announcementBar') {
                         // Recargar la vista de announcement bar
                         console.log('[DEBUG] Reloading announcement bar view after save');

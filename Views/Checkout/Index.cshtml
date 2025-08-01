@@ -647,15 +647,15 @@
     <main class="checkout-main">
         <!-- Left Column - Form -->
         <div class="checkout-form">
-            <!-- Express Checkout -->
-            <div class="express-checkout">
+            <!-- Express Checkout - Hidden for unified design -->
+            <div class="express-checkout" style="display: none;">
                 <p style="font-size: 13px; color: #666; margin-bottom: 12px;">Pago exprés</p>
                 <button class="express-checkout-btn">
                     <img src="https://upload.wikimedia.org/wikipedia/commons/f/f2/Google_Pay_Logo.svg" height="20" alt="Google Pay">
                 </button>
             </div>
             
-            <div class="divider">O</div>
+            <div class="divider" style="display: none;">O</div>
             
             <!-- Contact Section -->
             <div class="form-section">
@@ -675,18 +675,13 @@
                 
                 <div class="form-group">
                     <label class="form-label">País / Región</label>
-                    <select class="form-select" id="country-select" name="country">
-                        <option>Estados Unidos</option>
-                        <option>México</option>
-                        <option>España</option>
-                        <option>Argentina</option>
-                        <option>Colombia</option>
-                    </select>
+                    <input type="text" class="form-input" id="country-display" value="Estados Unidos" readonly style="cursor: pointer;">
+                    <input type="hidden" id="country-hidden" name="country" value="Estados Unidos">
                 </div>
                 
                 <div class="form-row">
                     <div class="form-group">
-                        <input type="text" class="form-input" id="firstName" name="firstName" placeholder="Nombre (opcional)">
+                        <input type="text" class="form-input" id="firstName" name="firstName" placeholder="Nombre">
                     </div>
                     <div class="form-group">
                         <input type="text" class="form-input" id="lastName" name="lastName" placeholder="Apellidos">
@@ -706,9 +701,7 @@
                         <input type="text" class="form-input" id="city" name="city" placeholder="Ciudad">
                     </div>
                     <div class="form-group">
-                        <select class="form-select" id="state-select" name="state">
-                            <option value="">Estado</option>
-                        </select>
+                        <input type="text" class="form-input" id="state-input" name="state" placeholder="Estado / Provincia / Región">
                     </div>
                     <div class="form-group">
                         <input type="text" class="form-input" id="postalCode" name="postalCode" placeholder="Código postal">
@@ -735,7 +728,7 @@
                 <div class="payment-methods">
                     <div class="form-group">
                         <label class="form-label">Tarjeta de crédito</label>
-                        <div class="payment-icons">
+                        <div class="payment-icons" style="display: none;">
                             <svg width="38" height="24" viewBox="0 0 38 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <rect width="38" height="24" rx="4" fill="#1434CB"/>
                                 <path d="M17.2969 16H15.0781L13.4141 10.0391C13.3438 9.79688 13.2344 9.66406 13.0469 9.57031C12.5859 9.32031 12.0703 9.125 11.5 9.03125V8.78125H14.7734C15.2344 8.78125 15.5859 9.13281 15.6562 9.55469L16.375 13.5078L18.0391 8.78125H20.2031L17.2969 16ZM21.3125 16H19.2266L20.9062 8.78125H23L21.3125 16ZM26.5 11.4453C26.5 10.9844 26.9219 10.7266 27.3828 10.7266C27.6797 10.7266 28.0312 10.7812 28.3281 10.8906V8.99219C28.0312 8.88281 27.6797 8.82812 27.3281 8.82812C25.5547 8.82812 24.3359 9.78906 24.3359 11.2031C24.3359 13.5078 27.125 12.6172 27.125 13.6172C27.125 14.0781 26.6484 14.3359 26.1875 14.3359C25.8359 14.3359 25.4297 14.2266 25.0781 14.0625V15.9609C25.4844 16.125 25.8906 16.1797 26.2969 16.1797C28.125 16.2344 29.2891 15.2734 29.2891 13.8594C29.2891 11.3359 26.5 12.3359 26.5 11.4453Z" fill="white"/>
@@ -973,6 +966,11 @@
             
             // Always load cart items (for both normal checkout and reservations)
             loadCartItems();
+            
+            // Initialize country selector for normal checkout
+            if (!isReservation) {
+                initializeCountrySelector();
+            }
         });
         
         // Add date fields for reservation
@@ -1228,6 +1226,124 @@
             stateSelect.parentNode.replaceChild(stateInput, stateSelect);
         }
         
+        // Initialize country selector with search functionality
+        function initializeCountrySelector() {
+            const countryDisplay = document.getElementById('country-display');
+            const countryHidden = document.getElementById('country-hidden');
+            if (!countryDisplay || !countryHidden) return;
+            
+            // List of all countries
+            const countries = [
+                "Afganistán", "Albania", "Alemania", "Andorra", "Angola", "Antigua y Barbuda", "Arabia Saudita", 
+                "Argelia", "Argentina", "Armenia", "Australia", "Austria", "Azerbaiyán", "Bahamas", "Bangladés", 
+                "Barbados", "Baréin", "Bélgica", "Belice", "Benín", "Bielorrusia", "Birmania", "Bolivia", 
+                "Bosnia y Herzegovina", "Botsuana", "Brasil", "Brunéi", "Bulgaria", "Burkina Faso", "Burundi", 
+                "Bután", "Cabo Verde", "Camboya", "Camerún", "Canadá", "Catar", "Chad", "Chile", "China", 
+                "Chipre", "Colombia", "Comoras", "Corea del Norte", "Corea del Sur", "Costa de Marfil", 
+                "Costa Rica", "Croacia", "Cuba", "Dinamarca", "Dominica", "Ecuador", "Egipto", "El Salvador", 
+                "Emiratos Árabes Unidos", "Eritrea", "Eslovaquia", "Eslovenia", "España", "Estados Unidos", 
+                "Estonia", "Etiopía", "Filipinas", "Finlandia", "Fiyi", "Francia", "Gabón", "Gambia", "Georgia", 
+                "Ghana", "Granada", "Grecia", "Guatemala", "Guinea", "Guinea Ecuatorial", "Guinea-Bisáu", "Guyana", 
+                "Haití", "Honduras", "Hungría", "India", "Indonesia", "Irak", "Irán", "Irlanda", "Islandia", 
+                "Islas Marshall", "Islas Salomón", "Israel", "Italia", "Jamaica", "Japón", "Jordania", "Kazajistán", 
+                "Kenia", "Kirguistán", "Kiribati", "Kuwait", "Laos", "Lesoto", "Letonia", "Líbano", "Liberia", 
+                "Libia", "Liechtenstein", "Lituania", "Luxemburgo", "Macedonia del Norte", "Madagascar", "Malasia", 
+                "Malaui", "Maldivas", "Malí", "Malta", "Marruecos", "Mauricio", "Mauritania", "México", 
+                "Micronesia", "Moldavia", "Mónaco", "Mongolia", "Montenegro", "Mozambique", "Namibia", "Nauru", 
+                "Nepal", "Nicaragua", "Níger", "Nigeria", "Noruega", "Nueva Zelanda", "Omán", "Países Bajos", 
+                "Pakistán", "Palaos", "Panamá", "Papúa Nueva Guinea", "Paraguay", "Perú", "Polonia", "Portugal", 
+                "Reino Unido", "República Centroafricana", "República Checa", "República del Congo", 
+                "República Democrática del Congo", "República Dominicana", "Ruanda", "Rumania", "Rusia", 
+                "Samoa", "San Cristóbal y Nieves", "San Marino", "San Vicente y las Granadinas", "Santa Lucía", 
+                "Santo Tomé y Príncipe", "Senegal", "Serbia", "Seychelles", "Sierra Leona", "Singapur", "Siria", 
+                "Somalia", "Sri Lanka", "Suazilandia", "Sudáfrica", "Sudán", "Sudán del Sur", "Suecia", "Suiza", 
+                "Surinam", "Tailandia", "Tanzania", "Tayikistán", "Timor Oriental", "Togo", "Tonga", 
+                "Trinidad y Tobago", "Túnez", "Turkmenistán", "Turquía", "Tuvalu", "Ucrania", "Uganda", 
+                "Uruguay", "Uzbekistán", "Vanuatu", "Vaticano", "Venezuela", "Vietnam", "Yemen", "Yibuti", 
+                "Zambia", "Zimbabue"
+            ];
+            
+            // Get parent container
+            const parentContainer = countryDisplay.parentNode;
+            
+            // Create wrapper
+            const wrapper = document.createElement('div');
+            wrapper.className = 'country-select-wrapper';
+            
+            // Create search input
+            const searchInput = document.createElement('input');
+            searchInput.type = 'text';
+            searchInput.className = 'country-search-input';
+            searchInput.placeholder = 'Buscar país...';
+            
+            // Create dropdown
+            const dropdown = document.createElement('div');
+            dropdown.className = 'country-dropdown';
+            
+            // Populate dropdown
+            function populateDropdown(filter = '') {
+                dropdown.innerHTML = '';
+                const filtered = countries.filter(country => 
+                    country.toLowerCase().includes(filter.toLowerCase())
+                );
+                
+                filtered.forEach(country => {
+                    const option = document.createElement('div');
+                    option.className = 'country-option';
+                    option.textContent = country;
+                    if (country === countryHidden.value) {
+                        option.classList.add('selected');
+                    }
+                    
+                    option.addEventListener('click', function() {
+                        countryHidden.value = country;
+                        countryDisplay.value = country;
+                        dropdown.classList.remove('active');
+                        searchInput.style.display = 'none';
+                        countryDisplay.style.display = 'block';
+                        searchInput.value = '';
+                    });
+                    
+                    dropdown.appendChild(option);
+                });
+            }
+            
+            // Show dropdown on click
+            countryDisplay.addEventListener('click', function() {
+                this.style.display = 'none';
+                searchInput.style.display = 'block';
+                searchInput.focus();
+                dropdown.classList.add('active');
+                populateDropdown();
+            });
+            
+            // Filter on search
+            searchInput.addEventListener('input', function() {
+                populateDropdown(this.value);
+            });
+            
+            // Close dropdown on outside click
+            document.addEventListener('click', function(e) {
+                if (!wrapper.contains(e.target)) {
+                    dropdown.classList.remove('active');
+                    searchInput.style.display = 'none';
+                    countryDisplay.style.display = 'block';
+                    searchInput.value = '';
+                }
+            });
+            
+            // Replace original elements
+            parentContainer.removeChild(countryDisplay);
+            parentContainer.removeChild(countryHidden);
+            
+            wrapper.appendChild(countryHidden);
+            wrapper.appendChild(countryDisplay);
+            wrapper.appendChild(searchInput);
+            wrapper.appendChild(dropdown);
+            
+            parentContainer.appendChild(wrapper);
+        }
+        
         // Process checkout - collect all form data
         function processCheckout() {
             // Get URL parameters to check if it's a reservation
@@ -1246,7 +1362,7 @@
                 address: document.getElementById('address').value,
                 apartment: document.getElementById('apartment').value,
                 city: document.getElementById('city').value,
-                state: document.getElementById('state-input')?.value || document.getElementById('state-select')?.value || '',
+                state: document.getElementById('state-input')?.value || '',
                 postalCode: document.getElementById('postalCode').value,
                 
                 // Payment info (mockup - not real validation)

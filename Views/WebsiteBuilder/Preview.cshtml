@@ -435,17 +435,18 @@
                         } else if (currentPageId === 'cart') {
                             // Special handling for cart page
                             console.log('[PREVIEW] Loading cart page configuration');
-                            // Keep existing header and footer configurations
-                            const existingHeader = currentSectionsConfig.header || {};
-                            const existingFooter = currentSectionsConfig.footer || {};
+                            // Get header and footer from home page configuration
+                            const homePageConfig = pagesData['home'];
+                            const headerFromHome = homePageConfig?.sectionsConfig?.header || currentSectionsConfig.header || {};
+                            const footerFromHome = homePageConfig?.sectionsConfig?.footer || currentSectionsConfig.footer || {};
                             const existingCart = currentSectionsConfig.cart || {};
                             
                             // Cart page should only show header, cart section, and footer
                             currentSectionsConfig = {
                                 ...currentSectionsConfig,
                                 sectionOrder: ['header', 'cart', 'footer'],
-                                header: existingHeader,
-                                footer: existingFooter,
+                                header: headerFromHome,
+                                footer: footerFromHome,
                                 cart: {
                                     ...existingCart,
                                     isHidden: false, // Force cart to be visible
@@ -602,9 +603,10 @@
                             console.log('[PREVIEW] ViewBag.ProductHandle:', viewBagProductHandle);
                             console.log('[PREVIEW] Current sectionsConfig before product page load:', currentSectionsConfig);
                             
-                            // Keep existing header and footer configurations
-                            const existingHeader = currentSectionsConfig.header || {};
-                            const existingFooter = currentSectionsConfig.footer || {};
+                            // Get header and footer from home page configuration
+                            const homePageConfig = pagesData['home'];
+                            const headerFromHome = homePageConfig?.sectionsConfig?.header || currentSectionsConfig.header || {};
+                            const footerFromHome = homePageConfig?.sectionsConfig?.footer || currentSectionsConfig.footer || {};
                             const existingProductContainer = currentSectionsConfig.productContainer || {};
                             
                             // Check if we have a product template page saved
@@ -618,7 +620,10 @@
                                 currentSectionsConfig = {
                                     ...currentSectionsConfig,
                                     ...pageConfig.sectionsConfig,
-                                    sectionOrder: pageConfig.sectionOrder || []
+                                    sectionOrder: pageConfig.sectionOrder || [],
+                                    // Always use header and footer from home page
+                                    header: headerFromHome,
+                                    footer: footerFromHome
                                 };
                                 
                                 // Look for product container in different possible keys
@@ -639,8 +644,8 @@
                                 currentSectionsConfig = {
                                     ...currentSectionsConfig,
                                     sectionOrder: ['header', 'product-container', 'footer'],
-                                    header: existingHeader,
-                                    footer: existingFooter,
+                                    header: headerFromHome,
+                                    footer: footerFromHome,
                                     productContainer: {
                                         ...existingProductContainer,
                                         isHidden: false,
@@ -1534,6 +1539,16 @@
             }
             
             previewContent.innerHTML = finalHtml;
+            
+            // Add click event to logo to navigate to homepage
+            const logoElements = document.querySelectorAll('.header-logo, .header-logo-wrapper');
+            logoElements.forEach(logo => {
+                logo.style.cursor = 'pointer';
+                logo.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    window.location.href = '/WebsiteBuilder/Preview';
+                });
+            });
             
             // Load collections data if on collections page
             if (currentPageId === 'collections' && window.loadCollectionsData) {

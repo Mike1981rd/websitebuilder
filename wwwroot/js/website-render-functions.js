@@ -312,10 +312,13 @@ function renderHeader(config) {
     }
     
     // Icons section
+    const showSearchIcon = config.sectionVisibility?.searchIcon !== false;
+    const showAccountIcon = config.sectionVisibility?.accountIcon !== false;
+    
     const iconsHtml = `
         <div class="header-icons-right" style="display: flex; gap: 24px; align-items: center;">
-            <span class="${iconClass}" style="font-size: 24px; font-weight: ${iconWeight}; cursor: pointer; color: ${schemeColors.text};">${searchIcon}</span>
-            <span class="${iconClass}" style="font-size: 24px; font-weight: ${iconWeight}; cursor: pointer; color: ${schemeColors.text};">${personIcon}</span>
+            ${showSearchIcon ? `<span class="${iconClass}" style="font-size: 24px; font-weight: ${iconWeight}; cursor: pointer; color: ${schemeColors.text};">${searchIcon}</span>` : ''}
+            ${showAccountIcon ? `<span class="${iconClass}" style="font-size: 24px; font-weight: ${iconWeight}; cursor: pointer; color: ${schemeColors.text};">${personIcon}</span>` : ''}
             <div class="cart-icon-wrapper" style="position: relative; cursor: pointer;">
                 <span class="${iconClass} cart-icon-header" style="font-size: 24px; font-weight: ${iconWeight}; color: ${schemeColors.text};">${cartIcon}</span>
                 ${cartCount > 0 ? `
