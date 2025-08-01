@@ -1113,6 +1113,12 @@ async function loadCurrentWebsite() {
                         // Deep merge saved config with defaults
                         currentSectionsConfig = $.extend(true, {}, defaultConfig, sectionsData);
                         
+                        // CRITICAL: Preserve sectionOrder from database (deep merge might override it)
+                        if (sectionsData.sectionOrder) {
+                            currentSectionsConfig.sectionOrder = sectionsData.sectionOrder;
+                            console.log('[DEBUG] Preserved sectionOrder from DB:', currentSectionsConfig.sectionOrder);
+                        }
+                        
                         // Debug log to verify featuredProduct merge
                         if (currentSectionsConfig.featuredProduct) {
                             console.log('[DEBUG] FeaturedProduct config after merge:', {
@@ -1275,6 +1281,7 @@ async function loadCurrentWebsite() {
                             }
                         }*/
                     console.log('[DEBUG] Loaded sections config from DB:', currentSectionsConfig);
+                    console.log('[DEBUG] SectionOrder from DB:', currentSectionsConfig.sectionOrder);
                     
                     // IMPORTANT: Only update pagesConfig['home'] if we're currently on the home page
                     // This prevents overwriting data when we're on a different page
@@ -1289,6 +1296,8 @@ async function loadCurrentWebsite() {
                         
                         // Extract sectionOrder from currentSectionsConfig if it exists
                         const { sectionOrder, ...sectionsWithoutOrder } = currentSectionsConfig;
+                        
+                        console.log('[DEBUG] Updating pagesConfig.home.sectionOrder with:', sectionOrder);
                         
                         pagesConfig['home'].sectionOrder = sectionOrder || [];
                         pagesConfig['home'].sectionsConfig = sectionsWithoutOrder;
@@ -2029,10 +2038,6 @@ function renderAnnouncementBar(config) {
 
     console.log('[DEBUG] renderAnnouncementBar - visibleAnnouncements:', visibleAnnouncements);
 
-    if (visibleAnnouncements.length === 0) {
-        visibleAnnouncements.push({ text: 'Welcome to our store!', link: '', icon: 'none' });
-    }
-
     // Get the selected color scheme or default to scheme1
     const selectedScheme = config.colorScheme || 'scheme1';
     const schemeColors = getColorSchemeValues(selectedScheme);
@@ -2069,25 +2074,30 @@ function renderAnnouncementBar(config) {
         announcementContent = marqueeItems.join('<span class="marquee-separator">•</span>');
     } else {
         // Normal single announcement display
-        if (currentAnnouncementIndex >= visibleAnnouncements.length) {
-            currentAnnouncementIndex = 0;
-        }
+        if (visibleAnnouncements.length === 0) {
+            // If no announcements are visible, show empty content
+            announcementContent = '';
+        } else {
+            if (currentAnnouncementIndex >= visibleAnnouncements.length) {
+                currentAnnouncementIndex = 0;
+            }
+            
+            const currentAnnouncement = visibleAnnouncements[currentAnnouncementIndex];
+            let announcementText = currentAnnouncement.text;
         
-        const currentAnnouncement = visibleAnnouncements[currentAnnouncementIndex];
-        let announcementText = currentAnnouncement.text;
-        
-        // Handle icon display based on icon source
-        if (currentAnnouncement.useCustomIcon && currentAnnouncement.customIconFile) {
-            announcementText = `<img src="${currentAnnouncement.customIconFile}" alt="icon" style="width: 16px; height: 16px; vertical-align: middle;"> ${announcementText}`;
-        } else if (currentAnnouncement.icon && currentAnnouncement.icon !== 'none') {
-            announcementText = `<span class="material-icons" style="font-size: 16px; vertical-align: middle; color: inherit;">${currentAnnouncement.icon}</span> ${announcementText}`;
-        }
+            // Handle icon display based on icon source
+            if (currentAnnouncement.useCustomIcon && currentAnnouncement.customIconFile) {
+                announcementText = `<img src="${currentAnnouncement.customIconFile}" alt="icon" style="width: 16px; height: 16px; vertical-align: middle;"> ${announcementText}`;
+            } else if (currentAnnouncement.icon && currentAnnouncement.icon !== 'none') {
+                announcementText = `<span class="material-icons" style="font-size: 16px; vertical-align: middle; color: inherit;">${currentAnnouncement.icon}</span> ${announcementText}`;
+            }
 
-        if (currentAnnouncement.link) {
-            announcementText = `<a href="${currentAnnouncement.link}" style="color: inherit; text-decoration: none;">${announcementText}</a>`;
+            if (currentAnnouncement.link) {
+                announcementText = `<a href="${currentAnnouncement.link}" style="color: inherit; text-decoration: none;">${announcementText}</a>`;
+            }
+            
+            announcementContent = announcementText;
         }
-        
-        announcementContent = announcementText;
     }
 
     // Construir iconos sociales si están habilitados
@@ -7588,6 +7598,10 @@ $(document).ready(async function() {
                 // Populate with current values
                 console.log('[DEBUG] About to populate announcement bar fields');
                 populateAnnouncementBarFields();
+                
+                // Sync visibility states for all announcement items
+                syncVisibilityToggleStates();
+                
                 console.log('[DEBUG] Announcement bar setup complete');
             }, 100);
         } else if (viewName === 'headerSettings') {
@@ -8240,6 +8254,10 @@ $(document).ready(async function() {
     
     // Function to render header sections based on saved order
     function renderHeaderSections() {
+        console.log('[RENDER] renderHeaderSections called');
+        console.log('[RENDER] currentSectionsConfig.sectionOrder:', currentSectionsConfig.sectionOrder);
+        console.log('[RENDER] pagesConfig[currentPageId]?.sectionOrder:', pagesConfig[currentPageId]?.sectionOrder);
+        
         let html = '';
         const sections = {
             'announcement': {
@@ -8281,10 +8299,19 @@ $(document).ready(async function() {
             }
         };
         
-        // Only show header sections (announcement, header)
-        const headerOrder = ['announcement', 'header'];
+        // Use the actual sectionOrder to respect drag & drop changes
+        const sectionOrder = currentSectionsConfig.sectionOrder || ['announcement', 'header'];
         
-        for (const sectionType of headerOrder) {
+        console.log('[PANEL] renderHeaderSections - Full sectionOrder:', sectionOrder);
+        
+        // Filter to only show header sections that are in the current order
+        const headerSections = sectionOrder.filter(section => 
+            (section === 'announcement' || section === 'header')
+        );
+        
+        console.log('[PANEL] renderHeaderSections - Header sections to render:', headerSections);
+        
+        for (const sectionType of headerSections) {
             if (sections[sectionType] && currentSectionsConfig[sectionType === 'announcement' ? 'announcementBar' : sectionType]) {
                 html += sections[sectionType].html;
                 if (sections[sectionType].includeAnnouncements) {
@@ -15610,6 +15637,9 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
             } else if (blockType === 'testimonial-item' && elementId) {
                 // Handle testimonial items
                 isHidden = currentSectionsConfig.testimonials?.testimonials?.[elementId]?.isHidden || false;
+            } else if (blockType === 'announcement-item' && elementId) {
+                // Handle announcement items
+                isHidden = currentSectionsConfig.announcements?.[elementId]?.isHidden || false;
             } else if (blockType === 'accordion-item' && elementId) {
                 // Handle accordion FAQ items
                 isHidden = currentSectionsConfig.accordion?.items?.[elementId]?.isHidden || false;
@@ -17557,6 +17587,11 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                 }
                 currentSectionsConfig.announcements[elementId].isHidden = newHiddenState;
                 console.log(`[DEBUG] Announcement ${elementId} saved as: ${newHiddenState ? 'hidden' : 'visible'}`);
+                
+                // Force sync the child visibility toggle state - CRITICAL FIX
+                if (window.forceChildVisibilitySync) {
+                    window.forceChildVisibilitySync(elementId, newHiddenState);
+                }
             } else if (section === 'announcement') {
                 currentSectionsConfig.announcementBar.isHidden = newHiddenState;
                 console.log(`[DEBUG] Announcement bar saved as: ${newHiddenState ? 'hidden' : 'visible'}`);
@@ -18751,9 +18786,40 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                             }
                             
                             currentSectionsConfig.sectionOrder = newOrder;
+                            
+                            // CRITICAL: Also update pagesConfig to keep preview in sync
+                            if (pagesConfig && pagesConfig[currentPageId]) {
+                                pagesConfig[currentPageId].sectionOrder = newOrder;
+                                console.log('[DRAG&DROP] Updated both currentSectionsConfig and pagesConfig sectionOrder:', newOrder);
+                            }
+                            
                             hasPendingPageStructureChanges = true;
                             updateSaveButtonState();
+                            
+                            // Update both preview AND panel to keep them in sync
                             renderPreview();
+                            
+                            // Re-render all sections to reflect new order
+                            const headerHtml = renderHeaderSections();
+                            $('#header-sections-container').html(headerHtml);
+                            
+                            const templateHtml = renderTemplateSections();
+                            $('#template-sections-container').html(templateHtml + `
+                                <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e3e3e3;">
+                                    <div class="add-section-button add-template-section" data-group="template">
+                                        <i class="material-icons">add_circle</i>
+                                        <span data-i18n="sections.addTemplateSection">Agregar sección de plantilla</span>
+                                    </div>
+                                </div>
+                            `);
+                            
+                            // Re-initialize sortables and event handlers
+                            setTimeout(() => {
+                                // The simplest solution is to re-attach all event listeners
+                                // which will also re-initialize all sortables
+                                attachBlockListEventListeners();
+                                applyTranslations();
+                            }, 100);
                         }
                     });
                 }
@@ -18864,9 +18930,40 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                             }
                             
                             currentSectionsConfig.sectionOrder = newOrder;
+                            
+                            // CRITICAL: Also update pagesConfig to keep preview in sync
+                            if (pagesConfig && pagesConfig[currentPageId]) {
+                                pagesConfig[currentPageId].sectionOrder = newOrder;
+                                console.log('[DRAG&DROP] Updated both currentSectionsConfig and pagesConfig sectionOrder:', newOrder);
+                            }
+                            
                             hasPendingPageStructureChanges = true;
                             updateSaveButtonState();
+                            
+                            // Update both preview AND panel to keep them in sync
                             renderPreview();
+                            
+                            // Re-render all sections to reflect new order
+                            const headerHtml = renderHeaderSections();
+                            $('#header-sections-container').html(headerHtml);
+                            
+                            const templateHtml = renderTemplateSections();
+                            $('#template-sections-container').html(templateHtml + `
+                                <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e3e3e3;">
+                                    <div class="add-section-button add-template-section" data-group="template">
+                                        <i class="material-icons">add_circle</i>
+                                        <span data-i18n="sections.addTemplateSection">Agregar sección de plantilla</span>
+                                    </div>
+                                </div>
+                            `);
+                            
+                            // Re-initialize sortables and event handlers
+                            setTimeout(() => {
+                                // The simplest solution is to re-attach all event listeners
+                                // which will also re-initialize all sortables
+                                attachBlockListEventListeners();
+                                applyTranslations();
+                            }, 100);
                         }
                     });
                 }
@@ -20341,6 +20438,60 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                 renderPreview();
                 
                 console.log('[DEBUG] Testimonials added successfully');
+                
+                // Close modal
+                $('.add-section-overlay').fadeOut(200, function() {
+                    $(this).remove();
+                });
+            } else {
+                console.log('[DEBUG] Testimonials already exists, checking if it\'s in sectionOrder');
+                
+                // If testimonials already exists, check if it's in the section order
+                if (!currentSectionsConfig.sectionOrder) {
+                    currentSectionsConfig.sectionOrder = [];
+                }
+                
+                if (!currentSectionsConfig.sectionOrder.includes('testimonials')) {
+                    console.log('[DEBUG] Adding testimonials to sectionOrder');
+                    // Find footer index and insert before it
+                    const footerIndex = currentSectionsConfig.sectionOrder.indexOf('footer');
+                    if (footerIndex > -1) {
+                        currentSectionsConfig.sectionOrder.splice(footerIndex, 0, 'testimonials');
+                    } else {
+                        // No footer, add at the end
+                        currentSectionsConfig.sectionOrder.push('testimonials');
+                    }
+                    
+                    // Update template sections
+                    const templateSectionsHtml = renderTemplateSections();
+                    $('#template-sections-container').html(templateSectionsHtml + `
+                        <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e3e3e3;">
+                            <div class="add-section-button add-template-section" data-group="template">
+                                <i class="material-icons">add_circle</i>
+                                <span data-i18n="sections.addTemplateSection">Agregar sección de plantilla</span>
+                            </div>
+                        </div>
+                    `);
+                    
+                    // Apply translations
+                    setTimeout(applyTranslations, 0);
+                    
+                    // Set pending changes flag
+                    hasPendingPageStructureChanges = true;
+                    updateSaveButtonState();
+                    
+                    // Update preview
+                    renderPreview();
+                    
+                    console.log('[DEBUG] Testimonials re-added to sectionOrder successfully');
+                } else {
+                    console.log('[DEBUG] Testimonials already in sectionOrder - nothing to do');
+                }
+                
+                // Close modal
+                $('.add-section-overlay').fadeOut(200, function() {
+                    $(this).remove();
+                });
             }
         }
         
@@ -27237,20 +27388,42 @@ document.head.appendChild(style);
             let sectionOrder = sectionsConfigCopy.sectionOrder || [];
             delete sectionsConfigCopy.sectionOrder; // Remove sectionOrder from the copy
             
-            // Ensure global sections are in the sectionOrder
+            // FIXED: Respect drag & drop order for header sections
+            // Only ensure that hidden sections are removed from order
             const hasAnnouncement = sectionsConfigCopy.announcementBar && !sectionsConfigCopy.announcementBar.isHidden;
             const hasHeader = sectionsConfigCopy.header && !sectionsConfigCopy.header.isHidden;
             const hasFooter = sectionsConfigCopy.footer && !sectionsConfigCopy.footer.isHidden;
             
-            // Remove any existing global sections from the order
-            sectionOrder = sectionOrder.filter(id => id !== 'announcement' && id !== 'header' && id !== 'footer');
+            // Remove hidden global sections from the order
+            let finalSectionOrder = [...sectionOrder];
             
-            // Rebuild the order with global sections in correct positions
-            const finalSectionOrder = [];
-            if (hasAnnouncement) finalSectionOrder.push('announcement');
-            if (hasHeader) finalSectionOrder.push('header');
-            finalSectionOrder.push(...sectionOrder);
-            if (hasFooter) finalSectionOrder.push('footer');
+            // Remove hidden sections
+            if (!hasAnnouncement) {
+                finalSectionOrder = finalSectionOrder.filter(id => id !== 'announcement');
+            }
+            if (!hasHeader) {
+                finalSectionOrder = finalSectionOrder.filter(id => id !== 'header');
+            }
+            if (!hasFooter) {
+                finalSectionOrder = finalSectionOrder.filter(id => id !== 'footer');
+            }
+            
+            // Add visible sections if they're missing (this handles edge cases)
+            if (hasAnnouncement && !finalSectionOrder.includes('announcement')) {
+                finalSectionOrder.unshift('announcement');
+            }
+            if (hasHeader && !finalSectionOrder.includes('header')) {
+                // Add header after announcement if it exists, otherwise at start
+                const announcementIndex = finalSectionOrder.indexOf('announcement');
+                if (announcementIndex > -1) {
+                    finalSectionOrder.splice(announcementIndex + 1, 0, 'header');
+                } else {
+                    finalSectionOrder.unshift('header');
+                }
+            }
+            if (hasFooter && !finalSectionOrder.includes('footer')) {
+                finalSectionOrder.push('footer');
+            }
             
             const pageData = {
                 id: currentPageId,
@@ -27449,7 +27622,44 @@ document.head.appendChild(style);
                     } else if (currentSidebarView === 'announcementBar') {
                         // Recargar la vista de announcement bar
                         console.log('[DEBUG] Reloading announcement bar view after save');
-                        window.switchSidebarView('announcementBar');
+                        
+                        // Reload data from server first to get fresh state
+                        loadCurrentWebsite().then(() => {
+                            window.switchSidebarView('announcementBar');
+                            
+                            // Sync announcement items visibility after view is rendered
+                            setTimeout(() => {
+                                console.log('[DEBUG] Syncing announcement items visibility toggles');
+                                
+                                // Sync each announcement item
+                                $('.sidebar-subsection[data-block-type="announcement-item"]').each(function() {
+                                    const $item = $(this);
+                                    const announcementId = $item.data('element-id'); // FIXED: usar element-id, no announcement-id
+                                    const $visibilityToggle = $item.find('.visibility-toggle');
+                                    
+                                    if (announcementId && $visibilityToggle.length > 0) {
+                                        const isHidden = currentSectionsConfig.announcements?.[announcementId]?.isHidden || false;
+                                        
+                                        // Clean up any residual inline styles
+                                        $visibilityToggle.find('.icon-visible, .icon-hidden').removeAttr('style');
+                                        
+                                        // Apply correct state
+                                        if (isHidden) {
+                                            $visibilityToggle.addClass('is-hidden');
+                                        } else {
+                                            $visibilityToggle.removeClass('is-hidden');
+                                        }
+                                        
+                                        // Force sync the child visibility toggle state - CRITICAL FIX
+                                        if (window.forceChildVisibilitySync) {
+                                            window.forceChildVisibilitySync(announcementId, isHidden);
+                                        }
+                                        
+                                        console.log(`[DEBUG] Synced announcement item ${announcementId}: ${isHidden ? 'hidden' : 'visible'}`);
+                                    }
+                                });
+                            }, 200);
+                        });
                     } else if (currentSidebarView === 'announcementItemSettings') {
                         // No recargar la vista de edición de anuncio individual
                         console.log('[DEBUG] Staying in announcement item settings view after save');

@@ -580,10 +580,6 @@ function renderAnnouncementBar(config) {
     
     console.log('[ANNOUNCEMENT-BAR] Visible announcements:', visibleAnnouncements);
 
-    if (visibleAnnouncements.length === 0) {
-        visibleAnnouncements.push({ text: 'Welcome to our store!', link: '', icon: 'none' });
-    }
-
     // Get the selected color scheme or default to scheme1
     const selectedScheme = config.colorScheme || 'scheme1';
     const schemeColors = getColorSchemeValues(selectedScheme);
@@ -620,33 +616,38 @@ function renderAnnouncementBar(config) {
         announcementContent = marqueeItems.join('<span class="marquee-separator">•</span>');
     } else {
         // Normal single announcement display
-        // Obtener currentAnnouncementIndex de diferentes fuentes
-        let announcementIndex = 0;
-        if (typeof window !== 'undefined' && typeof window.currentAnnouncementIndex !== 'undefined') {
-            announcementIndex = window.currentAnnouncementIndex;
-        } else if (typeof currentAnnouncementIndex !== 'undefined') {
-            announcementIndex = currentAnnouncementIndex;
-        }
+        if (visibleAnnouncements.length === 0) {
+            // If no announcements are visible, show empty content
+            announcementContent = '';
+        } else {
+            // Obtener currentAnnouncementIndex de diferentes fuentes
+            let announcementIndex = 0;
+            if (typeof window !== 'undefined' && typeof window.currentAnnouncementIndex !== 'undefined') {
+                announcementIndex = window.currentAnnouncementIndex;
+            } else if (typeof currentAnnouncementIndex !== 'undefined') {
+                announcementIndex = currentAnnouncementIndex;
+            }
+            
+            if (announcementIndex >= visibleAnnouncements.length) {
+                announcementIndex = 0;
+            }
+            
+            const currentAnnouncement = visibleAnnouncements[announcementIndex];
+            let announcementText = currentAnnouncement.text;
         
-        if (announcementIndex >= visibleAnnouncements.length) {
-            announcementIndex = 0;
-        }
-        
-        const currentAnnouncement = visibleAnnouncements[announcementIndex];
-        let announcementText = currentAnnouncement.text;
-        
-        // Handle icon display based on icon source
-        if (currentAnnouncement.useCustomIcon && currentAnnouncement.customIconFile) {
-            announcementText = `<img src="${currentAnnouncement.customIconFile}" alt="icon" style="width: 16px; height: 16px; vertical-align: middle;"> ${announcementText}`;
-        } else if (currentAnnouncement.icon && currentAnnouncement.icon !== 'none') {
-            announcementText = `<span class="material-icons" style="font-size: 16px; vertical-align: middle; color: inherit;">${currentAnnouncement.icon}</span> ${announcementText}`;
-        }
+            // Handle icon display based on icon source
+            if (currentAnnouncement.useCustomIcon && currentAnnouncement.customIconFile) {
+                announcementText = `<img src="${currentAnnouncement.customIconFile}" alt="icon" style="width: 16px; height: 16px; vertical-align: middle;"> ${announcementText}`;
+            } else if (currentAnnouncement.icon && currentAnnouncement.icon !== 'none') {
+                announcementText = `<span class="material-icons" style="font-size: 16px; vertical-align: middle; color: inherit;">${currentAnnouncement.icon}</span> ${announcementText}`;
+            }
 
-        if (currentAnnouncement.link) {
-            announcementText = `<a href="${currentAnnouncement.link}" style="color: inherit; text-decoration: none;">${announcementText}</a>`;
+            if (currentAnnouncement.link) {
+                announcementText = `<a href="${currentAnnouncement.link}" style="color: inherit; text-decoration: none;">${announcementText}</a>`;
+            }
+            
+            announcementContent = announcementText;
         }
-        
-        announcementContent = announcementText;
     }
 
     // Construir iconos sociales si están habilitados

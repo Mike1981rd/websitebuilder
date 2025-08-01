@@ -433,7 +433,7 @@ window.WebsiteBuilderModules.Gallery = {
         return `
             <div style="display: flex; flex-direction: column; height: 100%; position: relative; overflow: hidden;">
                 <div class="sidebar-view-header" style="position: relative; z-index: 10;">
-                    <button class="back-to-sections-btn">
+                    <button class="back-to-sections-btn" onclick="console.log('[GALLERY] Direct onclick fired'); window.switchSidebarView('blockList'); return false;">
                         <i class="material-icons">arrow_back</i>
                     </button>
                     <h3 data-i18n="sections.gallery">Gallery</h3>
@@ -899,7 +899,7 @@ window.WebsiteBuilderModules.Gallery = {
         return `
             <div style="display: flex; flex-direction: column; height: 100%; position: relative; overflow: hidden;">
                 <div class="sidebar-view-header" style="position: relative; z-index: 10;">
-                    <button class="back-to-image-gallery-btn">
+                    <button class="back-to-sections-btn" onclick="console.log('[GALLERY] Image back button clicked'); window.switchSidebarView('blockList'); return false;">
                         <i class="material-icons">arrow_back</i>
                     </button>
                     <h3 data-i18n="gallery.image.title">Image</h3>
@@ -1064,19 +1064,6 @@ window.WebsiteBuilderModules.Gallery = {
         
         // Apply translations
         setTimeout(applyTranslations, 0);
-        
-        // Back button - CRÍTICO: Debe regresar al panel lateral - Mover después de traducciones
-        setTimeout(() => {
-            console.log('[GALLERY] Setting up back button');
-            const $backBtn = $('.back-to-sections-btn');
-            console.log('[GALLERY] Back buttons found:', $backBtn.length);
-            
-            $backBtn.off('click.gallery').on('click.gallery', function(e) {
-                e.preventDefault();
-                console.log('[GALLERY] Back button clicked');
-                window.switchSidebarView('blockList');
-            });
-        }, 50);
         
         // Image upload
         $('.image-upload-area').off('click').on('click', function() {
@@ -1279,10 +1266,7 @@ window.WebsiteBuilderModules.Gallery = {
         window.translations.en['gallery.showTitleOnHover'] = 'Show logo title on hover';
         window.translations.en['gallery.openInNewTab'] = 'Open links in new tab';
         
-        // Back button de la vista de imagen - debe volver a gallery settings
-        $('.back-to-image-gallery-btn').off('click.gallery').on('click.gallery', function() {
-            window.switchSidebarView('gallerySettings');
-        });
+        // Back button de la vista de imagen - ahora usa onclick directo en el HTML
         
         // Handle click on gallery images in sidebar
         $(document).off('click.gallery-image-settings').on('click.gallery-image-settings', '.gallery-image-item', function(e) {

@@ -264,8 +264,8 @@ window.WebsiteBuilderModules.ContactForm = {
                             style="
                                 align-self: ${contentAlignment === 'center' ? 'center' : contentAlignment === 'right' ? 'flex-end' : 'flex-start'};
                                 padding: 12px 32px;
-                                background-color: ${schemeColors.text};
-                                color: ${schemeColors.background};
+                                background-color: ${schemeColors['solid-button']};
+                                color: ${schemeColors['solid-button-text']};
                                 border: none;
                                 border-radius: 4px;
                                 font-family: ${bodyFont};
