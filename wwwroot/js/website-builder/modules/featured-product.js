@@ -35,6 +35,14 @@ window.WebsiteBuilderModules.FeaturedProduct = {
             });
         }
         
+        // If product has handle but no full images array, load full data
+        if (config.selectedProduct && config.selectedProduct.handle && 
+            (!config.selectedProduct.images || config.selectedProduct.images.length === 0) && 
+            config.selectedProduct.imageUrl) {
+            console.log('[FEATURED-PRODUCT] Product has handle but no images array, loading full data...');
+            window.WebsiteBuilderModules.FeaturedProduct.loadFullProductData(config.selectedProduct.handle);
+        }
+        
         const uniqueId = 'featured-product-' + Date.now();
         const schemeColors = getColorSchemeValues(config.colorScheme || 'scheme1');
         
@@ -68,6 +76,17 @@ window.WebsiteBuilderModules.FeaturedProduct = {
                     background-color: ${schemeColors.background};
                     color: ${schemeColors.text};
                     padding: 40px 0;
+                    border: none !important;
+                    outline: none !important;
+                    box-shadow: none !important;
+                }
+                
+                /* Remove all possible borders */
+                #${uniqueId}.section-wrapper,
+                #${uniqueId} .section-wrapper {
+                    border: none !important;
+                    outline: none !important;
+                    box-shadow: none !important;
                 }
                 
                 #${uniqueId} .container {
@@ -96,7 +115,7 @@ window.WebsiteBuilderModules.FeaturedProduct = {
                     font-size: 28px;
                     font-weight: ${headingTypography.fontWeight || '600'};
                     color: ${schemeColors.text};
-                    margin-bottom: 10px;
+                    margin: 0;
                 }
                 
                 #${uniqueId} .product-price {
@@ -108,6 +127,45 @@ window.WebsiteBuilderModules.FeaturedProduct = {
                     font-family: ${bodyFont};
                     font-size: ${bodyTypography.fontSize || '16px'};
                     color: ${schemeColors.text};
+                }
+                
+                /* Dynamic spacing for product info blocks - MINIMAL */
+                #${uniqueId} .product-info-block {
+                    margin-bottom: 0;
+                    padding: 0;
+                    border: none;
+                    outline: none;
+                }
+                
+                /* Ultra minimal spacing */
+                #${uniqueId} .product-info-block[data-block-type="vendor"] + .product-info-block {
+                    margin-top: 2px;
+                }
+                
+                #${uniqueId} .product-info-block[data-block-type="title"] + .product-info-block {
+                    margin-top: 4px;  /* Reduced from 8px */
+                }
+                
+                #${uniqueId} .product-info-block[data-block-type="price"] + .product-info-block {
+                    margin-top: 6px;  /* Reduced from 12px */
+                }
+                
+                #${uniqueId} .product-info-block[data-block-type="description"] + .product-info-block {
+                    margin-top: 12px;
+                }
+                
+                #${uniqueId} .product-info-block[data-block-type="variant-picker"] + .product-info-block,
+                #${uniqueId} .product-info-block[data-block-type="sku"] + .product-info-block {
+                    margin-top: 12px;
+                }
+                
+                #${uniqueId} .product-info-block[data-block-type="inventory-status"] + .product-info-block,
+                #${uniqueId} .product-info-block[data-block-type="quantity-selector"] + .product-info-block {
+                    margin-top: 16px;
+                }
+                
+                #${uniqueId} .product-info-block[data-block-type="buttons"] {
+                    margin-top: 20px;
                 }
                 
                 @media (max-width: 768px) {
@@ -164,9 +222,21 @@ window.WebsiteBuilderModules.FeaturedProduct = {
         
         console.log('[FeaturedProduct] Rendering images for product:', product);
         console.log('[FeaturedProduct] Product images:', product?.images);
+        console.log('[FeaturedProduct] Product imageUrl:', product?.imageUrl);
         
-        // Default images if no product selected
-        if (!product || !product.images || product.images.length === 0) {
+        // If product has imageUrl but no images array, create temporary array
+        let productImages = product?.images || [];
+        if (product && product.imageUrl && (!productImages || productImages.length === 0)) {
+            console.log('[FeaturedProduct] Using imageUrl to create temporary images array');
+            productImages = [{
+                url: product.imageUrl,
+                altText: product.title || product.name || 'Product image',
+                position: 0
+            }];
+        }
+        
+        // Default images if no product selected or no images
+        if (!product || productImages.length === 0) {
             return this.renderDefaultImages(desktopLayout, thumbnailSize, spaceBetween);
         }
         
@@ -196,25 +266,25 @@ window.WebsiteBuilderModules.FeaturedProduct = {
                 break;
             default:
                 // Stack layouts
-                return this.renderStackedImages(product.images, desktopLayout, config.imageRatio);
+                return this.renderStackedImages(productImages, desktopLayout, config.imageRatio);
         }
         
         // Images are already sorted by Position from the API, so [0] is the first image
-        const mainImage = product.images[0];
+        const mainImage = productImages[0];
         console.log('[FeaturedProduct] Main image selected:', mainImage);
-        console.log('[FeaturedProduct] Image positions:', product.images.map(img => ({ url: img.url, position: img.position })));
+        console.log('[FeaturedProduct] Image positions:', productImages.map(img => ({ url: img.url, position: img.position })));
         
         // For thumbnails-bottom layout, add navigation arrows if needed
-        const needsArrows = desktopLayout === 'thumbnails-bottom' && product.images.length > 4;
+        const needsArrows = desktopLayout === 'thumbnails-bottom' && productImages.length > 4;
         const uniqueId = 'featured-product-' + Date.now();
         
         return `
             <div style="${containerStyle}">
                 <!-- Thumbnails -->
-                ${product.images.length > 1 ? `
+                ${productImages.length > 1 ? `
                     ${desktopLayout === 'thumbnails-bottom' ? `
                         <div class="product-thumbnails" style="${thumbnailsStyle}">
-                            ${product.images.map((img, index) => `
+                            ${productImages.map((img, index) => `
                                 <div class="product-thumbnail ${index === 0 ? 'active' : ''}" data-image-index="${index}" style="width: ${thumbnailSize}px; height: ${thumbnailSize}px; min-width: ${thumbnailSize}px; flex-shrink: 0; border-radius: 8px; overflow: hidden; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.1); ${index === 0 ? 'border: 2px solid var(--primary);' : 'border: 2px solid transparent;'} transition: border-color 0.2s;">
                                     <img src="${img.url}" alt="${img.altText || product.name}" style="width: 100%; height: 100%; object-fit: cover;">
                                 </div>
@@ -222,7 +292,7 @@ window.WebsiteBuilderModules.FeaturedProduct = {
                         </div>
                     ` : `
                         <div class="product-thumbnails" style="${thumbnailsStyle}">
-                            ${product.images.map((img, index) => `
+                            ${productImages.map((img, index) => `
                                 <div class="product-thumbnail ${index === 0 ? 'active' : ''}" data-image-index="${index}" style="width: ${thumbnailSize}px; height: ${thumbnailSize}px; flex-shrink: 0; border-radius: 8px; overflow: hidden; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.1); ${index === 0 ? 'border: 2px solid var(--primary);' : 'border: 2px solid transparent;'} transition: border-color 0.2s;">
                                     <img src="${img.url}" alt="${img.altText || product.name}" style="width: 100%; height: 100%; object-fit: cover;">
                                 </div>
@@ -235,7 +305,7 @@ window.WebsiteBuilderModules.FeaturedProduct = {
                 <div class="product-main-image" style="${mainImageStyle}">
                     ${this.wrapWithLink(product, `
                         <div style="border-radius: 8px; overflow: hidden; ${this.getImageRatioStyle(config.imageRatio)}">
-                            <img class="main-product-image" data-product-images='${JSON.stringify(product.images)}' src="${mainImage.url}" alt="${mainImage.altText || product.name}" style="width: 100%; height: 100%; ${this.getImageFitStyle(config.imageRatio)}; cursor: pointer;">
+                            <img class="main-product-image" data-product-images='${JSON.stringify(productImages)}' src="${mainImage.url}" alt="${mainImage.altText || product.name}" style="width: 100%; height: 100%; ${this.getImageFitStyle(config.imageRatio)}; cursor: pointer;">
                         </div>
                     `)}
                 </div>
@@ -383,7 +453,7 @@ window.WebsiteBuilderModules.FeaturedProduct = {
         const isOutOfStock = true; // TODO: usar product?.inventory?.available === 0
         
         // Render blocks in order
-        config.blockOrder.forEach(blockId => {
+        config.blockOrder.forEach((blockId, index) => {
             const block = config.blocks[blockId];
             console.log('[FEATURED PRODUCT INFO] Processing block:', blockId, block);
             if (!block || block.isHidden) {
@@ -391,9 +461,22 @@ window.WebsiteBuilderModules.FeaturedProduct = {
                 return;
             }
             
+            // Check if next visible block exists to determine spacing
+            let nextVisibleBlock = null;
+            for (let i = index + 1; i < config.blockOrder.length; i++) {
+                const nextBlock = config.blocks[config.blockOrder[i]];
+                if (nextBlock && !nextBlock.isHidden) {
+                    nextVisibleBlock = nextBlock;
+                    break;
+                }
+            }
+            
+            // Wrap each block in a container that handles spacing
+            html += `<div class="product-info-block" data-block-type="${block.type}">`;
+            
             switch(block.type) {
                 case 'vendor':
-                    html += `<div class="product-vendor" style="font-family: ${bodyFont}; font-size: 14px; color: ${schemeColors.text}; opacity: 0.7; margin-bottom: 5px;">${product?.vendor || 'Proveedor'}</div>`;
+                    html += `<div class="product-vendor" style="font-family: ${bodyFont}; font-size: 14px; color: ${schemeColors.text}; opacity: 0.7;">${product?.vendor || 'Proveedor'}</div>`;
                     break;
                     
                 case 'title':
@@ -412,7 +495,7 @@ window.WebsiteBuilderModules.FeaturedProduct = {
                     
                     const titleFontSize = titleSizeMap[titleSize] || '32px';
                     const titleContent = product?.name || 'Nombre del producto';
-                    const titleHtml = `<h1 class="product-title" style="font-size: ${titleFontSize}; font-weight: 600; margin: 0 0 15px 0;">${titleContent}</h1>`;
+                    const titleHtml = `<h1 class="product-title" style="font-size: ${titleFontSize}; font-weight: 600; margin: 0;">${titleContent}</h1>`;
                     html += window.WebsiteBuilderModules.FeaturedProduct.wrapWithLink(product, titleHtml);
                     break;
                     
@@ -442,7 +525,7 @@ window.WebsiteBuilderModules.FeaturedProduct = {
                     const isOnSale = comparePrice && comparePrice > price;
                     
                     html += `
-                        <div style="margin-bottom: 20px;">
+                        <div>
                             <span class="product-price" style="font-family: ${bodyFont}; font-size: ${fontSize}; font-weight: 600; color: ${priceConfig.highlightSalePrice && isOnSale ? '#dc3545' : schemeColors.text};">$${formattedPrice}</span>
                             ${isOnSale ? `
                                 <span style="font-family: ${bodyFont}; font-size: ${fontSize}; text-decoration: line-through; color: ${schemeColors.text}; opacity: 0.6; margin-left: 10px;">$${formattedComparePrice}</span>
@@ -452,7 +535,7 @@ window.WebsiteBuilderModules.FeaturedProduct = {
                             ` : ''}
                         </div>
                         ${priceConfig.showTaxes !== false ? `
-                            <div style="font-family: ${bodyFont}; font-size: 14px; color: ${schemeColors.text}; opacity: 0.7; margin-bottom: 20px;">
+                            <div style="font-family: ${bodyFont}; font-size: 14px; color: ${schemeColors.text}; opacity: 0.7; margin-top: 5px;">
                                 Los impuestos y gastos de envío se calculan en la pantalla de pago
                             </div>
                         ` : ''}
@@ -461,7 +544,7 @@ window.WebsiteBuilderModules.FeaturedProduct = {
                     
                 case 'sku':
                     const sku = product?.variants?.[0]?.sku || '21623612';
-                    html += `<div style="font-family: ${bodyFont}; margin-bottom: 15px; font-size: 14px; color: ${schemeColors.text};">SKU: ${sku}</div>`;
+                    html += `<div style="font-family: ${bodyFont}; font-size: 14px; color: ${schemeColors.text};">SKU: ${sku}</div>`;
                     break;
                     
                 case 'variant-picker':
@@ -472,7 +555,7 @@ window.WebsiteBuilderModules.FeaturedProduct = {
                         Object.keys(options).forEach(optionName => {
                             if (options[optionName].length > 0) {
                                 html += `
-                                    <div style="margin-bottom: 20px;">
+                                    <div>
                                         <label style="font-family: ${bodyFont}; display: block; margin-bottom: 8px; font-weight: 500; font-size: 14px; color: ${schemeColors.text};">${optionName}</label>
                                         <select style="font-family: ${bodyFont}; width: 100%; padding: 10px; border: 1px solid ${schemeColors.border}; border-radius: 4px; background: white; font-size: 14px; color: ${schemeColors.text};">
                                             ${options[optionName].map(value => `<option>${value}</option>`).join('')}
@@ -483,7 +566,7 @@ window.WebsiteBuilderModules.FeaturedProduct = {
                         });
                     } else {
                         html += `
-                            <div style="margin-bottom: 20px;">
+                            <div>
                                 <label style="font-family: ${bodyFont}; display: block; margin-bottom: 8px; font-weight: 500; font-size: 14px; color: ${schemeColors.text};">Size</label>
                                 <select style="font-family: ${bodyFont}; width: 100%; padding: 10px; border: 1px solid ${schemeColors.border}; border-radius: 4px; background: white; font-size: 14px; color: ${schemeColors.text};">
                                     <option>Small</option>
@@ -498,14 +581,14 @@ window.WebsiteBuilderModules.FeaturedProduct = {
                 case 'inventory-status':
                     if (isOutOfStock) {
                         html += `
-                            <div style="margin-bottom: 30px; display: inline-flex; align-items: center; gap: 8px;">
+                            <div style="display: inline-flex; align-items: center; gap: 8px;">
                                 <span style="width: 8px; height: 8px; background: #999999; border-radius: 50%; display: inline-block;"></span>
                                 <span style="font-family: ${bodyFont}; font-size: 14px; color: ${schemeColors.text}; opacity: 0.7;">Agotado</span>
                             </div>
                         `;
                     } else {
                         html += `
-                            <div style="margin-bottom: 30px; display: inline-flex; align-items: center; gap: 8px;">
+                            <div style="display: inline-flex; align-items: center; gap: 8px;">
                                 <span style="width: 8px; height: 8px; background: #4caf50; border-radius: 50%; display: inline-block;"></span>
                                 <span style="font-family: ${bodyFont}; font-size: 14px; color: ${schemeColors.text};">En stock</span>
                             </div>
@@ -515,8 +598,8 @@ window.WebsiteBuilderModules.FeaturedProduct = {
                     
                 case 'quantity-selector':
                     html += `
-                        <div style="margin-bottom: 30px;">
-                            <label style="font-family: ${bodyFont}; display: block; margin-bottom: 12px; font-size: 14px; font-weight: 500; color: ${schemeColors.text};">Cantidad</label>
+                        <div>
+                            <label style="font-family: ${bodyFont}; display: block; margin-bottom: 8px; font-size: 14px; font-weight: 500; color: ${schemeColors.text};">Cantidad</label>
                             <div class="quantity-selector" style="display: inline-flex; align-items: center; gap: 20px;">
                                 <button class="qty-decrease" style="width: 32px; height: 32px; border: none; background: transparent; cursor: pointer; font-size: 24px; color: ${schemeColors.text}; display: flex; align-items: center; justify-content: center; transition: all 0.2s; padding: 0;">
                                     <span style="margin-top: -4px; font-weight: 300;">−</span>
@@ -597,32 +680,31 @@ window.WebsiteBuilderModules.FeaturedProduct = {
                     const productPrice = productData.price || 0;
                     
                     html += `
-                        <div style="margin-bottom: 20px;">
+                        <div style="max-width: 400px;">
                             <button class="add-to-cart-btn add-to-cart-button" 
                                     data-product-id="${productId}" 
                                     data-product-name="${escapedName}" 
                                     data-product-price="${productPrice}" 
                                     data-product-vendor="${escapedVendor}" 
                                     data-product-image="${escapedImage}"
-                                    style="font-family: ${bodyFont}; display: block; width: auto; min-width: 280px; padding: 18px 40px; background: ${addToCartButton.background}; color: ${addToCartButton.text}; border: ${addToCartButton.border !== 'none' ? `2px solid ${addToCartButton.border}` : 'none'}; border-radius: 4px; font-size: 16px; font-weight: 500; cursor: pointer; margin-bottom: 12px; transition: all 0.2s; position: relative; overflow: hidden;">
+                                    style="font-family: ${bodyFont}; display: block; width: 100%; padding: 12px 20px; background: ${addToCartButton.background}; color: ${addToCartButton.text}; border: ${addToCartButton.border !== 'none' ? `1px solid ${addToCartButton.border}` : 'none'}; border-radius: 4px; font-size: 16px; font-weight: 500; cursor: pointer; margin-bottom: 10px; transition: all 0.2s; position: relative; overflow: hidden; letter-spacing: 0.5px;">
                                 <span style="position: relative; z-index: 1;">Agregar al carrito</span>
                             </button>
                             ${showDynamicCheckout ? `
                                 <button class="buy-now-btn" 
                                         onclick="event.preventDefault(); event.stopPropagation(); window.handleProductBuyNow(event, ${JSON.stringify(productData).replace(/"/g, '&quot;')}); return false;" 
-                                        style="font-family: ${bodyFont}; display: block; width: auto; min-width: 280px; padding: 18px 40px; background: ${dynamicCheckoutButton.background}; color: ${dynamicCheckoutButton.text}; border: ${dynamicCheckoutButton.border !== 'none' ? `2px solid ${dynamicCheckoutButton.border}` : 'none'}; border-radius: 4px; font-size: 16px; font-weight: 500; cursor: pointer; transition: all 0.2s; position: relative; overflow: hidden;">
+                                        style="font-family: ${bodyFont}; display: block; width: 100%; padding: 12px 20px; background: ${dynamicCheckoutButton.background}; color: ${dynamicCheckoutButton.text}; border: ${dynamicCheckoutButton.border !== 'none' ? `1px solid ${dynamicCheckoutButton.border}` : 'none'}; border-radius: 4px; font-size: 16px; font-weight: 500; cursor: pointer; margin-bottom: 10px; transition: all 0.2s; position: relative; overflow: hidden; letter-spacing: 0.5px;">
                                     <span style="position: relative; z-index: 1;">Comprar ahora</span>
                                 </button>
                             ` : ''}
                         </div>
                         <style>
-                            /* Hover styles for solid buttons */
-                            .featured-product-section .add-to-cart-btn${addToCartStyle === 'solid' ? '' : '.outline-style'}:hover,
-                            .featured-product-section .buy-now-btn${dynamicCheckoutStyle === 'solid' ? '' : '.outline-style'}:hover {
-                                ${addToCartStyle === 'solid' ? 'opacity: 0.9;' : ''}
-                                ${dynamicCheckoutStyle === 'solid' ? 'opacity: 0.9;' : ''}
+                            /* Hover styles for all buttons */
+                            .featured-product-section .add-to-cart-btn:hover,
+                            .featured-product-section .buy-now-btn:hover {
+                                opacity: 0.9;
                                 transform: translateY(-1px);
-                                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                                box-shadow: 0 2px 8px rgba(0,0,0,0.1);
                             }
                             
                             /* Hover styles specifically for outline buttons */
@@ -643,7 +725,7 @@ window.WebsiteBuilderModules.FeaturedProduct = {
                             .featured-product-section .add-to-cart-btn:active,
                             .featured-product-section .buy-now-btn:active {
                                 transform: translateY(0);
-                                box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+                                box-shadow: 0 1px 2px rgba(0,0,0,0.1);
                             }
                         </style>
                     `;
@@ -764,7 +846,7 @@ window.WebsiteBuilderModules.FeaturedProduct = {
                     
                 case 'share':
                     html += `
-                        <div style="margin-top: 20px;">
+                        <div>
                             <span style="font-family: ${bodyFont}; font-weight: 500; margin-right: 10px; font-size: 14px; color: ${schemeColors.text};">Share:</span>
                             <a href="#" style="font-family: ${bodyFont}; color: ${schemeColors.link}; margin-right: 10px; font-size: 14px;">Facebook</a>
                             <a href="#" style="font-family: ${bodyFont}; color: ${schemeColors.link}; margin-right: 10px; font-size: 14px;">Twitter</a>
@@ -773,6 +855,9 @@ window.WebsiteBuilderModules.FeaturedProduct = {
                     `;
                     break;
             }
+            
+            // Close the block container - only add margin if there's a next visible block
+            html += `</div>`;
         });
         
         return html;
@@ -1396,19 +1481,19 @@ window.WebsiteBuilderModules.FeaturedProduct = {
         const selectedProductId = currentSectionsConfig.featuredProduct?.selectedProduct?.id;
         
         products.forEach(product => {
-            const imageUrl = product.images && product.images.length > 0 ? product.images[0].url : '';
+            const imageUrl = product.imageUrl || '';
             const isSelected = selectedProductId === product.id;
             
             html += `
                 <div class="product-item" data-product-id="${product.id}" style="display: flex; align-items: center; padding: 12px; border: 1px solid ${isSelected ? 'var(--primary)' : '#e0e0e0'}; border-radius: 4px; margin-bottom: 10px; cursor: pointer; transition: all 0.2s; ${isSelected ? 'background-color: #f8f8f8;' : ''}">
                     <div style="width: 50px; height: 50px; background: #f5f5f5; border-radius: 4px; margin-right: 15px; display: flex; align-items: center; justify-content: center; overflow: hidden;">
                         ${imageUrl ? 
-                            `<img src="${imageUrl}" alt="${product.name}" style="width: 100%; height: 100%; object-fit: cover;">` : 
+                            `<img src="${imageUrl}" alt="${product.title}" style="width: 100%; height: 100%; object-fit: cover;">` : 
                             `<i class="material-icons" style="color: #ccc;">image</i>`
                         }
                     </div>
                     <div style="flex: 1;">
-                        <div style="font-weight: 500;">${product.name}</div>
+                        <div style="font-weight: 500;">${product.title}</div>
                         ${product.price ? `<div style="font-size: 14px; color: #666;">$${product.price.toFixed(2)}</div>` : ''}
                     </div>
                     ${isSelected ? '<i class="material-icons" style="color: var(--primary);">check_circle</i>' : ''}
@@ -1465,26 +1550,26 @@ window.WebsiteBuilderModules.FeaturedProduct = {
         
         currentSectionsConfig.featuredProduct.selectedProductId = product.id;
         
-        // Ensure images are sorted by position before storing
-        const sortedImages = product.images ? [...product.images].sort((a, b) => a.position - b.position) : [];
-        
+        // Store simplified product data from the API response
         currentSectionsConfig.featuredProduct.selectedProduct = {
             id: product.id,
-            name: product.name,
-            handle: product.handle || product.Handle, // Agregar handle
+            name: product.title, // API returns 'title' not 'name'
+            title: product.title, // Keep both for compatibility
+            handle: product.handle || product.Handle,
             price: product.price,
             compareAtPrice: product.compareAtPrice,
             vendor: product.vendor,
             description: product.description || '',
-            images: sortedImages,
-            variants: product.variants
+            imageUrl: product.imageUrl || '', // Simple image URL from API
+            images: [], // Will be populated when full product is loaded
+            variants: product.variants || []
         };
         
         console.log('[DEBUG] selectProduct - Saved product:', currentSectionsConfig.featuredProduct.selectedProduct);
         console.log('[DEBUG] selectProduct - Saved description:', currentSectionsConfig.featuredProduct.selectedProduct.description);
         
         // Update button text
-        $('#featuredProduct-selectProduct span').text(product.name);
+        $('#featuredProduct-selectProduct span').text(product.title);
         
         // Close modal
         $('#featuredProduct-productModal').fadeOut();
@@ -1493,6 +1578,11 @@ window.WebsiteBuilderModules.FeaturedProduct = {
         hasPendingPageStructureChanges = true;
         updateSaveButtonState();
         renderPreview();
+        
+        // Load full product data to get all images
+        if (product.handle) {
+            window.WebsiteBuilderModules.FeaturedProduct.loadFullProductData(product.handle);
+        }
     },
     
     refreshProductData: function(productId) {
@@ -1508,21 +1598,19 @@ window.WebsiteBuilderModules.FeaturedProduct = {
                 const product = products.find(p => p.id === productId);
                 
                 if (product && currentSectionsConfig.featuredProduct) {
-                    // Ensure images are sorted by position
-                    const sortedImages = product.images ? [...product.images].sort((a, b) => a.position - b.position) : [];
-                    
-                    console.log('[FeaturedProduct] Updated product images order:', sortedImages.map(img => img.position));
-                    
+                    // Update with the simplified product data
                     currentSectionsConfig.featuredProduct.selectedProduct = {
                         id: product.id,
-                        name: product.name,
-                        handle: product.handle || product.Handle, // Agregar handle
+                        name: product.title, // API returns 'title' not 'name'
+                        title: product.title,
+                        handle: product.handle || product.Handle,
                         price: product.price,
                         compareAtPrice: product.compareAtPrice,
                         vendor: product.vendor,
                         description: product.description || '',
-                        images: sortedImages,
-                        variants: product.variants
+                        imageUrl: product.imageUrl || '',
+                        images: [], // Will be populated when full product is loaded
+                        variants: product.variants || []
                     };
                     
                     // Update preview
@@ -3033,6 +3121,54 @@ window.WebsiteBuilderModules.FeaturedProduct = {
     },
     
     // Function to fetch product handle by ID
+    loadFullProductData: function(handle) {
+        console.log('[FeaturedProduct] Loading full product data for handle:', handle);
+        
+        $.ajax({
+            url: `/api/builder/products/by-handle/${handle}`,
+            method: 'GET',
+            success: (fullProduct) => {
+                console.log('[FeaturedProduct] Full product data loaded:', fullProduct);
+                
+                if (fullProduct && currentSectionsConfig.featuredProduct && 
+                    currentSectionsConfig.featuredProduct.selectedProduct && 
+                    currentSectionsConfig.featuredProduct.selectedProduct.handle === handle) {
+                    
+                    // Update the selected product with full data, keeping existing basic info
+                    const currentProduct = currentSectionsConfig.featuredProduct.selectedProduct;
+                    
+                    // Map the Images array to the expected format
+                    const mappedImages = (fullProduct.Images || fullProduct.images || []).map(img => ({
+                        url: img.ImageUrl || img.imageUrl || img.url,
+                        altText: img.AltText || img.altText || '',
+                        position: img.Position || img.position || 0,
+                        id: img.Id || img.id
+                    }));
+                    
+                    currentSectionsConfig.featuredProduct.selectedProduct = {
+                        ...currentProduct,
+                        images: mappedImages,
+                        videos: fullProduct.Videos || fullProduct.videos || [],
+                        variants: fullProduct.Variants || fullProduct.variants || [],
+                        description: fullProduct.Description || fullProduct.description || currentProduct.description
+                    };
+                    
+                    console.log('[FeaturedProduct] Updated product with full data, images count:', 
+                        currentSectionsConfig.featuredProduct.selectedProduct.images.length);
+                    
+                    // Re-render preview to show thumbnails
+                    if (window.renderPreview) {
+                        window.renderPreview();
+                    }
+                }
+            },
+            error: (xhr, status, error) => {
+                console.error('[FeaturedProduct] Error loading full product data:', error);
+                // Continue with simple data if full load fails
+            }
+        });
+    },
+    
     fetchProductHandle: function(productId) {
         console.log('[FEATURED-PRODUCT] Fetching handle for product ID:', productId);
         return new Promise((resolve, reject) => {

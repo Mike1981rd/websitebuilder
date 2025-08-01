@@ -39,8 +39,81 @@ window.WebsiteBuilderModules.Gallery = {
             return image && !image.isHidden;
         });
         
+        // Check if in logo grid mode
+        const isLogoGrid = config.displayMode === 'logo-grid';
+        
+        // Logo grid specific CSS
+        let logoGridStyles = '';
+        if (isLogoGrid) {
+            const logoSize = config.logoSize || 'medium';
+            const logoWidth = logoSize === 'custom' ? config.logoWidth : 
+                           logoSize === 'small' ? 80 : 
+                           logoSize === 'large' ? 160 : 120;
+            const logoHeight = logoSize === 'custom' ? config.logoHeight :
+                            logoSize === 'small' ? 60 :
+                            logoSize === 'large' ? 100 : 80;
+            
+            logoGridStyles = `
+                #${uniqueId} .logo-grid {
+                    display: grid;
+                    grid-template-columns: repeat(${config.logoDesktopColumns || 6}, 1fr);
+                    gap: ${config.logoGap || 20}px;
+                    padding: 40px 20px;
+                }
+                
+                #${uniqueId} .logo-item {
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    background: #fafafa;
+                    border-radius: 8px;
+                    padding: 15px;
+                    transition: all 0.3s ease;
+                    ${config.addBorder ? 'border: 1px solid #e0e0e0;' : ''}
+                    cursor: pointer;
+                }
+                
+                #${uniqueId} .logo-item img {
+                    max-width: ${logoWidth}px;
+                    max-height: ${logoHeight}px;
+                    width: auto;
+                    height: auto;
+                    object-fit: contain;
+                    ${config.grayscaleFilter ? 'filter: grayscale(100%);' : ''}
+                    transition: all 0.3s ease;
+                }
+                
+                ${config.grayscaleFilter && config.hoverEffect === 'color' ? `
+                    #${uniqueId} .logo-item:hover img {
+                        filter: grayscale(0%);
+                    }
+                ` : ''}
+                
+                ${config.hoverEffect === 'zoom' ? `
+                    #${uniqueId} .logo-item:hover {
+                        transform: scale(1.05);
+                    }
+                ` : ''}
+                
+                ${config.hoverEffect === 'shadow' ? `
+                    #${uniqueId} .logo-item:hover {
+                        box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+                    }
+                ` : ''}
+                
+                @media (max-width: 768px) {
+                    #${uniqueId} .logo-grid {
+                        grid-template-columns: repeat(${config.logoMobileColumns || 3}, 1fr);
+                        gap: 15px;
+                    }
+                }
+            `;
+        }
+        
         return `
             <style>
+                ${isLogoGrid ? logoGridStyles : ''}
+                
                 #${uniqueId} .gallery-content {
                     text-align: ${alignment};
                     margin-bottom: ${visibleImages.length > 0 ? '30px' : '0'};
@@ -203,21 +276,44 @@ window.WebsiteBuilderModules.Gallery = {
                         </div>
                     ` : ''}
                     
-                    ${visibleImages.length > 0 ? `
-                        <div class="${isGrid ? 'gallery-grid' : 'gallery-carousel'}">
-                            ${visibleImages.map(imageId => {
-                                const image = config.images[imageId];
-                                const hasLink = image.link && image.link.trim() !== '' && image.link !== 'Pega un enlace o busca';
-                                const showIcon = image.icon && image.icon !== 'none' && hasLink;
-                                const hasVideo = image.videoSrc && image.videoSrc.trim() !== '';
-                                
-                                const iconMap = {
-                                    'zoom': 'zoom_in',
-                                    'play': 'play_arrow',
-                                    'link': 'link'
-                                };
-                                
-                                const mediaContent = hasVideo ? `
+                    ${visibleImages.length > 0 ? (
+                        isLogoGrid ? `
+                            <div class="logo-grid">
+                                ${visibleImages.map(imageId => {
+                                    const image = config.images[imageId];
+                                    const hasLink = image.logoUrl && image.logoUrl.trim() !== '';
+                                    const linkOpen = hasLink ? `<a href="${image.logoUrl}" target="${config.openInNewTab ? '_blank' : '_self'}">` : '';
+                                    const linkClose = hasLink ? '</a>' : '';
+                                    
+                                    return `
+                                        ${linkOpen}
+                                        <div class="logo-item" ${config.showTitleOnHover && image.alt ? `title="${image.alt}"` : ''}>
+                                            ${image.src ? 
+                                                `<img src="${image.src}" alt="${image.alt || ''}" loading="lazy">` :
+                                                `<div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: #ccc;">
+                                                    <i class="material-icons" style="font-size: 36px;">image</i>
+                                                 </div>`
+                                            }
+                                        </div>
+                                        ${linkClose}
+                                    `;
+                                }).join('')}
+                            </div>
+                        ` : `
+                            <div class="${isGrid ? 'gallery-grid' : 'gallery-carousel'}">
+                                ${visibleImages.map(imageId => {
+                                    const image = config.images[imageId];
+                                    const hasLink = image.link && image.link.trim() !== '' && image.link !== 'Pega un enlace o busca';
+                                    const showIcon = image.icon && image.icon !== 'none' && hasLink;
+                                    const hasVideo = image.videoSrc && image.videoSrc.trim() !== '';
+                                    
+                                    const iconMap = {
+                                        'zoom': 'zoom_in',
+                                        'play': 'play_arrow',
+                                        'link': 'link'
+                                    };
+                                    
+                                    const mediaContent = hasVideo ? `
                                     <video src="${image.videoSrc}" 
                                            muted loop ${config.autoplayMode !== 'none' ? 'autoplay' : ''}
                                            poster="${image.src || ''}">
@@ -261,7 +357,8 @@ window.WebsiteBuilderModules.Gallery = {
                                 `;
                             }).join('')}
                         </div>
-                    ` : `
+                    `
+                    ) : `
                         <div style="text-align: center; padding: 60px 20px;">
                             <i class="material-icons" style="font-size: 48px; color: #999;">photo_library</i>
                             <p style="margin-top: 20px; color: #666;">Click the + button to add images</p>
@@ -336,7 +433,7 @@ window.WebsiteBuilderModules.Gallery = {
         return `
             <div style="display: flex; flex-direction: column; height: 100%; position: relative; overflow: hidden;">
                 <div class="sidebar-view-header" style="position: relative; z-index: 10;">
-                    <button class="back-to-sections-btn" onclick="if(window.productContainerReturnData && window.productContainerReturnData.returnTo) { window.switchSidebarView(window.productContainerReturnData.returnTo); window.productContainerReturnData = null; } else { window.switchSidebarView('blockList'); }">
+                    <button class="back-to-sections-btn">
                         <i class="material-icons">arrow_back</i>
                     </button>
                     <h3 data-i18n="sections.gallery">Gallery</h3>
@@ -374,32 +471,152 @@ window.WebsiteBuilderModules.Gallery = {
     
     renderLayoutSettings: function(config) {
         return `
+            <!-- Display Mode (NEW) -->
             <div class="settings-group" style="margin-top: 20px;">
-                <h4 style="font-size: 13px; font-weight: 500; margin-bottom: 12px; color: #5c5e60;">Width</h4>
-                <select id="gallery-width" class="setting-select" data-field="width" style="width: 100%;">
-                    <option value="page" ${config.width === 'page' ? 'selected' : ''}>Page</option>
-                    <option value="full" ${config.width === 'full' ? 'selected' : ''}>Full width</option>
+                <h4 style="font-size: 13px; font-weight: 500; margin-bottom: 12px; color: #5c5e60;">Display mode</h4>
+                <select id="gallery-display-mode" class="setting-select" data-field="displayMode" style="width: 100%;">
+                    <option value="gallery" ${!config.displayMode || config.displayMode === 'gallery' ? 'selected' : ''}>Gallery (default)</option>
+                    <option value="logo-grid" ${config.displayMode === 'logo-grid' ? 'selected' : ''}>Logo Grid</option>
                 </select>
             </div>
             
-            <div class="settings-group" style="margin-top: 20px;">
-                <h4 style="font-size: 13px; font-weight: 500; margin-bottom: 12px; color: #5c5e60;">Desktop layout</h4>
-                <div style="display: flex; gap: 10px;">
-                    <button class="layout-option ${config.desktopLayout === 'grid' ? 'active' : ''}" data-layout="grid" data-field="desktopLayout" style="flex: 1; padding: 10px; border: 1px solid #e3e3e3; background: ${config.desktopLayout === 'grid' ? '#f0f0f0' : 'white'}; cursor: pointer;">
-                        Grid
-                    </button>
-                    <button class="layout-option ${config.desktopLayout === 'carousel' ? 'active' : ''}" data-layout="carousel" data-field="desktopLayout" style="flex: 1; padding: 10px; border: 1px solid #e3e3e3; background: ${config.desktopLayout === 'carousel' ? '#f0f0f0' : 'white'}; cursor: pointer;">
-                        Carousel
-                    </button>
+            <!-- Logo Grid Settings (Conditional) -->
+            <div id="logo-grid-settings" style="${config.displayMode === 'logo-grid' ? '' : 'display: none;'}">
+                <!-- Logo Size -->
+                <div class="settings-group" style="margin-top: 20px;">
+                    <h4 style="font-size: 13px; font-weight: 500; margin-bottom: 12px; color: #5c5e60;">Logo size</h4>
+                    <select id="gallery-logo-size" class="setting-select" data-field="logoSize" style="width: 100%;">
+                        <option value="small" ${config.logoSize === 'small' ? 'selected' : ''}>Small (80x60px)</option>
+                        <option value="medium" ${!config.logoSize || config.logoSize === 'medium' ? 'selected' : ''}>Medium (120x80px)</option>
+                        <option value="large" ${config.logoSize === 'large' ? 'selected' : ''}>Large (160x100px)</option>
+                        <option value="custom" ${config.logoSize === 'custom' ? 'selected' : ''}>Custom</option>
+                    </select>
+                </div>
+                
+                <!-- Custom Size Fields -->
+                <div id="custom-logo-size" style="${config.logoSize === 'custom' ? '' : 'display: none;'}">
+                    <div class="settings-field">
+                        <label style="display: block; font-size: 12px; color: #5c5e60; margin-bottom: 5px;">Logo width (px)</label>
+                        <input type="number" id="gallery-logo-width" data-field="logoWidth" min="50" max="300" value="${config.logoWidth || 120}"
+                               style="width: 100%; padding: 8px 12px; border: 1px solid #e3e3e3; border-radius: 4px;">
+                    </div>
+                    <div class="settings-field" style="margin-top: 10px;">
+                        <label style="display: block; font-size: 12px; color: #5c5e60; margin-bottom: 5px;">Logo height (px)</label>
+                        <input type="number" id="gallery-logo-height" data-field="logoHeight" min="40" max="200" value="${config.logoHeight || 80}"
+                               style="width: 100%; padding: 8px 12px; border: 1px solid #e3e3e3; border-radius: 4px;">
+                    </div>
+                </div>
+                
+                <!-- Gap between logos -->
+                <div class="settings-field" style="margin-top: 20px;">
+                    <label style="display: block; font-size: 12px; color: #5c5e60; margin-bottom: 5px;">Gap between logos</label>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <input type="range" id="gallery-logo-gap" data-field="logoGap" min="10" max="50" value="${config.logoGap || 20}"
+                               style="flex: 1;">
+                        <span class="range-value">${config.logoGap || 20}px</span>
+                    </div>
+                </div>
+                
+                <!-- Desktop columns -->
+                <div class="settings-field" style="margin-top: 20px;">
+                    <label style="display: block; font-size: 12px; color: #5c5e60; margin-bottom: 5px;">Desktop columns</label>
+                    <select id="gallery-logo-desktop-columns" class="setting-select" data-field="logoDesktopColumns" style="width: 100%;">
+                        <option value="4" ${config.logoDesktopColumns === 4 ? 'selected' : ''}>4</option>
+                        <option value="5" ${config.logoDesktopColumns === 5 ? 'selected' : ''}>5</option>
+                        <option value="6" ${!config.logoDesktopColumns || config.logoDesktopColumns === 6 ? 'selected' : ''}>6</option>
+                        <option value="7" ${config.logoDesktopColumns === 7 ? 'selected' : ''}>7</option>
+                        <option value="8" ${config.logoDesktopColumns === 8 ? 'selected' : ''}>8</option>
+                    </select>
+                </div>
+                
+                <!-- Mobile columns -->
+                <div class="settings-field" style="margin-top: 20px;">
+                    <label style="display: block; font-size: 12px; color: #5c5e60; margin-bottom: 5px;">Mobile columns</label>
+                    <select id="gallery-logo-mobile-columns" class="setting-select" data-field="logoMobileColumns" style="width: 100%;">
+                        <option value="2" ${config.logoMobileColumns === 2 ? 'selected' : ''}>2</option>
+                        <option value="3" ${!config.logoMobileColumns || config.logoMobileColumns === 3 ? 'selected' : ''}>3</option>
+                        <option value="4" ${config.logoMobileColumns === 4 ? 'selected' : ''}>4</option>
+                    </select>
+                </div>
+                
+                <!-- Style Options -->
+                <div class="settings-field" style="margin-top: 20px;">
+                    <label class="toggle-field">
+                        <span style="font-size: 12px; color: #5c5e60;">Grayscale filter (color on hover)</span>
+                        <input type="checkbox" class="shopify-toggle" id="gallery-grayscale-filter" 
+                               data-field="grayscaleFilter" ${config.grayscaleFilter ? 'checked' : ''}>
+                        <label for="gallery-grayscale-filter" class="toggle-slider"></label>
+                    </label>
+                </div>
+                
+                <div class="settings-field" style="margin-top: 20px;">
+                    <label class="toggle-field">
+                        <span style="font-size: 12px; color: #5c5e60;">Add subtle border</span>
+                        <input type="checkbox" class="shopify-toggle" id="gallery-add-border" 
+                               data-field="addBorder" ${config.addBorder ? 'checked' : ''}>
+                        <label for="gallery-add-border" class="toggle-slider"></label>
+                    </label>
+                </div>
+                
+                <!-- Hover Effect -->
+                <div class="settings-field" style="margin-top: 20px;">
+                    <label style="display: block; font-size: 12px; color: #5c5e60; margin-bottom: 5px;">Hover effect</label>
+                    <select id="gallery-hover-effect" class="setting-select" data-field="hoverEffect" style="width: 100%;">
+                        <option value="none" ${!config.hoverEffect || config.hoverEffect === 'none' ? 'selected' : ''}>None</option>
+                        <option value="color" ${config.hoverEffect === 'color' ? 'selected' : ''}>Show color (from grayscale)</option>
+                        <option value="zoom" ${config.hoverEffect === 'zoom' ? 'selected' : ''}>Slight zoom</option>
+                        <option value="shadow" ${config.hoverEffect === 'shadow' ? 'selected' : ''}>Soft shadow</option>
+                    </select>
+                </div>
+                
+                <div class="settings-field" style="margin-top: 20px;">
+                    <label class="toggle-field">
+                        <span style="font-size: 12px; color: #5c5e60;">Show logo title on hover</span>
+                        <input type="checkbox" class="shopify-toggle" id="gallery-show-title-hover" 
+                               data-field="showTitleOnHover" ${config.showTitleOnHover ? 'checked' : ''}>
+                        <label for="gallery-show-title-hover" class="toggle-slider"></label>
+                    </label>
+                </div>
+                
+                <div class="settings-field" style="margin-top: 20px;">
+                    <label class="toggle-field">
+                        <span style="font-size: 12px; color: #5c5e60;">Open links in new tab</span>
+                        <input type="checkbox" class="shopify-toggle" id="gallery-open-new-tab" 
+                               data-field="openInNewTab" ${config.openInNewTab ? 'checked' : ''}>
+                        <label for="gallery-open-new-tab" class="toggle-slider"></label>
+                    </label>
                 </div>
             </div>
             
-            <div class="settings-group" style="margin-top: 20px;">
-                <h4 style="font-size: 13px; font-weight: 500; margin-bottom: 12px; color: #5c5e60;">Mobile layout</h4>
-                <select id="gallery-mobile-layout" class="setting-select" data-field="mobileLayout" style="width: 100%;">
-                    <option value="carousel" ${config.mobileLayout === 'carousel' ? 'selected' : ''}>Carousel</option>
-                    <option value="grid" ${config.mobileLayout === 'grid' ? 'selected' : ''}>Grid</option>
-                </select>
+            <!-- Regular Gallery Settings (conditional) -->
+            <div id="regular-gallery-settings" style="${!config.displayMode || config.displayMode === 'gallery' ? '' : 'display: none;'}">
+                <div class="settings-group" style="margin-top: 20px;">
+                    <h4 style="font-size: 13px; font-weight: 500; margin-bottom: 12px; color: #5c5e60;">Width</h4>
+                    <select id="gallery-width" class="setting-select" data-field="width" style="width: 100%;">
+                        <option value="page" ${config.width === 'page' ? 'selected' : ''}>Page</option>
+                        <option value="full" ${config.width === 'full' ? 'selected' : ''}>Full width</option>
+                    </select>
+                </div>
+                
+                <div class="settings-group" style="margin-top: 20px;">
+                    <h4 style="font-size: 13px; font-weight: 500; margin-bottom: 12px; color: #5c5e60;">Desktop layout</h4>
+                    <div style="display: flex; gap: 10px;">
+                        <button class="layout-option ${config.desktopLayout === 'grid' ? 'active' : ''}" data-layout="grid" data-field="desktopLayout" style="flex: 1; padding: 10px; border: 1px solid #e3e3e3; background: ${config.desktopLayout === 'grid' ? '#f0f0f0' : 'white'}; cursor: pointer;">
+                            Grid
+                        </button>
+                        <button class="layout-option ${config.desktopLayout === 'carousel' ? 'active' : ''}" data-layout="carousel" data-field="desktopLayout" style="flex: 1; padding: 10px; border: 1px solid #e3e3e3; background: ${config.desktopLayout === 'carousel' ? '#f0f0f0' : 'white'}; cursor: pointer;">
+                            Carousel
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="settings-group" style="margin-top: 20px;">
+                    <h4 style="font-size: 13px; font-weight: 500; margin-bottom: 12px; color: #5c5e60;">Mobile layout</h4>
+                    <select id="gallery-mobile-layout" class="setting-select" data-field="mobileLayout" style="width: 100%;">
+                        <option value="carousel" ${config.mobileLayout === 'carousel' ? 'selected' : ''}>Carousel</option>
+                        <option value="grid" ${config.mobileLayout === 'grid' ? 'selected' : ''}>Grid</option>
+                    </select>
+                </div>
             </div>
         `;
     },
@@ -480,6 +697,11 @@ window.WebsiteBuilderModules.Gallery = {
     },
     
     renderCardSettings: function(config) {
+        // Only show card settings for regular gallery mode
+        if (config.displayMode === 'logo-grid') {
+            return '';
+        }
+        
         return `
             <div class="settings-group" style="margin-top: 20px;">
                 <h4 style="font-size: 13px; font-weight: 500; margin-bottom: 12px; color: #5c5e60;">Cards</h4>
@@ -677,7 +899,7 @@ window.WebsiteBuilderModules.Gallery = {
         return `
             <div style="display: flex; flex-direction: column; height: 100%; position: relative; overflow: hidden;">
                 <div class="sidebar-view-header" style="position: relative; z-index: 10;">
-                    <button class="back-to-sections-btn" onclick="if(window.productContainerReturnData && window.productContainerReturnData.returnTo) { window.switchSidebarView(window.productContainerReturnData.returnTo); window.productContainerReturnData = null; } else { window.switchSidebarView('gallerySettings'); }">
+                    <button class="back-to-image-gallery-btn">
                         <i class="material-icons">arrow_back</i>
                     </button>
                     <h3 data-i18n="gallery.image.title">Image</h3>
@@ -722,13 +944,23 @@ window.WebsiteBuilderModules.Gallery = {
                         <p style="font-size: 11px; color: #999; margin-top: 5px;" data-i18n="gallery.video.help">El video reemplazará la imagen cuando se reproduzca</p>
                     </div>
                     
-                    <div class="settings-group" style="margin-top: 20px;">
-                        <h4 style="font-size: 13px; font-weight: 500; margin-bottom: 12px; color: #5c5e60;" data-i18n="gallery.link.title">Link</h4>
-                        <input type="text" id="gallery-image-link-${imageId}" value="${image.link || ''}" 
-                               placeholder="Pega un enlace o busca" data-field="link" data-image-id="${imageId}"
-                               data-i18n-placeholder="gallery.link.placeholder"
-                               style="width: 100%; padding: 8px 12px; border: 1px solid #e3e3e3; border-radius: 4px;">
-                    </div>
+                    ${galleryConfig.displayMode === 'logo-grid' ? `
+                        <div class="settings-group" style="margin-top: 20px;">
+                            <h4 style="font-size: 13px; font-weight: 500; margin-bottom: 12px; color: #5c5e60;" data-i18n="gallery.logo.url">Logo link URL</h4>
+                            <input type="url" id="gallery-image-logo-url-${imageId}" value="${image.logoUrl || ''}" 
+                                   placeholder="https://..." data-field="logoUrl" data-image-id="${imageId}"
+                                   data-i18n-placeholder="gallery.logo.urlPlaceholder"
+                                   style="width: 100%; padding: 8px 12px; border: 1px solid #e3e3e3; border-radius: 4px;">
+                        </div>
+                    ` : `
+                        <div class="settings-group" style="margin-top: 20px;">
+                            <h4 style="font-size: 13px; font-weight: 500; margin-bottom: 12px; color: #5c5e60;" data-i18n="gallery.link.title">Link</h4>
+                            <input type="text" id="gallery-image-link-${imageId}" value="${image.link || ''}" 
+                                   placeholder="Pega un enlace o busca" data-field="link" data-image-id="${imageId}"
+                                   data-i18n-placeholder="gallery.link.placeholder"
+                                   style="width: 100%; padding: 8px 12px; border: 1px solid #e3e3e3; border-radius: 4px;">
+                        </div>
+                    `}
                     
                     <div class="settings-group" style="margin-top: 20px;">
                         <h4 style="font-size: 13px; font-weight: 500; margin-bottom: 12px; color: #5c5e60;" data-i18n="gallery.icon.title">Icon</h4>
@@ -798,6 +1030,8 @@ window.WebsiteBuilderModules.Gallery = {
         window.translations.es['gallery.video.help'] = 'El video reemplazará la imagen cuando se reproduzca';
         window.translations.es['gallery.link.title'] = 'Enlace';
         window.translations.es['gallery.link.placeholder'] = 'Pega un enlace o busca';
+        window.translations.es['gallery.logo.url'] = 'URL del logo';
+        window.translations.es['gallery.logo.urlPlaceholder'] = 'https://...';
         window.translations.es['gallery.icon.title'] = 'Ícono';
         window.translations.es['gallery.icon.none'] = 'Ninguno';
         window.translations.es['gallery.icon.zoom'] = 'Zoom';
@@ -818,6 +1052,8 @@ window.WebsiteBuilderModules.Gallery = {
         window.translations.en['gallery.video.help'] = 'Video will replace the image when played';
         window.translations.en['gallery.link.title'] = 'Link';
         window.translations.en['gallery.link.placeholder'] = 'Paste a link or search';
+        window.translations.en['gallery.logo.url'] = 'Logo link URL';
+        window.translations.en['gallery.logo.urlPlaceholder'] = 'https://...';
         window.translations.en['gallery.icon.title'] = 'Icon';
         window.translations.en['gallery.icon.none'] = 'None';
         window.translations.en['gallery.icon.zoom'] = 'Zoom';
@@ -826,16 +1062,21 @@ window.WebsiteBuilderModules.Gallery = {
         window.translations.en['gallery.icon.help'] = 'See what icon stands for each label';
         window.translations.en['gallery.icon.note'] = 'Without a link the icon disappears';
         
-        // Back button - CRÍTICO: Debe regresar al panel lateral, no a gallery settings
-        // Comentado porque el onclick inline en el botón ya maneja esto correctamente
-        // $('.back-to-sections-btn').off('click').on('click', function() {
-        //     if (window.productContainerReturnData && window.productContainerReturnData.returnTo) {
-        //         window.switchSidebarView(window.productContainerReturnData.returnTo);
-        //         window.productContainerReturnData = null;
-        //     } else {
-        //         window.switchSidebarView('blockList');
-        //     }
-        // });
+        // Apply translations
+        setTimeout(applyTranslations, 0);
+        
+        // Back button - CRÍTICO: Debe regresar al panel lateral - Mover después de traducciones
+        setTimeout(() => {
+            console.log('[GALLERY] Setting up back button');
+            const $backBtn = $('.back-to-sections-btn');
+            console.log('[GALLERY] Back buttons found:', $backBtn.length);
+            
+            $backBtn.off('click.gallery').on('click.gallery', function(e) {
+                e.preventDefault();
+                console.log('[GALLERY] Back button clicked');
+                window.switchSidebarView('blockList');
+            });
+        }, 50);
         
         // Image upload
         $('.image-upload-area').off('click').on('click', function() {
@@ -910,9 +1151,14 @@ window.WebsiteBuilderModules.Gallery = {
             updateImageData('alt', $(this).val());
         });
         
-        // Link input
+        // Link input (regular gallery)
         $(document).off('input.gallery-image-link').on('input.gallery-image-link', `#gallery-image-link-${imageId}`, function() {
             updateImageData('link', $(this).val());
+        });
+        
+        // Logo URL input (logo grid mode)
+        $(document).off('input.gallery-image-logo-url').on('input.gallery-image-logo-url', `#gallery-image-logo-url-${imageId}`, function() {
+            updateImageData('logoUrl', $(this).val());
         });
         
         // Icon select
@@ -974,6 +1220,20 @@ window.WebsiteBuilderModules.Gallery = {
         window.translations.es['gallery.topPadding'] = 'Relleno superior';
         window.translations.es['gallery.bottomPadding'] = 'Relleno inferior';
         
+        // Logo Grid translations - Spanish
+        window.translations.es['gallery.displayMode'] = 'Modo de visualización';
+        window.translations.es['gallery.logoSize'] = 'Tamaño del logo';
+        window.translations.es['gallery.logoWidth'] = 'Ancho del logo (px)';
+        window.translations.es['gallery.logoHeight'] = 'Altura del logo (px)';
+        window.translations.es['gallery.logoGap'] = 'Espacio entre logos';
+        window.translations.es['gallery.logoDesktopColumns'] = 'Columnas en escritorio';
+        window.translations.es['gallery.logoMobileColumns'] = 'Columnas en móvil';
+        window.translations.es['gallery.grayscaleFilter'] = 'Filtro escala de grises (color al pasar)';
+        window.translations.es['gallery.addBorder'] = 'Agregar borde sutil';
+        window.translations.es['gallery.hoverEffect'] = 'Efecto al pasar el cursor';
+        window.translations.es['gallery.showTitleOnHover'] = 'Mostrar título del logo al pasar';
+        window.translations.es['gallery.openInNewTab'] = 'Abrir enlaces en nueva pestaña';
+        
         // English translations
         window.translations.en['gallery.colorScheme'] = 'Color scheme';
         window.translations.en['gallery.width'] = 'Width';
@@ -1005,16 +1265,24 @@ window.WebsiteBuilderModules.Gallery = {
         window.translations.en['gallery.topPadding'] = 'Top padding';
         window.translations.en['gallery.bottomPadding'] = 'Bottom padding';
         
-        // CRÍTICO: Navegación correcta
-        // Comentado porque el onclick inline en el botón ya maneja esto correctamente
-        // $('.back-to-sections-btn').off('click').on('click', function() {
-        //     if (window.productContainerReturnData && window.productContainerReturnData.returnTo) {
-        //         window.switchSidebarView(window.productContainerReturnData.returnTo);
-        //         window.productContainerReturnData = null;
-        //     } else {
-        //         window.switchSidebarView('blockList');
-        //     }
-        // });
+        // Logo Grid translations - English
+        window.translations.en['gallery.displayMode'] = 'Display mode';
+        window.translations.en['gallery.logoSize'] = 'Logo size';
+        window.translations.en['gallery.logoWidth'] = 'Logo width (px)';
+        window.translations.en['gallery.logoHeight'] = 'Logo height (px)';
+        window.translations.en['gallery.logoGap'] = 'Gap between logos';
+        window.translations.en['gallery.logoDesktopColumns'] = 'Desktop columns';
+        window.translations.en['gallery.logoMobileColumns'] = 'Mobile columns';
+        window.translations.en['gallery.grayscaleFilter'] = 'Grayscale filter (color on hover)';
+        window.translations.en['gallery.addBorder'] = 'Add subtle border';
+        window.translations.en['gallery.hoverEffect'] = 'Hover effect';
+        window.translations.en['gallery.showTitleOnHover'] = 'Show logo title on hover';
+        window.translations.en['gallery.openInNewTab'] = 'Open links in new tab';
+        
+        // Back button de la vista de imagen - debe volver a gallery settings
+        $('.back-to-image-gallery-btn').off('click.gallery').on('click.gallery', function() {
+            window.switchSidebarView('gallerySettings');
+        });
         
         // Handle click on gallery images in sidebar
         $(document).off('click.gallery-image-settings').on('click.gallery-image-settings', '.gallery-image-item', function(e) {
@@ -1145,6 +1413,79 @@ window.WebsiteBuilderModules.Gallery = {
                 // Re-render settings view
                 switchSidebarView('gallerySettings');
                 renderPreview();
+            }
+        });
+        
+        // Display Mode Change
+        $(document).off('change.gallery-display-mode').on('change.gallery-display-mode', '#gallery-display-mode', function() {
+            const mode = $(this).val();
+            const galleryConfig = window.currentSectionsConfig.gallery || {};
+            galleryConfig.displayMode = mode;
+            
+            // Show/hide conditional settings
+            if (mode === 'logo-grid') {
+                $('#logo-grid-settings').slideDown(200);
+                $('#regular-gallery-settings').slideUp(200);
+            } else {
+                $('#logo-grid-settings').slideUp(200);
+                $('#regular-gallery-settings').slideDown(200);
+            }
+            
+            window.currentSectionsConfig.gallery = galleryConfig;
+            
+            if (window.setHasPendingPageStructureChanges) {
+                window.setHasPendingPageStructureChanges(true);
+            }
+            if (window.updateSaveButtonState) {
+                window.updateSaveButtonState();
+            }
+            if (window.renderPreview) {
+                window.renderPreview();
+            }
+        });
+        
+        // Logo Size Change
+        $(document).off('change.gallery-logo-size').on('change.gallery-logo-size', '#gallery-logo-size', function() {
+            const size = $(this).val();
+            const galleryConfig = window.currentSectionsConfig.gallery || {};
+            galleryConfig.logoSize = size;
+            
+            if (size === 'custom') {
+                $('#custom-logo-size').slideDown(200);
+            } else {
+                $('#custom-logo-size').slideUp(200);
+            }
+            
+            window.currentSectionsConfig.gallery = galleryConfig;
+            
+            if (window.setHasPendingPageStructureChanges) {
+                window.setHasPendingPageStructureChanges(true);
+            }
+            if (window.updateSaveButtonState) {
+                window.updateSaveButtonState();
+            }
+            if (window.renderPreview) {
+                window.renderPreview();
+            }
+        });
+        
+        // Gap Slider
+        $(document).off('input.gallery-logo-gap').on('input.gallery-logo-gap', '#gallery-logo-gap', function() {
+            const value = $(this).val();
+            $(this).next('.range-value').text(value + 'px');
+            
+            const galleryConfig = window.currentSectionsConfig.gallery || {};
+            galleryConfig.logoGap = parseInt(value);
+            window.currentSectionsConfig.gallery = galleryConfig;
+            
+            if (window.setHasPendingPageStructureChanges) {
+                window.setHasPendingPageStructureChanges(true);
+            }
+            if (window.updateSaveButtonState) {
+                window.updateSaveButtonState();
+            }
+            if (window.renderPreview) {
+                window.renderPreview();
             }
         });
         
@@ -1532,11 +1873,11 @@ window.WebsiteBuilderModules.Gallery = {
         }
         
         // Attach event listeners
-        this.attachEventListeners();
+        window.WebsiteBuilderModules.Gallery.attachEventListeners();
         
         // Apply translations
         if (window.applyTranslations) {
             setTimeout(() => window.applyTranslations(), 0);
         }
     }
-};
+}; // Cierre del objeto Gallery

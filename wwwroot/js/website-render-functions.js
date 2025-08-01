@@ -651,7 +651,7 @@ function renderAnnouncementBar(config) {
 
     // Construir iconos sociales si están habilitados
     const socialIconsHtml = config.showSocialMediaIcons ? `
-        <div style="position: absolute; left: 50px; top: 50%; transform: translateY(-50%); display: flex; align-items: center; gap: 16px;">
+        <div class="announcement-social-icons" style="position: absolute; left: 50px; top: 50%; transform: translateY(-50%); display: flex; align-items: center; gap: 16px;">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="cursor: pointer;">
                 <path d="M12 0c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12-5.373-12-12-12zm3 8h-1.35c-.538 0-.65.221-.65.778v1.222h2l-.209 2h-1.791v7h-3v-7h-2v-2h2v-2.308c0-1.769.931-2.692 3.029-2.692h1.971v3z"/>
             </svg>
@@ -669,7 +669,7 @@ function renderAnnouncementBar(config) {
 
     // Construir selectores si están habilitados
     const selectorsHtml = (config.showLanguageSelector || config.showCurrencySelector) ? `
-        <div style="position: absolute; right: 50px; top: 50%; transform: translateY(-50%); display: flex; align-items: center; gap: 16px;">
+        <div class="announcement-selectors" style="position: absolute; right: 50px; top: 50%; transform: translateY(-50%); display: flex; align-items: center; gap: 16px;">
             ${config.showLanguageSelector ? `
                 <select style="border: none; background: transparent; font-size: 12px; cursor: pointer; outline: none; color: inherit;">
                     <option>Español</option>
@@ -770,6 +770,63 @@ function renderAnnouncementBar(config) {
         </div>
     `;
 
+    // Media queries para móvil
+    const mobileStyles = `
+        <style>
+            @media (max-width: 768px) {
+                .announcement-bar-content {
+                    padding: 10px 15px !important;
+                }
+                
+                .announcement-bar-content > div {
+                    display: flex !important;
+                    flex-direction: column !important;
+                    gap: 10px !important;
+                    align-items: center !important;
+                }
+                
+                .announcement-social-icons {
+                    position: relative !important;
+                    left: auto !important;
+                    right: auto !important;
+                    top: auto !important;
+                    transform: none !important;
+                    order: 1;
+                    margin-bottom: 5px;
+                }
+                
+                .announcement-bar-content > div > div:nth-child(2) {
+                    order: 2;
+                    width: 100%;
+                }
+                
+                .announcement-selectors {
+                    position: relative !important;
+                    left: auto !important;
+                    right: auto !important;
+                    top: auto !important;
+                    transform: none !important;
+                    order: 3;
+                    margin-top: 5px;
+                }
+                
+                .announcement-bar-content button {
+                    display: none !important;
+                }
+                
+                /* Para el modo marquee en móvil */
+                .marquee-mode > div {
+                    flex-direction: row !important;
+                }
+                
+                .marquee-mode .announcement-social-icons,
+                .marquee-mode .announcement-selectors {
+                    display: none !important;
+                }
+            }
+        </style>
+    `;
+
     return `
         <div class="section-wrapper" data-section-id="announcement">
             ${isInEditor ? `
@@ -779,6 +836,7 @@ function renderAnnouncementBar(config) {
                 </div>
             ` : ''}
             ${marqueeStyles}
+            ${mobileStyles}
             ${announcementContentHtml}
         </div>
     `;

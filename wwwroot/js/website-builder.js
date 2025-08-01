@@ -8014,7 +8014,7 @@ $(document).ready(async function() {
                 const html = executeModuleFunction('Gallery', 'renderImageSettings', imageId);
                 if (html) {
                     dynamicContentArea.innerHTML = html;
-                    executeModuleFunction('Gallery', 'attachImageEventListeners', imageId);
+                    executeModuleFunction('Gallery', 'attachEventListeners');
                     setTimeout(applyTranslations, 0);
                 } else {
                     console.error('[DEBUG] No HTML returned from gallery image settings');
@@ -20616,6 +20616,11 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
             hasPendingPageStructureChanges = true;
             updateSaveButtonState();
             renderPreview();
+            
+            // Close modal
+            $('.add-section-overlay').fadeOut(200, function() {
+                $(this).remove();
+            });
             
             console.log('[DEBUG] Gallery added successfully');
         }

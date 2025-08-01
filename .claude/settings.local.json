@@ -25,7 +25,9 @@
       "Bash(psql:*)",
       "WebFetch(domain:github.com)",
       "WebFetch(domain:gist.github.com)",
-      "Bash(true)"
+      "Bash(true)",
+      "WebFetch(domain:www.hodelpa.com)",
+      "Bash(node:*)"
     ],
     "deny": []
   }
