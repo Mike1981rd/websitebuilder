@@ -127,6 +127,12 @@ namespace Hotel.Controllers
             ViewBag.Nights = nights;
             ViewBag.PricePerNight = reservation.TotalAmount / nights;
 
+            // Get billing address if exists
+            var billingAddress = await _context.CustomerAddresses
+                .FirstOrDefaultAsync(ca => ca.GuestId == reservation.GuestId && ca.Type == "Billing");
+            
+            ViewBag.BillingAddress = billingAddress;
+
             return View(reservation);
         }
 

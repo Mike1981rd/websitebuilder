@@ -162,12 +162,202 @@ $(document).ready(function() {
     // Add CSRF token to AJAX requests
     $.ajaxSetup({
         beforeSend: function(xhr, settings) {
-            if (settings.type === 'POST' && !settings.data.includes('__RequestVerificationToken')) {
+            if (settings.type === 'POST') {
                 const token = $('input[name="__RequestVerificationToken"]').val();
                 if (token) {
-                    settings.data += '&__RequestVerificationToken=' + encodeURIComponent(token);
+                    // Check if data is FormData (file upload)
+                    if (settings.data instanceof FormData) {
+                        settings.data.append('__RequestVerificationToken', token);
+                    } 
+                    // Check if data is a string
+                    else if (typeof settings.data === 'string' && !settings.data.includes('__RequestVerificationToken')) {
+                        settings.data += '&__RequestVerificationToken=' + encodeURIComponent(token);
+                    }
+                    // If data is an object, add the token
+                    else if (settings.data && typeof settings.data === 'object' && !(settings.data instanceof FormData)) {
+                        settings.data.__RequestVerificationToken = token;
+                    }
                 }
             }
         }
+    });
+    
+    // Checkout Customization
+    let currentCheckoutLogo = null;
+    let currentLogoSize = 45; // Default size
+    
+    // Load existing checkout settings
+    loadCheckoutSettings();
+    
+    function loadCheckoutSettings() {
+        $.ajax({
+            url: '/PaymentSettings/GetCheckoutSettings',
+            type: 'GET',
+            success: function(response) {
+                if (response.success) {
+                    if (response.logoUrl) {
+                        currentCheckoutLogo = response.logoUrl;
+                        $('#logo-preview-img').attr('src', response.logoUrl);
+                        // Show preview state
+                        $('#upload-state').hide();
+                        $('#logo-preview-state').show();
+                    }
+                    if (response.position) {
+                        $(`input[name="logo-position"][value="${response.position}"]`).prop('checked', true);
+                        // Update active state
+                        updatePositionCardState(response.position);
+                    }
+                    if (response.size) {
+                        currentLogoSize = response.size;
+                        $('#logo-size-slider').val(response.size);
+                        $('#size-value').text(response.size);
+                        updateSliderProgress(response.size);
+                    }
+                }
+            }
+        });
+    }
+    
+    // Handle position selection styling
+    $('input[name="logo-position"]').on('change', function() {
+        updatePositionCardState($(this).val());
+    });
+    
+    function updatePositionCardState(selectedValue) {
+        // Reset all cards
+        $('.position-card').css({
+            'border-color': '#e0e0e0',
+            'background-color': 'transparent'
+        });
+        $('.position-card i').css('color', '#666');
+        
+        // Highlight selected card
+        const $selectedCard = $(`input[name="logo-position"][value="${selectedValue}"]`).siblings('.position-card');
+        $selectedCard.css({
+            'border-color': 'var(--primary)',
+            'background-color': 'rgba(233, 30, 99, 0.05)'
+        });
+        $selectedCard.find('i').css('color', 'var(--primary)');
+    }
+    
+    // Upload logo button
+    $('#upload-logo-btn').on('click', function() {
+        $('#checkout-logo-input').click();
+    });
+    
+    // Change logo button
+    $('#change-logo-btn').on('click', function() {
+        $('#checkout-logo-input').click();
+    });
+    
+    // Handle file selection
+    $('#checkout-logo-input').on('change', function() {
+        const file = this.files[0];
+        if (file) {
+            // Validate file size (max 2MB)
+            if (file.size > 2 * 1024 * 1024) {
+                showNotification('El archivo no debe superar los 2MB', 'error');
+                return;
+            }
+            
+            // Create FormData and upload
+            const formData = new FormData();
+            formData.append('logoFile', file);
+            
+            // Show loading state
+            $('#upload-logo-btn').prop('disabled', true).html('<i class="material-icons">hourglass_empty</i> <span>Subiendo...</span>');
+            
+            $.ajax({
+                url: '/PaymentSettings/UploadCheckoutLogo',
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function(response) {
+                    if (response.success) {
+                        currentCheckoutLogo = response.logoUrl;
+                        $('#logo-preview-img').attr('src', response.logoUrl);
+                        // Switch to preview state
+                        $('#upload-state').hide();
+                        $('#logo-preview-state').show();
+                        showNotification('Logo subido exitosamente', 'success');
+                    } else {
+                        showNotification(response.message, 'error');
+                    }
+                },
+                error: function() {
+                    showNotification('Error al subir el logo', 'error');
+                },
+                complete: function() {
+                    $('#upload-logo-btn').prop('disabled', false).html('<i class="material-icons">upload</i> <span>Subir Logo</span>');
+                }
+            });
+        }
+    });
+    
+    // Remove logo button
+    $('#remove-logo-btn').on('click', function() {
+        if (confirm('¿Está seguro de eliminar el logo?')) {
+            currentCheckoutLogo = null;
+            // Switch back to upload state
+            $('#logo-preview-state').hide();
+            $('#upload-state').show();
+            $('#checkout-logo-input').val('');
+        }
+    });
+    
+    // Handle logo size slider
+    $('#logo-size-slider').on('input', function() {
+        const size = $(this).val();
+        currentLogoSize = parseInt(size);
+        $('#size-value').text(size);
+        updateSliderProgress(size);
+        
+        // Update preview logo size in real-time
+        if (currentCheckoutLogo) {
+            $('#logo-preview-img').css('max-height', size + 'px');
+        }
+    });
+    
+    // Update slider progress bar color
+    function updateSliderProgress(value) {
+        const min = parseInt($('#logo-size-slider').attr('min'));
+        const max = parseInt($('#logo-size-slider').attr('max'));
+        const percentage = ((value - min) / (max - min)) * 100;
+        
+        $('#logo-size-slider').css('background', `linear-gradient(to right, var(--primary) 0%, var(--primary) ${percentage}%, #ddd ${percentage}%, #ddd 100%)`);
+    }
+    
+    // Save checkout settings
+    $('#checkout-customization-form').on('submit', function(e) {
+        e.preventDefault();
+        
+        const position = $('input[name="logo-position"]:checked').val();
+        
+        // Show loading state
+        $('#save-checkout-settings').prop('disabled', true).html('<i class="fas fa-hourglass-half"></i> Guardando...');
+        
+        $.ajax({
+            url: '/PaymentSettings/SaveCheckoutSettings',
+            type: 'POST',
+            data: {
+                logoUrl: currentCheckoutLogo || '',
+                position: position,
+                size: currentLogoSize
+            },
+            success: function(response) {
+                if (response.success) {
+                    showNotification(response.message, 'success');
+                } else {
+                    showNotification(response.message, 'error');
+                }
+            },
+            error: function() {
+                showNotification('Error al guardar la configuración', 'error');
+            },
+            complete: function() {
+                $('#save-checkout-settings').prop('disabled', false).html('<i class="fas fa-save" style="margin-right: 8px;"></i>Guardar Configuración');
+            }
+        });
     });
 });

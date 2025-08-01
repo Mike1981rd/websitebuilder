@@ -29,7 +29,10 @@ namespace Hotel.Controllers
 
         public async Task<IActionResult> Index()
         {
-            // Get current website for logo and theme settings
+            // Get current company for checkout logo settings
+            var company = await _context.Companies.FirstOrDefaultAsync();
+            
+            // Get current website for theme settings
             var website = await _context.WebSites.FirstOrDefaultAsync();
             
             if (website != null)
@@ -45,12 +48,20 @@ namespace Hotel.Controllers
                         // Debug: Log the entire theme settings structure
                         Console.WriteLine($"[CHECKOUT DEBUG] Full theme settings: {themeSettings}");
                         
-                        // Get logo from header settings
-                        if (themeSettings.TryGetProperty("header", out JsonElement header) &&
+                        // Get logo - First check for checkout-specific logo, then fall back to header logo
+                        if (company != null && !string.IsNullOrEmpty(company.CheckoutLogoUrl))
+                        {
+                            ViewBag.LogoUrl = company.CheckoutLogoUrl;
+                            ViewBag.LogoPosition = company.CheckoutLogoPosition ?? "left";
+                            ViewBag.LogoSize = company.CheckoutLogoSize;
+                        }
+                        else if (themeSettings.TryGetProperty("header", out JsonElement header) &&
                             header.TryGetProperty("logo", out JsonElement logo) &&
                             logo.TryGetProperty("url", out JsonElement logoUrl))
                         {
                             ViewBag.LogoUrl = logoUrl.GetString();
+                            ViewBag.LogoPosition = "left"; // Default position for header logo
+                            ViewBag.LogoSize = 45; // Default size
                         }
                         
                         // Get store name
@@ -318,7 +329,31 @@ namespace Hotel.Controllers
                 
                 Console.WriteLine($"[RESERVATION] Reservation created with ID: {reservation.Id}");
 
-                // 3. Return success response
+                // 3. Save billing address if different from shipping
+                if (!formData.BillingSame && !string.IsNullOrEmpty(formData.BillingAddress))
+                {
+                    Console.WriteLine("[RESERVATION] Saving billing address as separate entry");
+                    
+                    var billingAddress = new CustomerAddress
+                    {
+                        GuestId = guest.Id,
+                        Type = "Billing",
+                        Street = formData.BillingAddress,
+                        City = formData.BillingCity ?? "",
+                        State = formData.BillingState,
+                        Country = formData.BillingCountry ?? "",
+                        PostalCode = formData.BillingPostalCode ?? "",
+                        IsDefault = false,
+                        CreatedAt = DateTime.UtcNow
+                    };
+                    
+                    _context.CustomerAddresses.Add(billingAddress);
+                    await _context.SaveChangesAsync();
+                    
+                    Console.WriteLine($"[RESERVATION] Billing address saved for Guest ID: {guest.Id}");
+                }
+
+                // 4. Return success response
                 return Json(new 
                 { 
                     success = true, 
@@ -416,6 +451,28 @@ namespace Hotel.Controllers
                         // Create guest and reservation
                         var guest = await CreateOrUpdateGuest(formData);
                         var reservation = await CreateReservation(formData, guest, result.TransactionId);
+                        
+                        // Save billing address if different from shipping
+                        if (!formData.BillingSame && !string.IsNullOrEmpty(formData.BillingAddress))
+                        {
+                            var billingAddress = new CustomerAddress
+                            {
+                                GuestId = guest.Id,
+                                Type = "Billing",
+                                Street = formData.BillingAddress,
+                                City = formData.BillingCity ?? "",
+                                State = formData.BillingState,
+                                Country = formData.BillingCountry ?? "",
+                                PostalCode = formData.BillingPostalCode ?? "",
+                                IsDefault = false,
+                                CreatedAt = DateTime.UtcNow
+                            };
+                            
+                            _context.CustomerAddresses.Add(billingAddress);
+                            await _context.SaveChangesAsync();
+                            
+                            _logger.LogInformation("Billing address saved for Guest ID: {GuestId}", guest.Id);
+                        }
                         
                         // Update payment transaction with reservation ID
                         var transaction = await _context.PaymentTransactions
@@ -560,6 +617,17 @@ namespace Hotel.Controllers
         public bool Newsletter { get; set; }
         public bool SaveInfo { get; set; }
         public bool BillingSame { get; set; }
+        
+        // Billing address fields (when BillingSame is false)
+        public string BillingFirstName { get; set; }
+        public string BillingLastName { get; set; }
+        public string BillingCountry { get; set; }
+        public string BillingAddress { get; set; }
+        public string BillingApartment { get; set; }
+        public string BillingCity { get; set; }
+        public string BillingState { get; set; }
+        public string BillingPostalCode { get; set; }
+        
         public bool IsReservation { get; set; }
         public string CheckinDate { get; set; }
         public string CheckoutDate { get; set; }

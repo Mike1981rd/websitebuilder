@@ -82,6 +82,14 @@ namespace Hotel.Controllers
                 Status = g.IsActive ? "active" : (string.IsNullOrEmpty(g.ConfigurationJson) ? "pending" : "inactive")
             }).ToList();
             
+            // Load checkout settings from Company
+            var company = await _context.Companies.FirstOrDefaultAsync();
+            if (company != null)
+            {
+                ViewBag.CheckoutLogoUrl = company.CheckoutLogoUrl;
+                ViewBag.CheckoutLogoPosition = company.CheckoutLogoPosition;
+            }
+            
             return View(viewModels);
         }
         
@@ -355,6 +363,118 @@ namespace Hotel.Controllers
             }
             
             return filePath;
+        }
+        
+        // POST: PaymentSettings/UploadCheckoutLogo
+        [HttpPost]
+        public async Task<IActionResult> UploadCheckoutLogo(IFormFile logoFile)
+        {
+            try
+            {
+                if (logoFile == null || logoFile.Length == 0)
+                {
+                    return Json(new { success = false, message = "No se seleccionó ningún archivo" });
+                }
+                
+                // Validate file type
+                var allowedTypes = new[] { "image/jpeg", "image/jpg", "image/png", "image/gif", "image/svg+xml", "image/webp" };
+                if (!allowedTypes.Contains(logoFile.ContentType.ToLower()))
+                {
+                    return Json(new { success = false, message = "Tipo de archivo no permitido. Use JPG, PNG, GIF, SVG o WebP." });
+                }
+                
+                // For better quality, recommend SVG or high-res images
+                var fileExtension = Path.GetExtension(logoFile.FileName).ToLower();
+                bool isVector = fileExtension == ".svg";
+                
+                // Check if image is high resolution (for raster images)
+                if (!isVector && logoFile.Length < 50 * 1024) // Less than 50KB might be low quality
+                {
+                    _logger.LogWarning("Low resolution image uploaded for checkout logo");
+                }
+                
+                // Create uploads directory
+                var uploadsPath = Path.Combine(_environment.WebRootPath, "uploads", "checkout");
+                if (!Directory.Exists(uploadsPath))
+                {
+                    Directory.CreateDirectory(uploadsPath);
+                }
+                
+                // Generate unique filename
+                var fileName = $"checkout_logo_{DateTime.UtcNow.Ticks}{Path.GetExtension(logoFile.FileName)}";
+                var filePath = Path.Combine(uploadsPath, fileName);
+                
+                // Save file
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await logoFile.CopyToAsync(stream);
+                }
+                
+                // Return the URL
+                var logoUrl = $"/uploads/checkout/{fileName}";
+                return Json(new { success = true, logoUrl = logoUrl });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error uploading checkout logo");
+                return Json(new { success = false, message = "Error al subir el archivo" });
+            }
+        }
+        
+        // POST: PaymentSettings/SaveCheckoutSettings
+        [HttpPost]
+        public async Task<IActionResult> SaveCheckoutSettings(string logoUrl, string position, int size = 45)
+        {
+            try
+            {
+                var company = await _context.Companies.FirstOrDefaultAsync();
+                if (company == null)
+                {
+                    return Json(new { success = false, message = "Empresa no encontrada" });
+                }
+                
+                // Update checkout settings
+                company.CheckoutLogoUrl = logoUrl;
+                company.CheckoutLogoPosition = position ?? "left";
+                company.CheckoutLogoSize = size;
+                company.UpdatedAt = DateTime.UtcNow;
+                
+                await _context.SaveChangesAsync();
+                
+                return Json(new { success = true, message = "Configuración guardada exitosamente" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error saving checkout settings");
+                return Json(new { success = false, message = "Error al guardar la configuración" });
+            }
+        }
+        
+        // GET: PaymentSettings/GetCheckoutSettings
+        [HttpGet]
+        public async Task<IActionResult> GetCheckoutSettings()
+        {
+            try
+            {
+                var company = await _context.Companies.FirstOrDefaultAsync();
+                if (company == null)
+                {
+                    return Json(new { success = false, message = "Empresa no encontrada" });
+                }
+                
+                return Json(new
+                {
+                    success = true,
+                    logoUrl = company.CheckoutLogoUrl,
+                    position = company.CheckoutLogoPosition ?? "left",
+                    size = company.CheckoutLogoSize
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting checkout settings");
+                return Json(new { success = false, message = "Error al obtener la configuración" });
+            }
         }
         
         private class AzulConfig

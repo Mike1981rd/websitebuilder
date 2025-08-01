@@ -5,6 +5,8 @@
     Layout = "_MaterializeExactLayout";
 }
 
+@Html.AntiForgeryToken()
+
 <div class="page-header">
     <nav class="breadcrumb-container" aria-label="breadcrumb">
         <ol class="breadcrumb">
@@ -140,8 +142,235 @@
             </button>
         </div>
     </div>
+    
+    <!-- Checkout Customization Section -->
+    <div class="payment-gateway-card checkout-customization" style="margin-top: 30px;">
+        <div class="gateway-header">
+            <div class="gateway-info">
+                <div class="gateway-icon-wrapper" style="width: 60px; height: 60px; background-color: rgba(233, 30, 99, 0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-right: 16px;">
+                    <i class="fas fa-cash-register" style="font-size: 28px; color: var(--primary);"></i>
+                </div>
+                <div class="gateway-details">
+                    <h3 class="gateway-name">Personalización del Checkout</h3>
+                    <p class="gateway-description">Configura el logo y su posición en la pantalla de pago</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="checkout-settings-content" style="padding: 30px;">
+            <form id="checkout-customization-form">
+                <!-- Logo Upload Section -->
+                <div class="form-section" style="margin-bottom: 30px;">
+                    <h4 style="font-size: 16px; font-weight: 600; margin-bottom: 16px; color: #333;">Logo del Checkout</h4>
+                    <div class="logo-upload-area" style="background-color: #f8f9fa; border: 2px dashed #ddd; border-radius: 8px; padding: 20px; text-align: center;">
+                        <input type="file" id="checkout-logo-input" accept="image/*" style="display: none;">
+                        
+                        <!-- Upload State -->
+                        <div id="upload-state" style="display: block;">
+                            <i class="fas fa-cloud-upload-alt" style="font-size: 36px; color: #999; margin-bottom: 12px; display: block;"></i>
+                            <button type="button" class="btn btn-primary" id="upload-logo-btn" style="margin-bottom: 8px;">
+                                <i class="fas fa-upload" style="margin-right: 8px;"></i>Subir Logo
+                            </button>
+                            <p style="color: #666; font-size: 13px; margin: 0;">o arrastra y suelta una imagen aquí</p>
+                            <p style="color: #999; font-size: 12px; margin-top: 8px;">JPG, PNG, GIF, SVG o WebP (Máx. 2MB)</p>
+                            <p style="color: #666; font-size: 11px; margin-top: 4px;">
+                                <i class="fas fa-info-circle" style="color: var(--primary);"></i>
+                                Para mejor calidad, use SVG o imágenes de alta resolución (mínimo 2x el tamaño de visualización)
+                            </p>
+                        </div>
+                        
+                        <!-- Preview State -->
+                        <div id="logo-preview-state" style="display: none;">
+                            <div style="position: relative; display: inline-block;">
+                                <img id="logo-preview-img" src="" alt="Logo Preview" style="max-height: 80px; max-width: 200px; border-radius: 4px;">
+                                <button type="button" class="btn btn-sm btn-danger" id="remove-logo-btn" style="position: absolute; top: -8px; right: -8px; width: 32px; height: 32px; border-radius: 50%; padding: 0; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                            <p style="color: #666; font-size: 13px; margin-top: 12px;">
+                                <button type="button" class="btn btn-sm btn-secondary" id="change-logo-btn">
+                                    <i class="fas fa-exchange-alt" style="margin-right: 4px;"></i>Cambiar logo
+                                </button>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Logo Size Section -->
+                <div class="form-section" style="margin-bottom: 30px;">
+                    <h4 style="font-size: 16px; font-weight: 600; margin-bottom: 16px; color: #333;">Tamaño del Logo</h4>
+                    <div class="size-slider-container" style="background-color: #f8f9fa; border-radius: 8px; padding: 20px;">
+                        <div style="display: flex; align-items: center; gap: 20px;">
+                            <span style="font-size: 13px; color: #666; min-width: 60px;">Pequeño</span>
+                            <div style="flex: 1; position: relative;">
+                                <input type="range" id="logo-size-slider" min="30" max="80" value="45" style="width: 100%; height: 6px; background: #ddd; border-radius: 3px; outline: none; -webkit-appearance: none;">
+                                <div class="size-marks" style="display: flex; justify-content: space-between; margin-top: 8px;">
+                                    <span style="font-size: 11px; color: #999;">30px</span>
+                                    <span style="font-size: 11px; color: #999;">45px</span>
+                                    <span style="font-size: 11px; color: #999;">60px</span>
+                                    <span style="font-size: 11px; color: #999;">80px</span>
+                                </div>
+                            </div>
+                            <span style="font-size: 13px; color: #666; min-width: 60px; text-align: right;">Grande</span>
+                        </div>
+                        <div style="text-align: center; margin-top: 16px;">
+                            <span style="font-size: 14px; color: #333;">Altura actual: <strong id="size-value">45</strong>px</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Logo Position Section -->
+                <div class="form-section" style="margin-bottom: 30px;">
+                    <h4 style="font-size: 16px; font-weight: 600; margin-bottom: 16px; color: #333;">Posición del Logo</h4>
+                    <div class="position-options" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;">
+                        <label class="position-option" style="cursor: pointer;">
+                            <input type="radio" name="logo-position" value="left" checked style="display: none;">
+                            <div class="position-card" style="border: 2px solid #e0e0e0; border-radius: 8px; padding: 16px; text-align: center; transition: all 0.2s;">
+                                <i class="fas fa-align-left" style="font-size: 24px; color: #666; margin-bottom: 8px; display: block;"></i>
+                                <span style="font-size: 14px; color: #333;">Izquierda</span>
+                            </div>
+                        </label>
+                        <label class="position-option" style="cursor: pointer;">
+                            <input type="radio" name="logo-position" value="center" style="display: none;">
+                            <div class="position-card" style="border: 2px solid #e0e0e0; border-radius: 8px; padding: 16px; text-align: center; transition: all 0.2s;">
+                                <i class="fas fa-align-center" style="font-size: 24px; color: #666; margin-bottom: 8px; display: block;"></i>
+                                <span style="font-size: 14px; color: #333;">Centro</span>
+                            </div>
+                        </label>
+                        <label class="position-option" style="cursor: pointer;">
+                            <input type="radio" name="logo-position" value="right" style="display: none;">
+                            <div class="position-card" style="border: 2px solid #e0e0e0; border-radius: 8px; padding: 16px; text-align: center; transition: all 0.2s;">
+                                <i class="fas fa-align-right" style="font-size: 24px; color: #666; margin-bottom: 8px; display: block;"></i>
+                                <span style="font-size: 14px; color: #333;">Derecha</span>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+                
+                <!-- Save Button -->
+                <div class="form-actions" style="text-align: right; padding-top: 20px; border-top: 1px solid #e0e0e0;">
+                    <button type="submit" class="btn btn-primary" id="save-checkout-settings" style="min-width: 180px;">
+                        <i class="fas fa-save" style="margin-right: 8px;"></i>Guardar Configuración
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
 </div>
 
 @section Scripts {
+    <style>
+        /* Custom slider styles */
+        #logo-size-slider {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            height: 6px;
+            background: #ddd;
+            border-radius: 3px;
+            outline: none;
+            opacity: 0.9;
+            transition: opacity 0.2s;
+        }
+        
+        #logo-size-slider:hover {
+            opacity: 1;
+        }
+        
+        /* Slider thumb */
+        #logo-size-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            background: var(--primary);
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            transition: all 0.2s;
+        }
+        
+        #logo-size-slider::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            background: var(--primary);
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            transition: all 0.2s;
+        }
+        
+        #logo-size-slider::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+            box-shadow: 0 3px 6px rgba(0,0,0,0.3);
+        }
+        
+        #logo-size-slider::-moz-range-thumb:hover {
+            transform: scale(1.2);
+            box-shadow: 0 3px 6px rgba(0,0,0,0.3);
+        }
+        
+        /* Track progress */
+        #logo-size-slider::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 6px;
+            cursor: pointer;
+            background: #ddd;
+            border-radius: 3px;
+        }
+        
+        #logo-size-slider::-moz-range-track {
+            width: 100%;
+            height: 6px;
+            cursor: pointer;
+            background: #ddd;
+            border-radius: 3px;
+        }
+    </style>
     <script src="~/js/payment-settings.js" asp-append-version="true"></script>
+    <script>
+        // Drag and drop functionality
+        $(document).ready(function() {
+            const dropArea = $('.logo-upload-area');
+            
+            // Prevent default drag behaviors
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                dropArea.on(eventName, function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                });
+            });
+            
+            // Highlight drop area when item is dragged over it
+            ['dragenter', 'dragover'].forEach(eventName => {
+                dropArea.on(eventName, function() {
+                    $(this).css({
+                        'background-color': '#f0f8ff',
+                        'border-color': 'var(--primary)'
+                    });
+                });
+            });
+            
+            ['dragleave', 'drop'].forEach(eventName => {
+                dropArea.on(eventName, function() {
+                    $(this).css({
+                        'background-color': '#f8f9fa',
+                        'border-color': '#ddd'
+                    });
+                });
+            });
+            
+            // Handle dropped files
+            dropArea.on('drop', function(e) {
+                const files = e.originalEvent.dataTransfer.files;
+                if (files.length > 0) {
+                    $('#checkout-logo-input')[0].files = files;
+                    $('#checkout-logo-input').trigger('change');
+                }
+            });
+            
+            // Initialize position card state
+            updatePositionCardState($('input[name="logo-position"]:checked').val());
+        });
+    </script>
 }

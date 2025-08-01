@@ -93,6 +93,16 @@ namespace Hotel.Models
         [Display(Name = "Sufijo de orden")]
         public string? OrderSuffix { get; set; }
 
+        // Checkout customization
+        [Display(Name = "Logo del Checkout")]
+        public string? CheckoutLogoUrl { get; set; }
+
+        [Display(Name = "Posición del Logo en Checkout")]
+        public string CheckoutLogoPosition { get; set; } = "left"; // left, center, right
+
+        [Display(Name = "Tamaño del Logo en Checkout")]
+        public int CheckoutLogoSize { get; set; } = 45; // Default 45px height
+
         // Timestamps
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;

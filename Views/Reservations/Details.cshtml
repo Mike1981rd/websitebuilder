@@ -168,6 +168,16 @@
         font-size: 0.875rem;
         color: #666;
     }
+    
+    .text-muted {
+        color: #6c757d;
+        font-style: italic;
+    }
+    
+    .text-success {
+        color: #28a745;
+        font-weight: 500;
+    }
 
     .action-buttons {
         display: flex;
@@ -277,6 +287,14 @@
     body.dark-mode .btn-print:hover {
         background: #4a4d66;
     }
+    
+    body.dark-mode .text-muted {
+        color: #999;
+    }
+    
+    body.dark-mode .text-success {
+        color: #5cb85c;
+    }
 
     /* Responsive */
     @@media (max-width: 768px) {
@@ -338,6 +356,80 @@
         <div class="detail-label" data-i18n="reservationDetails.country">País</div>
         <div class="detail-value">@Model.Guest.Country</div>
     </div>
+</div>
+
+<!-- Billing Information -->
+<div class="detail-card">
+    <h5>
+        <i class="fas fa-file-invoice"></i>
+        <span data-i18n="reservationDetails.billingInfo">Información de Facturación</span>
+    </h5>
+    @{
+        var billingAddress = ViewBag.BillingAddress as Hotel.Models.CustomerAddress;
+        var useSameAddress = billingAddress == null;
+    }
+    
+    @if (useSameAddress)
+    {
+        <div class="detail-row">
+            <div class="detail-label" data-i18n="reservationDetails.billingAddress">Dirección de Facturación</div>
+            <div class="detail-value">
+                <span class="text-muted" data-i18n="reservationDetails.sameAsShipping">Misma que la dirección de envío</span>
+            </div>
+        </div>
+        <div class="detail-row">
+            <div class="detail-label" data-i18n="reservationDetails.fullName">Nombre Completo</div>
+            <div class="detail-value">@Model.Guest.FirstName @Model.Guest.LastName</div>
+        </div>
+        <div class="detail-row">
+            <div class="detail-label" data-i18n="reservationDetails.address">Dirección</div>
+            <div class="detail-value">@Model.Guest.Address</div>
+        </div>
+        <div class="detail-row">
+            <div class="detail-label" data-i18n="reservationDetails.city">Ciudad</div>
+            <div class="detail-value">@Model.Guest.City</div>
+        </div>
+        <div class="detail-row">
+            <div class="detail-label" data-i18n="reservationDetails.postalCode">Código Postal</div>
+            <div class="detail-value">@Model.Guest.PostalCode</div>
+        </div>
+        <div class="detail-row">
+            <div class="detail-label" data-i18n="reservationDetails.country">País</div>
+            <div class="detail-value">@Model.Guest.Country</div>
+        </div>
+    }
+    else
+    {
+        <div class="detail-row">
+            <div class="detail-label" data-i18n="reservationDetails.billingAddress">Dirección de Facturación</div>
+            <div class="detail-value">
+                <span class="text-success" data-i18n="reservationDetails.differentAddress">Dirección diferente</span>
+            </div>
+        </div>
+        <div class="detail-row">
+            <div class="detail-label" data-i18n="reservationDetails.address">Dirección</div>
+            <div class="detail-value">@billingAddress.Street</div>
+        </div>
+        <div class="detail-row">
+            <div class="detail-label" data-i18n="reservationDetails.city">Ciudad</div>
+            <div class="detail-value">@billingAddress.City</div>
+        </div>
+        @if (!string.IsNullOrEmpty(billingAddress.State))
+        {
+            <div class="detail-row">
+                <div class="detail-label" data-i18n="reservationDetails.state">Estado/Provincia</div>
+                <div class="detail-value">@billingAddress.State</div>
+            </div>
+        }
+        <div class="detail-row">
+            <div class="detail-label" data-i18n="reservationDetails.postalCode">Código Postal</div>
+            <div class="detail-value">@billingAddress.PostalCode</div>
+        </div>
+        <div class="detail-row">
+            <div class="detail-label" data-i18n="reservationDetails.country">País</div>
+            <div class="detail-value">@billingAddress.Country</div>
+        </div>
+    }
 </div>
 
 <!-- Reservation Details -->
@@ -463,7 +555,14 @@
             'reservationDetails.backToList': 'Volver al Listado',
             'reservationDetails.print': 'Imprimir',
             'breadcrumb.home': 'Home',
-            'reservations.title': 'Reservaciones'
+            'reservations.title': 'Reservaciones',
+            'reservationDetails.billingInfo': 'Información de Facturación',
+            'reservationDetails.billingAddress': 'Dirección de Facturación',
+            'reservationDetails.sameAsShipping': 'Misma que la dirección de envío',
+            'reservationDetails.differentAddress': 'Dirección diferente',
+            'reservationDetails.city': 'Ciudad',
+            'reservationDetails.postalCode': 'Código Postal',
+            'reservationDetails.state': 'Estado/Provincia'
         },
         en: {
             'reservationDetails.title': 'Reservation',
@@ -490,7 +589,14 @@
             'reservationDetails.backToList': 'Back to List',
             'reservationDetails.print': 'Print',
             'breadcrumb.home': 'Home',
-            'reservations.title': 'Reservations'
+            'reservations.title': 'Reservations',
+            'reservationDetails.billingInfo': 'Billing Information',
+            'reservationDetails.billingAddress': 'Billing Address',
+            'reservationDetails.sameAsShipping': 'Same as shipping address',
+            'reservationDetails.differentAddress': 'Different address',
+            'reservationDetails.city': 'City',
+            'reservationDetails.postalCode': 'Postal Code',
+            'reservationDetails.state': 'State/Province'
         }
     };
 
