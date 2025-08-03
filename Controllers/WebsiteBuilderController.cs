@@ -1,9 +1,18 @@
 using Microsoft.AspNetCore.Mvc;
+using Hotel.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace Hotel.Controllers
 {
     public class WebsiteBuilderController : Controller
     {
+        private readonly HotelDbContext _context;
+
+        public WebsiteBuilderController(HotelDbContext context)
+        {
+            _context = context;
+        }
+
         public IActionResult Index()
         {
             return View();
@@ -21,8 +30,22 @@ namespace Hotel.Controllers
         }
 
         // Vista de preview completa en nueva pestaña
-        public IActionResult Preview(string page = null, string handle = null, string type = null)
+        public async Task<IActionResult> Preview(string page = null, string handle = null, string type = null)
         {
+            // Get the website to use its UpdatedAt as cache version
+            var website = await _context.WebSites.FirstOrDefaultAsync();
+            if (website != null)
+            {
+                // Use the UpdatedAt timestamp as version for cache busting
+                // Convert to Unix timestamp to ensure consistent format
+                ViewBag.CacheVersion = ((DateTimeOffset)website.UpdatedAt).ToUnixTimeSeconds();
+            }
+            else
+            {
+                // Fallback to current timestamp if no website exists
+                ViewBag.CacheVersion = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+            }
+
             // Check if this is being accessed via /cart route
             if (Request.Path.Value?.Equals("/cart", StringComparison.OrdinalIgnoreCase) == true)
             {
@@ -83,6 +106,25 @@ namespace Hotel.Controllers
             
             // Pass the page parameter to the view
             ViewBag.Page = page;
+            
+            // Only add no-cache headers if we're in development or if it's accessed from the editor
+            var referrer = Request.Headers["Referer"].ToString();
+            var isFromEditor = referrer.Contains("/WebsiteBuilder") || referrer.Contains("/websitebuilder");
+            var isDevelopment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development";
+            
+            if (isDevelopment || isFromEditor)
+            {
+                // Add cache control headers to prevent browser caching in development/editor preview
+                Response.Headers["Cache-Control"] = "no-cache, no-store, must-revalidate";
+                Response.Headers["Pragma"] = "no-cache";
+                Response.Headers["Expires"] = "0";
+            }
+            else
+            {
+                // In production for public visitors, allow caching for better performance
+                Response.Headers["Cache-Control"] = "public, max-age=300"; // Cache for 5 minutes
+            }
+            
             return View();
         }
     }

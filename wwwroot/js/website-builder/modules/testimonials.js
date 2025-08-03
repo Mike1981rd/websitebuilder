@@ -576,8 +576,16 @@ window.WebsiteBuilderModules.Testimonials = {
                     <div class="settings-field">
                         <label data-i18n="testimonials.headingSize">Heading size</label>
                         <div style="display: flex; align-items: center; gap: 10px;">
-                            <input type="range" class="shopify-range" id="testimonials-heading-size" min="0" max="7" value="${configData.headingSize || 3}">
-                            <input type="number" class="shopify-number-input" id="testimonials-heading-size-input" value="${configData.headingSize || 3}" min="0" max="7" style="width: 60px;">
+                            <input type="range" class="shopify-range" id="testimonials-heading-size" min="0" max="7" value="${(() => {
+                                if (typeof configData.headingSize === 'number') return configData.headingSize;
+                                const match = configData.headingSize?.match(/heading(\d)/);
+                                return match ? parseInt(match[1]) - 1 : 3;
+                            })()}">
+                            <input type="number" class="shopify-number-input" id="testimonials-heading-size-input" value="${(() => {
+                                if (typeof configData.headingSize === 'number') return configData.headingSize;
+                                const match = configData.headingSize?.match(/heading(\d)/);
+                                return match ? parseInt(match[1]) - 1 : 3;
+                            })()}" min="0" max="7" style="width: 60px;">
                         </div>
                     </div>
                     
@@ -585,8 +593,16 @@ window.WebsiteBuilderModules.Testimonials = {
                     <div class="settings-field">
                         <label data-i18n="testimonials.bodySize">Body size</label>
                         <div style="display: flex; align-items: center; gap: 10px;">
-                            <input type="range" class="shopify-range" id="testimonials-body-size" min="0" max="6" value="${configData.bodySize || 3}">
-                            <input type="number" class="shopify-number-input" id="testimonials-body-size-input" value="${configData.bodySize || 3}" min="0" max="6" style="width: 60px;">
+                            <input type="range" class="shopify-range" id="testimonials-body-size" min="0" max="6" value="${(() => {
+                                if (typeof configData.bodySize === 'number') return configData.bodySize;
+                                const match = configData.bodySize?.match(/body(\d)/);
+                                return match ? parseInt(match[1]) - 1 : 2;
+                            })()}">
+                            <input type="number" class="shopify-number-input" id="testimonials-body-size-input" value="${(() => {
+                                if (typeof configData.bodySize === 'number') return configData.bodySize;
+                                const match = configData.bodySize?.match(/body(\d)/);
+                                return match ? parseInt(match[1]) - 1 : 2;
+                            })()}" min="0" max="6" style="width: 60px;">
                         </div>
                         <p class="help-text" data-i18n="testimonials.bodySizeHelp">For 'Paragraph' body text formatting</p>
                     </div>
@@ -1206,28 +1222,36 @@ window.WebsiteBuilderModules.Testimonials = {
         $('#testimonials-heading-size').off('input').on('input', function() {
             const value = $(this).val();
             $('#testimonials-heading-size-input').val(value);
-            updateConfig('headingSize', parseInt(value));
+            // Convert numeric value back to heading format
+            const headingValue = `heading${parseInt(value) + 1}`;
+            updateConfig('headingSize', headingValue);
         });
         
         $('#testimonials-heading-size-input').off('change').on('change', function() {
             const value = Math.max(0, Math.min(7, parseInt($(this).val()) || 3));
             $(this).val(value);
             $('#testimonials-heading-size').val(value);
-            updateConfig('headingSize', value);
+            // Convert numeric value back to heading format
+            const headingValue = `heading${value + 1}`;
+            updateConfig('headingSize', headingValue);
         });
         
         // Body size slider and input sync
         $('#testimonials-body-size').off('input').on('input', function() {
             const value = $(this).val();
             $('#testimonials-body-size-input').val(value);
-            updateConfig('bodySize', parseInt(value));
+            // Convert numeric value back to body format
+            const bodyValue = `body${parseInt(value) + 1}`;
+            updateConfig('bodySize', bodyValue);
         });
         
         $('#testimonials-body-size-input').off('change').on('change', function() {
             const value = Math.max(0, Math.min(6, parseInt($(this).val()) || 3));
             $(this).val(value);
             $('#testimonials-body-size').val(value);
-            updateConfig('bodySize', value);
+            // Convert numeric value back to body format
+            const bodyValue = `body${value + 1}`;
+            updateConfig('bodySize', bodyValue);
         });
         
         // Link label

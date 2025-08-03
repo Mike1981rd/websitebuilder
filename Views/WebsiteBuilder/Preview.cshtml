@@ -1,13 +1,16 @@
 @{
     Layout = null; // Sin layout para mostrar solo el contenido
-    // Use a simple version string for cache busting
-    var version = "1.0.1";
+    // Use the dynamic cache version from the controller for cache busting
+    var version = ViewBag.CacheVersion ?? DateTimeOffset.UtcNow.ToUnixTimeSeconds();
 }
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
     <title>Preview - Hotel</title>
     
     <!-- Material Icons -->
@@ -398,8 +401,9 @@
         // Función para cargar los datos del website
         async function loadWebsiteData() {
             try {
-                // Cargar datos desde la API
-                const response = await fetch('/api/builder/websites/current');
+                // Cargar datos desde la API con cache busting
+                const timestamp = new Date().getTime();
+                const response = await fetch(`/api/builder/websites/current?_t=${timestamp}`);
                 if (!response.ok) {
                     throw new Error('Failed to load website data');
                 }

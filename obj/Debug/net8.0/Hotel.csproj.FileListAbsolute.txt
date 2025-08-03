@@ -681,3 +681,9 @@ C:\Users\hp\Documents\Visual Studio 2022\Projects\Hotel23\bin\Debug\net8.0\publi
 C:\Users\hp\Documents\Visual Studio 2022\Projects\Hotel23\bin\Debug\net8.0\publish\publish\Hotel.deps.json
 C:\Users\hp\Documents\Visual Studio 2022\Projects\Hotel23\bin\Debug\net8.0\publish\publish\Hotel.runtimeconfig.json
 C:\Users\hp\Documents\Visual Studio 2022\Projects\Hotel23\bin\Debug\net8.0\publish\publish\Hotel.staticwebassets.endpoints.json
+C:\Users\hp\Documents\Visual Studio 2022\Projects\Hotel23\bin\Debug\net8.0\publish\publish\publish\appsettings.Development.json
+C:\Users\hp\Documents\Visual Studio 2022\Projects\Hotel23\bin\Debug\net8.0\publish\publish\publish\appsettings.json
+C:\Users\hp\Documents\Visual Studio 2022\Projects\Hotel23\bin\Debug\net8.0\publish\publish\publish\appsettings.Production.json
+C:\Users\hp\Documents\Visual Studio 2022\Projects\Hotel23\bin\Debug\net8.0\publish\publish\publish\Hotel.deps.json
+C:\Users\hp\Documents\Visual Studio 2022\Projects\Hotel23\bin\Debug\net8.0\publish\publish\publish\Hotel.runtimeconfig.json
+C:\Users\hp\Documents\Visual Studio 2022\Projects\Hotel23\bin\Debug\net8.0\publish\publish\publish\Hotel.staticwebassets.endpoints.json

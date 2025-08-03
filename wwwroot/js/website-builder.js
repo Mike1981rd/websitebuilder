@@ -18,6 +18,7 @@ let currentPageBlocks = [];
 let currentPageType = 'home'; // Track the type of current page
 let pagesConfig = {}; // Store all pages configuration
 let currentSelectedColorScheme = 'scheme1'; // Track which color scheme is being edited
+let currentContactFormId = null; // Track current contact form ID being edited
 
 // Función global para actualizar cantidad en el carrito - disponible para el iframe
 // Función global para eliminar producto del carrito
@@ -3631,6 +3632,10 @@ function renderPreview() {
                 $('.topbar-nav-icon[data-view="sections"]').addClass('active');
                 const contactFormId = sectionId; // Use sectionId directly since it's the full ID
                 if (contactFormId && window.WebsiteBuilderModules && window.WebsiteBuilderModules.ContactForm) {
+                    // Store the current contact form ID globally
+                    currentContactFormId = contactFormId;
+                    console.log('[DEBUG] Contact form preview clicked, stored ID:', currentContactFormId);
+                    
                     window.WebsiteBuilderModules.ContactForm.openSettings(contactFormId);
                 }
             } else if (sectionId && sectionId.startsWith('image-with-text-')) {
@@ -8051,6 +8056,10 @@ $(document).ready(async function() {
             const config = data?.config || window.currentSectionsConfig?.contactForms?.[contactFormId];
             
             if (contactFormId && config) {
+                // Store the current contact form ID globally
+                currentContactFormId = contactFormId;
+                console.log('[DEBUG] Stored currentContactFormId:', currentContactFormId);
+                
                 const html = executeModuleFunction('ContactForm', 'renderSettings', { contactFormId, config });
                 if (html) {
                     dynamicContentArea.innerHTML = html;
@@ -15987,6 +15996,10 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
                 const contactFormId = $(this).data('element-id');
                 const config = currentSectionsConfig.contactForms?.[contactFormId];
                 if (contactFormId && config) {
+                    // Store the current contact form ID globally
+                    currentContactFormId = contactFormId;
+                    console.log('[DEBUG] Contact form clicked, stored ID:', currentContactFormId);
+                    
                     switchSidebarView('contactFormSettings', { 
                         contactFormId: contactFormId,
                         config: config
@@ -21139,17 +21152,27 @@ Summertime::#F9AFB1/#0F9D5B/#4285F4</textarea>
             setTimeout(applyTranslations, 0);
             hasPendingPageStructureChanges = true;
             updateSaveButtonState();
+            
+            // Reinitialize drag and drop for the new section
+            setTimeout(() => {
+                initializeDragAndDropSimple();
+            }, 100);
+            
             renderPreview();
             
             console.log('[DEBUG] Featured Product added successfully');
+            console.log('[DEBUG] Current sectionOrder:', currentSectionsConfig.sectionOrder);
+            console.log('[DEBUG] Featured Product config:', currentSectionsConfig.featuredProduct);
         }
         
-        // Close modal for other sections (template sections)
-        console.log('[DEBUG] Closing add section modal');
-        $('.add-section-overlay').fadeOut(200, function() {
-            console.log('[DEBUG] Modal closed and removed');
-            $(this).remove();
-        });
+        // Close modal for all template sections including featured-product
+        if (group === 'template') {
+            console.log('[DEBUG] Closing add section modal for template section:', sectionId);
+            $('.add-section-overlay').fadeOut(200, function() {
+                console.log('[DEBUG] Modal closed and removed');
+                $(this).remove();
+            });
+        }
     });
     
     
@@ -25026,8 +25049,10 @@ document.head.appendChild(style);
         
         // Debug: Check if the toggles exist in DOM
         console.log('[POPULATE] Checking DOM for toggles:');
-        console.log('[POPULATE] searchIcon toggle:', $('.simple-visibility-btn[data-section="searchIcon"]').length);
-        console.log('[POPULATE] accountIcon toggle:', $('.simple-visibility-btn[data-section="accountIcon"]').length);
+        console.log('[POPULATE] searchIcon toggle:', $('#header-show-search-icon').length);
+        console.log('[POPULATE] accountIcon toggle:', $('#header-show-account-icon').length);
+        
+        // Set basic fields
         $('#header-color-scheme').val(config.colorScheme || 'scheme1');
         $('#header-width').val(config.width);
         $('#header-layout').val(config.layout);
@@ -25038,6 +25063,10 @@ document.head.appendChild(style);
         $('#menu-select').val(config.menu);
         $('#desktop-logo-size').val(config.desktopLogoSize);
         $('#mobile-logo-size').val(config.mobileLogoSize);
+        
+        // Set search and account icon visibility checkboxes
+        $('#header-show-search-icon').prop('checked', config.sectionVisibility?.searchIcon !== false);
+        $('#header-show-account-icon').prop('checked', config.sectionVisibility?.accountIcon !== false);
         // Update number inputs
         $('#desktop-logo-size').closest('.range-with-inputs').find('.shopify-number-input').val(config.desktopLogoSize);
         $('#mobile-logo-size').closest('.range-with-inputs').find('.shopify-number-input').val(config.mobileLogoSize);
@@ -27750,23 +27779,32 @@ document.head.appendChild(style);
                     } else if (currentSidebarView === 'headerSettings') {
                         // Recargar la vista de header settings
                         console.log('[DEBUG] Reloading header settings view after save');
-                        // Reload data from server first to get fresh state
-                        loadCurrentWebsite().then(() => {
-                            console.log('[DEBUG] Data reloaded, switching to header settings view');
-                            console.log('[DEBUG] Current sectionVisibility:', currentSectionsConfig.header?.sectionVisibility);
-                            window.switchSidebarView('headerSettings');
-                        });
+                        // Don't reload from server, just refresh the view with current data
+                        console.log('[DEBUG] Keeping current data, refreshing header settings view');
+                        console.log('[DEBUG] Current sectionVisibility:', currentSectionsConfig.header?.sectionVisibility);
+                        window.switchSidebarView('headerSettings');
+                        
+                        // Force re-render preview to show the changes
+                        setTimeout(() => {
+                            console.log('[DEBUG] Force re-rendering preview after header save');
+                            window.renderPreview();
+                        }, 100);
                     } else if (currentSidebarView === 'announcementBar') {
                         // Recargar la vista de announcement bar
                         console.log('[DEBUG] Reloading announcement bar view after save');
                         
-                        // Reload data from server first to get fresh state
-                        loadCurrentWebsite().then(() => {
-                            window.switchSidebarView('announcementBar');
-                            
-                            // Sync announcement items visibility after view is rendered
-                            setTimeout(() => {
-                                console.log('[DEBUG] Syncing announcement items visibility toggles');
+                        // Don't reload from server, just refresh the view with current data
+                        window.switchSidebarView('announcementBar');
+                        
+                        // Force re-render preview first
+                        setTimeout(() => {
+                            console.log('[DEBUG] Force re-rendering preview after announcement bar save');
+                            window.renderPreview();
+                        }, 100);
+                        
+                        // Sync announcement items visibility after view is rendered
+                        setTimeout(() => {
+                            console.log('[DEBUG] Syncing announcement items visibility toggles');
                                 
                                 // Sync each announcement item
                                 $('.sidebar-subsection[data-block-type="announcement-item"]').each(function() {
@@ -27796,7 +27834,6 @@ document.head.appendChild(style);
                                     }
                                 });
                             }, 200);
-                        });
                     } else if (currentSidebarView === 'announcementItemSettings') {
                         // No recargar la vista de edición de anuncio individual
                         console.log('[DEBUG] Staying in announcement item settings view after save');
@@ -27821,96 +27858,20 @@ document.head.appendChild(style);
                         console.log('[DEBUG] Reloading image with text settings view after save');
                         console.log('[DEBUG] Current imageWithText config BEFORE reload:', JSON.stringify(currentSectionsConfig.imageWithText, null, 2));
                         
-                        // Only reload from server if on home page
-                        if (currentPageId === 'home') {
-                            // Reload data from server first
-                            loadCurrentWebsite().then(() => {
-                                console.log('[DEBUG] Data reloaded from server');
-                                console.log('[DEBUG] imageWithText config AFTER server reload:', JSON.stringify(currentSectionsConfig.imageWithText, null, 2));
-                                
-                                // Return to block list view with updated data
-                                window.switchSidebarView('blockList', window.getUpdatedPageData());
-                                
-                                // Force visibility sync after view is rendered
-                                setTimeout(() => {
-                                console.log('[DEBUG] Force syncing visibility toggle states for imageWithText');
-                                
-                                // Specifically sync imageWithText visibility toggle
-                                const $imageWithTextToggle = $('.visibility-toggle[data-section="imageWithText"]');
-                                if ($imageWithTextToggle.length > 0) {
-                                    const isHidden = currentSectionsConfig.imageWithText?.isHidden || false;
-                                    
-                                    // Remove any inline styles that might interfere
-                                    $imageWithTextToggle.find('.icon-visible, .icon-hidden').removeAttr('style');
-                                    
-                                    // Force the correct state
-                                    if (isHidden) {
-                                        $imageWithTextToggle.addClass('is-hidden');
-                                    } else {
-                                        $imageWithTextToggle.removeClass('is-hidden');
-                                    }
-                                    
-                                    console.log('[DEBUG] Forced imageWithText toggle state:', isHidden);
-                                }
-                                
-                                // Also sync child blocks using the new function
-                                if (currentSectionsConfig.imageWithText?.blocks && currentSectionsConfig.imageWithText?.blockOrder) {
-                                    currentSectionsConfig.imageWithText.blockOrder.forEach(blockId => {
-                                        if (currentSectionsConfig.imageWithText.blocks[blockId]) {
-                                            const blockHidden = currentSectionsConfig.imageWithText.blocks[blockId].isHidden || false;
-                                            window.forceChildVisibilitySync(blockId, blockHidden);
-                                        }
-                                    });
-                                }
-                                
-                                // Call general sync as well
-                                if (typeof syncVisibilityToggleStates === 'function') {
-                                    syncVisibilityToggleStates();
-                                }
-                            }, 200); // Slightly longer delay to ensure DOM is ready
-                            });
-                        } else {
-                            // For non-home pages, just refresh the view
-                            window.switchSidebarView('blockList', window.getUpdatedPageData());
+                        // Don't reload from server, just refresh the view with current data
+                        window.switchSidebarView('imageWithTextSettings');
+                        
+                        // Force re-render preview to show the changes
+                        setTimeout(() => {
+                            console.log('[DEBUG] Force re-rendering preview after image with text save');
+                            window.renderPreview();
                             
-                            // Force visibility sync after view is rendered
-                            setTimeout(() => {
-                                console.log('[DEBUG] Force syncing visibility toggle states for imageWithText (non-home page)');
-                                
-                                // Specifically sync imageWithText visibility toggle
-                                const $imageWithTextToggle = $('.visibility-toggle[data-section="imageWithText"]');
-                                if ($imageWithTextToggle.length > 0) {
-                                    const isHidden = currentSectionsConfig.imageWithText?.isHidden || false;
-                                    
-                                    // Remove any inline styles that might interfere
-                                    $imageWithTextToggle.find('.icon-visible, .icon-hidden').removeAttr('style');
-                                    
-                                    // Force the correct state
-                                    if (isHidden) {
-                                        $imageWithTextToggle.addClass('is-hidden');
-                                    } else {
-                                        $imageWithTextToggle.removeClass('is-hidden');
-                                    }
-                                    
-                                    console.log('[DEBUG] Forced imageWithText toggle state:', isHidden);
-                                }
-                                
-                                // Also sync child blocks using the new function
-                                if (currentSectionsConfig.imageWithText?.blocks && currentSectionsConfig.imageWithText?.blockOrder) {
-                                    currentSectionsConfig.imageWithText.blockOrder.forEach(blockId => {
-                                        if (currentSectionsConfig.imageWithText.blocks[blockId]) {
-                                            const blockHidden = currentSectionsConfig.imageWithText.blocks[blockId].isHidden || false;
-                                            window.forceChildVisibilitySync(blockId, blockHidden);
-                                        }
-                                    });
-                                }
-                                
-                                // Call general sync as well
-                                if (typeof syncVisibilityToggleStates === 'function') {
-                                    syncVisibilityToggleStates();
-                                }
-                            }, 200);
-                        }
+                            // Re-attach event listeners if it's a module
+                            if (window.WebsiteBuilderModules?.ImageWithText?.attachEventListeners) {
+                                console.log('[DEBUG] Re-attaching ImageWithText event listeners');
+                                window.WebsiteBuilderModules.ImageWithText.attachEventListeners();
+                            }
+                        }, 100);
                     } else if (currentSidebarView === 'imageWithTextBlockSettings') {
                         // Permanecer en la vista de configuración de bloque individual
                         console.log('[DEBUG] Staying in image with text block settings view after save');
@@ -27927,146 +27888,112 @@ document.head.appendChild(style);
                             }
                         }, 100);
                     } else if (currentSidebarView === 'multicolumnSettings') {
-                        // Recargar la vista de configuración de multicolumn
-                        console.log('[DEBUG] Reloading multicolumn settings view after save');
+                        // Mantener la vista de multicolumn abierta después de guardar
+                        console.log('[DEBUG] Staying in multicolumn settings view after save');
+                        console.log('[DEBUG] Current multicolumn config:', JSON.stringify(currentSectionsConfig.multicolumn, null, 2));
+                        
+                        // Don't reload from server, just refresh the view with current data
                         window.switchSidebarView('multicolumnSettings');
+                        
+                        // Force re-render preview to show the changes
+                        setTimeout(() => {
+                            console.log('[DEBUG] Force re-rendering preview after multicolumn save');
+                            window.renderPreview();
+                            
+                            // Also re-attach event listeners for the module
+                            if (window.WebsiteBuilderModules?.Multicolumn?.attachEventListeners) {
+                                console.log('[DEBUG] Re-attaching Multicolumn event listeners');
+                                window.WebsiteBuilderModules.Multicolumn.attachEventListeners();
+                            }
+                        }, 100);
                     } else if (currentSidebarView === 'testimonialsSettings') {
                         // Mantener la vista de testimonials abierta después de guardar
                         console.log('[DEBUG] Staying in testimonials settings view after save');
-                        // No need to reload view, just sync visibility states
+                        
+                        // Don't reload from server, just refresh the view with current data
+                        window.switchSidebarView('testimonialsSettings');
+                        
+                        // Force re-render preview and re-attach event listeners
                         setTimeout(() => {
+                            console.log('[DEBUG] Force re-rendering preview after testimonials save');
+                            window.renderPreview();
+                            
                             // Call the module's sync function if available
                             if (window.WebsiteBuilderModules?.Testimonials?.attachEventListeners) {
+                                console.log('[DEBUG] Re-attaching Testimonials event listeners');
                                 window.WebsiteBuilderModules.Testimonials.attachEventListeners();
                             }
                         }, 100);
+                    } else if (currentSidebarView === 'richTextSettings') {
+                        // Mantener la vista de rich text abierta después de guardar
+                        console.log('[DEBUG] Staying in rich text settings view after save');
+                        console.log('[DEBUG] Current richText config:', JSON.stringify(currentSectionsConfig.richText, null, 2));
+                        
+                        // Don't reload from server, just refresh the view with current data
+                        window.switchSidebarView('richTextSettings');
+                        
+                        // Force re-render preview to show the changes
+                        setTimeout(() => {
+                            console.log('[DEBUG] Force re-rendering preview after rich text save');
+                            window.renderPreview();
+                        }, 100);
                     } else if (currentSidebarView === 'accordionSettings') {
-                        // Recargar datos y volver a blockList
-                        console.log('[DEBUG] Reloading after accordion save');
-                        if (currentPageId === 'home') {
-                            loadCurrentWebsite().then(() => {
-                                window.switchSidebarView('blockList', window.getUpdatedPageData());
-                                
-                                setTimeout(() => {
-                                    const isHidden = currentSectionsConfig.accordion?.isHidden || false;
-                                    window.forceVisibilitySync('accordion', isHidden);
-                                
-                                // Sincronizar FAQ items
-                                $('.accordion-faq-item .visibility-toggle').each(function() {
-                                    const $button = $(this);
-                                    const itemId = $button.data('element-id');
-                                    if (itemId && currentSectionsConfig.accordion?.items?.[itemId]) {
-                                        const itemHidden = currentSectionsConfig.accordion.items[itemId].isHidden || false;
-                                        $button.find('.icon-visible, .icon-hidden').removeAttr('style');
-                                        
-                                        if (itemHidden) {
-                                            $button.addClass('is-hidden');
-                                        } else {
-                                            $button.removeClass('is-hidden');
-                                        }
-                                    }
-                                });
-                            }, 200);
-                            });
-                        } else {
-                            // For non-home pages, just refresh the view
-                            window.switchSidebarView('blockList', window.getUpdatedPageData());
+                        // Mantener la vista de accordion abierta después de guardar
+                        console.log('[DEBUG] Staying in accordion settings view after save');
+                        console.log('[DEBUG] Current accordion config:', JSON.stringify(currentSectionsConfig.accordion, null, 2));
+                        
+                        // Don't reload from server, just refresh the view with current data
+                        window.switchSidebarView('accordionSettings');
+                        
+                        // Force re-render preview to show the changes
+                        setTimeout(() => {
+                            console.log('[DEBUG] Force re-rendering preview after accordion save');
+                            window.renderPreview();
                             
-                            setTimeout(() => {
-                                const isHidden = currentSectionsConfig.accordion?.isHidden || false;
-                                window.forceVisibilitySync('accordion', isHidden);
-                                
-                                // Sincronizar FAQ items
-                                $('.accordion-faq-item .visibility-toggle').each(function() {
-                                    const $button = $(this);
-                                    const itemId = $button.data('element-id');
-                                    if (itemId && currentSectionsConfig.accordion?.items?.[itemId]) {
-                                        const itemHidden = currentSectionsConfig.accordion.items[itemId].isHidden || false;
-                                        $button.find('.icon-visible, .icon-hidden').removeAttr('style');
-                                        
-                                        if (itemHidden) {
-                                            $button.addClass('is-hidden');
-                                        } else {
-                                            $button.removeClass('is-hidden');
-                                        }
-                                    }
-                                });
-                            }, 200);
-                        }
+                            // Re-attach event listeners if it's a module
+                            if (window.WebsiteBuilderModules?.Accordion?.attachEventListeners) {
+                                console.log('[DEBUG] Re-attaching Accordion event listeners');
+                                window.WebsiteBuilderModules.Accordion.attachEventListeners();
+                            }
+                        }, 100);
                     } else if (currentSidebarView === 'gallerySettings') {
-                        // Reload data and return to blockList
-                        console.log('[DEBUG] Reloading after gallery save');
-                        if (currentPageId === 'home') {
-                            loadCurrentWebsite().then(() => {
-                                window.switchSidebarView('blockList', window.getUpdatedPageData());
-                                
-                                setTimeout(() => {
-                                    const isHidden = currentSectionsConfig.gallery?.isHidden || false;
-                                    window.forceVisibilitySync('gallery', isHidden);
-                                
-                                // Sync gallery images
-                                $('.gallery-image-item .visibility-toggle').each(function() {
-                                    const $button = $(this);
-                                    const imageId = $button.data('image-id');
-                                    if (imageId && currentSectionsConfig.gallery?.images?.[imageId]) {
-                                        const imageHidden = currentSectionsConfig.gallery.images[imageId].isHidden || false;
-                                        $button.find('.icon-visible, .icon-hidden').removeAttr('style');
-                                        
-                                        if (imageHidden) {
-                                            $button.addClass('is-hidden');
-                                        } else {
-                                            $button.removeClass('is-hidden');
-                                        }
-                                    }
-                                });
-                            }, 200);
-                            });
-                        } else {
-                            // For non-home pages, just refresh the view
-                            window.switchSidebarView('blockList', window.getUpdatedPageData());
+                        // Mantener la vista de gallery abierta después de guardar
+                        console.log('[DEBUG] Staying in gallery settings view after save');
+                        console.log('[DEBUG] Current gallery config:', JSON.stringify(currentSectionsConfig.gallery, null, 2));
+                        
+                        // Don't reload from server, just refresh the view with current data
+                        window.switchSidebarView('gallerySettings');
+                        
+                        // Force re-render preview to show the changes
+                        setTimeout(() => {
+                            console.log('[DEBUG] Force re-rendering preview after gallery save');
+                            window.renderPreview();
                             
-                            setTimeout(() => {
-                                const isHidden = currentSectionsConfig.gallery?.isHidden || false;
-                                window.forceVisibilitySync('gallery', isHidden);
-                                
-                                // Sync gallery images
-                                $('.gallery-image-item .visibility-toggle').each(function() {
-                                    const $button = $(this);
-                                    const imageId = $button.data('image-id');
-                                    if (imageId && currentSectionsConfig.gallery?.images?.[imageId]) {
-                                        const imageHidden = currentSectionsConfig.gallery.images[imageId].isHidden || false;
-                                        $button.find('.icon-visible, .icon-hidden').removeAttr('style');
-                                        
-                                        if (imageHidden) {
-                                            $button.addClass('is-hidden');
-                                        } else {
-                                            $button.removeClass('is-hidden');
-                                        }
-                                    }
-                                });
-                            }, 200);
-                        }
+                            // Re-attach event listeners if it's a module
+                            if (window.WebsiteBuilderModules?.Gallery?.attachEventListeners) {
+                                console.log('[DEBUG] Re-attaching Gallery event listeners');
+                                window.WebsiteBuilderModules.Gallery.attachEventListeners();
+                            }
+                        }, 100);
                     } else if (currentSidebarView === 'imageBannerSettings') {
-                        // Recargar datos y volver a blockList
-                        console.log('[DEBUG] Reloading after image banner save');
-                        if (currentPageId === 'home') {
-                            loadCurrentWebsite().then(() => {
-                                window.switchSidebarView('blockList', window.getUpdatedPageData());
-                                
-                                setTimeout(() => {
-                                    const isHidden = currentSectionsConfig.imageBanner?.isHidden || false;
-                                    window.forceVisibilitySync('imageBanner', isHidden);
-                                }, 200);
-                            });
-                        } else {
-                            // For non-home pages, just refresh the view
-                            window.switchSidebarView('blockList', window.getUpdatedPageData());
+                        // Mantener la vista de image banner abierta después de guardar
+                        console.log('[DEBUG] Staying in image banner settings view after save');
+                        console.log('[DEBUG] Current imageBanner config:', JSON.stringify(currentSectionsConfig.imageBanner, null, 2));
+                        
+                        // Don't reload from server, just refresh the view with current data
+                        window.switchSidebarView('imageBannerSettings');
+                        
+                        // Force re-render preview to show the changes
+                        setTimeout(() => {
+                            console.log('[DEBUG] Force re-rendering preview after image banner save');
+                            window.renderPreview();
                             
-                            setTimeout(() => {
-                                const isHidden = currentSectionsConfig.imageBanner?.isHidden || false;
-                                window.forceVisibilitySync('imageBanner', isHidden);
-                            }, 200);
-                        }
+                            // Re-attach event listeners if it's a module
+                            if (window.WebsiteBuilderModules?.ImageBanner?.attachEventListeners) {
+                                console.log('[DEBUG] Re-attaching ImageBanner event listeners');
+                                window.WebsiteBuilderModules.ImageBanner.attachEventListeners();
+                            }
+                        }, 100);
                     } else if (currentSidebarView === 'buyButtonsSettings') {
                         // Mantener la vista de buy buttons abierta después de guardar
                         console.log('[DEBUG] Staying in buy buttons settings view after save');
@@ -28075,6 +28002,61 @@ document.head.appendChild(style);
                             console.log('[DEBUG] Force re-rendering preview after buy buttons save');
                             window.renderPreview();
                         }, 100);
+                    } else if (currentSidebarView === 'featuredCollectionSettings') {
+                        // Mantener la vista de featured collection abierta después de guardar
+                        console.log('[DEBUG] Staying in featured collection settings view after save');
+                        // Don't reload from server, just refresh the view with current data
+                        const sectionId = window.currentFeaturedCollectionId;
+                        window.switchSidebarView('featuredCollectionSettings');
+                        
+                        // Force re-render preview to show the changes
+                        setTimeout(() => {
+                            console.log('[DEBUG] Force re-rendering preview after featured collection save');
+                            window.renderPreview();
+                        }, 100);
+                    } else if (currentSidebarView === 'featuredProductSettings') {
+                        // Mantener la vista de featured product abierta después de guardar
+                        console.log('[DEBUG] Staying in featured product settings view after save');
+                        console.log('[DEBUG] Current featuredProduct config:', JSON.stringify(currentSectionsConfig.featuredProduct, null, 2));
+                        
+                        // Don't reload from server, just refresh the view with current data
+                        // Pass the current config to ensure module gets fresh data
+                        window.switchSidebarView('featuredProductSettings', currentSectionsConfig.featuredProduct);
+                        
+                        // Force re-render preview to show the changes
+                        setTimeout(() => {
+                            console.log('[DEBUG] Force re-rendering preview after featured product save');
+                            window.renderPreview();
+                            
+                            // Re-attach event listeners if it's a module
+                            if (window.WebsiteBuilderModules?.FeaturedProduct?.attachEventListeners) {
+                                console.log('[DEBUG] Re-attaching FeaturedProduct event listeners');
+                                window.WebsiteBuilderModules.FeaturedProduct.attachEventListeners();
+                            }
+                        }, 100);
+                    } else if (currentSidebarView === 'contactFormSettings') {
+                        // Mantener la vista de contact form abierta después de guardar
+                        console.log('[DEBUG] Staying in contact form settings view after save');
+                        // Don't reload from server, just refresh the view with current data
+                        
+                        // Use the globally stored contact form ID
+                        const contactFormId = currentContactFormId;
+                        console.log('[DEBUG] Using stored contactFormId:', contactFormId);
+                        
+                        if (contactFormId && currentSectionsConfig.contactForms?.[contactFormId]) {
+                            window.switchSidebarView('contactFormSettings', { 
+                                contactFormId: contactFormId,
+                                config: currentSectionsConfig.contactForms[contactFormId]
+                            });
+                            
+                            // Force re-render preview to show the changes
+                            setTimeout(() => {
+                                console.log('[DEBUG] Force re-rendering preview after contact form save');
+                                window.renderPreview();
+                            }, 100);
+                        } else {
+                            console.error('[DEBUG] Could not find contact form ID or config for refresh. ID:', contactFormId);
+                        }
                     }
                     
                     setTimeout(() => {
