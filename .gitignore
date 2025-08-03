@@ -329,4 +329,18 @@ healthchecksdb
 
 # Large distribution files
 hotel23-app.tar.gz
-hotel23-app.zip 
+hotel23-app.zip
+
+# Deployment files
+deployments.log
+publish/
+*.tar.gz
+*.zip
+
+# Backup directories
+*-backup-*
+hotel-app-backup-*
+
+# Server logs
+app.log
+app.log.* 

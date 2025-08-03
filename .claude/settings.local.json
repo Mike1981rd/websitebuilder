@@ -85,7 +85,10 @@
       "Bash(ss:*)",
       "Bash(PGPASSWORD=123456 psql -h localhost -U postgres -d Hotel -c \"SELECT \"\"UserName\"\", \"\"Email\"\" FROM \"\"Users\"\" LIMIT 5;\")",
       "WebFetch(domain:www.npmjs.com)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "Bash(./deploy.sh)",
+      "Bash(nslookup:*)",
+      "Bash(ping:*)"
     ],
     "deny": []
   }

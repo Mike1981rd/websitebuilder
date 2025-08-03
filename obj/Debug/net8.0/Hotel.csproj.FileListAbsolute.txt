@@ -667,7 +667,6 @@ C:\Users\hp\Documents\Visual Studio 2022\Projects\Hotel23\obj\Debug\net8.0\stati
 C:\Users\hp\Documents\Visual Studio 2022\Projects\Hotel23\bin\Debug\net8.0\BouncyCastle.Crypto.dll
 C:\Users\hp\Documents\Visual Studio 2022\Projects\Hotel23\bin\Debug\net8.0\CsvHelper.dll
 C:\Users\hp\Documents\Visual Studio 2022\Projects\Hotel23\bin\Debug\net8.0\itextsharp.dll
-C:\Users\hp\Documents\Visual Studio 2022\Projects\Hotel23\bin\Debug\net8.0\publish\web.config
 C:\Users\hp\Documents\Visual Studio 2022\Projects\Hotel23\bin\Debug\net8.0\publish\appsettings.Development.json
 C:\Users\hp\Documents\Visual Studio 2022\Projects\Hotel23\bin\Debug\net8.0\publish\appsettings.json
 C:\Users\hp\Documents\Visual Studio 2022\Projects\Hotel23\bin\Debug\net8.0\appsettings.Production.json
@@ -675,10 +674,10 @@ C:\Users\hp\Documents\Visual Studio 2022\Projects\Hotel23\bin\Debug\net8.0\publi
 C:\Users\hp\Documents\Visual Studio 2022\Projects\Hotel23\bin\Debug\net8.0\publish\Hotel.deps.json
 C:\Users\hp\Documents\Visual Studio 2022\Projects\Hotel23\bin\Debug\net8.0\publish\Hotel.runtimeconfig.json
 C:\Users\hp\Documents\Visual Studio 2022\Projects\Hotel23\bin\Debug\net8.0\publish\Hotel.staticwebassets.endpoints.json
+C:\Users\hp\Documents\Visual Studio 2022\Projects\Hotel23\obj\Debug\net8.0\staticwebassets.upToDateCheck.txt
 C:\Users\hp\Documents\Visual Studio 2022\Projects\Hotel23\bin\Debug\net8.0\publish\publish\appsettings.Development.json
 C:\Users\hp\Documents\Visual Studio 2022\Projects\Hotel23\bin\Debug\net8.0\publish\publish\appsettings.json
 C:\Users\hp\Documents\Visual Studio 2022\Projects\Hotel23\bin\Debug\net8.0\publish\publish\appsettings.Production.json
 C:\Users\hp\Documents\Visual Studio 2022\Projects\Hotel23\bin\Debug\net8.0\publish\publish\Hotel.deps.json
 C:\Users\hp\Documents\Visual Studio 2022\Projects\Hotel23\bin\Debug\net8.0\publish\publish\Hotel.runtimeconfig.json
 C:\Users\hp\Documents\Visual Studio 2022\Projects\Hotel23\bin\Debug\net8.0\publish\publish\Hotel.staticwebassets.endpoints.json
-C:\Users\hp\Documents\Visual Studio 2022\Projects\Hotel23\obj\Debug\net8.0\staticwebassets.upToDateCheck.txt

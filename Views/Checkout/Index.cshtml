@@ -638,7 +638,7 @@
     <!-- Header -->
     <header class="checkout-header">
         <div class="header-container @(ViewBag.LogoPosition == "center" ? "logo-center" : ViewBag.LogoPosition == "right" ? "logo-right" : "")">
-            <div class="logo-container" style="cursor: pointer;" onclick="window.location.href='/';">
+            <div class="logo-container" style="cursor: pointer;" onclick="window.location.href='/WebsiteBuilder/Preview';">
                 @if (!string.IsNullOrEmpty(ViewBag.LogoUrl))
                 {
                     var logoUrl = ViewBag.LogoUrl as string;

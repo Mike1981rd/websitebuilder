@@ -7,6 +7,7 @@ using Hotel.Data;
 using Hotel.Services;
 using Hotel.Services.Payment;
 using Hotel.Middleware;
+using Microsoft.AspNetCore.ResponseCompression;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -40,6 +41,35 @@ builder.Services.AddControllersWithViews()
     {
         options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
     });
+
+// Add Response Compression
+builder.Services.AddResponseCompression(options =>
+{
+    options.EnableForHttps = true;
+    options.Providers.Add<BrotliCompressionProvider>();
+    options.Providers.Add<GzipCompressionProvider>();
+    options.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(new[] 
+    {
+        "application/json",
+        "text/json",
+        "text/css",
+        "application/javascript",
+        "text/javascript",
+        "text/html",
+        "text/xml",
+        "application/xml"
+    });
+});
+
+builder.Services.Configure<BrotliCompressionProviderOptions>(options =>
+{
+    options.Level = System.IO.Compression.CompressionLevel.Optimal;
+});
+
+builder.Services.Configure<GzipCompressionProviderOptions>(options =>
+{
+    options.Level = System.IO.Compression.CompressionLevel.Optimal;
+});
 
 // Add CORS
 builder.Services.AddCors(options =>
@@ -89,7 +119,28 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-app.UseStaticFiles();
+
+// Add Response Compression BEFORE serving static files
+app.UseResponseCompression();
+
+app.UseStaticFiles(new StaticFileOptions
+{
+    OnPrepareResponse = ctx =>
+    {
+        var headers = ctx.Context.Response.Headers;
+        
+        // Cache por 1 año para assets con version
+        if (ctx.Context.Request.Path.Value.Contains("?v="))
+        {
+            headers["Cache-Control"] = "public,max-age=31536000,immutable";
+        }
+        // Cache por 1 hora para otros static files
+        else
+        {
+            headers["Cache-Control"] = "public,max-age=3600";
+        }
+    }
+});
 
 // Agregar el middleware de dominios personalizados ANTES del routing
 // Esto permite interceptar y modificar las peticiones antes de que el routing las procese

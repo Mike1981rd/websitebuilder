@@ -1,6 +1,8 @@
 @{
     ViewData["Title"] = "Website Builder";
     Layout = "_WebsiteBuilderLayout";
+    // Use a simple version string for cache busting
+    var version = "1.0.1";
 }
 
 <div class="website-builder-container">
@@ -427,27 +429,27 @@
 }
 
 @section Scripts {
-    <script src="~/js/website-builder.js?v=@DateTime.Now.Ticks"></script>
+    <script src="~/js/website-builder.js?v=@version"></script>
     
     <!-- Módulos del Website Builder -->
     <!-- Nuevos módulos modulares -->
-    <script src="~/js/website-builder-modules/cart.js?v=@DateTime.Now.Ticks"></script>
+    <script src="~/js/website-builder-modules/cart.js?v=@version"></script>
     
     <!-- Módulos legacy -->
-    <script src="~/js/website-builder/modules/multicolumn.js?v=@DateTime.Now.Ticks"></script>
-    <script src="~/js/website-builder/modules/image-with-text.js?v=@DateTime.Now.Ticks"></script>
-    <script src="~/js/website-builder/modules/testimonials.js?v=@DateTime.Now.Ticks"></script>
-    <script src="~/js/website-builder/modules/accordion.js?v=@DateTime.Now.Ticks"></script>
-    <script src="~/js/website-builder/modules/image-banner-settings.js?v=@DateTime.Now.Ticks"></script>
-    <script src="~/js/website-builder/modules/image-banner.js?v=@DateTime.Now.Ticks"></script>
-    <script src="~/js/website-builder/modules/newsletter.js?v=@DateTime.Now.Ticks"></script>
-    <script src="~/js/website-builder/modules/gallery.js?v=@DateTime.Now.Ticks"></script>
-    <script src="~/js/website-builder/modules/richtext.js?v=@DateTime.Now.Ticks"></script>
-    <script src="~/js/website-builder/modules/contact-form.js?v=@DateTime.Now.Ticks"></script>
-    <script src="~/js/website-builder/modules/footer.js?v=@DateTime.Now.Ticks"></script>
-    <script src="~/js/website-builder/modules/featured-product.js?v=@DateTime.Now.Ticks"></script>
-    <script src="~/js/website-builder/modules/featured-collection.js?v=@DateTime.Now.Ticks"></script>
-    <script src="~/js/website-builder/modules/product-container.js?v=@DateTime.Now.Ticks"></script>
+    <script src="~/js/website-builder/modules/multicolumn.js?v=@version"></script>
+    <script src="~/js/website-builder/modules/image-with-text.js?v=@version"></script>
+    <script src="~/js/website-builder/modules/testimonials.js?v=@version"></script>
+    <script src="~/js/website-builder/modules/accordion.js?v=@version"></script>
+    <script src="~/js/website-builder/modules/image-banner-settings.js?v=@version"></script>
+    <script src="~/js/website-builder/modules/image-banner.js?v=@version"></script>
+    <script src="~/js/website-builder/modules/newsletter.js?v=@version"></script>
+    <script src="~/js/website-builder/modules/gallery.js?v=@version"></script>
+    <script src="~/js/website-builder/modules/richtext.js?v=@version"></script>
+    <script src="~/js/website-builder/modules/contact-form.js?v=@version"></script>
+    <script src="~/js/website-builder/modules/footer.js?v=@version"></script>
+    <script src="~/js/website-builder/modules/featured-product.js?v=@version"></script>
+    <script src="~/js/website-builder/modules/featured-collection.js?v=@version"></script>
+    <script src="~/js/website-builder/modules/product-container.js?v=@version"></script>
     
     <script>
         // Dynamic font loading

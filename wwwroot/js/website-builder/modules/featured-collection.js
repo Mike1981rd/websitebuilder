@@ -773,12 +773,14 @@ window.WebsiteBuilderModules.FeaturedCollection = {
         
         // Detectar si estamos en el editor o en el preview real
         const isEditor = window.parent !== window;
-        const productUrl = productHandle ? `/products/${productHandle}` : '#';
+        // If no handle, prevent navigation by using javascript:void(0)
+        const productUrl = productHandle ? `/products/${productHandle}` : 'javascript:void(0)';
         
         // Verificar contexto
         console.log('[FEATURED-COLLECTION] Context check:', {
             windowParent: window.parent,
             window: window,
+            productHandle: productHandle,
             isEditor: isEditor,
             parentEqualsWindow: window.parent === window
         });
@@ -799,9 +801,13 @@ window.WebsiteBuilderModules.FeaturedCollection = {
         // Más logs para depuración
         console.log('[FEATURED-COLLECTION] shouldAddLink:', shouldAddLink);
         
+        // Add onclick handler to prevent navigation if no handle
+        const onClickHandler = !productHandle && shouldAddLink ? 
+            `onclick="event.preventDefault(); console.warn('[FEATURED-COLLECTION] Product has no handle, navigation prevented'); return false;"` : '';
+        
         return `
-            <div class="product-card" id="${cardId}" style="position: relative;">
-                ${shouldAddLink ? `<a href="${productUrl}" style="text-decoration: none; color: inherit; display: block;">` : ''}
+            <div class="product-card" id="${cardId}" data-product-id="${productId}" style="position: relative;">
+                ${shouldAddLink ? `<a href="${productUrl}" ${onClickHandler} style="text-decoration: none; color: inherit; display: block;">` : ''}
                 <div class="product-image-wrapper" style="position: relative; overflow: hidden; border-radius: 8px; ${imageRatio}">
                     ${productImage ? `
                         <img src="${productImage}" alt="${productName}" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover;">

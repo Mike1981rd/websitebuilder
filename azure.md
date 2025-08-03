@@ -214,6 +214,120 @@ sudo systemctl status nginx
 
 ## 🔄 PROCESO DE ACTUALIZACIÓN
 
+### 📊 ACTUALIZACIÓN DE BASE DE DATOS (MIGRACIONES)
+
+**⚠️ IMPORTANTE**: Siempre actualizar la BD ANTES de actualizar el código.
+
+#### Proceso Automático con Claude:
+Cuando el usuario diga "hay nuevas tablas en la db" o "actualiza la db del servidor", seguir estos pasos:
+
+1. **Verificar última migración en el servidor**:
+```bash
+ssh azureuser@20.169.209.166 'PGPASSWORD=123456 psql -h localhost -U hoteluser -d Hotel -c "SELECT \"MigrationId\" FROM \"__EFMigrationsHistory\" ORDER BY \"MigrationId\" DESC LIMIT 1;"'
+```
+
+2. **Listar migraciones locales pendientes**:
+```bash
+cd "/mnt/c/Users/hp/Documents/Visual Studio 2022/Projects/Hotel23"
+find Migrations -name "*.cs" -not -name "*Designer.cs" -not -name "*ModelSnapshot.cs" | sort
+```
+
+3. **Para cada migración pendiente**:
+   - Leer el archivo de migración .cs
+   - Generar el SQL correspondiente basado en el método Up()
+   - Crear archivo temporal con el SQL
+   - Copiar al servidor: `scp archivo.sql azureuser@20.169.209.166:/home/azureuser/`
+   - Ejecutar: `ssh azureuser@20.169.209.166 'PGPASSWORD=123456 psql -h localhost -U hoteluser -d Hotel -f /home/azureuser/archivo.sql'`
+   - Agregar registro a __EFMigrationsHistory:
+     ```sql
+     INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+     VALUES ('NombreDeLaMigracion', '8.0.0');
+     ```
+   - Limpiar archivos temporales
+
+4. **Verificar que se aplicó correctamente**:
+```bash
+ssh azureuser@20.169.209.166 'PGPASSWORD=123456 psql -h localhost -U hoteluser -d Hotel -c "\d \"NombreTabla\""'
+```
+
+#### Ejemplo Completo (Como se hizo con CustomDomains):
+```bash
+# 1. Crear SQL basado en la migración
+# 2. Aplicar en servidor
+ssh azureuser@20.169.209.166 'PGPASSWORD=123456 psql -h localhost -U hoteluser -d Hotel -f temp_migration.sql'
+# 3. Verificar
+ssh azureuser@20.169.209.166 'PGPASSWORD=123456 psql -h localhost -U hoteluser -d Hotel -c "\d \"CustomDomains\""'
+```
+
+### 🚀 ACTUALIZACIÓN DE CÓDIGO (DEPLOYMENT)
+
+#### 📖 IMPORTANTE - ANTES DE ACTUALIZAR:
+**⚠️ LEER PRIMERO: `TEST-DEPLOYMENT-GUIDE.md`** 
+- Contiene instrucciones para probar el script sin riesgos
+- Incluye el modo TestMode para simulación segura
+- Explica cómo restaurar backups si algo sale mal
+
+#### ⚠️ PROBLEMAS CONOCIDOS Y SOLUCIONES:
+
+1. **Antes de hacer deployment**:
+   - Verificar que `appsettings.Production.json` NO tenga sección "Kestrel"
+   - Si existe, removerla completamente (causa conflictos de puerto)
+
+2. **Si el deployment falla por puerto ocupado**:
+   ```bash
+   ssh azureuser@20.169.209.166 'pkill -9 dotnet || true'
+   ```
+
+3. **Scripts de deployment**:
+   - El script PowerShell tiene problemas de sintaxis mixta
+   - Por ahora, usar el proceso manual o el script Bash desde WSL
+
+#### 📝 PROCESO MANUAL RECOMENDADO (más confiable):
+
+```bash
+# 1. Publicar desde Windows (PowerShell o CMD)
+cd "C:\Users\hp\Documents\Visual Studio 2022\Projects\Hotel23"
+dotnet publish Hotel.csproj -c Release -o publish --runtime linux-x64 --self-contained false
+
+# 2. Comprimir y subir (desde WSL o Git Bash)
+tar -czf hotel23-app.tar.gz -C publish .
+scp hotel23-app.tar.gz azureuser@20.169.209.166:/home/azureuser/
+
+# 3. En el servidor (todo en un comando)
+ssh azureuser@20.169.209.166 '
+pkill -9 dotnet || true
+sleep 2
+cd /home/azureuser
+tar -xzf hotel23-app.tar.gz -C hotel-app
+rm hotel23-app.tar.gz
+cd hotel-app
+ASPNETCORE_ENVIRONMENT=Production ASPNETCORE_URLS=http://0.0.0.0:5002 nohup dotnet Hotel.dll > app.log 2>&1 &
+sleep 10
+ps aux | grep -v grep | grep "dotnet Hotel.dll" && echo "✅ Deployment exitoso" || echo "❌ Error - revisar logs"
+'
+
+# 4. Verificar
+curl -s -o /dev/null -w "%{http_code}" http://20.169.209.166
+```
+
+#### 🔧 CHECKLIST PRE-DEPLOYMENT:
+- [ ] ¿Hay migraciones pendientes? Aplicarlas primero
+- [ ] ¿El archivo appsettings.Production.json está limpio de Kestrel?
+- [ ] ¿Hay procesos dotnet zombies en el servidor? (`ssh azureuser@20.169.209.166 'ps aux | grep dotnet'`)
+
+**Script automatizado** (CORREGIDO - v2.0):
+```powershell
+# PRIMERO: Probar sin riesgos
+.\deploy-to-azure.ps1 -TestMode
+
+# DESPUÉS: Si todo OK, ejecutar real
+.\deploy-to-azure.ps1
+```
+
+⚠️ **Ver `TEST-DEPLOYMENT-GUIDE.md` para instrucciones completas de prueba**
+
+O manualmente:
+
 1. **Publicar Nueva Versión Localmente**:
 ```powershell
 dotnet publish Hotel.csproj -c Release -o publish --runtime linux-x64 --self-contained false
@@ -241,6 +355,24 @@ tar -xzf hotel23-app.tar.gz -C hotel-app
 cd /home/azureuser/hotel-app
 ASPNETCORE_ENVIRONMENT=Production ASPNETCORE_URLS=http://0.0.0.0:5002 nohup dotnet Hotel.dll > app.log 2>&1 &
 ```
+
+### 📊 LECCIONES APRENDIDAS DEL DEPLOYMENT (03/08/2025):
+
+1. **Configuración Kestrel es problemática**
+   - NUNCA incluir configuración Kestrel en appsettings.Production.json
+   - Usar solo variables de entorno para controlar puertos
+
+2. **Procesos zombies son comunes**
+   - Siempre usar `pkill -9 dotnet` antes de iniciar
+   - No confiar en kill simple, usar -9 (SIGKILL)
+
+3. **El orden importa**
+   - SIEMPRE: Migraciones BD → Luego deployment código
+   - NUNCA al revés (el código nuevo esperará tablas que no existen)
+
+4. **Scripts necesitan mantenimiento**
+   - El script PowerShell necesita reescribirse completamente
+   - Por ahora, el proceso manual es más confiable
 
 ## 🆘 TROUBLESHOOTING
 

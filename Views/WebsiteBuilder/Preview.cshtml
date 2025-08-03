@@ -1,5 +1,7 @@
 @{
     Layout = null; // Sin layout para mostrar solo el contenido
+    // Use a simple version string for cache busting
+    var version = "1.0.1";
 }
 <!DOCTYPE html>
 <html lang="es">
@@ -20,7 +22,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Roboto:wght@300;400;500;700&family=Open+Sans:wght@400;600;700&family=Playfair+Display:wght@400;700&family=Montserrat:wght@400;500;600;700&family=Lato:wght@400;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     
     <!-- Website Builder CSS -->
-    <link rel="stylesheet" href="/css/website-builder.css?v=@DateTime.Now.Ticks" />
+    <link rel="stylesheet" href="/css/website-builder.css?v=@version" />
     
     <style>
         /* Reset básico */
@@ -200,29 +202,52 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     
     <!-- Funciones de renderizado compartidas -->
-    <script src="~/js/website-render-functions.js?v=@DateTime.Now.Ticks"></script>
+    <script src="~/js/website-render-functions.js?v=@version"></script>
     
     <!-- Módulos del Website Builder -->
-    <script src="~/js/website-builder/modules/multicolumn.js?v=@DateTime.Now.Ticks"></script>
-    <script src="~/js/website-builder/modules/image-with-text.js?v=@DateTime.Now.Ticks"></script>
-    <script src="~/js/website-builder/modules/testimonials.js?v=@DateTime.Now.Ticks"></script>
-    <script src="~/js/website-builder/modules/accordion.js?v=@DateTime.Now.Ticks"></script>
-    <script src="~/js/website-builder/modules/image-banner.js?v=@DateTime.Now.Ticks"></script>
-    <script src="~/js/website-builder/modules/newsletter.js?v=@DateTime.Now.Ticks"></script>
-    <script src="~/js/website-builder/modules/gallery.js?v=@DateTime.Now.Ticks"></script>
-    <script src="~/js/website-builder/modules/richtext.js?v=@DateTime.Now.Ticks"></script>
-    <script src="~/js/website-builder/modules/contact-form.js?v=@DateTime.Now.Ticks"></script>
-    <script src="~/js/website-builder/modules/footer.js?v=@DateTime.Now.Ticks"></script>
-    <script src="~/js/website-builder/modules/featured-product.js?v=@DateTime.Now.Ticks"></script>
-    <script src="~/js/website-builder/modules/featured-collection.js?v=@DateTime.Now.Ticks"></script>
-    <script src="~/js/website-builder/modules/product-container.js?v=@DateTime.Now.Ticks"></script>
+    <script src="~/js/website-builder/modules/multicolumn.js?v=@version"></script>
+    <script src="~/js/website-builder/modules/image-with-text.js?v=@version"></script>
+    <script src="~/js/website-builder/modules/testimonials.js?v=@version"></script>
+    <script src="~/js/website-builder/modules/accordion.js?v=@version"></script>
+    <script src="~/js/website-builder/modules/image-banner.js?v=@version"></script>
+    <script src="~/js/website-builder/modules/newsletter.js?v=@version"></script>
+    <script src="~/js/website-builder/modules/gallery.js?v=@version"></script>
+    <script src="~/js/website-builder/modules/richtext.js?v=@version"></script>
+    <script src="~/js/website-builder/modules/contact-form.js?v=@version"></script>
+    <script src="~/js/website-builder/modules/footer.js?v=@version"></script>
+    <script src="~/js/website-builder/modules/featured-product.js?v=@version"></script>
+    <script src="~/js/website-builder/modules/featured-collection.js?v=@version"></script>
+    <script src="~/js/website-builder/modules/product-container.js?v=@version"></script>
     
     <script>
-        // Verificar que los módulos se cargaron correctamente
-        console.log('[PREVIEW] Modules loaded check:');
-        console.log('- Multicolumn:', window.WebsiteBuilderModules?.Multicolumn ? 'Loaded' : 'Not loaded');
-        console.log('- ProductContainer:', window.WebsiteBuilderModules?.ProductContainer ? 'Loaded' : 'Not loaded');
-        console.log('- ImageWithText:', window.WebsiteBuilderModules?.ImageWithText ? 'Loaded' : 'Not loaded');
+        // Ensure all modules are loaded before initializing
+        window.modulesLoadedPromise = new Promise((resolve) => {
+            let checkCount = 0;
+            const maxChecks = 50; // 5 seconds max wait
+            
+            const checkModulesLoaded = () => {
+                checkCount++;
+                
+                // Check if critical modules are loaded
+                const featuredProductLoaded = window.WebsiteBuilderModules?.FeaturedProduct || 
+                                            (window.renderFeaturedProduct && typeof window.renderFeaturedProduct === 'function');
+                const featuredCollectionLoaded = window.WebsiteBuilderModules?.FeaturedCollection || 
+                                               (window.renderFeaturedCollection && typeof window.renderFeaturedCollection === 'function');
+                
+                if (featuredProductLoaded && featuredCollectionLoaded) {
+                    console.log('[PREVIEW] All critical modules loaded');
+                    resolve();
+                } else if (checkCount >= maxChecks) {
+                    console.warn('[PREVIEW] Timeout waiting for modules, proceeding anyway');
+                    resolve();
+                } else {
+                    setTimeout(checkModulesLoaded, 100);
+                }
+            };
+            
+            // Start checking immediately
+            checkModulesLoaded();
+        });
     </script>
     
     <script>
@@ -817,6 +842,16 @@
                         isHidden: false
                     };
                     console.log('[PREVIEW] Final cart configuration:', currentSectionsConfig);
+                }
+                
+                // Wait for modules to be loaded before rendering
+                await window.modulesLoadedPromise;
+                
+                // If we're on a product page, ensure product data is loaded first
+                if (currentPageId === 'product' && viewBagProductHandle) {
+                    console.log('[PREVIEW] Product page detected, ensuring product data is loaded first');
+                    // Give the product container module time to initialize and load the product
+                    await new Promise(resolve => setTimeout(resolve, 500));
                 }
                 
                 // Renderizar el contenido
@@ -1540,16 +1575,20 @@
             
             previewContent.innerHTML = finalHtml;
             
-            // Add click event to logo to navigate to homepage
-            const logoElements = document.querySelectorAll('.header-logo, .header-logo-wrapper');
-            logoElements.forEach(logo => {
-                logo.style.cursor = 'pointer';
-                logo.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    // Navigate to homepage (root)
-                    window.location.href = '/';
+            // Add small delay to ensure DOM is ready
+            setTimeout(() => {
+                // Add click event to logo to navigate to homepage
+                const logoElements = document.querySelectorAll('.header-logo, .header-logo-wrapper');
+                logoElements.forEach(logo => {
+                    logo.style.cursor = 'pointer';
+                    logo.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        // Navigate to homepage
+                        window.location.href = '/WebsiteBuilder/Preview';
+                    });
                 });
-            });
+            }, 100);
             
             // Load collections data if on collections page
             if (currentPageId === 'collections' && window.loadCollectionsData) {
@@ -1623,6 +1662,11 @@
             // Update cart icon count after rendering
             updateCartIconCount();
             
+            // Enable product links after a delay to ensure data is loaded
+            setTimeout(() => {
+                enableProductLinks();
+            }, 2000);
+            
             // Inicializar slideshows con autorotate
             if (typeof initializeSlideshows === 'function') {
                 setTimeout(() => {
@@ -1644,15 +1688,17 @@
                 }, 100);
             }
             
-            // Initialize Featured Product thumbnail clicks
-            const productThumbnails = document.querySelectorAll('.product-thumbnail');
-            productThumbnails.forEach(thumbnail => {
-                thumbnail.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    
-                    const imageIndex = parseInt(this.dataset.imageIndex);
-                    const mainImage = this.closest('.section-wrapper').querySelector('.main-product-image');
+            // Initialize Featured Product features after modules are loaded
+            setTimeout(() => {
+                // Initialize thumbnail clicks
+                const productThumbnails = document.querySelectorAll('.product-thumbnail');
+                productThumbnails.forEach(thumbnail => {
+                    thumbnail.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        
+                        const imageIndex = parseInt(this.dataset.imageIndex);
+                        const mainImage = this.closest('.section-wrapper').querySelector('.main-product-image');
                     
                     if (mainImage) {
                         const productImages = JSON.parse(mainImage.dataset.productImages || '[]');
@@ -1678,6 +1724,7 @@
                 });
             });
             console.log('[PREVIEW] Featured product thumbnails initialized with', productThumbnails.length, 'thumbnails');
+            }, 200); // Close setTimeout
         }
         
         // Function to attach quantity selector event listeners
@@ -1855,6 +1902,50 @@
             });
             
             console.log('[DESCRIPTION TAB] Attached listeners to', descriptionTabs.length, 'tabs');
+        }
+        
+        // Function to enable product links after data is loaded
+        function enableProductLinks() {
+            console.log('[PREVIEW] Enabling product links...');
+            
+            // Find all product cards that might not have links yet
+            const productCards = document.querySelectorAll('.product-card');
+            let enabledCount = 0;
+            
+            productCards.forEach(card => {
+                // Check if the card already has a link
+                const existingLink = card.querySelector('a');
+                if (!existingLink || existingLink.href === 'javascript:void(0)') {
+                    // Try to get product data from the card
+                    const productId = card.getAttribute('data-product-id');
+                    const productImage = card.querySelector('img');
+                    
+                    if (productId && productImage) {
+                        // Check if we have product data in featured collection cache
+                        let productHandle = null;
+                        
+                        // Try to get handle from featured collection module
+                        if (window.WebsiteBuilderModules?.FeaturedCollection?.productDataCache) {
+                            const cachedProduct = window.WebsiteBuilderModules.FeaturedCollection.productDataCache[productId];
+                            if (cachedProduct && (cachedProduct.Handle || cachedProduct.handle)) {
+                                productHandle = cachedProduct.Handle || cachedProduct.handle;
+                            }
+                        }
+                        
+                        // If we found a handle and no existing valid link, wrap the card content in a link
+                        if (productHandle && (!existingLink || existingLink.href === 'javascript:void(0)')) {
+                            const cardContent = card.innerHTML;
+                            card.innerHTML = `<a href="/products/${productHandle}" style="text-decoration: none; color: inherit; display: block;">${cardContent}</a>`;
+                            enabledCount++;
+                            console.log(`[PREVIEW] Enabled link for product: ${productHandle}`);
+                        }
+                    }
+                }
+            });
+            
+            if (enabledCount > 0) {
+                console.log(`[PREVIEW] Enabled ${enabledCount} product links`);
+            }
         }
         
         // Función para adjuntar event listeners

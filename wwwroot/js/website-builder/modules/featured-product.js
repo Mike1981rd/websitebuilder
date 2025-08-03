@@ -400,6 +400,10 @@ window.WebsiteBuilderModules.FeaturedProduct = {
             const productUrl = `/products/${product.handle}`;
             console.log('[FEATURED-PRODUCT] Creating link to:', productUrl);
             return `<a href="${productUrl}" style="text-decoration: none; color: inherit; display: block;">${content}</a>`;
+        } else if (!isEditor && product && !product.handle) {
+            // Product exists but no handle - prevent navigation
+            console.log('[FEATURED-PRODUCT] Product has no handle, preventing navigation');
+            return `<a href="javascript:void(0)" onclick="event.preventDefault(); console.warn('[FEATURED-PRODUCT] Product has no handle'); return false;" style="text-decoration: none; color: inherit; display: block; cursor: default;">${content}</a>`;
         }
         
         console.log('[FEATURED-PRODUCT] Not adding link - conditions not met');

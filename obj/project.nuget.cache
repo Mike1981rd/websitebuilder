@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "e49o40+XwA8=",
+  "dgSpecHash": "u0S3MteCuN8=",
   "success": true,
   "projectFilePath": "C:\\Users\\hp\\Documents\\Visual Studio 2022\\Projects\\Hotel23\\Hotel.csproj",
   "expectedPackageFiles": [
@@ -56,7 +56,8 @@
     "C:\\Users\\hp\\.nuget\\packages\\system.text.encoding.codepages\\6.0.0\\system.text.encoding.codepages.6.0.0.nupkg.sha512",
     "C:\\Users\\hp\\.nuget\\packages\\system.text.encodings.web\\8.0.0\\system.text.encodings.web.8.0.0.nupkg.sha512",
     "C:\\Users\\hp\\.nuget\\packages\\system.text.json\\8.0.0\\system.text.json.8.0.0.nupkg.sha512",
-    "C:\\Users\\hp\\.nuget\\packages\\system.threading.channels\\6.0.0\\system.threading.channels.6.0.0.nupkg.sha512"
+    "C:\\Users\\hp\\.nuget\\packages\\system.threading.channels\\6.0.0\\system.threading.channels.6.0.0.nupkg.sha512",
+    "C:\\Users\\hp\\.nuget\\packages\\microsoft.netcore.app.host.linux-x64\\8.0.18\\microsoft.netcore.app.host.linux-x64.8.0.18.nupkg.sha512"
   ],
   "logs": [
     {

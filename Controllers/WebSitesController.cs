@@ -31,6 +31,10 @@ namespace Hotel.Controllers
         {
             try
             {
+                // Add cache headers for performance
+                Response.Headers.Add("Cache-Control", "public, max-age=300"); // 5 minutes cache
+                Response.Headers.Add("Vary", "Accept-Encoding");
+                
                 // Por ahora, obtenemos el primer sitio web de la primera compañía
                 // En un escenario real, esto se basaría en el usuario autenticado
                 var company = await _context.Companies.FirstOrDefaultAsync();
