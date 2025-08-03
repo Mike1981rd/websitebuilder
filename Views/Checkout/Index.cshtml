@@ -638,7 +638,7 @@
     <!-- Header -->
     <header class="checkout-header">
         <div class="header-container @(ViewBag.LogoPosition == "center" ? "logo-center" : ViewBag.LogoPosition == "right" ? "logo-right" : "")">
-            <div class="logo-container">
+            <div class="logo-container" style="cursor: pointer;" onclick="window.location.href='/';">
                 @if (!string.IsNullOrEmpty(ViewBag.LogoUrl))
                 {
                     var logoUrl = ViewBag.LogoUrl as string;
@@ -991,6 +991,25 @@
                 if (submitBtn) {
                     submitBtn.textContent = 'Confirmar Reservación';
                 }
+                
+                // If user leaves the page, clean the reservation from cart
+                window.addEventListener('unload', function() {
+                    // Get current cart
+                    let cartData = JSON.parse(localStorage.getItem('websiteBuilderCart') || '[]');
+                    let cartItems = [];
+                    
+                    if (Array.isArray(cartData)) {
+                        cartItems = cartData;
+                    } else if (cartData && cartData.items && Array.isArray(cartData.items)) {
+                        cartItems = cartData.items;
+                    }
+                    
+                    // Filter out all reservation items
+                    const cleanedCart = cartItems.filter(item => !item.isReservation);
+                    
+                    // Save the cleaned cart
+                    localStorage.setItem('websiteBuilderCart', JSON.stringify(cleanedCart));
+                });
                 
                 // Hide shipping methods section for reservations
                 const shippingSection = Array.from(document.querySelectorAll('.form-section')).find(section => {

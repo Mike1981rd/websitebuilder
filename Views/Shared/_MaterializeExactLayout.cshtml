@@ -11,6 +11,7 @@
     <link rel="stylesheet" href="~/css/roles.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/customers.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/payment-settings.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/custom-domains.css" asp-append-version="true" />
 </head>
 <body>
     <div class="layout-container">
@@ -114,6 +115,14 @@
                             <i class="menu-icon fas fa-globe"></i>
                             <span class="menu-text" data-i18n="menu.sitioWeb">Sitio Web</span>
                             <span class="menu-tooltip" data-i18n="menu.sitioWeb">Sitio Web</span>
+                        </a>
+                    </li>
+                    
+                    <li class="menu-item">
+                        <a href="@Url.Action("Index", "CustomDomains")" class="menu-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "CustomDomains" ? "active" : "")">
+                            <i class="menu-icon fas fa-link"></i>
+                            <span class="menu-text" data-i18n="menu.customDomains">Dominios</span>
+                            <span class="menu-tooltip" data-i18n="menu.customDomains">Dominios</span>
                         </a>
                     </li>
                 </ul>
@@ -654,6 +663,7 @@
                 'menu.pages': 'Páginas',
                 'menu.policies': 'Políticas',
                 'menu.sitioWeb': 'Sitio Web',
+                'menu.customDomains': 'Dominios',
                 // Search
                 'search.placeholder': '',
                 // Template Customizer
@@ -825,6 +835,7 @@
                 'menu.pages': 'Pages',
                 'menu.policies': 'Policies',
                 'menu.sitioWeb': 'Website',
+                'menu.customDomains': 'Domains',
                 // Search
                 'search.placeholder': '',
                 // Template Customizer

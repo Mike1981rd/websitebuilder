@@ -1,5 +1,6 @@
 wwwroot\css\admin-panel.css
 wwwroot\css\company-settings.css
+wwwroot\css\custom-domains.css
 wwwroot\css\customers.css
 wwwroot\css\login.css
 wwwroot\css\materialize-admin.css
@@ -132,6 +133,7 @@ wwwroot\TestImages\testimonialstructure.png
 wwwroot\TestImages\thumbnails.png
 wwwroot\TestImages\VariasFilas.png
 wwwroot\uploads\checkout\checkout_logo_638896788020944392.png
+wwwroot\uploads\checkout\checkout_logo_638896803855467400.webp
 wwwroot\uploads\logos\234c2c73-3b15-4708-a501-fc6eac175b28_25.png
 wwwroot\uploads\logos\39239043-4a03-42d1-8138-e5a6272e63c5_25.png
 wwwroot\uploads\profiles\3a486dd5-4339-4847-a3fd-956cb92ade81_profile picture.jpg

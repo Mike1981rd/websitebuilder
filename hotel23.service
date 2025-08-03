@@ -1,0 +1,28 @@
+[Unit]
+Description=Hotel23 ASP.NET Core Application
+After=network.target
+
+[Service]
+Type=notify
+User=azureuser
+WorkingDirectory=/home/azureuser/hotel-app
+ExecStart=/usr/bin/dotnet /home/azureuser/hotel-app/Hotel.dll
+Restart=always
+RestartSec=10
+KillSignal=SIGINT
+SyslogIdentifier=hotel23
+
+# Environment variables
+Environment="ASPNETCORE_ENVIRONMENT=Production"
+Environment="DOTNET_PRINT_TELEMETRY_MESSAGE=false"
+Environment="ASPNETCORE_URLS=http://localhost:5001"
+
+# Resource limits
+LimitNOFILE=100000
+
+# Security hardening
+PrivateTmp=true
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target

@@ -821,3 +821,50 @@ Si necesitas trabajar en este proyecto:
 2. **NO modifiques** el método UpdateGlobalThemeSettings
 3. **Considera refactorizar** el JSON en fase 2 (post-deadline)
 4. **Backup siempre** antes de tocar el website builder
+
+## 🔧 Fix: Problema de Reservaciones en el Carrito (01/08/2025)
+
+### El Problema
+Cuando un usuario hacía click en "Reservar" una habitación:
+1. El producto se agregaba al carrito con `isReservation: true`
+2. Se redirigía al checkout de reservación
+3. **Si el usuario regresaba con la flecha del navegador**, el producto quedaba en el carrito
+4. El carrito mostraba la reservación como un producto normal (sin fechas, precio unitario)
+5. El botón "Pagar" del cart drawer llevaba al checkout normal en lugar del de reservación
+
+### La Solución Implementada
+Se agregó un event listener `unload` en el checkout de reservación que limpia automáticamente las reservaciones del carrito cuando el usuario abandona la página.
+
+**Archivo**: `/Views/Checkout/Index.cshtml`
+**Líneas**: 995-1021
+
+```javascript
+// If user leaves the page, clean the reservation from cart
+window.addEventListener('unload', function() {
+    // Get current cart
+    let cartData = JSON.parse(localStorage.getItem('websiteBuilderCart') || '[]');
+    let cartItems = [];
+    
+    if (Array.isArray(cartData)) {
+        cartItems = cartData;
+    } else if (cartData && cartData.items && Array.isArray(cartData.items)) {
+        cartItems = cartData.items;
+    }
+    
+    // Filter out all reservation items
+    const cleanedCart = cartItems.filter(item => !item.isReservation);
+    
+    // Save the cleaned cart
+    localStorage.setItem('websiteBuilderCart', JSON.stringify(cleanedCart));
+});
+```
+
+### Por Qué Funciona
+- **Si el usuario regresa**: El evento `unload` se ejecuta, limpia las reservaciones del carrito
+- **Si el usuario completa el pago**: El formulario ya envió los datos al servidor ANTES de la limpieza, no afecta
+- **Productos normales**: No se ven afectados, solo se filtran items con `isReservation: true`
+
+### Resultado
+✅ Usuario regresa = carrito vacío de reservaciones
+✅ Usuario paga = proceso normal sin interrupciones
+✅ Solo 10 líneas de código agregadas

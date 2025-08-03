@@ -2912,7 +2912,36 @@ function renderCartPage(config = {}) {
                             <span style="font-size: 18px; font-weight: 500; color: ${colors.text};">Total</span>
                             <span id="cart-subtotal" style="font-size: 18px; font-weight: 500; color: ${colors.text};">${formatCurrency(subtotal)}</span>
                         </div>
-                        <button onclick="event.preventDefault(); event.stopPropagation(); if(window.parent && window.parent !== window && window.parent.handleCheckoutClick) { window.parent.handleCheckoutClick(); } else { window.location.href='/checkout'; } return false;" style="
+                        <button onclick="event.preventDefault(); event.stopPropagation(); 
+                                // Detectar si hay reservaciones en el carrito
+                                let hasReservation = false;
+                                let reservationProductId = null;
+                                try {
+                                    const cartData = localStorage.getItem('websiteBuilderCart');
+                                    if (cartData) {
+                                        const cartItems = JSON.parse(cartData);
+                                        const reservationItem = cartItems.find(item => item.isReservation);
+                                        if (reservationItem) {
+                                            hasReservation = true;
+                                            reservationProductId = reservationItem.id;
+                                        }
+                                    }
+                                } catch (e) {
+                                    console.error('[CART-DRAWER] Error checking cart items:', e);
+                                }
+                                
+                                // Redirigir según el tipo de checkout
+                                let checkoutUrl = '/Checkout';
+                                if (hasReservation && reservationProductId) {
+                                    checkoutUrl = '/Checkout?type=reservation&productId=' + reservationProductId;
+                                }
+                                
+                                if(window.parent && window.parent !== window) { 
+                                    window.parent.location.href = checkoutUrl; 
+                                } else { 
+                                    window.location.href = checkoutUrl; 
+                                } 
+                                return false;" style="
                             width: 100%;
                             padding: 16px;
                             background-color: ${solidButtonBg};

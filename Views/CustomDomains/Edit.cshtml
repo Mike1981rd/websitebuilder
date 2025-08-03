@@ -1,0 +1,224 @@
+@model Hotel.Models.CustomDomain
+
+@{
+    ViewData["Title"] = "Editar Dominio";
+    Layout = "_MaterializeExactLayout";
+}
+
+<div class="page-header">
+    <nav class="breadcrumb-container" aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="@Url.Action("ExactIndex", "Home")" data-i18n="breadcrumb.home">Home</a></li>
+            <li class="breadcrumb-item"><a href="@Url.Action("Index")" data-i18n="customDomains.title">Dominios Personalizados</a></li>
+            <li class="breadcrumb-item active" aria-current="page" data-i18n="customDomains.editDomain">Editar Dominio</li>
+        </ol>
+    </nav>
+</div>
+
+<div class="card">
+    <div class="card-content">
+        <h5 class="card-title" data-i18n="customDomains.editExistingDomain">Editar Dominio Existente</h5>
+        
+        <form asp-action="Edit" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="Id" />
+            
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+            <div class="form-section">
+                <h6 class="section-title" data-i18n="customDomains.domainInformation">Información del Dominio</h6>
+                
+                <div class="form-group">
+                    <label asp-for="DomainName" class="form-label">
+                        <span data-i18n="customDomains.domainName">Nombre del Dominio</span>
+                        <span class="required-asterisk">*</span>
+                    </label>
+                    <input asp-for="DomainName" 
+                           class="form-control" 
+                           data-i18n-placeholder="customDomains.domainNamePlaceholder"
+                           placeholder="www.mihotel.com" />
+                    <span asp-validation-for="DomainName" class="text-danger"></span>
+                    <small class="form-text text-muted" data-i18n="customDomains.domainNameHelp">
+                        Ingresa tu dominio completo, por ejemplo: www.mihotel.com o mihotel.com
+                    </small>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="Status" class="form-label">
+                        <span data-i18n="customDomains.domainStatus">Estado del Dominio</span>
+                    </label>
+                    <select asp-for="Status" class="form-control">
+                        <option value="pending" data-i18n="customDomains.statusPending">Pendiente</option>
+                        <option value="active" data-i18n="customDomains.statusActive">Activo</option>
+                        <option value="error" data-i18n="customDomains.statusError">Error</option>
+                        <option value="inactive" data-i18n="customDomains.statusInactive">Inactivo</option>
+                    </select>
+                    <small class="form-text text-muted" data-i18n="customDomains.statusEditHelp">
+                        Cambia el estado según la configuración DNS actual del dominio
+                    </small>
+                </div>
+
+                <div class="form-check custom-checkbox">
+                    <input asp-for="IsActive" class="form-check-input" type="checkbox" id="isActiveCheck" />
+                    <label class="form-check-label" for="isActiveCheck">
+                        <span data-i18n="customDomains.domainActive">Dominio activo</span>
+                    </label>
+                    <small class="form-text text-muted" data-i18n="customDomains.activeEditHelp">
+                        Desactiva el dominio temporalmente sin eliminarlo del sistema
+                    </small>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h6 class="section-title" data-i18n="customDomains.domainDetails">Detalles del Dominio</h6>
+                
+                <div class="info-grid">
+                    <div class="info-item">
+                        <label data-i18n="customDomains.createdDate">Fecha de Creación:</label>
+                        <span>@Model.CreatedAt.ToString("dd/MM/yyyy HH:mm")</span>
+                    </div>
+                    <div class="info-item">
+                        <label data-i18n="customDomains.lastUpdated">Última Actualización:</label>
+                        <span>@Model.UpdatedAt.ToString("dd/MM/yyyy HH:mm")</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h6 class="section-title" data-i18n="customDomains.currentDnsConfiguration">Configuración DNS Actual</h6>
+                
+                <div class="dns-instructions">
+                    <p data-i18n="customDomains.ensureDnsConfigured">
+                        Asegúrate de que tu dominio tenga los siguientes registros DNS configurados:
+                    </p>
+                    
+                    <div class="dns-record-card">
+                        <h6 data-i18n="customDomains.dnsRecord1Title">Registro A para dominio raíz:</h6>
+                        <div class="code-block">
+                            <code>
+                                Tipo: A<br>
+                                Host: @@<br>
+                                Valor: @ViewBag.SystemIP<br>
+                                TTL: 3600
+                            </code>
+                            <button type="button" class="copy-btn" onclick="copyToClipboard(this)" data-i18n-title="customDomains.copyToClipboard">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="dns-record-card">
+                        <h6 data-i18n="customDomains.dnsRecord2Title">Registro A para www:</h6>
+                        <div class="code-block">
+                            <code>
+                                Tipo: A<br>
+                                Host: www<br>
+                                Valor: @ViewBag.SystemIP<br>
+                                TTL: 3600
+                            </code>
+                            <button type="button" class="copy-btn" onclick="copyToClipboard(this)" data-i18n-title="customDomains.copyToClipboard">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i>
+                        <span data-i18n="customDomains.verifyDnsMessage">
+                            Puedes verificar la configuración DNS usando herramientas como nslookup o dig.
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="button-group">
+                <a href="@Url.Action("Index")" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i>
+                    <span data-i18n="common.cancel">Cancelar</span>
+                </a>
+                <button type="submit" class="btn btn-create">
+                    <i class="fas fa-save"></i>
+                    <span data-i18n="common.saveChanges">Guardar Cambios</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Agregar traducciones específicas para Edit
+        const editDomainsTranslations = {
+            es: {
+                'customDomains.editExistingDomain': 'Editar Dominio Existente',
+                'customDomains.domainStatus': 'Estado del Dominio',
+                'customDomains.statusEditHelp': 'Cambia el estado según la configuración DNS actual del dominio',
+                'customDomains.domainActive': 'Dominio activo',
+                'customDomains.activeEditHelp': 'Desactiva el dominio temporalmente sin eliminarlo del sistema',
+                'customDomains.domainDetails': 'Detalles del Dominio',
+                'customDomains.createdDate': 'Fecha de Creación:',
+                'customDomains.lastUpdated': 'Última Actualización:',
+                'customDomains.currentDnsConfiguration': 'Configuración DNS Actual',
+                'customDomains.ensureDnsConfigured': 'Asegúrate de que tu dominio tenga los siguientes registros DNS configurados:',
+                'customDomains.verifyDnsMessage': 'Puedes verificar la configuración DNS usando herramientas como nslookup o dig.',
+                'common.saveChanges': 'Guardar Cambios'
+            },
+            en: {
+                'customDomains.editExistingDomain': 'Edit Existing Domain',
+                'customDomains.domainStatus': 'Domain Status',
+                'customDomains.statusEditHelp': 'Change the status according to the current DNS configuration of the domain',
+                'customDomains.domainActive': 'Active domain',
+                'customDomains.activeEditHelp': 'Temporarily deactivate the domain without removing it from the system',
+                'customDomains.domainDetails': 'Domain Details',
+                'customDomains.createdDate': 'Created Date:',
+                'customDomains.lastUpdated': 'Last Updated:',
+                'customDomains.currentDnsConfiguration': 'Current DNS Configuration',
+                'customDomains.ensureDnsConfigured': 'Make sure your domain has the following DNS records configured:',
+                'customDomains.verifyDnsMessage': 'You can verify the DNS configuration using tools like nslookup or dig.',
+                'common.saveChanges': 'Save Changes'
+            }
+        };
+
+        // Fusionar con traducciones globales
+        if (typeof translations !== 'undefined') {
+            Object.assign(translations.es, editDomainsTranslations.es);
+            Object.assign(translations.en, editDomainsTranslations.en);
+        }
+
+        // Inicialización
+        document.addEventListener('DOMContentLoaded', function() {
+            // Aplicar traducciones
+            if (typeof translatePage === 'function') {
+                const currentLang = localStorage.getItem('preferredLanguage') || 'es';
+                translatePage(currentLang);
+            }
+
+            // Normalizar dominio al escribir
+            const domainInput = document.getElementById('DomainName');
+            if (domainInput) {
+                domainInput.addEventListener('blur', function() {
+                    this.value = this.value.trim().toLowerCase();
+                });
+            }
+        });
+
+        // Función para copiar al portapapeles
+        function copyToClipboard(button) {
+            const codeBlock = button.previousElementSibling;
+            const text = codeBlock.textContent;
+            
+            navigator.clipboard.writeText(text).then(() => {
+                const originalIcon = button.innerHTML;
+                button.innerHTML = '<i class="fas fa-check"></i>';
+                button.classList.add('copied');
+                
+                setTimeout(() => {
+                    button.innerHTML = originalIcon;
+                    button.classList.remove('copied');
+                }, 2000);
+            });
+        }
+    </script>
+    
+    <partial name="_ValidationScriptsPartial" />
+}

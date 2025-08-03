@@ -1,0 +1,219 @@
+@model Hotel.Models.CustomDomain
+
+@{
+    ViewData["Title"] = "Agregar Dominio";
+    Layout = "_MaterializeExactLayout";
+}
+
+<div class="page-header">
+    <nav class="breadcrumb-container" aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="@Url.Action("ExactIndex", "Home")" data-i18n="breadcrumb.home">Home</a></li>
+            <li class="breadcrumb-item"><a href="@Url.Action("Index")" data-i18n="customDomains.title">Dominios Personalizados</a></li>
+            <li class="breadcrumb-item active" aria-current="page" data-i18n="customDomains.addDomain">Agregar Dominio</li>
+        </ol>
+    </nav>
+</div>
+
+<div class="card">
+    <div class="card-content">
+        <h5 class="card-title" data-i18n="customDomains.addNewDomain">Agregar Nuevo Dominio</h5>
+        
+        <div class="info-box">
+            <i class="fas fa-info-circle"></i>
+            <p data-i18n="customDomains.addDomainInfo">
+                Conecta tu dominio personalizado para que los clientes puedan acceder a tu sitio web usando tu propia dirección.
+            </p>
+        </div>
+
+        <form asp-action="Create" method="post">
+            @Html.AntiForgeryToken()
+            
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+            <div class="form-section">
+                <h6 class="section-title" data-i18n="customDomains.domainInformation">Información del Dominio</h6>
+                
+                <div class="form-group">
+                    <label asp-for="DomainName" class="form-label">
+                        <span data-i18n="customDomains.domainName">Nombre del Dominio</span>
+                        <span class="required-asterisk">*</span>
+                    </label>
+                    <input asp-for="DomainName" 
+                           class="form-control" 
+                           data-i18n-placeholder="customDomains.domainNamePlaceholder"
+                           placeholder="www.mihotel.com" />
+                    <span asp-validation-for="DomainName" class="text-danger"></span>
+                    <small class="form-text text-muted" data-i18n="customDomains.domainNameHelp">
+                        Ingresa tu dominio completo, por ejemplo: www.mihotel.com o mihotel.com
+                    </small>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="Status" class="form-label">
+                        <span data-i18n="customDomains.initialStatus">Estado Inicial</span>
+                    </label>
+                    <select asp-for="Status" class="form-control">
+                        <option value="pending" data-i18n="customDomains.statusPending">Pendiente</option>
+                        <option value="active" data-i18n="customDomains.statusActive">Activo</option>
+                    </select>
+                    <small class="form-text text-muted" data-i18n="customDomains.statusHelp">
+                        El dominio se marcará como pendiente hasta que configures los registros DNS correctamente
+                    </small>
+                </div>
+
+                <div class="form-check custom-checkbox">
+                    <input asp-for="IsActive" class="form-check-input" type="checkbox" id="isActiveCheck" checked />
+                    <label class="form-check-label" for="isActiveCheck">
+                        <span data-i18n="customDomains.activateImmediately">Activar inmediatamente</span>
+                    </label>
+                    <small class="form-text text-muted" data-i18n="customDomains.activateHelp">
+                        Si está activo, el sistema intentará servir tu sitio web en este dominio
+                    </small>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h6 class="section-title" data-i18n="customDomains.dnsConfiguration">Configuración DNS</h6>
+                
+                <div class="dns-instructions">
+                    <p data-i18n="customDomains.dnsSetupIntro">
+                        Después de agregar tu dominio, deberás configurar los siguientes registros DNS en tu proveedor:
+                    </p>
+                    
+                    <div class="dns-record-card">
+                        <h6 data-i18n="customDomains.dnsRecord1Title">Registro A para dominio raíz:</h6>
+                        <div class="code-block">
+                            <code>
+                                Tipo: A<br>
+                                Host: @@<br>
+                                Valor: @ViewBag.SystemIP<br>
+                                TTL: 3600
+                            </code>
+                            <button type="button" class="copy-btn" onclick="copyToClipboard(this)" data-i18n-title="customDomains.copyToClipboard">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="dns-record-card">
+                        <h6 data-i18n="customDomains.dnsRecord2Title">Registro A para www:</h6>
+                        <div class="code-block">
+                            <code>
+                                Tipo: A<br>
+                                Host: www<br>
+                                Valor: @ViewBag.SystemIP<br>
+                                TTL: 3600
+                            </code>
+                            <button type="button" class="copy-btn" onclick="copyToClipboard(this)" data-i18n-title="customDomains.copyToClipboard">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <span data-i18n="customDomains.dnsWarning">
+                            Los cambios DNS pueden tardar entre 10 minutos y 48 horas en propagarse completamente.
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="button-group">
+                <a href="@Url.Action("Index")" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i>
+                    <span data-i18n="common.cancel">Cancelar</span>
+                </a>
+                <button type="submit" class="btn btn-create">
+                    <i class="fas fa-save"></i>
+                    <span data-i18n="customDomains.saveDomain">Guardar Dominio</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Agregar traducciones específicas si no existen
+        const createDomainsTranslations = {
+            es: {
+                'customDomains.addNewDomain': 'Agregar Nuevo Dominio',
+                'customDomains.addDomainInfo': 'Conecta tu dominio personalizado para que los clientes puedan acceder a tu sitio web usando tu propia dirección.',
+                'customDomains.domainInformation': 'Información del Dominio',
+                'customDomains.domainName': 'Nombre del Dominio',
+                'customDomains.domainNamePlaceholder': 'www.mihotel.com',
+                'customDomains.domainNameHelp': 'Ingresa tu dominio completo, por ejemplo: www.mihotel.com o mihotel.com',
+                'customDomains.initialStatus': 'Estado Inicial',
+                'customDomains.statusHelp': 'El dominio se marcará como pendiente hasta que configures los registros DNS correctamente',
+                'customDomains.activateImmediately': 'Activar inmediatamente',
+                'customDomains.activateHelp': 'Si está activo, el sistema intentará servir tu sitio web en este dominio',
+                'customDomains.dnsConfiguration': 'Configuración DNS',
+                'customDomains.dnsSetupIntro': 'Después de agregar tu dominio, deberás configurar los siguientes registros DNS en tu proveedor:',
+                'customDomains.dnsWarning': 'Los cambios DNS pueden tardar entre 10 minutos y 48 horas en propagarse completamente.',
+                'customDomains.saveDomain': 'Guardar Dominio',
+                'common.cancel': 'Cancelar'
+            },
+            en: {
+                'customDomains.addNewDomain': 'Add New Domain',
+                'customDomains.addDomainInfo': 'Connect your custom domain so customers can access your website using your own address.',
+                'customDomains.domainInformation': 'Domain Information',
+                'customDomains.domainName': 'Domain Name',
+                'customDomains.domainNamePlaceholder': 'www.myhotel.com',
+                'customDomains.domainNameHelp': 'Enter your full domain, for example: www.myhotel.com or myhotel.com',
+                'customDomains.initialStatus': 'Initial Status',
+                'customDomains.statusHelp': 'The domain will be marked as pending until you configure the DNS records correctly',
+                'customDomains.activateImmediately': 'Activate immediately',
+                'customDomains.activateHelp': 'If active, the system will attempt to serve your website on this domain',
+                'customDomains.dnsConfiguration': 'DNS Configuration',
+                'customDomains.dnsSetupIntro': 'After adding your domain, you will need to configure the following DNS records with your provider:',
+                'customDomains.dnsWarning': 'DNS changes can take between 10 minutes and 48 hours to fully propagate.',
+                'customDomains.saveDomain': 'Save Domain',
+                'common.cancel': 'Cancel'
+            }
+        };
+
+        // Fusionar con traducciones globales
+        if (typeof translations !== 'undefined') {
+            Object.assign(translations.es, createDomainsTranslations.es);
+            Object.assign(translations.en, createDomainsTranslations.en);
+        }
+
+        // Inicialización
+        document.addEventListener('DOMContentLoaded', function() {
+            // Aplicar traducciones
+            if (typeof translatePage === 'function') {
+                const currentLang = localStorage.getItem('preferredLanguage') || 'es';
+                translatePage(currentLang);
+            }
+
+            // Normalizar dominio al escribir
+            const domainInput = document.getElementById('DomainName');
+            if (domainInput) {
+                domainInput.addEventListener('blur', function() {
+                    this.value = this.value.trim().toLowerCase();
+                });
+            }
+        });
+
+        // Función para copiar al portapapeles
+        function copyToClipboard(button) {
+            const codeBlock = button.previousElementSibling;
+            const text = codeBlock.textContent;
+            
+            navigator.clipboard.writeText(text).then(() => {
+                const originalIcon = button.innerHTML;
+                button.innerHTML = '<i class="fas fa-check"></i>';
+                button.classList.add('copied');
+                
+                setTimeout(() => {
+                    button.innerHTML = originalIcon;
+                    button.classList.remove('copied');
+                }, 2000);
+            });
+        }
+    </script>
+    
+    <partial name="_ValidationScriptsPartial" />
+}

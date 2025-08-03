@@ -3480,6 +3480,15 @@ window.handleProductReservation = function(event, productId) {
         existingCart = [];
     }
     
+    // Check if there are normal products in the cart
+    const hasNormalProducts = existingCart.some(item => !item.isReservation);
+    
+    if (hasNormalProducts) {
+        // Show alert in Spanish
+        alert('No puede agregar reservaciones mientras tenga productos en el carrito. Complete primero su compra.');
+        return; // Don't add the reservation
+    }
+    
     // Remove any existing reservations (only one reservation allowed at a time)
     existingCart = existingCart.filter(item => !item.isReservation);
     

@@ -30921,6 +30921,15 @@ $(document).ready(function() {
 window.addToCartWithData = function(productData) {
     console.log('[CART] Adding product with data:', productData);
     
+    // Check if there are reservations in the cart
+    const hasReservation = cartItems.some(item => item.isReservation);
+    
+    if (hasReservation) {
+        // Show alert in Spanish
+        alert('No puede agregar productos mientras tenga reservaciones pendientes en el carrito. Complete primero su reservación.');
+        return; // Don't add the product
+    }
+    
     // Check if product already exists in cart
     const existingItemIndex = cartItems.findIndex(item => item.id === productData.id);
     

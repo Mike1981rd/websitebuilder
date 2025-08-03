@@ -1546,7 +1546,8 @@
                 logo.style.cursor = 'pointer';
                 logo.addEventListener('click', function(e) {
                     e.preventDefault();
-                    window.location.href = '/WebsiteBuilder/Preview';
+                    // Navigate to homepage (root)
+                    window.location.href = '/';
                 });
             });
             
@@ -1953,6 +1954,15 @@
             
             // Load current cart
             loadCart();
+            
+            // Check if there are reservations in the cart
+            const hasReservation = cartItems.some(item => item.isReservation);
+            
+            if (hasReservation) {
+                // Show alert in Spanish
+                alert('No puede agregar productos mientras tenga reservaciones pendientes en el carrito. Complete primero su reservación.');
+                return; // Don't add the product
+            }
             
             // Check if product already exists in cart
             const existingItemIndex = cartItems.findIndex(item => item.id === productData.id);

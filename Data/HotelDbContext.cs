@@ -40,6 +40,9 @@ namespace Hotel.Data
         // DbSets para sistema de pagos
         public DbSet<PaymentGateway> PaymentGateways { get; set; }
         public DbSet<PaymentTransaction> PaymentTransactions { get; set; }
+        
+        // DbSet para dominios personalizados
+        public DbSet<CustomDomain> CustomDomains { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -244,6 +247,17 @@ namespace Hotel.Data
                 .Property(w => w.SeoSettingsJson)
                 .HasColumnType("jsonb");
 
+            // Configuración de CustomDomain
+            modelBuilder.Entity<CustomDomain>()
+                .HasIndex(cd => cd.DomainName)
+                .IsUnique();
+                
+            modelBuilder.Entity<CustomDomain>()
+                .HasOne(cd => cd.WebSite)
+                .WithMany()
+                .HasForeignKey(cd => cd.WebSiteId)
+                .OnDelete(DeleteBehavior.Cascade);
+
             // Configuración de Product
             modelBuilder.Entity<Product>()
                 .HasIndex(p => p.Handle)
@@ -421,6 +435,11 @@ namespace Hotel.Data
             permissions.Add(new Permission { Id = permissionId++, Module = "Reservations", Action = "Read", Description = "Ver reservaciones", DisplayOrder = 10 });
             permissions.Add(new Permission { Id = permissionId++, Module = "Reservations", Action = "Write", Description = "Editar reservaciones", DisplayOrder = 10 });
             permissions.Add(new Permission { Id = permissionId++, Module = "Reservations", Action = "Create", Description = "Crear reservaciones", DisplayOrder = 10 });
+            
+            // Dominios
+            permissions.Add(new Permission { Id = permissionId++, Module = "Dominios", Action = "Read", Description = "Ver dominios personalizados", DisplayOrder = 11 });
+            permissions.Add(new Permission { Id = permissionId++, Module = "Dominios", Action = "Write", Description = "Editar dominios personalizados", DisplayOrder = 11 });
+            permissions.Add(new Permission { Id = permissionId++, Module = "Dominios", Action = "Create", Description = "Crear dominios personalizados", DisplayOrder = 11 });
 
             modelBuilder.Entity<Permission>().HasData(permissions);
 

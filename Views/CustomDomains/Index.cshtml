@@ -1,0 +1,475 @@
+@model IEnumerable<Hotel.Models.CustomDomain>
+
+@{
+    ViewData["Title"] = "Dominios Personalizados";
+    Layout = "_MaterializeExactLayout";
+}
+
+<div class="page-header">
+    <nav class="breadcrumb-container" aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="@Url.Action("ExactIndex", "Home")" data-i18n="breadcrumb.home">Home</a></li>
+            <li class="breadcrumb-item active" aria-current="page" data-i18n="customDomains.title">Dominios Personalizados</li>
+        </ol>
+    </nav>
+</div>
+
+<div class="card">
+    <div class="card-content">
+        @Html.AntiForgeryToken()
+        <div class="table-controls">
+            <div class="search-container">
+                <input type="text" 
+                       id="searchInput" 
+                       class="form-control search-input" 
+                       data-i18n-placeholder="customDomains.searchPlaceholder"
+                       placeholder="Buscar dominios...">
+            </div>
+            <div class="table-actions">
+                @if (!Model.Any())
+                {
+                    <button class="btn btn-create" onclick="window.location.href='@Url.Action("Create")'">
+                        <i class="fas fa-plus"></i>
+                        <span data-i18n="customDomains.addDomain">Agregar Dominio</span>
+                    </button>
+                }
+                else if (Model.Count() < 3) // Limitar a 3 dominios por cliente
+                {
+                    <button class="btn btn-create" onclick="window.location.href='@Url.Action("Create")'">
+                        <i class="fas fa-plus"></i>
+                        <span data-i18n="customDomains.addAnotherDomain">Agregar Otro Dominio</span>
+                    </button>
+                }
+            </div>
+        </div>
+
+        @if (!Model.Any())
+        {
+            <div class="empty-state">
+                <i class="fas fa-link empty-state-icon"></i>
+                <h3 data-i18n="customDomains.noDomainsTitle">No hay dominios configurados</h3>
+                <p data-i18n="customDomains.noDomainsDescription">Conecta tu dominio personalizado para que los clientes accedan a tu sitio web</p>
+                <button class="btn btn-primary" onclick="window.location.href='@Url.Action("Create")'">
+                    <i class="fas fa-plus"></i>
+                    <span data-i18n="customDomains.addFirstDomain">Configurar mi primer dominio</span>
+                </button>
+            </div>
+        }
+        else
+        {
+            <div class="info-box">
+                <i class="fas fa-info-circle"></i>
+                <p data-i18n="customDomains.currentSiteInfo">
+                    Tu sitio web está disponible en: <code>@ViewBag.CurrentSiteUrl</code>
+                </p>
+            </div>
+            
+            <div class="table-responsive">
+                <table class="table table-hover" id="domainsTable">
+                    <thead>
+                        <tr>
+                            <th data-i18n="customDomains.columnDomain">DOMINIO</th>
+                            <th data-i18n="customDomains.columnStatus">ESTADO</th>
+                            <th data-i18n="customDomains.columnCreated">CREADO</th>
+                            <th data-i18n="customDomains.columnActive">ACTIVO</th>
+                            <th data-i18n="customDomains.columnActions">ACCIONES</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td>
+                                    <div class="domain-info">
+                                        <i class="fas fa-globe domain-icon"></i>
+                                        <div class="domain-details">
+                                            <div class="domain-name">@item.DomainName</div>
+                                            <div class="domain-url">
+                                                <a href="http://@item.DomainName" target="_blank" class="domain-link">
+                                                    <span data-i18n="customDomains.visitSite">Visitar sitio</span>
+                                                    <i class="fas fa-external-link-alt"></i>
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    @switch (item.Status?.ToLower())
+                                    {
+                                        case "active":
+                                            <span class="status-badge active" data-i18n="customDomains.statusActive">Activo</span>
+                                            break;
+                                        case "pending":
+                                            <span class="status-badge pending" data-i18n="customDomains.statusPending">Pendiente</span>
+                                            break;
+                                        case "error":
+                                            <span class="status-badge error" data-i18n="customDomains.statusError">Error</span>
+                                            break;
+                                        default:
+                                            <span class="status-badge inactive" data-i18n="customDomains.statusInactive">Inactivo</span>
+                                            break;
+                                    }
+                                </td>
+                                <td>
+                                    <span class="date-text">@item.CreatedAt.ToString("dd/MM/yyyy")</span>
+                                </td>
+                                <td>
+                                    <div class="toggle-switch">
+                                        <input type="checkbox" 
+                                               id="toggle-@item.Id" 
+                                               class="toggle-checkbox" 
+                                               @(item.IsActive ? "checked" : "") 
+                                               onchange="toggleDomainStatus(@item.Id)">
+                                        <label for="toggle-@item.Id" class="toggle-label"></label>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <button class="btn-action" onclick="window.location.href='@Url.Action("Edit", new { id = item.Id })'" 
+                                                data-i18n-title="customDomains.editDomain" title="Editar dominio">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="btn-action" onclick="showDnsInstructions('@item.DomainName')" 
+                                                data-i18n-title="customDomains.dnsInstructions" title="Instrucciones DNS">
+                                            <i class="fas fa-info-circle"></i>
+                                        </button>
+                                        <button class="btn-action btn-danger" onclick="confirmDelete(@item.Id, '@item.DomainName')" 
+                                                data-i18n-title="customDomains.deleteDomain" title="Eliminar dominio">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- Modal de confirmación de eliminación -->
+<div id="deleteModal" class="modal-overlay" style="display: none;">
+    <div class="modal">
+        <div class="modal-header">
+            <h5 class="modal-title" data-i18n="customDomains.confirmDeleteTitle">Confirmar eliminación</h5>
+            <button type="button" class="modal-close" onclick="closeDeleteModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <p data-i18n="customDomains.confirmDeleteMessage">¿Estás seguro de que deseas eliminar el dominio <strong id="deleteDomainName"></strong>?</p>
+            <p class="text-warning" data-i18n="customDomains.deleteWarning">Esta acción no se puede deshacer y el dominio dejará de funcionar inmediatamente.</p>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="closeDeleteModal()" data-i18n="customDomains.cancel">Cancelar</button>
+            <button type="button" class="btn btn-danger" id="confirmDeleteBtn" data-i18n="customDomains.confirmDelete">Eliminar dominio</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de instrucciones DNS -->
+<div id="dnsModal" class="modal-overlay" style="display: none;">
+    <div class="modal">
+        <div class="modal-header">
+            <h5 class="modal-title" data-i18n="customDomains.dnsInstructionsTitle">Configuración DNS</h5>
+            <button type="button" class="modal-close" onclick="closeDnsModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <p data-i18n="customDomains.dnsInstructionsIntro">Para conectar tu dominio, debes configurar los siguientes registros DNS en tu proveedor:</p>
+            
+            <div class="dns-records">
+                <h6 data-i18n="customDomains.dnsRecord1Title">Registro A para dominio raíz:</h6>
+                <div class="code-block">
+                    <code>
+                        Tipo: A<br>
+                        Host: @@<br>
+                        Valor: @ViewBag.SystemIP<br>
+                        TTL: 3600
+                    </code>
+                    <button class="copy-btn" onclick="copyToClipboard(this)" data-i18n-title="customDomains.copyToClipboard">
+                        <i class="fas fa-copy"></i>
+                    </button>
+                </div>
+                
+                <h6 data-i18n="customDomains.dnsRecord2Title">Registro A para www:</h6>
+                <div class="code-block">
+                    <code>
+                        Tipo: A<br>
+                        Host: www<br>
+                        Valor: @ViewBag.SystemIP<br>
+                        TTL: 3600
+                    </code>
+                    <button class="copy-btn" onclick="copyToClipboard(this)" data-i18n-title="customDomains.copyToClipboard">
+                        <i class="fas fa-copy"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle"></i>
+                <span data-i18n="customDomains.dnsPropagationNote">Los cambios DNS pueden tardar entre 10 minutos y 48 horas en propagarse completamente.</span>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-primary" onclick="closeDnsModal()" data-i18n="customDomains.understood">Entendido</button>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Traducciones para JavaScript
+        const customDomainsTranslations = {
+            es: {
+                'customDomains.title': 'Dominios Personalizados',
+                'customDomains.searchPlaceholder': 'Buscar dominios...',
+                'customDomains.addDomain': 'Agregar Dominio',
+                'customDomains.addAnotherDomain': 'Agregar Otro Dominio',
+                'customDomains.noDomainsTitle': 'No hay dominios configurados',
+                'customDomains.noDomainsDescription': 'Conecta tu dominio personalizado para que los clientes accedan a tu sitio web',
+                'customDomains.addFirstDomain': 'Configurar mi primer dominio',
+                'customDomains.currentSiteInfo': 'Tu sitio web está disponible en:',
+                'customDomains.columnDomain': 'DOMINIO',
+                'customDomains.columnStatus': 'ESTADO',
+                'customDomains.columnCreated': 'CREADO',
+                'customDomains.columnActive': 'ACTIVO',
+                'customDomains.columnActions': 'ACCIONES',
+                'customDomains.visitSite': 'Visitar sitio',
+                'customDomains.statusActive': 'Activo',
+                'customDomains.statusPending': 'Pendiente',
+                'customDomains.statusError': 'Error',
+                'customDomains.statusInactive': 'Inactivo',
+                'customDomains.editDomain': 'Editar dominio',
+                'customDomains.dnsInstructions': 'Instrucciones DNS',
+                'customDomains.deleteDomain': 'Eliminar dominio',
+                'customDomains.confirmDeleteTitle': 'Confirmar eliminación',
+                'customDomains.confirmDeleteMessage': '¿Estás seguro de que deseas eliminar el dominio',
+                'customDomains.deleteWarning': 'Esta acción no se puede deshacer y el dominio dejará de funcionar inmediatamente.',
+                'customDomains.cancel': 'Cancelar',
+                'customDomains.confirmDelete': 'Eliminar dominio',
+                'customDomains.dnsInstructionsTitle': 'Configuración DNS',
+                'customDomains.dnsInstructionsIntro': 'Para conectar tu dominio, debes configurar los siguientes registros DNS en tu proveedor:',
+                'customDomains.dnsRecord1Title': 'Registro A para dominio raíz:',
+                'customDomains.dnsRecord2Title': 'Registro A para www:',
+                'customDomains.copyToClipboard': 'Copiar al portapapeles',
+                'customDomains.dnsPropagationNote': 'Los cambios DNS pueden tardar entre 10 minutos y 48 horas en propagarse completamente.',
+                'customDomains.understood': 'Entendido',
+                'customDomains.domainActivated': 'Dominio activado',
+                'customDomains.domainDeactivated': 'Dominio desactivado',
+                'customDomains.errorToggling': 'Error al cambiar el estado del dominio',
+                'customDomains.domainDeleted': 'Dominio eliminado exitosamente',
+                'customDomains.errorDeleting': 'Error al eliminar el dominio',
+                'customDomains.copied': 'Copiado!'
+            },
+            en: {
+                'customDomains.title': 'Custom Domains',
+                'customDomains.searchPlaceholder': 'Search domains...',
+                'customDomains.addDomain': 'Add Domain',
+                'customDomains.addAnotherDomain': 'Add Another Domain',
+                'customDomains.noDomainsTitle': 'No domains configured',
+                'customDomains.noDomainsDescription': 'Connect your custom domain so customers can access your website',
+                'customDomains.addFirstDomain': 'Configure my first domain',
+                'customDomains.currentSiteInfo': 'Your website is available at:',
+                'customDomains.columnDomain': 'DOMAIN',
+                'customDomains.columnStatus': 'STATUS',
+                'customDomains.columnCreated': 'CREATED',
+                'customDomains.columnActive': 'ACTIVE',
+                'customDomains.columnActions': 'ACTIONS',
+                'customDomains.visitSite': 'Visit site',
+                'customDomains.statusActive': 'Active',
+                'customDomains.statusPending': 'Pending',
+                'customDomains.statusError': 'Error',
+                'customDomains.statusInactive': 'Inactive',
+                'customDomains.editDomain': 'Edit domain',
+                'customDomains.dnsInstructions': 'DNS Instructions',
+                'customDomains.deleteDomain': 'Delete domain',
+                'customDomains.confirmDeleteTitle': 'Confirm deletion',
+                'customDomains.confirmDeleteMessage': 'Are you sure you want to delete the domain',
+                'customDomains.deleteWarning': 'This action cannot be undone and the domain will stop working immediately.',
+                'customDomains.cancel': 'Cancel',
+                'customDomains.confirmDelete': 'Delete domain',
+                'customDomains.dnsInstructionsTitle': 'DNS Configuration',
+                'customDomains.dnsInstructionsIntro': 'To connect your domain, you must configure the following DNS records with your provider:',
+                'customDomains.dnsRecord1Title': 'A Record for root domain:',
+                'customDomains.dnsRecord2Title': 'A Record for www:',
+                'customDomains.copyToClipboard': 'Copy to clipboard',
+                'customDomains.dnsPropagationNote': 'DNS changes can take between 10 minutes and 48 hours to fully propagate.',
+                'customDomains.understood': 'Understood',
+                'customDomains.domainActivated': 'Domain activated',
+                'customDomains.domainDeactivated': 'Domain deactivated',
+                'customDomains.errorToggling': 'Error changing domain status',
+                'customDomains.domainDeleted': 'Domain deleted successfully',
+                'customDomains.errorDeleting': 'Error deleting domain',
+                'customDomains.copied': 'Copied!'
+            }
+        };
+
+        // Fusionar con traducciones globales si existen
+        if (typeof translations !== 'undefined') {
+            if (!translations.es) translations.es = {};
+            if (!translations.en) translations.en = {};
+            
+            Object.assign(translations.es, customDomainsTranslations.es);
+            Object.assign(translations.en, customDomainsTranslations.en);
+        }
+
+        // Variables para los modales
+        let deleteId = null;
+
+        // Inicialización
+        document.addEventListener('DOMContentLoaded', function() {
+            // Aplicar traducciones
+            if (typeof translatePage === 'function') {
+                const currentLang = localStorage.getItem('preferredLanguage') || 'es';
+                translatePage(currentLang);
+            }
+
+            // Configurar búsqueda
+            const searchInput = document.getElementById('searchInput');
+            const table = document.getElementById('domainsTable');
+            
+            if (searchInput && table) {
+                searchInput.addEventListener('input', function() {
+                    const searchTerm = this.value.toLowerCase();
+                    const rows = table.getElementsByTagName('tbody')[0].getElementsByTagName('tr');
+                    
+                    Array.from(rows).forEach(row => {
+                        const domainName = row.cells[0].textContent.toLowerCase();
+                        row.style.display = domainName.includes(searchTerm) ? '' : 'none';
+                    });
+                });
+            }
+        });
+
+        // Función para cambiar estado del dominio
+        function toggleDomainStatus(id) {
+            const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+            
+            fetch(`/CustomDomains/ToggleStatus/${id}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': token
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const message = data.isActive ? 
+                        translations[currentLang]['customDomains.domainActivated'] : 
+                        translations[currentLang]['customDomains.domainDeactivated'];
+                    showNotification(message, 'success');
+                } else {
+                    showNotification(data.message || translations[currentLang]['customDomains.errorToggling'], 'error');
+                    // Revertir el checkbox
+                    document.getElementById(`toggle-${id}`).checked = !document.getElementById(`toggle-${id}`).checked;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showNotification(translations[currentLang]['customDomains.errorToggling'], 'error');
+                // Revertir el checkbox
+                document.getElementById(`toggle-${id}`).checked = !document.getElementById(`toggle-${id}`).checked;
+            });
+        }
+
+        // Función para mostrar modal de confirmación
+        function confirmDelete(id, domainName) {
+            deleteId = id;
+            document.getElementById('deleteDomainName').textContent = domainName;
+            document.getElementById('deleteModal').style.display = 'flex';
+            
+            // Configurar botón de confirmación
+            document.getElementById('confirmDeleteBtn').onclick = function() {
+                deleteDomain();
+            };
+        }
+
+        // Función para cerrar modal de eliminación
+        function closeDeleteModal() {
+            document.getElementById('deleteModal').style.display = 'none';
+            deleteId = null;
+        }
+
+        // Función para eliminar dominio
+        function deleteDomain() {
+            if (!deleteId) return;
+            
+            const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+            
+            fetch(`/CustomDomains/Delete/${deleteId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': token
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    window.location.reload();
+                } else {
+                    showNotification(data.message || translations[currentLang]['customDomains.errorDeleting'], 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showNotification(translations[currentLang]['customDomains.errorDeleting'], 'error');
+            })
+            .finally(() => {
+                closeDeleteModal();
+            });
+        }
+
+        // Función para mostrar instrucciones DNS
+        function showDnsInstructions(domainName) {
+            document.getElementById('dnsModal').style.display = 'flex';
+        }
+
+        // Función para cerrar modal DNS
+        function closeDnsModal() {
+            document.getElementById('dnsModal').style.display = 'none';
+        }
+
+        // Función para copiar al portapapeles
+        function copyToClipboard(button) {
+            const codeBlock = button.previousElementSibling;
+            const text = codeBlock.textContent;
+            
+            navigator.clipboard.writeText(text).then(() => {
+                const originalIcon = button.innerHTML;
+                button.innerHTML = '<i class="fas fa-check"></i>';
+                button.classList.add('copied');
+                
+                setTimeout(() => {
+                    button.innerHTML = originalIcon;
+                    button.classList.remove('copied');
+                }, 2000);
+                
+                showNotification(translations[currentLang]['customDomains.copied'], 'success');
+            });
+        }
+
+        // Función para mostrar notificaciones
+        function showNotification(message, type) {
+            // Implementar según el sistema de notificaciones del proyecto
+            if (type === 'success') {
+                // Mostrar notificación de éxito
+                console.log('Success:', message);
+            } else {
+                // Mostrar notificación de error
+                console.error('Error:', message);
+            }
+        }
+
+        // Cerrar modales al hacer clic fuera
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal-overlay')) {
+                event.target.style.display = 'none';
+            }
+        }
+    </script>
+}

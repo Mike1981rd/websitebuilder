@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Hotel.Data;
 using Hotel.Services;
 using Hotel.Services.Payment;
+using Hotel.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -89,6 +90,10 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
+
+// Agregar el middleware de dominios personalizados ANTES del routing
+// Esto permite interceptar y modificar las peticiones antes de que el routing las procese
+app.UseCustomDomainRouting();
 
 app.UseRouting();
 
