@@ -88,7 +88,12 @@
       "Bash(cat:*)",
       "Bash(./deploy.sh)",
       "Bash(nslookup:*)",
-      "Bash(ping:*)"
+      "Bash(ping:*)",
+      "Bash(/dev/null)",
+      "Bash(cd:*)",
+      "Bash(/mnt/c/Users/hp/Documents/Visual\\ Studio\\ 2022/Projects/Hotel23/optimize-server.sh:*)",
+      "Bash(dos2unix:*)",
+      "Bash(./optimize-server.sh)"
     ],
     "deny": []
   }

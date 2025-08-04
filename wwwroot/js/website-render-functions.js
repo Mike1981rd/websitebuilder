@@ -2998,9 +2998,6 @@ function renderCartPage(config = {}) {
 function renderCollectionsPage(config = {}) {
     console.log('[COLLECTIONS] Rendering collections page with config:', config);
     
-    // Get color scheme values
-    const schemeColors = getColorSchemeValues(config.colorScheme || 'scheme1');
-    
     // Get typography settings
     const bodyTypography = window.currentGlobalThemeSettings?.typography?.body || {
         font: 'assistant',
@@ -3014,186 +3011,36 @@ function renderCollectionsPage(config = {}) {
     return `
         <style>
             .collections-page {
-                background-color: #f5f5f5;
-                color: #333;
-                min-height: 400px;
-                padding: 60px 0;
                 font-family: ${fontFamily}, sans-serif;
-            }
-            
-            .collections-container {
-                max-width: 1200px;
-                margin: 0 auto;
-                padding: 0 40px;
-            }
-            
-            .collections-title {
-                text-align: left;
-                font-size: 32px;
-                font-weight: 400;
-                margin-bottom: 50px;
-                color: #1a1a1a;
-                letter-spacing: -0.5px;
-            }
-            
-            .collections-grid {
-                display: grid;
-                grid-template-columns: repeat(2, 1fr);
-                gap: 20px;
-                margin-bottom: 60px;
-            }
-            
-            @media (max-width: 768px) {
-                .collections-grid {
-                    grid-template-columns: 1fr;
-                    gap: 20px;
-                }
-                
-                .collections-container {
-                    padding: 0 20px;
-                }
-            }
-            
-            .collection-card {
-                position: relative;
-                overflow: hidden;
-                cursor: pointer;
-                transition: transform 0.3s ease;
-                background: #ffffff;
-                box-shadow: 0 2px 4px rgba(0,0,0,0.08);
-            }
-            
-            .collection-card:hover {
-                transform: translateY(-5px);
-                box-shadow: 0 8px 16px rgba(0,0,0,0.12);
-            }
-            
-            .collection-card-link {
-                text-decoration: none;
-                color: inherit;
-                display: block;
-                position: relative;
-                height: 100%;
-            }
-            
-            .collection-image-wrapper {
-                position: relative;
-                width: 100%;
-                height: 300px;
-                overflow: hidden;
-            }
-            
-            .collection-image {
-                width: 100%;
-                height: 100%;
-                object-fit: cover;
-                display: block;
-            }
-            
-            .collection-image-placeholder {
-                width: 100%;
-                height: 100%;
-                background: linear-gradient(45deg, #f0f0f0 25%, #e0e0e0 25%, #e0e0e0 50%, #f0f0f0 50%, #f0f0f0 75%, #e0e0e0 75%, #e0e0e0);
-                background-size: 40px 40px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                color: #999;
-                font-size: 60px;
-            }
-            
-            .collection-image-gradient {
-                position: absolute;
-                bottom: 0;
-                left: 0;
-                right: 0;
-                height: 150px;
-                background: linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.3) 100%);
-                pointer-events: none;
-            }
-            
-            .collection-overlay {
-                position: absolute;
-                bottom: 30px;
-                left: 50%;
-                transform: translateX(-50%);
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                background: rgba(255, 255, 255, 0.9);
-                padding: 15px 30px;
-                min-width: 180px;
-            }
-            
-            .collection-name {
-                font-size: 20px;
-                font-weight: 500;
-                margin: 0;
-                text-transform: uppercase;
-                letter-spacing: 1.5px;
-                color: #1a1a1a;
-                text-align: center;
-                padding: 0 20px;
-            }
-            
-            .collection-count {
-                padding: 20px;
-                background: #ffffff;
-                text-align: center;
-                font-size: 13px;
-                color: #666;
-                margin: 0;
-                position: relative;
-            }
-            
-            .collection-count::before {
-                content: '';
-                position: absolute;
-                top: 10px;
-                left: 50%;
-                transform: translateX(-50%);
-                width: 30px;
-                height: 1px;
-                background-color: #ddd;
-            }
-            
-            .collections-loading {
-                text-align: center;
-                padding: 40px;
-                font-size: 18px;
-                color: ${schemeColors['secondary-text'] || schemeColors.text};
-            }
-            
-            .collections-empty {
-                text-align: center;
-                padding: 60px 20px;
-                color: ${schemeColors['secondary-text'] || schemeColors.text};
-            }
-            
-            .collections-empty-icon {
-                font-size: 60px;
-                margin-bottom: 20px;
-                opacity: 0.5;
-            }
-            
-            .collections-empty-text {
-                font-size: 18px;
             }
         </style>
         
         <div class="collections-page">
             <div class="collections-container">
-                <h1 class="collections-title">Collections list</h1>
-                
+                <h1 class="collections-title">${config.title || 'Colecciones'}</h1>
                 <div id="collections-content">
+                    <!-- Loading skeleton -->
                     <div class="collections-loading">
-                        <i class="material-icons rotating">sync</i>
-                        <p>Cargando colecciones...</p>
+                        ${Array(4).fill(0).map(() => `
+                            <div class="collection-skeleton">
+                                <div class="skeleton-image"></div>
+                                <div class="skeleton-info">
+                                    <div class="skeleton-title"></div>
+                                    <div class="skeleton-count"></div>
+                                </div>
+                            </div>
+                        `).join('')}
                     </div>
                 </div>
             </div>
         </div>
         
+        <script>
+            // Immediate load without setTimeout
+            if (typeof loadCollectionsData === 'function') {
+                loadCollectionsData();
+            }
+        </script>
     `;
 }
 
@@ -3201,9 +3048,46 @@ function renderCollectionsPage(config = {}) {
 function loadCollectionsData() {
     console.log('[COLLECTIONS] Loading collections data...');
     
+    // Check cache first
+    const cacheKey = 'collections_list';
+    const cachedData = sessionStorage.getItem(cacheKey);
+    const cacheTimestamp = sessionStorage.getItem(`${cacheKey}_timestamp`);
+    const cacheExpiry = 60000; // 1 minute cache
+    
+    if (cachedData && cacheTimestamp && (Date.now() - parseInt(cacheTimestamp)) < cacheExpiry) {
+        console.log('[COLLECTIONS] Using cached collections data');
+        const data = JSON.parse(cachedData);
+        processCollectionsData(data);
+        return;
+    }
+    
     fetch('/api/builder/collections/search')
         .then(response => response.json())
         .then(data => {
+            // Cache the response
+            sessionStorage.setItem(cacheKey, JSON.stringify(data));
+            sessionStorage.setItem(`${cacheKey}_timestamp`, Date.now().toString());
+            
+            processCollectionsData(data);
+        })
+        .catch(error => {
+            console.error('[COLLECTIONS] Error loading collections:', error);
+            const container = document.getElementById('collections-content');
+            if (container) {
+                container.innerHTML = `
+                    <div class="collections-empty">
+                        <div class="collections-empty-icon">
+                            <i class="material-icons">error_outline</i>
+                        </div>
+                        <div class="collections-empty-text">
+                            Error al cargar las colecciones
+                        </div>
+                    </div>
+                `;
+            }
+        });
+    
+    function processCollectionsData(data) {
             console.log('[COLLECTIONS] API response:', data);
             console.log('[COLLECTIONS] Collections array:', data.collections);
             if (data.collections && data.collections.length > 0) {
@@ -3232,22 +3116,23 @@ function loadCollectionsData() {
                 return;
             }
             
-            // Render collections grid
+            // Render collections grid with lazy loading
             console.log('[COLLECTIONS] Rendering grid for', data.collections.length, 'collections');
             
             const gridHtml = `
                 <div class="collections-grid">
                     ${data.collections.map((collection, index) => {
-                        console.log(`[COLLECTIONS] Rendering collection ${index}:`, collection);
-                        console.log(`[COLLECTIONS] Title: "${collection.title}", Handle: "${collection.handle}", ImageUrl: "${collection.imageUrl}"`);
-                        console.log(`[COLLECTIONS] ProductCount: ${collection.productCount}`);
+                        const lazyLoad = index > 1 ? 'loading="lazy"' : '';
                         
                         return `
                         <div class="collection-card">
                             <a href="/collections/${collection.handle || ''}" class="collection-card-link">
                                 <div class="collection-image-wrapper">
                                     ${collection.imageUrl 
-                                        ? `<img src="${collection.imageUrl}" alt="${collection.title || ''}" class="collection-image">`
+                                        ? `<img src="${collection.imageUrl}" 
+                                               alt="${collection.title || ''}" 
+                                               class="collection-image"
+                                               ${lazyLoad}>`
                                         : `<div class="collection-image-placeholder">
                                                 <i class="material-icons">image</i>
                                            </div>`
@@ -3257,7 +3142,7 @@ function loadCollectionsData() {
                                         <h3 class="collection-name">${collection.title || 'Sin título'}</h3>
                                     </div>
                                 </div>
-                                <p class="collection-count">${collection.productCount !== undefined ? collection.productCount : '0'} productos</p>
+                                <div class="collection-count">${collection.productCount !== undefined ? collection.productCount : '0'} productos</div>
                             </a>
                         </div>
                         `;
@@ -3266,23 +3151,7 @@ function loadCollectionsData() {
             `;
             
             container.innerHTML = gridHtml;
-        })
-        .catch(error => {
-            console.error('[COLLECTIONS] Error loading collections:', error);
-            const container = document.getElementById('collections-content');
-            if (container) {
-                container.innerHTML = `
-                    <div class="collections-empty">
-                        <div class="collections-empty-icon">
-                            <i class="material-icons">error_outline</i>
-                        </div>
-                        <div class="collections-empty-text">
-                            Error al cargar las colecciones
-                        </div>
-                    </div>
-                `;
-            }
-        });
+        }
 }
 
 window.renderCollectionsPage = renderCollectionsPage;
@@ -3438,12 +3307,69 @@ function loadCollectionProductsData(handle) {
         return;
     }
     
+    // Detectar si es dominio personalizado desde el DOM o variable global
+    const isCustomDomain = window.isCustomDomain || document.body.dataset.customDomain === 'true';
+    
+    // Estrategia de cache según contexto
+    let cacheParam = '';
+    if (document.referrer.includes('/WebsiteBuilder')) {
+        // Sin cache desde editor
+        cacheParam = `?_t=${new Date().getTime()}`;
+    } else if (isCustomDomain) {
+        // Cache de 30 segundos para dominios personalizados
+        const cacheKey = Math.floor(Date.now() / 30000);
+        cacheParam = `?_c=${cacheKey}`;
+    }
+    
+    // Check if we have this collection's products cached
+    const collectionCacheKey = `collection_${handle}_products`;
+    const cachedData = sessionStorage.getItem(collectionCacheKey);
+    const cacheTimestamp = sessionStorage.getItem(`${collectionCacheKey}_timestamp`);
+    const cacheExpiry = 60000; // 1 minute cache
+    
+    if (cachedData && cacheTimestamp && (Date.now() - parseInt(cacheTimestamp)) < cacheExpiry) {
+        console.log('[DEBUG] Using cached collection products');
+        const response = JSON.parse(cachedData);
+        processCollectionResponse(response);
+        return;
+    }
+    
     // Hacer petición al API
     $.ajax({
-        url: `/api/builder/collections/${handle}/products`,
+        url: `/api/builder/collections/${handle}/products${cacheParam}`,
         method: 'GET',
+        cache: !cacheParam, // Solo permitir cache si no hay parámetros
+        headers: {
+            'Cache-Control': isCustomDomain ? 'max-age=30' : 'max-age=300'
+        },
         success: function(response) {
+            // Cache the response
+            sessionStorage.setItem(collectionCacheKey, JSON.stringify(response));
+            sessionStorage.setItem(`${collectionCacheKey}_timestamp`, Date.now().toString());
+            
+            processCollectionResponse(response);
+        },
+        error: function(xhr, status, error) {
+            console.error('[DEBUG] AJAX error:', error);
+            const grid = document.getElementById('products-grid');
+            if (grid) {
+                grid.innerHTML = `
+                    <div class="products-error">
+                        <p>${translations[currentLanguage]['error_loading_products'] || 'Error al cargar productos'}</p>
+                    </div>
+                `;
+            }
+        }
+    });
+    
+    function processCollectionResponse(response) {
             console.log('[DEBUG] API response:', response);
+            console.log('[DEBUG] Products received:', response.products?.length || 0);
+            
+            // Log first product to check handle
+            if (response.products && response.products.length > 0) {
+                console.log('[DEBUG] First product handle:', response.products[0].handle);
+            }
             
             if (response.success && response.collection) {
                 // Actualizar header de la colección
@@ -3488,10 +3414,25 @@ function loadCollectionProductsData(handle) {
                 // Renderizar productos
                 renderProductsGrid(currentProducts);
                 
+                // Log rendered products for debugging
+                console.log('[DEBUG] Rendered products count:', currentProducts.length);
+                
                 // Agregar event listeners
                 attachViewOptionsListeners();
                 attachFilterListeners();
                 attachSortListeners();
+                
+                // Additional check for product links
+                setTimeout(() => {
+                    const productLinks = document.querySelectorAll('.product-card-link');
+                    console.log('[DEBUG] Product links found:', productLinks.length);
+                    productLinks.forEach((link, index) => {
+                        const href = link.getAttribute('href');
+                        if (!href || href === '/products/' || href.includes('undefined')) {
+                            console.error(`[DEBUG] Invalid product link at index ${index}:`, href);
+                        }
+                    });
+                }, 100);
             } else {
                 console.error('[DEBUG] Error en respuesta:', response.message);
                 const grid = document.getElementById('products-grid');
@@ -3503,20 +3444,8 @@ function loadCollectionProductsData(handle) {
                     `;
                 }
             }
-        },
-        error: function(xhr, status, error) {
-            console.error('[DEBUG] AJAX error:', error);
-            const grid = document.getElementById('products-grid');
-            if (grid) {
-                grid.innerHTML = `
-                    <div class="products-error">
-                        <p>${translations[currentLanguage]['error_loading_products'] || 'Error al cargar productos'}</p>
-                    </div>
-                `;
-            }
         }
-    });
-}
+    }
 
 // Función para manejar cambios de vista (columnas)
 function attachViewOptionsListeners() {
@@ -3544,6 +3473,28 @@ function renderProductsGrid(products) {
     const grid = document.getElementById('products-grid');
     if (!grid) return;
     
+    // CRITICAL: Validate products before rendering
+    if (!products || products.length === 0) {
+        console.log('[DEBUG] No products to render');
+        grid.innerHTML = `
+            <div class="products-empty">
+                <p>${translations[currentLanguage]['no_products'] || 'No hay productos en esta colección'}</p>
+            </div>
+        `;
+        return;
+    }
+    
+    // Filter out products without valid handles
+    const validProducts = products.filter(product => {
+        if (!product.handle || product.handle === '' || product.handle === 'undefined') {
+            console.warn('[DEBUG] Product without valid handle:', product);
+            return false;
+        }
+        return true;
+    });
+    
+    console.log(`[DEBUG] Rendering ${validProducts.length} of ${products.length} products (filtered ${products.length - validProducts.length} invalid)`);
+    
     // Formatear precios
     const formatPrice = (price) => {
         return new Intl.NumberFormat('es-DO', {
@@ -3554,8 +3505,14 @@ function renderProductsGrid(products) {
         }).format(price);
     };
     
-    grid.innerHTML = products.map(product => {
+    grid.innerHTML = validProducts.map(product => {
         console.log('[DEBUG] Rendering product:', product);
+        
+        // Double-check handle (should already be validated)
+        if (!product.handle) {
+            console.error('[DEBUG] Product still missing handle after validation:', product);
+            return ''; // This shouldn't happen but just in case
+        }
         
         // Calcular precio con descuento
         const price = parseFloat(product.price) || 0;
@@ -3573,9 +3530,12 @@ function renderProductsGrid(products) {
             </svg>`
         ).join('');
         
+        // Log the handle being used
+        console.log('[DEBUG] Using product handle:', product.handle);
+        
         return `
             <div class="product-card">
-                <a href="/products/${product.handle || ''}" class="product-card-link">
+                <a href="/products/${product.handle}" class="product-card-link">
                     <div class="product-image-container">
                         ${hasDiscount && discountPercentage > 0 
                             ? `<span class="discount-badge">-${discountPercentage}%</span>` 
@@ -3611,7 +3571,7 @@ function renderProductsGrid(products) {
                 </a>
             </div>
         `;
-    }).join('');
+    }).filter(html => html !== '').join(''); // Filter out empty strings from products without handles
 }
 
 // Función para filtrar productos por precio

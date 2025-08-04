@@ -27728,38 +27728,26 @@ document.head.appendChild(style);
                     if (currentSidebarView === 'blockList') {
                         // Only reload from server for home page, for other pages just refresh the view
                         if (currentPageId === 'home') {
-                            // Esperar un poco antes de recargar para asegurar que todo se haya guardado
+                            // CRITICAL FIX: Do NOT reload from server for home page - maintain local data like other pages
+                            // This prevents drag & drop order from being overwritten with old data from server
+                            console.log('[DEBUG] Refreshing blockList view without server reload (home page)');
+                            console.log('[DEBUG] Maintaining current sectionOrder:', currentSectionsConfig.sectionOrder);
                             setTimeout(() => {
-                                console.log('[DEBUG] Reloading data from server after save (home page)...');
-                                loadCurrentWebsite().then(() => {
-                                    console.log('[DEBUG] Data reloaded, refreshing blockList view');
-                                    console.log('[DEBUG] Current sections config after reload:', JSON.stringify(currentSectionsConfig, null, 2));
-                                    console.log('[DEBUG] Announcement bar isHidden:', currentSectionsConfig.announcementBar?.isHidden);
-                                    console.log('[DEBUG] Header isHidden:', currentSectionsConfig.header?.isHidden);
-                                    
-                                    // CRITICAL FIX: Render preview AFTER data is loaded
-                                    console.log('\n========== RENDER PREVIEW AFTER LOAD ==========');
-                                    console.log('[RENDER] About to render preview with fresh data from DB');
-                                    console.log('[RENDER] Color schemes in memory:');
-                                    if (currentGlobalThemeSettings && currentGlobalThemeSettings.colorSchemes) {
-                                        Object.keys(currentGlobalThemeSettings.colorSchemes).forEach(scheme => {
-                                            console.log(`[RENDER] ${scheme}:`, JSON.stringify(currentGlobalThemeSettings.colorSchemes[scheme], null, 2));
-                                        });
+                                // Render preview with current local data
+                                renderPreview();
+                                
+                                // Refresh the view with current data
+                                window.switchSidebarView('blockList', window.getUpdatedPageData());
+                                
+                                // Sync visibility toggle states after view is refreshed
+                                setTimeout(() => {
+                                    if (typeof syncVisibilityToggleStates === 'function') {
+                                        syncVisibilityToggleStates();
                                     }
-                                    console.log('================================================\n');
-                                    renderPreview();
-                                    
-                                    window.switchSidebarView('blockList', window.getUpdatedPageData());
-                                    // Sync visibility toggle states after view is refreshed
-                                    setTimeout(() => {
-                                        if (typeof syncVisibilityToggleStates === 'function') {
-                                            syncVisibilityToggleStates();
-                                        }
-                                        // Contact forms and image-with-text sections are now rendered by renderTemplateSections
-                                        // No need to reconstruct them separately
-                                    }, 100);
-                                });
-                            }, 500);
+                                    // Contact forms and image-with-text sections are now rendered by renderTemplateSections
+                                    // No need to reconstruct them separately
+                                }, 100);
+                            }, 100);
                         } else {
                             // For non-home pages, just refresh the view without reloading from server
                             console.log('[DEBUG] Refreshing blockList view without server reload (page:', currentPageId, ')');

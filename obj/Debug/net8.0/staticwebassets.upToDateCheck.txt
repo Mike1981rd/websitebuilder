@@ -1,4 +1,5 @@
 wwwroot\css\admin-panel.css
+wwwroot\css\collections.css
 wwwroot\css\company-settings.css
 wwwroot\css\custom-domains.css
 wwwroot\css\customers.css
@@ -7,6 +8,7 @@ wwwroot\css\materialize-admin.css
 wwwroot\css\materialize-exact-improved.css
 wwwroot\css\materialize-exact.css
 wwwroot\css\payment-settings.css
+wwwroot\css\product-container.css
 wwwroot\css\roles.css
 wwwroot\css\site.css
 wwwroot\css\website-builder.css
@@ -15,10 +17,13 @@ wwwroot\images\payment\azul-logo.jpg
 wwwroot\images\payment\paypal-logo.jpg
 wwwroot\js\admin-panel.js
 wwwroot\js\customers.js
+wwwroot\js\lazy-render.js
 wwwroot\js\materialize-admin.js
 wwwroot\js\payment-settings.js
+wwwroot\js\performance-optimizer.js
 wwwroot\js\site.js
 wwwroot\js\website-builder-modules\cart.js
+wwwroot\js\website-builder.js
 wwwroot\js\website-builder.js.backup
 wwwroot\js\website-builder.js.backup-20250731_123613
 wwwroot\js\website-builder\modules\accordion.js
@@ -154,4 +159,3 @@ wwwroot\uploads\website-logos\1_mobile_aedffa67-9a48-4696-906e-3955982d7488.png
 wwwroot\uploads\website-logos\1_mobile_c45cf4ad-e77d-4fd6-a762-39a8409f52ed.png
 wwwroot\uploads\website-videos\1_video_02b37d6b-59f7-4b28-b4d6-efac8c24eaf6.mp4
 wwwroot\uploads\website-videos\1_video_a1a9a037-34cf-47fd-8fd2-0c9413d21bd9.mp4
-wwwroot\js\website-builder.js

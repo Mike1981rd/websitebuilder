@@ -8,9 +8,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-    <meta http-equiv="Pragma" content="no-cache" />
-    <meta http-equiv="Expires" content="0" />
+    @{
+        var referrer = Context.Request.Headers["Referer"].ToString();
+        var isFromEditor = referrer.Contains("/WebsiteBuilder", StringComparison.OrdinalIgnoreCase) || 
+                          referrer.Contains("/websitebuilder", StringComparison.OrdinalIgnoreCase);
+        var isCustomDomain = ViewBag.IsCustomDomain == true;
+    }
+    @if (isCustomDomain)
+    {
+        <script>
+            // Hacer disponible globalmente para los scripts
+            window.isCustomDomain = true;
+        </script>
+    }
+    @if (isFromEditor)
+    {
+        <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+        <meta http-equiv="Pragma" content="no-cache" />
+        <meta http-equiv="Expires" content="0" />
+    }
     <title>Preview - Hotel</title>
     
     <!-- Material Icons -->
@@ -26,6 +42,12 @@
     
     <!-- Website Builder CSS -->
     <link rel="stylesheet" href="/css/website-builder.css?v=@version" />
+    
+    <!-- Product Container Optimized CSS -->
+    <link rel="stylesheet" href="/css/product-container.css?v=@version" />
+    
+    <!-- Collections Optimized CSS -->
+    <link rel="stylesheet" href="/css/collections.css?v=@version" />
     
     <style>
         /* Reset básico */
@@ -196,7 +218,7 @@
         }
     </style>
 </head>
-<body>
+<body data-custom-domain="@(ViewBag.IsCustomDomain == true ? "true" : "false")">
     <div id="preview-content">
         <!-- El contenido se renderizará aquí dinámicamente -->
     </div>
@@ -206,6 +228,13 @@
     
     <!-- Funciones de renderizado compartidas -->
     <script src="~/js/website-render-functions.js?v=@version"></script>
+    
+    @* Performance optimization scripts for collections and product pages *@
+    @if (ViewBag.PageId == "collections" || ViewBag.PageId == "collection" || ViewBag.PageId == "product")
+    {
+        <script src="~/js/performance-optimizer.js?v=@version"></script>
+        <script src="~/js/lazy-render.js?v=@version"></script>
+    }
     
     <!-- Módulos del Website Builder -->
     <script src="~/js/website-builder/modules/multicolumn.js?v=@version"></script>
@@ -262,6 +291,14 @@
         let currentLanguage = localStorage.getItem('preferredLanguage') || 'es';
         let announcementAutoplayTimer = null;
         let translations = {};
+        
+        // Configurable navigation delays by context
+        window.NAVIGATION_DELAYS = {
+            featuredCollection: parseInt(localStorage.getItem('featuredDelay') || '75'),
+            collectionPage: parseInt(localStorage.getItem('collectionDelay') || '150'),
+            productsPage: parseInt(localStorage.getItem('productsDelay') || '150'),
+            default: parseInt(localStorage.getItem('productNavDelay') || '150')
+        };
         
         // Get page parameter from URL or ViewBag
         const urlParams = new URLSearchParams(window.location.search);
@@ -401,9 +438,25 @@
         // Función para cargar los datos del website
         async function loadWebsiteData() {
             try {
-                // Cargar datos desde la API con cache busting
-                const timestamp = new Date().getTime();
-                const response = await fetch(`/api/builder/websites/current?_t=${timestamp}`);
+                // Detectar contexto
+                const isFromEditor = document.referrer.includes('/WebsiteBuilder') || document.referrer.includes('/websitebuilder');
+                const isCustomDomain = @Html.Raw(ViewBag.IsCustomDomain?.ToString()?.ToLower() ?? "false");
+                
+                // URL con estrategia de cache según contexto
+                let url = '/api/builder/websites/current';
+                if (isFromEditor) {
+                    url += `?_t=${new Date().getTime()}`; // No cache desde editor
+                } else if (isCustomDomain) {
+                    // Para dominios personalizados, agregar timestamp cada 30 segundos
+                    const cacheKey = Math.floor(Date.now() / 30000);
+                    url += `?_c=${cacheKey}`;
+                }
+                
+                const response = await fetch(url, {
+                    headers: {
+                        'Cache-Control': isCustomDomain ? 'max-age=30' : 'max-age=300'
+                    }
+                });
                 if (!response.ok) {
                     throw new Error('Failed to load website data');
                 }
@@ -512,6 +565,9 @@
                             // Keep existing header and footer configurations
                             const existingHeader = currentSectionsConfig.header || {};
                             const existingFooter = currentSectionsConfig.footer || {};
+                            
+                            // CRITICAL FIX: Store collection handle globally for later use
+                            window.currentCollectionHandle = collectionHandle;
                             
                             // Collection page should show header, collection products, and footer
                             currentSectionsConfig = {
@@ -854,8 +910,7 @@
                 // If we're on a product page, ensure product data is loaded first
                 if (currentPageId === 'product' && viewBagProductHandle) {
                     console.log('[PREVIEW] Product page detected, ensuring product data is loaded first');
-                    // Give the product container module time to initialize and load the product
-                    await new Promise(resolve => setTimeout(resolve, 500));
+                    // Product data is already loaded, no artificial delay needed
                 }
                 
                 // Renderizar el contenido
@@ -1180,6 +1235,12 @@
                         console.log('[PREVIEW] Module available?', window.WebsiteBuilderModules?.ProductContainer?.render ? 'Yes' : 'No');
                         
                         if (productContainerConfig && !productContainerConfig.isHidden) {
+                            // CRITICAL FIX: Add product handle from ViewBag for product pages
+                            if (currentPageId === 'product' && viewBagProductHandle && viewBagProductHandle !== '') {
+                                productContainerConfig.productHandle = viewBagProductHandle;
+                                console.log('[PREVIEW] Added product handle to config:', viewBagProductHandle);
+                            }
+                            
                             // Use the module's render function if available
                             if (window.WebsiteBuilderModules && window.WebsiteBuilderModules.ProductContainer && window.WebsiteBuilderModules.ProductContainer.render) {
                                 console.log('[PREVIEW] Rendering product container with module');
@@ -1579,6 +1640,156 @@
             
             previewContent.innerHTML = finalHtml;
             
+            // Add delay config UI (only in development or if explicitly enabled)
+            const showDelayConfig = window.location.hostname === 'localhost' || 
+                                  window.location.hostname === '127.0.0.1' || 
+                                  localStorage.getItem('showDelayConfig') === 'true';
+                                  
+            if (showDelayConfig) {
+                const delayConfig = document.createElement('div');
+                delayConfig.innerHTML = `
+                    <div id="delayConfigPanel" style="position: fixed; bottom: 20px; right: 20px; background: #1a1a1a; color: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.5); z-index: 9999; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; min-width: 320px; max-width: 400px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                            <h3 style="margin: 0; font-size: 14px; font-weight: 600;">⚡ Navigation Delay Tuner</h3>
+                            <button onclick="document.getElementById('delayConfigPanel').style.display='none'" style="background: none; border: none; color: #666; cursor: pointer; font-size: 20px; line-height: 1;">×</button>
+                        </div>
+                        
+                        <!-- Featured Collection Delay -->
+                        <div style="background: #2a2a2a; padding: 12px; border-radius: 8px; margin-bottom: 10px;">
+                            <div style="font-size: 12px; margin-bottom: 8px; color: #FFD700;">🌟 Featured Collection</div>
+                            <input type="range" id="featuredDelaySlider" min="0" max="300" step="25" value="${window.NAVIGATION_DELAYS.featuredCollection}" style="width: 100%; margin-bottom: 5px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <span id="featuredDelayValue" style="font-size: 20px; font-weight: bold;">${window.NAVIGATION_DELAYS.featuredCollection}ms</span>
+                                <span style="font-size: 11px; color: #4CAF50;">Recomendado: 75ms</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Collection Page Delay -->
+                        <div style="background: #2a2a2a; padding: 12px; border-radius: 8px; margin-bottom: 10px;">
+                            <div style="font-size: 12px; margin-bottom: 8px; color: #FF6B6B;">📁 Collection Page</div>
+                            <input type="range" id="collectionDelaySlider" min="0" max="300" step="25" value="${window.NAVIGATION_DELAYS.collectionPage}" style="width: 100%; margin-bottom: 5px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <span id="collectionDelayValue" style="font-size: 20px; font-weight: bold;">${window.NAVIGATION_DELAYS.collectionPage}ms</span>
+                                <span style="font-size: 11px; color: #4CAF50;">Recomendado: 150ms</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Products List Delay -->
+                        <div style="background: #2a2a2a; padding: 12px; border-radius: 8px; margin-bottom: 15px;">
+                            <div style="font-size: 12px; margin-bottom: 8px; color: #4ECDC4;">📋 Products List</div>
+                            <input type="range" id="productsDelaySlider" min="0" max="300" step="25" value="${window.NAVIGATION_DELAYS.productsPage}" style="width: 100%; margin-bottom: 5px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <span id="productsDelayValue" style="font-size: 20px; font-weight: bold;">${window.NAVIGATION_DELAYS.productsPage}ms</span>
+                                <span style="font-size: 11px; color: #4CAF50;">Recomendado: 150ms</span>
+                            </div>
+                        </div>
+                        
+                        <button id="applyAllDelays" style="width: 100%; background: #4CAF50; color: white; border: none; padding: 10px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 600; margin-bottom: 10px;">APPLY ALL</button>
+                        
+                        <div style="font-size: 11px; opacity: 0.7; text-align: center;">
+                            💡 Los valores se guardan automáticamente
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(delayConfig);
+                
+                const slider = document.getElementById('navDelaySlider');
+                const valueDisplay = document.getElementById('navDelayValue');
+                const applyButton = document.getElementById('applyDelay');
+                
+                if (slider && valueDisplay) {
+                    slider.addEventListener('input', function(e) {
+                        const value = e.target.value;
+                        valueDisplay.textContent = value + 'ms';
+                        
+                        // Color code the value
+                        if (value <= 50) {
+                            valueDisplay.style.color = '#ff5252';
+                        } else if (value <= 150) {
+                            valueDisplay.style.color = '#FFC107';
+                        } else if (value <= 250) {
+                            valueDisplay.style.color = '#4CAF50';
+                        } else {
+                            valueDisplay.style.color = '#2196F3';
+                        }
+                    });
+                }
+                
+                if (applyButton && slider) {
+                    applyButton.addEventListener('click', function() {
+                        const value = slider.value;
+                        window.PRODUCT_NAVIGATION_DELAY = parseInt(value);
+                        localStorage.setItem('productNavDelay', value);
+                        console.log('[PREVIEW] Navigation delay updated to:', value + 'ms');
+                        
+                        // Visual feedback
+                        applyButton.textContent = '✓ APPLIED';
+                        applyButton.style.background = '#4CAF50';
+                        setTimeout(() => {
+                            applyButton.textContent = 'APPLY';
+                        }, 1000);
+                    });
+                }
+                
+                // Add event listeners for multi-context sliders
+                const featuredSlider = document.getElementById('featuredDelaySlider');
+                const collectionSlider = document.getElementById('collectionDelaySlider');
+                const productsSlider = document.getElementById('productsDelaySlider');
+                const applyAllButton = document.getElementById('applyAllDelays');
+                
+                // Featured Collection slider
+                if (featuredSlider) {
+                    featuredSlider.addEventListener('input', function() {
+                        const valueEl = document.getElementById('featuredDelayValue');
+                        if (valueEl) valueEl.textContent = this.value + 'ms';
+                        window.NAVIGATION_DELAYS.featuredCollection = parseInt(this.value);
+                    });
+                }
+                
+                // Collection Page slider
+                if (collectionSlider) {
+                    collectionSlider.addEventListener('input', function() {
+                        const valueEl = document.getElementById('collectionDelayValue');
+                        if (valueEl) valueEl.textContent = this.value + 'ms';
+                        window.NAVIGATION_DELAYS.collectionPage = parseInt(this.value);
+                    });
+                }
+                
+                // Products Page slider
+                if (productsSlider) {
+                    productsSlider.addEventListener('input', function() {
+                        const valueEl = document.getElementById('productsDelayValue');
+                        if (valueEl) valueEl.textContent = this.value + 'ms';
+                        window.NAVIGATION_DELAYS.productsPage = parseInt(this.value);
+                    });
+                }
+                
+                // Apply All button
+                if (applyAllButton) {
+                    applyAllButton.addEventListener('click', function() {
+                        // Save all values to localStorage
+                        localStorage.setItem('featuredDelay', window.NAVIGATION_DELAYS.featuredCollection);
+                        localStorage.setItem('collectionDelay', window.NAVIGATION_DELAYS.collectionPage);
+                        localStorage.setItem('productsDelay', window.NAVIGATION_DELAYS.productsPage);
+                        
+                        console.log('[PREVIEW] All delays saved:', {
+                            featured: window.NAVIGATION_DELAYS.featuredCollection + 'ms',
+                            collection: window.NAVIGATION_DELAYS.collectionPage + 'ms',
+                            products: window.NAVIGATION_DELAYS.productsPage + 'ms'
+                        });
+                        
+                        // Visual feedback
+                        this.textContent = '✓ SAVED';
+                        this.style.background = '#2E7D32';
+                        
+                        setTimeout(() => {
+                            this.textContent = 'APPLY ALL';
+                            this.style.background = '#4CAF50';
+                        }, 1500);
+                    });
+                }
+            }
+            
             // Add small delay to ensure DOM is ready
             setTimeout(() => {
                 // Add click event to logo to navigate to homepage
@@ -1592,6 +1803,258 @@
                         window.location.href = '/WebsiteBuilder/Preview';
                     });
                 });
+                
+                // Apply context-specific delays to product links
+                setTimeout(() => {
+                    // Featured Collection links
+                    const featuredLinks = document.querySelectorAll('.featured-collection-section .product-card a[href^="/products/"]');
+                    console.log('[PREVIEW] Found featured collection links:', featuredLinks.length);
+                    featuredLinks.forEach(link => {
+                        if (!link.hasAttribute('data-delay-attached')) {
+                            link.setAttribute('data-delay-attached', 'true');
+                            link.setAttribute('data-context', 'featured');
+                            link.addEventListener('click', function(e) {
+                                e.preventDefault();
+                                const href = this.getAttribute('href');
+                                const delay = window.NAVIGATION_DELAYS.featuredCollection;
+                                
+                                console.log(`[PREVIEW] Featured Collection delay: ${delay}ms to: ${href}`);
+                                
+                                // Show loading state on the card
+                                const card = this.closest('.product-card');
+                                if (card) {
+                                    card.style.opacity = '0.6';
+                                    card.style.pointerEvents = 'none';
+                                }
+                                
+                                // Navigate after delay
+                                setTimeout(() => {
+                                    window.location.href = href;
+                                }, delay);
+                            });
+                        }
+                    });
+                    
+                    // Collection page links
+                    const collectionLinks = document.querySelectorAll('.collection-products-page .product-card a[href^="/products/"]');
+                    console.log('[PREVIEW] Found collection page links:', collectionLinks.length);
+                    collectionLinks.forEach(link => {
+                        if (!link.hasAttribute('data-delay-attached')) {
+                            link.setAttribute('data-delay-attached', 'true');
+                            link.setAttribute('data-context', 'collection');
+                            link.addEventListener('click', function(e) {
+                                e.preventDefault();
+                                const href = this.getAttribute('href');
+                                const delay = window.NAVIGATION_DELAYS.collectionPage;
+                                
+                                console.log(`[PREVIEW] Collection page delay: ${delay}ms to: ${href}`);
+                                
+                                // Show loading state
+                                const card = this.closest('.product-card');
+                                if (card) {
+                                    card.style.opacity = '0.6';
+                                    card.style.pointerEvents = 'none';
+                                }
+                                
+                                // Navigate after delay
+                                setTimeout(() => {
+                                    window.location.href = href;
+                                }, delay);
+                            });
+                        }
+                    });
+                    
+                    // Products page links
+                    const productsLinks = document.querySelectorAll('.products-page .product-card a[href^="/products/"]');
+                    console.log('[PREVIEW] Found products page links:', productsLinks.length);
+                    productsLinks.forEach(link => {
+                        if (!link.hasAttribute('data-delay-attached')) {
+                            link.setAttribute('data-delay-attached', 'true');
+                            link.setAttribute('data-context', 'products');
+                            link.addEventListener('click', function(e) {
+                                e.preventDefault();
+                                const href = this.getAttribute('href');
+                                const delay = window.NAVIGATION_DELAYS.productsPage;
+                                
+                                console.log(`[PREVIEW] Products page delay: ${delay}ms to: ${href}`);
+                                
+                                // Show loading state
+                                const card = this.closest('.product-card');
+                                if (card) {
+                                    card.style.opacity = '0.6';
+                                    card.style.pointerEvents = 'none';
+                                }
+                                
+                                // Navigate after delay
+                                setTimeout(() => {
+                                    window.location.href = href;
+                                }, delay);
+                            });
+                        }
+                    });
+                }, 500); // Wait for sections to render
+                
+                // Observer for dynamically loaded products (e.g., after AJAX)
+                const attachDelayToProductLink = function(link) {
+                    if (link.hasAttribute('data-delay-attached')) return;
+                    
+                    link.setAttribute('data-delay-attached', 'true');
+                    
+                    // Determine context and delay
+                    let delay = window.NAVIGATION_DELAYS.default;
+                    let context = 'default';
+                    
+                    if (link.closest('.featured-collection-section')) {
+                        delay = window.NAVIGATION_DELAYS.featuredCollection;
+                        context = 'featured';
+                    } else if (link.closest('.collection-products-page')) {
+                        delay = window.NAVIGATION_DELAYS.collectionPage;
+                        context = 'collection';
+                    } else if (link.closest('.products-page')) {
+                        delay = window.NAVIGATION_DELAYS.productsPage;
+                        context = 'products';
+                    }
+                    
+                    link.setAttribute('data-context', context);
+                    
+                    link.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        const href = this.getAttribute('href');
+                        
+                        console.log(`[PREVIEW] Dynamic link - ${context} delay: ${delay}ms to: ${href}`);
+                        
+                        // Show loading state
+                        const card = this.closest('.product-card');
+                        if (card) {
+                            card.style.opacity = '0.6';
+                            card.style.pointerEvents = 'none';
+                        } else {
+                            this.style.opacity = '0.6';
+                            this.style.pointerEvents = 'none';
+                        }
+                        
+                        // Navigate after delay
+                        setTimeout(() => {
+                            window.location.href = href;
+                        }, delay);
+                    });
+                };
+                
+                // Create observer for dynamic content
+                const observer = new MutationObserver(function(mutations) {
+                    mutations.forEach(function(mutation) {
+                        mutation.addedNodes.forEach(function(node) {
+                            if (node.nodeType === 1) { // Element node
+                                // Check if the node itself is a product link
+                                if (node.tagName === 'A' && node.href && node.href.includes('/products/')) {
+                                    attachDelayToProductLink(node);
+                                }
+                                // Check for product links within the added node
+                                const links = node.querySelectorAll ? node.querySelectorAll('a[href^="/products/"]') : [];
+                                links.forEach(attachDelayToProductLink);
+                            }
+                        });
+                    });
+                });
+                
+                // Start observing
+                observer.observe(document.body, {
+                    childList: true,
+                    subtree: true
+                });
+                
+                // Prefetch product data on hover for better performance
+                const productLinks = document.querySelectorAll('a[href^="/products/"]');
+                console.log('[PREVIEW] Found product links for prefetch:', productLinks.length);
+                productLinks.forEach(link => {
+                    let prefetchTimeout;
+                    
+                    // Add click handler with context-specific delay
+                    if (!link.hasAttribute('data-delay-attached')) {
+                        link.addEventListener('click', function(e) {
+                            e.preventDefault();
+                            const href = this.getAttribute('href');
+                            
+                            // Determine context and get appropriate delay
+                            let delay = window.NAVIGATION_DELAYS.default;
+                            const context = this.getAttribute('data-context');
+                            
+                            if (context === 'featured') {
+                                delay = window.NAVIGATION_DELAYS.featuredCollection;
+                            } else if (context === 'collection') {
+                                delay = window.NAVIGATION_DELAYS.collectionPage;
+                            } else if (context === 'products') {
+                                delay = window.NAVIGATION_DELAYS.productsPage;
+                            } else if (this.closest('.collection-products-page')) {
+                                delay = window.NAVIGATION_DELAYS.collectionPage;
+                            } else if (this.closest('.products-page')) {
+                                delay = window.NAVIGATION_DELAYS.productsPage;
+                            }
+                            
+                            console.log(`[PREVIEW] Context: ${context || 'default'}, Delay: ${delay}ms to: ${href}`);
+                            
+                            // Show loading state immediately
+                            const card = this.closest('.product-card');
+                            if (card) {
+                                card.style.opacity = '0.6';
+                                card.style.pointerEvents = 'none';
+                            } else {
+                                this.style.opacity = '0.6';
+                                this.style.pointerEvents = 'none';
+                            }
+                            
+                            // Navigate after delay
+                            setTimeout(() => {
+                                window.location.href = href;
+                            }, delay);
+                        });
+                    }
+                    
+                    link.addEventListener('mouseenter', function() {
+                        const href = this.getAttribute('href');
+                        const handle = href.split('/products/')[1];
+                        if (handle && handle !== 'undefined' && !window.preloadedProductsByHandle?.[handle]) {
+                            // Delay prefetch slightly to avoid unnecessary requests
+                            prefetchTimeout = setTimeout(() => {
+                                fetch(`/api/builder/products/by-handle/${handle}`)
+                                    .then(r => r.json())
+                                    .then(product => {
+                                        if (!window.preloadedProductsByHandle) {
+                                            window.preloadedProductsByHandle = {};
+                                        }
+                                        window.preloadedProductsByHandle[handle] = product;
+                                        console.log('[PREVIEW] Prefetched product on hover:', handle);
+                                        
+                                        // Also add to product container cache if available
+                                        if (window.WebsiteBuilderModules?.ProductContainer) {
+                                            const transformedProduct = {
+                                                id: product.id,
+                                                name: product.title,
+                                                handle: product.handle,
+                                                description: product.description,
+                                                price: product.price,
+                                                compareAtPrice: product.compareAtPrice,
+                                                vendor: product.vendor,
+                                                images: product.images?.map(img => ({
+                                                    id: img.id,
+                                                    url: img.imageUrl,
+                                                    altText: img.altText
+                                                })) || []
+                                            };
+                                            window.WebsiteBuilderModules.ProductContainer.productsCache[handle] = transformedProduct;
+                                        }
+                                    })
+                                    .catch(err => console.log('[PREVIEW] Prefetch error:', err));
+                            }, 100); // 100ms delay to avoid triggering on quick hovers
+                        }
+                    });
+                    
+                    link.addEventListener('mouseleave', function() {
+                        if (prefetchTimeout) {
+                            clearTimeout(prefetchTimeout);
+                        }
+                    });
+                });
             }, 100);
             
             // Load collections data if on collections page
@@ -1602,10 +2065,46 @@
             
             // Load collection products data if on individual collection page
             if (currentPageId === 'collection' && window.loadCollectionProductsData) {
-                const collectionHandle = currentSectionsConfig.collection?.handle;
+                // CRITICAL FIX: Use the global collection handle or fall back to config
+                const collectionHandle = window.currentCollectionHandle || currentSectionsConfig.collection?.handle;
                 if (collectionHandle) {
                     console.log('[PREVIEW] Loading collection products data for handle:', collectionHandle);
-                    window.loadCollectionProductsData(collectionHandle);
+                    
+                    // Add retry mechanism for flaky data loading
+                    let retryCount = 0;
+                    const maxRetries = 3;
+                    
+                    function loadWithRetry() {
+                        window.loadCollectionProductsData(collectionHandle);
+                        
+                        // Check if products loaded correctly after a delay
+                        setTimeout(() => {
+                            const productLinks = document.querySelectorAll('.product-card-link');
+                            let hasInvalidLinks = false;
+                            
+                            productLinks.forEach(link => {
+                                const href = link.getAttribute('href');
+                                if (!href || href === '/products/' || href.includes('undefined') || href.includes('demo-product')) {
+                                    hasInvalidLinks = true;
+                                }
+                            });
+                            
+                            if (hasInvalidLinks && retryCount < maxRetries) {
+                                console.warn('[PREVIEW] Found invalid product links, retrying... Attempt', retryCount + 1);
+                                retryCount++;
+                                setTimeout(loadWithRetry, 1000);
+                            } else if (!hasInvalidLinks) {
+                                console.log('[PREVIEW] All product links loaded correctly');
+                            } else {
+                                console.error('[PREVIEW] Failed to load valid product links after', maxRetries, 'attempts');
+                            }
+                        }, 500);
+                    }
+                    
+                    // Start loading with retry mechanism
+                    loadWithRetry();
+                } else {
+                    console.error('[PREVIEW] No collection handle found');
                 }
             }
             
@@ -1613,6 +2112,58 @@
             if (currentPageId === 'products' && window.loadAllProductsData) {
                 console.log('[PREVIEW] Loading all products data...');
                 window.loadAllProductsData();
+            }
+            
+            // Preload all products for better performance
+            if ((currentPageId === 'collection' || currentPageId === 'collections' || currentPageId === 'product') && !window.allProductsPreloaded) {
+                console.log('[PREVIEW] Preloading all products for performance...');
+                fetch('/api/builder/products')
+                    .then(response => response.json())
+                    .then(products => {
+                        window.allProductsPreloaded = true;
+                        window.preloadedProducts = {};
+                        window.preloadedProductsByHandle = {};
+                        
+                        products.forEach(product => {
+                            // Store by ID
+                            window.preloadedProducts[product.id] = product;
+                            // Store by handle
+                            if (product.handle) {
+                                window.preloadedProductsByHandle[product.handle] = product;
+                            }
+                        });
+                        
+                        console.log('[PREVIEW] Products preloaded:', Object.keys(window.preloadedProducts).length);
+                        
+                        // If we're on a product page and have the handle, inject it into product-container
+                        if (currentPageId === 'product' && viewBagProductHandle && window.WebsiteBuilderModules?.ProductContainer) {
+                            const product = window.preloadedProductsByHandle[viewBagProductHandle];
+                            if (product) {
+                                // Transform to match expected format
+                                const transformedProduct = {
+                                    id: product.id,
+                                    name: product.title,
+                                    handle: product.handle,
+                                    description: product.description,
+                                    price: product.price,
+                                    compareAtPrice: product.compareAtPrice,
+                                    vendor: product.vendor,
+                                    images: product.images?.map(img => ({
+                                        id: img.id,
+                                        url: img.imageUrl,
+                                        altText: img.altText
+                                    })) || []
+                                };
+                                
+                                window.WebsiteBuilderModules.ProductContainer.currentProduct = transformedProduct;
+                                window.WebsiteBuilderModules.ProductContainer.productsCache[viewBagProductHandle] = transformedProduct;
+                                console.log('[PREVIEW] Injected product into container:', transformedProduct.name);
+                            }
+                        }
+                    })
+                    .catch(error => {
+                        console.error('[PREVIEW] Error preloading products:', error);
+                    });
             }
             
             // Load policies data if on policies page
@@ -1666,10 +2217,10 @@
             // Update cart icon count after rendering
             updateCartIconCount();
             
-            // Enable product links after a delay to ensure data is loaded
-            setTimeout(() => {
-                enableProductLinks();
-            }, 2000);
+            // Enable product links immediately - data is already loaded
+            enableProductLinks().catch(error => {
+                console.error('[PREVIEW] Error enabling product links:', error);
+            });
             
             // Inicializar slideshows con autorotate
             if (typeof initializeSlideshows === 'function') {
@@ -1909,8 +2460,20 @@
         }
         
         // Function to enable product links after data is loaded
-        function enableProductLinks() {
+        async function enableProductLinks() {
             console.log('[PREVIEW] Enabling product links...');
+            
+            // First ensure product data is loaded
+            if (window.WebsiteBuilderModules?.FeaturedCollection?.initializeProductData) {
+                try {
+                    console.log('[PREVIEW] Waiting for product data to load...');
+                    await window.WebsiteBuilderModules.FeaturedCollection.initializeProductData();
+                    console.log('[PREVIEW] Product data loaded successfully');
+                } catch (error) {
+                    console.error('[PREVIEW] Error loading product data:', error);
+                    // Continue anyway, maybe some products are already cached
+                }
+            }
             
             // Find all product cards that might not have links yet
             const productCards = document.querySelectorAll('.product-card');
@@ -2624,12 +3187,28 @@
         };
         
         $(document).ready(function() {
-            loadWebsiteData();
+            // Function to check if render functions are available
+            function waitForRenderFunctions() {
+                if (typeof renderAnnouncementBar === 'function' && 
+                    typeof renderHeader === 'function' && 
+                    typeof renderSlideshow === 'function') {
+                    // All required functions are loaded, proceed
+                    console.log('[PREVIEW] All render functions loaded, proceeding...');
+                    loadWebsiteData();
+                    
+                    // Initialize cart count on load
+                    setTimeout(() => {
+                        updateCartIconCount();
+                    }, 1000);
+                } else {
+                    // Functions not ready yet, wait and retry
+                    console.log('[PREVIEW] Waiting for render functions to load...');
+                    setTimeout(waitForRenderFunctions, 100);
+                }
+            }
             
-            // Initialize cart count on load
-            setTimeout(() => {
-                updateCartIconCount();
-            }, 1000);
+            // Start checking for functions
+            waitForRenderFunctions();
             
             // Add to cart button event listener
             $(document).on('click', '.add-to-cart-button', function(e) {

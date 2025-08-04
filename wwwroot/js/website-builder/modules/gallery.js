@@ -14,8 +14,17 @@ window.WebsiteBuilderModules.Gallery = {
         const containerClass = config.width === 'full' ? 'container-fluid' : 'container';
         const alignment = config.contentAlignment || 'center';
         
-        // Debug imageRatio
+        // Debug imageRatio and check for excessive images
         console.log('[GALLERY] Rendering with imageRatio:', config.imageRatio);
+        console.log('[GALLERY] Total images to render:', images.length);
+        
+        // Safety check: limit images on product pages to prevent performance issues
+        const maxImagesOnProduct = 20;
+        const isProductPage = window.location.pathname.includes('/products/');
+        if (isProductPage && images.length > maxImagesOnProduct) {
+            console.warn(`[GALLERY] Too many images (${images.length}), limiting to ${maxImagesOnProduct} for performance`);
+            images.splice(maxImagesOnProduct);
+        }
         
         // Get typography from global settings
         const headingTypography = window.currentGlobalThemeSettings?.typography?.heading || {};

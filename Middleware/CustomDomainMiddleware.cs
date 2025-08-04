@@ -1,4 +1,6 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
+using System.Collections.Concurrent;
 using Hotel.Data;
 
 namespace Hotel.Middleware
@@ -14,6 +16,10 @@ namespace Hotel.Middleware
         private readonly ILogger<CustomDomainMiddleware> _logger;
         private readonly IConfiguration _configuration;
         private readonly IServiceProvider _serviceProvider;
+        
+        // Cache estático para dominios activos (compartido entre todas las peticiones)
+        private static readonly ConcurrentDictionary<string, CustomDomainCacheEntry> _domainCache = new();
+        private static readonly TimeSpan CacheDuration = TimeSpan.FromMinutes(5);
 
         public CustomDomainMiddleware(
             RequestDelegate next,
@@ -48,43 +54,80 @@ namespace Hotel.Middleware
                 }
 
                 // Verificar si es un dominio personalizado activo
-                using (var scope = _serviceProvider.CreateScope())
+                // Primero intentar obtener del cache
+                if (_domainCache.TryGetValue(host, out var cachedEntry) && 
+                    cachedEntry.Expiration > DateTime.UtcNow)
                 {
-                    var dbContext = scope.ServiceProvider.GetRequiredService<HotelDbContext>();
+                    _logger.LogDebug($"[CustomDomainMiddleware] Domain found in cache: {host}");
                     
-                    var customDomain = await dbContext.CustomDomains
-                        .AsNoTracking()
-                        .Include(cd => cd.WebSite)
-                        .FirstOrDefaultAsync(cd => 
-                            cd.DomainName == host && 
-                            cd.IsActive == true &&
-                            cd.Status == "active");
-
-                    if (customDomain != null)
+                    if (cachedEntry.IsActive)
                     {
-                        _logger.LogInformation($"[CustomDomainMiddleware] Custom domain found: {host} (ID: {customDomain.Id}, WebSiteId: {customDomain.WebSiteId})");
-                        
-                        // Guardar información del dominio personalizado en Items para uso posterior
+                        // Usar datos del cache
                         context.Items["IsCustomDomain"] = true;
-                        context.Items["CustomDomainId"] = customDomain.Id;
-                        context.Items["WebSiteId"] = customDomain.WebSiteId;
+                        context.Items["CustomDomainId"] = cachedEntry.DomainId;
+                        context.Items["WebSiteId"] = cachedEntry.WebSiteId;
                         
-                        // Preservar el path original para que las rutas del preview funcionen correctamente
                         var originalPath = context.Request.Path.Value ?? "/";
-                        
-                        // Si la ruta es la raíz, redirigir al preview
                         if (originalPath == "/")
                         {
                             context.Request.Path = "/WebsiteBuilder/Preview";
                         }
-                        // Si la ruta es una de las rutas del website, dejar que el routing normal la maneje
-                        // Las rutas como /cart, /products, etc. ya están mapeadas a WebsiteBuilder/Preview en Program.cs
                         
-                        _logger.LogDebug($"[CustomDomainMiddleware] Request path: {originalPath} -> {context.Request.Path}");
+                        _logger.LogDebug($"[CustomDomainMiddleware] Request path: {originalPath} -> {context.Request.Path} (from cache)");
                     }
-                    else
+                }
+                else
+                {
+                    // No está en cache, consultar la base de datos
+                    using (var scope = _serviceProvider.CreateScope())
                     {
-                        _logger.LogWarning($"[CustomDomainMiddleware] No active custom domain found for host: {host}");
+                        var dbContext = scope.ServiceProvider.GetRequiredService<HotelDbContext>();
+                        
+                        var customDomain = await dbContext.CustomDomains
+                            .AsNoTracking()
+                            .Include(cd => cd.WebSite)
+                            .FirstOrDefaultAsync(cd => 
+                                cd.DomainName == host && 
+                                cd.IsActive == true &&
+                                cd.Status == "active");
+
+                        // Actualizar cache
+                        var cacheEntry = new CustomDomainCacheEntry
+                        {
+                            IsActive = customDomain != null,
+                            DomainId = customDomain?.Id ?? 0,
+                            WebSiteId = customDomain?.WebSiteId ?? 0,
+                            Expiration = DateTime.UtcNow.Add(CacheDuration)
+                        };
+                        
+                        _domainCache.AddOrUpdate(host, cacheEntry, (key, old) => cacheEntry);
+
+                        if (customDomain != null)
+                        {
+                            _logger.LogInformation($"[CustomDomainMiddleware] Custom domain found: {host} (ID: {customDomain.Id}, WebSiteId: {customDomain.WebSiteId})");
+                            
+                            // Guardar información del dominio personalizado en Items para uso posterior
+                            context.Items["IsCustomDomain"] = true;
+                            context.Items["CustomDomainId"] = customDomain.Id;
+                            context.Items["WebSiteId"] = customDomain.WebSiteId;
+                            
+                            // Preservar el path original para que las rutas del preview funcionen correctamente
+                            var originalPath = context.Request.Path.Value ?? "/";
+                            
+                            // Si la ruta es la raíz, redirigir al preview
+                            if (originalPath == "/")
+                            {
+                                context.Request.Path = "/WebsiteBuilder/Preview";
+                            }
+                            // Si la ruta es una de las rutas del website, dejar que el routing normal la maneje
+                            // Las rutas como /cart, /products, etc. ya están mapeadas a WebsiteBuilder/Preview en Program.cs
+                            
+                            _logger.LogDebug($"[CustomDomainMiddleware] Request path: {originalPath} -> {context.Request.Path}");
+                        }
+                        else
+                        {
+                            _logger.LogWarning($"[CustomDomainMiddleware] No active custom domain found for host: {host}");
+                        }
                     }
                 }
 
@@ -122,6 +165,17 @@ namespace Hotel.Middleware
 
             return false;
         }
+    }
+
+    /// <summary>
+    /// Clase para almacenar en cache la información de dominios personalizados
+    /// </summary>
+    internal class CustomDomainCacheEntry
+    {
+        public bool IsActive { get; set; }
+        public int DomainId { get; set; }
+        public int WebSiteId { get; set; }
+        public DateTime Expiration { get; set; }
     }
 
     /// <summary>

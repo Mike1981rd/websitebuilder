@@ -333,6 +333,98 @@
         
         // Add to cart button event listener for iframe context
         $(document).ready(function() {
+            // Navigation delays for custom domains - optimized for production
+            window.NAVIGATION_DELAYS = {
+                featuredCollection: 50,    // Faster for production
+                collectionPage: 100,       // Balanced speed
+                productsPage: 100,         // Balanced speed
+                default: 100               // Default delay
+            };
+            
+            // Apply navigation delays to product links after DOM is ready
+            setTimeout(function() {
+                // Featured Collection links
+                const featuredLinks = document.querySelectorAll('.featured-collection-section .product-card a[href^="/products/"]');
+                console.log('[CUSTOM DOMAIN] Found featured collection links:', featuredLinks.length);
+                
+                featuredLinks.forEach(link => {
+                    link.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        const href = this.getAttribute('href');
+                        const delay = window.NAVIGATION_DELAYS.featuredCollection;
+                        
+                        // Show loading state on the card
+                        const card = this.closest('.product-card');
+                        if (card) {
+                            card.style.opacity = '0.7';
+                            card.style.pointerEvents = 'none';
+                        }
+                        
+                        // Navigate after minimal delay
+                        setTimeout(() => {
+                            window.location.href = href;
+                        }, delay);
+                    });
+                });
+                
+                // Collection page product links
+                const collectionLinks = document.querySelectorAll('.collection-products-page .product-card a[href^="/products/"], .products-page .product-card a[href^="/products/"]');
+                console.log('[CUSTOM DOMAIN] Found collection/products page links:', collectionLinks.length);
+                
+                collectionLinks.forEach(link => {
+                    link.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        const href = this.getAttribute('href');
+                        const isCollectionPage = this.closest('.collection-products-page') ? true : false;
+                        const delay = isCollectionPage ? window.NAVIGATION_DELAYS.collectionPage : window.NAVIGATION_DELAYS.productsPage;
+                        
+                        // Show loading state
+                        const card = this.closest('.product-card');
+                        if (card) {
+                            card.style.opacity = '0.7';
+                            card.style.pointerEvents = 'none';
+                        } else {
+                            this.style.opacity = '0.7';
+                            this.style.pointerEvents = 'none';
+                        }
+                        
+                        // Navigate after delay
+                        setTimeout(() => {
+                            window.location.href = href;
+                        }, delay);
+                    });
+                });
+                
+                // Prefetch product data on hover for better performance
+                const allProductLinks = document.querySelectorAll('a[href^="/products/"]');
+                allProductLinks.forEach(link => {
+                    let prefetchTimeout;
+                    
+                    link.addEventListener('mouseenter', function() {
+                        const href = this.getAttribute('href');
+                        const handle = href.split('/products/')[1];
+                        
+                        if (handle && handle !== 'undefined') {
+                            // Delay prefetch slightly to avoid unnecessary requests
+                            prefetchTimeout = setTimeout(() => {
+                                // Create prefetch link
+                                const prefetchLink = document.createElement('link');
+                                prefetchLink.rel = 'prefetch';
+                                prefetchLink.href = `/products/${handle}`;
+                                document.head.appendChild(prefetchLink);
+                                
+                                console.log('[CUSTOM DOMAIN] Prefetching product:', handle);
+                            }, 100);
+                        }
+                    });
+                    
+                    link.addEventListener('mouseleave', function() {
+                        if (prefetchTimeout) {
+                            clearTimeout(prefetchTimeout);
+                        }
+                    });
+                });
+            }, 500); // Wait for sections to render
             $(document).on('click', '.add-to-cart-button', function(e) {
                 e.preventDefault();
                 e.stopPropagation();

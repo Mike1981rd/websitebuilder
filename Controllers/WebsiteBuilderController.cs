@@ -107,6 +107,10 @@ namespace Hotel.Controllers
             // Pass the page parameter to the view
             ViewBag.Page = page;
             
+            // Detectar si viene de un dominio personalizado
+            var isCustomDomain = HttpContext.Items.ContainsKey("IsCustomDomain") && 
+                                (bool)HttpContext.Items["IsCustomDomain"];
+            
             // Only add no-cache headers if we're in development or if it's accessed from the editor
             var referrer = Request.Headers["Referer"].ToString();
             var isFromEditor = referrer.Contains("/WebsiteBuilder") || referrer.Contains("/websitebuilder");
@@ -119,10 +123,24 @@ namespace Hotel.Controllers
                 Response.Headers["Pragma"] = "no-cache";
                 Response.Headers["Expires"] = "0";
             }
+            else if (isCustomDomain)
+            {
+                // Para dominios personalizados, usar cache más corto para mejor balance entre performance y frescura
+                Response.Headers["Cache-Control"] = "public, max-age=30"; // Cache por 30 segundos
+                Response.Headers["Vary"] = "Accept-Encoding"; // Permitir cache por encoding
+            }
             else
             {
-                // In production for public visitors, allow caching for better performance
+                // In production for public visitors (preview directo), allow caching for better performance
                 Response.Headers["Cache-Control"] = "public, max-age=300"; // Cache for 5 minutes
+            }
+            
+            // Pasar información del dominio personalizado a la vista
+            ViewBag.IsCustomDomain = isCustomDomain;
+            if (isCustomDomain)
+            {
+                ViewBag.CustomDomainId = HttpContext.Items["CustomDomainId"];
+                ViewBag.WebSiteId = HttpContext.Items["WebSiteId"];
             }
             
             return View();

@@ -6,6 +6,7 @@ window.WebsiteBuilderModules.ProductContainer = {
     // Store loaded products
     cachedProducts: null,
     currentProduct: null,
+    productsCache: {}, // Cache products by handle
     // Module configuration
     moduleId: 'product-container',
     moduleName: 'Product Container',
@@ -158,22 +159,48 @@ window.WebsiteBuilderModules.ProductContainer = {
         if (!config || config.isHidden) return '';
         
         // Check if we have a product handle passed in config (from Preview.cshtml)
-        if (config.productHandle && !this.currentProduct) {
-            console.log('[PRODUCT-CONTAINER] Product handle found in config:', config.productHandle);
-            // Load the product synchronously if possible, or schedule async load
-            this.loadProductByHandle(config.productHandle).then(product => {
-                if (product) {
-                    console.log('[PRODUCT-CONTAINER] Product loaded from config handle:', product.name);
-                    this.currentProduct = product;
-                    // Re-render the section
-                    if (typeof renderPreviewContent === 'function') {
-                        console.log('[PRODUCT-CONTAINER] Re-rendering preview content with loaded product');
-                        renderPreviewContent();
+        // CRITICAL FIX: Always load the correct product when handle changes
+        if (config.productHandle) {
+            // First check if we have the product in cache
+            const cachedProduct = this.productsCache[config.productHandle];
+            if (cachedProduct && (!this.currentProduct || this.currentProduct.handle !== config.productHandle)) {
+                console.log('[PRODUCT-CONTAINER] Using cached product:', cachedProduct.name);
+                this.currentProduct = cachedProduct;
+            } else if (!this.currentProduct || this.currentProduct.handle !== config.productHandle) {
+                console.log('[PRODUCT-CONTAINER] Product handle found in config:', config.productHandle);
+                console.log('[PRODUCT-CONTAINER] Current product handle:', this.currentProduct?.handle || 'none');
+                console.log('[PRODUCT-CONTAINER] Loading new product because handle changed');
+                
+                // Load the product
+                this.loadProductByHandle(config.productHandle).then(product => {
+                    if (product) {
+                        console.log('[PRODUCT-CONTAINER] Product loaded from config handle:', product.name);
+                        this.currentProduct = product;
+                        // Cache the product
+                        this.productsCache[config.productHandle] = product;
+                        // Re-render the section
+                        if (typeof renderPreviewContent === 'function') {
+                            console.log('[PRODUCT-CONTAINER] Re-rendering preview content with loaded product');
+                            renderPreviewContent();
+                        }
                     }
-                }
-            }).catch(error => {
-                console.error('[PRODUCT-CONTAINER] Error loading product from config handle:', error);
-            });
+                }).catch(error => {
+                    console.error('[PRODUCT-CONTAINER] Error loading product from config handle:', error);
+                });
+                
+                // Return loading state instead of demo product
+                return `
+                    <div class="section-wrapper product-container-section" style="padding: 40px 0;">
+                        <div class="container" style="max-width: 1200px; margin: 0 auto; padding: 0 20px;">
+                            <div class="product-loading" style="text-align: center; padding: 60px 20px;">
+                                <div class="spinner" style="width: 40px; height: 40px; border: 3px solid #f3f3f3; border-top: 3px solid #333; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 20px;"></div>
+                                <style>@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }</style>
+                                <p style="color: #666;">Cargando producto...</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
         }
         
         const uniqueId = 'product-container-' + Date.now();
@@ -368,35 +395,17 @@ window.WebsiteBuilderModules.ProductContainer = {
         }
         
         return `
-            <div class="product-container" style="${containerStyles}">
+            <div class="product-container">
                 <!-- Product Images Section -->
-                <div class="product-images" style="${imageStyles}">
+                <div class="product-images">
                     ${window.WebsiteBuilderModules.ProductContainer.renderProductImages(product, productInfoConfig)}
                 </div>
                 
                 <!-- Product Info Section -->
-                <div class="product-info-section" style="${infoStyles}">
+                <div class="product-info-section">
                     ${window.WebsiteBuilderModules.ProductContainer.renderProductDetails(product, productInfoConfig, schemeColors, headingFont, bodyFont)}
                 </div>
             </div>
-            
-            <style>
-                @media (max-width: 768px) {
-                    .product-container {
-                        flex-direction: column !important;
-                    }
-                    
-                    .product-images,
-                    .product-info-section {
-                        flex: 1 1 100% !important;
-                        max-width: 100% !important;
-                    }
-                    
-                    .product-images {
-                        margin-bottom: 30px;
-                    }
-                }
-            </style>
         `;
     },
     
@@ -468,35 +477,18 @@ window.WebsiteBuilderModules.ProductContainer = {
         console.log('[PRODUCT-CONTAINER] isLateralThumbnails:', isLateralThumbnails);
         
         return `
-            <div class="product-images-container" data-layout="${desktopLayout}" style="${containerStyles}">
+            <div class="product-images-container" data-layout="${desktopLayout}">
                 ${desktopLayout === 'thumbnails-left' && images.length > 1 ? `
                     <!-- Thumbnails on left -->
-                    <div class="product-thumbnails" style="display: flex; gap: 10px; flex-direction: ${thumbnailDirection}; flex-shrink: 0; width: ${parseInt(thumbDims.width) + 20}px;">
+                    <div class="product-thumbnails vertical" style="width: ${parseInt(thumbDims.width) + 20}px;">
                         ${images.map((img, index) => `
                             <div class="product-thumbnail ${index === 0 ? 'active' : ''}" 
-                                 onclick="(function() { 
-                                     try {
-                                         var mainImage = document.getElementById('main-product-image');
-                                         if (mainImage) {
-                                             mainImage.src = '${img.url}';
-                                             // Update active thumbnail
-                                             document.querySelectorAll('.product-thumbnail').forEach(function(thumb) {
-                                                 var thumbImg = thumb.querySelector('img');
-                                                 if (thumbImg && thumbImg.src === '${img.url}') {
-                                                     thumb.style.borderColor = 'var(--primary)';
-                                                     thumb.classList.add('active');
-                                                 } else {
-                                                     thumb.style.borderColor = '#e0e0e0';
-                                                     thumb.classList.remove('active');
-                                                 }
-                                             });
-                                         }
-                                     } catch (e) {
-                                         console.error('[PRODUCT-CONTAINER] Error changing image:', e);
-                                     }
-                                 })()"
-                                 style="flex-shrink: 0; width: ${thumbDims.width}; height: ${thumbDims.height}; border-radius: 8px; overflow: hidden; cursor: pointer; border: 2px solid ${index === 0 ? 'var(--primary)' : '#e0e0e0'}; transition: all 0.3s ease;">
-                                <img src="${img.url}" alt="${img.altText || ''}" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s ease;">
+                                 data-image-url="${img.url}"
+                                 data-image-index="${index}"
+                                 style="width: ${thumbDims.width}; height: ${thumbDims.height};">
+                                <img src="${img.url}" 
+                                     alt="${img.altText || ''}" 
+                                     loading="${index > 2 ? 'lazy' : 'eager'}">
                             </div>
                         `).join('')}
                     </div>
@@ -504,12 +496,15 @@ window.WebsiteBuilderModules.ProductContainer = {
                 
                 <!-- Main Image Container -->
                 <div style="flex: 1; position: relative;">
-                    <div class="product-main-image" style="position: relative; border-radius: 8px; overflow: hidden;">
-                        ${imageRatio !== 'adapt' ? `<div style="position: relative; ${ratioStyle}">` : ''}
-                        <img id="main-product-image" src="${mainImage.url}" alt="${mainImage.altText || ''}" style="position: ${imageRatio !== 'adapt' ? 'absolute' : 'static'}; top: 0; left: 0; width: 100%; height: ${imageRatio !== 'adapt' ? '100%' : 'auto'}; object-fit: cover; display: block;">
+                    <div class="product-main-image">
+                        ${imageRatio !== 'adapt' ? `<div class="aspect-ratio-container" data-ratio="${imageRatio.replace('-fill', '')}">` : ''}
+                        <img id="main-product-image" 
+                             src="${mainImage.url}" 
+                             alt="${mainImage.altText || ''}" 
+                             ${imageRatio !== 'adapt' ? 'style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover;"' : ''}>
                         ${enableImageZoom ? `
-                            <div class="image-zoom-indicator" style="position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.5); color: white; padding: 5px 10px; border-radius: 4px; font-size: 12px; pointer-events: none;">
-                                <i class="material-icons" style="font-size: 16px; vertical-align: middle;">zoom_in</i>
+                            <div class="image-zoom-indicator">
+                                <i class="material-icons">zoom_in</i>
                             </div>
                         ` : ''}
                         ${imageRatio !== 'adapt' ? `</div>` : ''}
@@ -518,32 +513,15 @@ window.WebsiteBuilderModules.ProductContainer = {
                 
                 ${desktopLayout === 'thumbnails-right' && images.length > 1 ? `
                     <!-- Thumbnails on right -->
-                    <div class="product-thumbnails" style="display: flex; gap: 10px; flex-direction: ${thumbnailDirection}; flex-shrink: 0; width: ${parseInt(thumbDims.width) + 20}px;">
+                    <div class="product-thumbnails vertical" style="width: ${parseInt(thumbDims.width) + 20}px;">
                         ${images.map((img, index) => `
                             <div class="product-thumbnail ${index === 0 ? 'active' : ''}" 
-                                 onclick="(function() { 
-                                     try {
-                                         var mainImage = document.getElementById('main-product-image');
-                                         if (mainImage) {
-                                             mainImage.src = '${img.url}';
-                                             // Update active thumbnail
-                                             document.querySelectorAll('.product-thumbnail').forEach(function(thumb) {
-                                                 var thumbImg = thumb.querySelector('img');
-                                                 if (thumbImg && thumbImg.src === '${img.url}') {
-                                                     thumb.style.borderColor = 'var(--primary)';
-                                                     thumb.classList.add('active');
-                                                 } else {
-                                                     thumb.style.borderColor = '#e0e0e0';
-                                                     thumb.classList.remove('active');
-                                                 }
-                                             });
-                                         }
-                                     } catch (e) {
-                                         console.error('[PRODUCT-CONTAINER] Error changing image:', e);
-                                     }
-                                 })()"
-                                 style="flex-shrink: 0; width: ${thumbDims.width}; height: ${thumbDims.height}; border-radius: 8px; overflow: hidden; cursor: pointer; border: 2px solid ${index === 0 ? 'var(--primary)' : '#e0e0e0'}; transition: all 0.3s ease;">
-                                <img src="${img.url}" alt="${img.altText || ''}" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s ease;">
+                                 data-image-url="${img.url}"
+                                 data-image-index="${index}"
+                                 style="width: ${thumbDims.width}; height: ${thumbDims.height};">
+                                <img src="${img.url}" 
+                                     alt="${img.altText || ''}" 
+                                     loading="${index > 2 ? 'lazy' : 'eager'}">
                             </div>
                         `).join('')}
                     </div>
@@ -551,37 +529,52 @@ window.WebsiteBuilderModules.ProductContainer = {
                 
                 ${desktopLayout === 'thumbnails-bottom' && images.length > 1 ? `
                     <!-- Thumbnails below -->
-                    <div class="product-thumbnails" style="display: flex; gap: 10px; flex-direction: row; margin-top: 20px; justify-content: flex-start;">
+                    <div class="product-thumbnails horizontal">
                         ${images.map((img, index) => `
                             <div class="product-thumbnail ${index === 0 ? 'active' : ''}" 
-                                 onclick="(function() { 
-                                     try {
-                                         var mainImage = document.getElementById('main-product-image');
-                                         if (mainImage) {
-                                             mainImage.src = '${img.url}';
-                                             // Update active thumbnail
-                                             document.querySelectorAll('.product-thumbnail').forEach(function(thumb) {
-                                                 var thumbImg = thumb.querySelector('img');
-                                                 if (thumbImg && thumbImg.src === '${img.url}') {
-                                                     thumb.style.borderColor = 'var(--primary)';
-                                                     thumb.classList.add('active');
-                                                 } else {
-                                                     thumb.style.borderColor = '#e0e0e0';
-                                                     thumb.classList.remove('active');
-                                                 }
-                                             });
-                                         }
-                                     } catch (e) {
-                                         console.error('[PRODUCT-CONTAINER] Error changing image:', e);
-                                     }
-                                 })()"
-                                 style="flex-shrink: 0; width: ${thumbDims.width}; height: ${thumbDims.height}; border-radius: 8px; overflow: hidden; cursor: pointer; border: 2px solid ${index === 0 ? 'var(--primary)' : '#e0e0e0'}; transition: all 0.3s ease;">
-                                <img src="${img.url}" alt="${img.altText || ''}" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s ease;">
+                                 data-image-url="${img.url}"
+                                 data-image-index="${index}"
+                                 style="width: ${thumbDims.width}; height: ${thumbDims.height};">
+                                <img src="${img.url}" 
+                                     alt="${img.altText || ''}" 
+                                     loading="${index > 2 ? 'lazy' : 'eager'}">
                             </div>
                         `).join('')}
                     </div>
                 ` : ''}
             </div>
+            
+            <script>
+                // PERFORMANCE OPTIMIZED: Event delegation with single listener
+                (function() {
+                    // Only attach once
+                    if (!window.productThumbnailListenerAttached) {
+                        window.productThumbnailListenerAttached = true;
+                        
+                        document.addEventListener('click', function(e) {
+                            const thumbnail = e.target.closest('.product-thumbnail');
+                            if (!thumbnail) return;
+                            
+                            const imageUrl = thumbnail.getAttribute('data-image-url');
+                            if (!imageUrl) return;
+                            
+                            const mainImage = document.getElementById('main-product-image');
+                            if (!mainImage) return;
+                            
+                            // Update main image
+                            mainImage.src = imageUrl;
+                            
+                            // Update active state (use CSS classes only)
+                            const container = thumbnail.closest('.product-images-container');
+                            if (container) {
+                                container.querySelectorAll('.product-thumbnail').forEach(t => {
+                                    t.classList.toggle('active', t === thumbnail);
+                                });
+                            }
+                        });
+                    }
+                })();
+            </script>
         `;
     },
     
@@ -594,7 +587,7 @@ window.WebsiteBuilderModules.ProductContainer = {
         switch(block.type) {
             case 'vendor':
                 if (config.showVendor !== false && product.vendor) {
-                    html += `<div class="product-vendor" style="font-family: ${bodyFont}; font-size: 14px; color: ${schemeColors.text}; opacity: 0.7; margin-bottom: 5px;">${product.vendor}</div>`;
+                    html += `<div class="product-vendor" style="font-family: ${bodyFont}; color: ${schemeColors.text};">${product.vendor}</div>`;
                 }
                 break;
                 
@@ -1477,6 +1470,30 @@ window.WebsiteBuilderModules.ProductContainer = {
     // Load product by handle
     loadProductByHandle: function(handle) {
         return new Promise((resolve, reject) => {
+            // First check if we have preloaded products
+            if (window.preloadedProductsByHandle && window.preloadedProductsByHandle[handle]) {
+                const product = window.preloadedProductsByHandle[handle];
+                console.log('[PRODUCT-CONTAINER] Using preloaded product:', product.title);
+                // Transform to match our expected format
+                const transformedProduct = {
+                    id: product.id,
+                    name: product.title,
+                    handle: product.handle,
+                    description: product.description,
+                    price: product.price,
+                    compareAtPrice: product.compareAtPrice,
+                    vendor: product.vendor,
+                    images: product.images?.map(img => ({
+                        id: img.id,
+                        url: img.imageUrl,
+                        altText: img.altText
+                    })) || []
+                };
+                resolve(transformedProduct);
+                return;
+            }
+            
+            // If not preloaded, fetch from API
             $.ajax({
                 url: `/api/builder/products/by-handle/${handle}`,
                 method: 'GET',

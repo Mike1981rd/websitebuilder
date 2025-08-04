@@ -1,6 +1,10 @@
 // Módulo Featured Collection para Website Builder
 console.log('[FEATURED COLLECTION MODULE] Loading featured collection module...');
 window.WebsiteBuilderModules = window.WebsiteBuilderModules || {};
+
+// Global promise for product data loading
+window.productDataPromise = null;
+
 window.WebsiteBuilderModules.FeaturedCollection = {
     // Data properties
     selectedProducts: [],
@@ -3335,38 +3339,64 @@ window.WebsiteBuilderModules.FeaturedCollection = {
         const isEditor = window.parent !== window;
         if (isEditor) {
             console.log('[FEATURED COLLECTION] In editor mode, skipping product data init');
-            return;
+            return Promise.resolve();
         }
         
-        // Cargar todos los productos disponibles
-        $.ajax({
-            url: '/api/builder/products',
+        // Check if we already have a promise in progress or completed
+        if (window.productDataPromise) {
+            console.log('[FEATURED COLLECTION] Returning existing product data promise');
+            return window.productDataPromise;
+        }
+        
+        // Detectar contexto para cache
+        const isCustomDomain = window.isCustomDomain || document.body.dataset.customDomain === 'true';
+        let url = '/api/builder/products';
+        
+        if (document.referrer.includes('/WebsiteBuilder')) {
+            url += `?_t=${new Date().getTime()}`;
+        } else if (isCustomDomain) {
+            const cacheKey = Math.floor(Date.now() / 30000);
+            url += `?_c=${cacheKey}`;
+        }
+        
+        // Create and store the promise
+        window.productDataPromise = $.ajax({
+            url: url,
             method: 'GET',
-            success: (products) => {
-                console.log('[FEATURED COLLECTION] Products loaded:', products.length);
-                window.WebsiteBuilderModules.FeaturedCollection.allProducts = products;
-                
-                // Crear cache de productos por ID
-                window.WebsiteBuilderModules.FeaturedCollection.productDataCache = {};
-                products.forEach(product => {
-                    // Los productos pueden venir con Id o id dependiendo del endpoint
-                    const productId = product.Id || product.id;
-                    window.WebsiteBuilderModules.FeaturedCollection.productDataCache[productId] = product;
-                });
-                
-                console.log('[FEATURED COLLECTION] Product data cache initialized');
-                
-                // Apply hover prevention after products are loaded and rendered
-                setTimeout(() => {
-                    if (window.preventCardHoverOnButtons) {
-                        window.preventCardHoverOnButtons();
-                    }
-                }, 500);
-            },
-            error: (xhr, status, error) => {
-                console.error('[FEATURED COLLECTION] Error loading products:', error);
+            cache: !url.includes('?'), // Solo cache si no hay parámetros
+            headers: {
+                'Cache-Control': isCustomDomain ? 'max-age=30' : 'max-age=300'
             }
+        }).then((products) => {
+            console.log('[FEATURED COLLECTION] Products loaded:', products.length);
+            window.WebsiteBuilderModules.FeaturedCollection.allProducts = products;
+            
+            // Crear cache de productos por ID
+            window.WebsiteBuilderModules.FeaturedCollection.productDataCache = {};
+            products.forEach(product => {
+                // Los productos pueden venir con Id o id dependiendo del endpoint
+                const productId = product.Id || product.id;
+                window.WebsiteBuilderModules.FeaturedCollection.productDataCache[productId] = product;
+            });
+            
+            console.log('[FEATURED COLLECTION] Product data cache initialized');
+            
+            // Apply hover prevention after products are loaded and rendered
+            setTimeout(() => {
+                if (window.preventCardHoverOnButtons) {
+                    window.preventCardHoverOnButtons();
+                }
+            }, 500);
+            
+            return products; // Return products for chaining
+        }).catch((error) => {
+            console.error('[FEATURED COLLECTION] Error loading products:', error);
+            // Clear the promise on error so it can be retried
+            window.productDataPromise = null;
+            throw error; // Re-throw to handle in calling code
         });
+        
+        return window.productDataPromise;
     }
 };
 
